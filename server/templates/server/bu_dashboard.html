@@ -22,9 +22,11 @@
 {% endblock %}
 {% block content %}
 {% if machine_groups.count > 0 %}
+<div class="row">
 {% for machine_group in machine_groups.all %}
-{{ machine_group.name }}
+<div class="span3 offset1 group_grid_item">{{ machine_group.name }}</div>
 {% endfor %}
+</div>
 {% else %}No Machine groups configured.{% endif %}
 
 {% endblock %}

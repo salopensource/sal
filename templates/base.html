@@ -1,4 +1,5 @@
 {% load i18n %}
+{% load bootstrap_toolkit %}
 <!DOCTYPE html>
 <html lang="en">
   <head>
@@ -10,14 +11,14 @@
 
     <!-- Le styles -->
 	<link href='http://fonts.googleapis.com/css?family=Lato:400,700' rel='stylesheet' type='text/css' />
-    <link href="/static/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+    {% bootstrap_stylesheet_tag %}
     <style type="text/css">
       body {
         padding-top: 60px;
         padding-bottom: 40px;
       }
     </style>
-    <link href="/static/bootstrap/css/bootstrap-responsive.css" rel="stylesheet">
+    {% bootstrap_stylesheet_tag "responsive" %}
 <link href="/static/style.css" rel="stylesheet">
 <link rel="stylesheet"
   href='/static/datatables-bootstrap.css' 
@@ -55,7 +56,7 @@
   			  <ul class="dropdown-menu" role="menu" aria-labelledby="dLabel">
 
   			  	<li><a href="/changepassword/">{% trans "Change password" %}</a></li>
-                <li><a href="/admin/">Administraton</a></li>
+                {% if user.is_staff %}<li><a href="/admin/">Administraton</a></li>{% endif %}
                 <li><a href="/logout/">{% trans "Log out" %}</a></li>
   			  </ul>
   			</li>
@@ -110,7 +111,7 @@
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
 <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.23/jquery-ui.min.js"></script>
 <script type="text/javascript" src="/static/jquery.dataTables.min.js"></script>
-<script type="text/javascript" src="/static/bootstrap/js/bootstrap.min.js"></script>
+{% bootstrap_javascript_tag %}
 
 <script type="text/javascript" src="/static/datatables-bootstrap.js"></script>
 {% block script %}

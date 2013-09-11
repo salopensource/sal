@@ -13,6 +13,8 @@ urlpatterns = patterns('server.views',
     # url(r'^approve/(?P<request_id>.+)/', 'approve', name='approve'),
     # checkin
     url(r'^checkin', 'checkin', name='checkin'),
-    # #manage
-    # url(r'^manage-requests/', 'managerequests', name='managerequests'),
+    # New Business Unit
+    url(r'^new-bu/', 'new_business_unit', name='new_business_unit'),
+    # New Machine Group
+    url(r'^new-machine-group/(?P<bu_id>.+)/', 'new_machine_group', name='new_machine_group'),
 )

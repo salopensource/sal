@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% load bootstrap_toolkit %}
+{% block content %}
+<h1>New Machine Group</h1>
+<h3>{{ business_unit.name }}</h3>
+{% if error_message %}<p><strong>{{ error_message }}</strong></p>{% endif %}
+
+    <form action="{% url 'new_machine_group' business_unit.id %}" method="post">{% csrf_token %}
+	
+        <table>
+	
+            {{ form|as_bootstrap }}
+        </table>
+        <p><button type="submit" class="btn primary">Save</button></p>
+    </form>
+{% endblock %}

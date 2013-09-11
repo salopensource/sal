@@ -41,6 +41,8 @@ class BusinessUnit(models.Model):
             
     def __unicode__(self):
         return self.name
+    class Meta:
+        ordering = ['name']
 
 class MachineGroup(models.Model):
     business_unit = models.ForeignKey(BusinessUnit)
@@ -48,6 +50,8 @@ class MachineGroup(models.Model):
     manifest = models.CharField(max_length=256)
     def __unicode__(self):
         return self.name
+    class Meta:
+        ordering = ['name']
     
 class Machine(models.Model):
     machine_group = models.ForeignKey(MachineGroup)
@@ -154,4 +158,6 @@ class Machine(models.Model):
         if "ConsoleUser" in plist:
             self.console_user = unicode(plist["ConsoleUser"])
         def __unicode__(self):
-            return self.serial
+            return self.hostname
+        class Meta:
+            ordering = ['hostname']

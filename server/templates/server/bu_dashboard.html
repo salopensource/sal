@@ -6,9 +6,12 @@
 {% endblock %}
 
 {% block nav %}
-
+{% if is_editor %}
+    <li><a href="{% url 'new_machine_group' business_unit.id %}">New Machine Group</a></li>
+{% endif %}
 {% endblock %}
 {% block content %}
+<div class="row"><div class="span4"><h3>{{ business_unit.name }}</h3></div></div>
 {% if machine_groups.count > 0 %}
 <div class="row">
     <div class="span4">

@@ -1,0 +1,69 @@
+#!/bin/bash
+function sal_curl
+{
+	# production mode
+	paramList=" --silent"
+
+	# debug mode
+	# paramList=""
+
+	if [ ! -z "${MWA_SSL_CERTIFICATE}" ]
+	then
+		# a cert was specified, can we find it?
+		if [ -e "${MWA_SSL_CERTIFICATE}" ]
+		then
+			paramList="${paramList} --cacert ${MWA_SSL_CERTIFICATE}"
+		else
+			echo "Cannot locate cert named '${MWA_SSL_CERTIFICATE}'"
+		fi
+	fi
+	for _param_ in $@
+	do
+		paramList="${paramList} ${_param_}"
+	done
+	/bin/bash -c "/usr/bin/curl$paramList"
+}
+
+SAL_HOST="http://localhost:8000"
+SAL_KEY="zuz6ct9qzh5ji6azi2h9orj1x0zy5u06lkebif916km7y0xd6burb7u68pt5etuc0rxmk5rvm4utwq9hgqlxjx2943u7p30ot925wbp1qubzk6va3m0b0tz56cwzr61u"
+
+REPORTSUBMITURL="${SAL_HOST}/checkin"
+
+RUNTYPE="$1"
+SERIAL=`system_profiler SPHardwareDataType | grep 'Serial Number (system)' | awk '{print $NF}'`
+MAC=`ifconfig en0 | awk '$1=="ether" {print $2}'`
+NAME=`/usr/sbin/scutil --get ComputerName`
+REPORTPATH="/Library/Managed Installs/ManagedInstallReport.plist"
+
+PLISTBUDDY="/usr/libexec/PlistBuddy"
+
+# Copy the report to a temporary file.
+TMPPLIST=/tmp/`head -c10 /dev/urandom | md5`.plist
+cp "$REPORTPATH" "$TMPPLIST"
+
+# Generate a system_profiler report.
+PROFILEPLIST=/tmp/`head -c10 /dev/urandom | md5`.plist
+/usr/sbin/system_profiler -xml SPNetworkDataType SPHardwareDataType > "$PROFILEPLIST"
+
+# Merge system profiler report with munki report.
+$PLISTBUDDY -c "Add :MachineInfo:SystemProfile array" "$TMPPLIST"
+$PLISTBUDDY -c "Merge $PROFILEPLIST :MachineInfo:SystemProfile" "$TMPPLIST"
+
+# Compress and encode report.
+REPORTTMP=`mktemp -t postflight`
+echo -n "base64bz2report=" > "$REPORTTMP"
+bzip2 --best < "$TMPPLIST" | openssl base64 >> "$REPORTTMP"
+
+# Submit Munki report to server.
+sal_curl --max-time 30 \
+    -d serial="$SERIAL" \
+    -d key="$SAL_KEY" \
+    -d mac="$MAC" \
+    -d name=\""$NAME"\" \
+    -d "@$REPORTTMP" \
+    "$REPORTSUBMITURL"
+    
+
+# Clean up and exit
+rm -f "$REPORTTMP" "$TMPPLIST" "$PROFILEPLIST"
+exit 0

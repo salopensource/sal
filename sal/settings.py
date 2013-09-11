@@ -2,6 +2,7 @@
 import os
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG
+APPEND_SLASH=False
 PROJECT_DIR = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), os.path.pardir))
 ADMINS = (
     # ('Your Name', 'your_email@example.com'),
@@ -94,6 +95,7 @@ TEMPLATE_LOADERS = (
     'django.template.loaders.app_directories.Loader',
 #     'django.template.loaders.eggs.Loader',
 )
+
 
 MIDDLEWARE_CLASSES = (
     'django.middleware.common.CommonMiddleware',

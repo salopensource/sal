@@ -1,9 +1,7 @@
 {% extends "base.html" %}
 {% load i18n %}
 {% load dashboard_extras %}
-
 {% block script %}
-
 
 {% endblock %}
 
@@ -11,23 +9,8 @@
 
 {% endblock %}
 {% block content %}
-<div class="row">
-    <div class="span4">
-        <legend>Business Units</legend>
-        <table class="table table-striped table-condensed table-bordered">
-            {% for business_unit in business_units.all %}
-            <tr>
-                <td><a href="{% url 'bu_dashboard' business_unit.id %}">{{ business_unit.name }}
-                    <span class="badge badge-info pull-right">
-                        {{ business_unit.id|bu_machine_count }}
-                    </span>
-                    </a>
-                </td>
-            </tr>
 
-            {% endfor %}
-        </table>
-    </div>
+<div class="row">
     <div class="span4">
         <legend>Status</legend>
         <table class="table table-striped table-condensed table-bordered">
@@ -69,5 +52,6 @@
         </table>
     </div>
 </div>
+
 
 {% endblock %}

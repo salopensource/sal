@@ -1,19 +1,7 @@
 {% extends "base.html" %}
 {% load i18n %}
-
+{% load dashboard_extras %}
 {% block script %}
-<script type="text/javascript" charset="utf-8">
-    $(document).ready(function() {
-        $('.groupList').dataTable({
-            "sDom": "<'row'<'span6'l><'span6'f>r>t<'row'<'span6'i><'span6'p>>",
-            "iDisplayLength": 20,
-            "aLengthMenu": [[20, 50, -1], [20, 50, "All"]],
-            "sPaginationType": "bootstrap",
-            "bStateSave": true,
-            "aaSorting": [[1,'asc']]
-        });
-    } );
-</script>
 
 {% endblock %}
 
@@ -23,9 +11,21 @@
 {% block content %}
 {% if machine_groups.count > 0 %}
 <div class="row">
-{% for machine_group in machine_groups.all %}
-<div class="span3 offset1 group_grid_item">{{ machine_group.name }}</div>
-{% endfor %}
+    <div class="span4">
+        <legend>Groups</legend>
+        <table class="table table-striped table-condensed table-bordered">
+            {% for machine_group in machine_groups.all %}
+            <tr>
+                <td><a href="{% url 'group_dashboard' machine_group.id %}">{{ machine_group.name }}
+                    <span class="badge badge-info pull-right">
+                        {{ machine_group.machine_set.count }}
+                    </span>
+                    </a>
+                </td>
+            </tr>
+            {% endfor %}
+        </table>
+    </div>
 </div>
 {% else %}No Machine groups configured.{% endif %}
 

@@ -68,9 +68,6 @@ class Machine(models.Model):
     errors = models.IntegerField(default=0)
     warnings = models.IntegerField(default=0)
     activity = models.TextField(editable=False, null=True)
-    
-    def hostname(self):
-        return self.machine.hostname
         
     def encode(self, plist):
         string = plistlib.writePlistToString(plist)

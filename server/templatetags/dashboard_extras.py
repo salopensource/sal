@@ -24,10 +24,10 @@ humanreadablesize.is_safe = True
 def bu_machine_count(bu_id):
     """Returns the number of machines contained within the child Machine Groups. Input is BusinessUnit.id"""
     # Get the BusinessUnit
-    bu_id = str(bu_id)
+    #bu_id = int(bu_id)
     business_unit = get_object_or_404(BusinessUnit, pk=bu_id)
     machine_groups = business_unit.machinegroup_set.all()
     count = 0
     for machinegroup in machine_groups:
-        count = count + int(machinegroup.machine_set.count())
-        return count
+        count = count + machinegroup.machine_set.count()    
+    return count

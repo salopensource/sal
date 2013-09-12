@@ -30,6 +30,109 @@
         </table>
     </div>
 </div>
+<div class="row">
+    <div class="span4">
+        <legend>Activity</legend>
+        <table class="table table-striped table-condensed table-bordered">
+            <tr>
+                <td>
+                    {% if machine_data.checked_in_this_hour %}<a href="#">{% endif %}
+                    Machines this hour
+                    <span class="badge badge-info pull-right">
+                        {{ machine_data.checked_in_this_hour }}
+                    </span>
+                    {% if machine_data.checked_in_this_hour %}</a>{% endif %}
+                </td>
+            </tr>
+            <tr>
+                <td>{% if machine_data.checked_in_today %}<a href="#">{% endif %}
+                    Machines today
+                    <span class="badge badge-info pull-right">
+                        {{ machine_data.checked_in_today }}
+                    </span>
+                    {% if machine_data.checked_in_today %}</a>{% endif %}
+                </td>
+            </tr>
+            <tr>
+                <td>{% if machine_data.checked_in_this_week %}<a href="#">{% endif %}
+                    Machines this week
+                    <span class="badge badge-info pull-right">
+                        {{ machine_data.checked_in_this_week }}
+                    </span>
+                    {% if machine_data.checked_in_this_hour %}</a>{% endif %}
+                </td>
+            </tr>
+            <tr>
+                <td>{% if machine_data.inactive_for_a_month %}<a href="#">{% endif %}
+                    Inactive for a month
+                    <span class="badge badge-warning pull-right">
+                        {{ machine_data.inactive_for_a_month }}
+                    </span>
+                    {% if machine_data.inactive_for_a_month %}</a>{% endif %}
+                </td>
+            </tr>
+            <tr>
+                <td>{% if machine_data.inactive_for_three_months %}<a href="#">{% endif %}
+                    Inactive for three months
+                    <span class="badge badge-important pull-right">
+                        {{ machine_data.inactive_for_three_months }}
+                    </span>
+                    {% if machine_data.inactive_for_three_months %}</a>{% endif %}
+                </td>
+            </tr>
+        </table>
+        
+    </div>
+    <div class="span4">
+        <legend>Status</legend>
+        <table class="table table-striped table-condensed table-bordered">
+            <tr>
+                <td>
+                    {% if machine_data.errors %}<a href="#">{% endif %}
+                    Clients with errors
+                    <span class="badge badge-important pull-right">
+                        {{ machine_data.errors }}
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td>{% if machine_data.warnings %}<a href="#">{% endif %}
+                    Clients with warnings
+                    <span class="badge badge-warning pull-right">
+                        {{ machine_data.warnings }}
+                    </span>
+                    {% if machine_data.warnings %}</a>{% endif %}
+                </td>
+            </tr>
+            <tr>
+                <td>{% if machine_data.activity %}<a href="#">{% endif %}
+                    Clients with activity
+                    <span class="badge badge-info pull-right">
+                        {{ machine_data.activity }}
+                    </span>
+                    {% if machine_data.activity %}</a>{% endif %}
+                </td>
+            </tr>
+        </table>
+    </div>
+    <div class="span4">
+        <legend>Operating System breakdown</legend>
+        <div class="widget-content">
+            <table class="table table-striped table-condensed table-bordered">
+            {% for item in os_info|dictsort:'operating_system' %}
+                <tr>
+                    <td>
+                        <a href="#">
+                        {{ item.operating_system }}
+                        <span class="badge pull-right">{{ item.count }}</span>
+                        </a>
+                    </td>
+                </tr>
+            {% endfor %}
+            </table>
+        </div>
+    </div>
+</div>
 {% else %}No Machine groups configured.{% endif %}
 
 {% endblock %}

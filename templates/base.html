@@ -4,7 +4,7 @@
 <html lang="en">
   <head>
     <meta charset="utf-8">
-    <title>{% block title %}Sal{% endblock %}</title>
+    <title>{% block title %}{{ DISPLAY_NAME }}{% endblock %}</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="">
     <meta name="author" content="">
@@ -40,7 +40,7 @@
             <span class="icon-bar"></span>
             <span class="icon-bar"></span>
           </a>
-          <a class="brand" href="{% url 'home' %}">Sal</a>
+          <a class="brand" href="{% url 'home' %}">{{ DISPLAY_NAME }}</a>
           <div class="nav-collapse collapse">
             <ul class="nav pull-right">
 				
@@ -74,7 +74,7 @@
 		{% block content %}
       <!-- Main hero unit for a primary marketing message or call to action -->
       <div class="hero-unit">
-        <h1>Sal</h1>
+        <h1>{{ DISPLAY_NAME }}</h1>
         <p>You need to log in first before doing anything</p>
         <p><a class="btn btn-primary btn-large">Learn more &raquo;</a></p>
       </div>

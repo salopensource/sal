@@ -36,7 +36,7 @@
         {% for item in machines.all %}
         <tr>
             <td>
-                <a href="#">
+                <a href="{% url 'machine_detail' req_type item.id %}">
                 {% if item.hostname %}
                     {{ item.hostname }}
                 {% else %}

@@ -9,7 +9,14 @@
 
 {% endblock %}
 {% block content %}
-<div class="row"><div class="span4"><h3>{{ machine_group.name }}</h3></div></div>
+<div class="row">
+    <div class="span4">
+        <h3>{{ machine_group.name }}</h3>
+        {% if user_level == "GA" %}
+        Munki Manifest: <code>{{ machine_group.manifest }}</code>
+        {% endif %}
+    </div>
+</div>
 <div class="row">
     <div class="span4">
         <legend>Activity</legend>

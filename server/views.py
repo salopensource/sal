@@ -11,7 +11,9 @@ from django.core.context_processors import csrf
 from django.shortcuts import render_to_response, get_object_or_404, redirect
 from datetime import datetime, timedelta, date
 from django.db.models import Count
+from django.contrib import messages
 import plistlib
+import ast
 from forms import *
 
 @login_required 
@@ -131,7 +133,8 @@ def bu_dashboard(request, bu_id):
     user_level = user.userprofile.level
     business_unit = get_object_or_404(BusinessUnit, pk=bu_id)
     bu = business_unit
-    if business_unit not in user.businessunit_set.all():
+    if business_unit not in user.businessunit_set.all() or user_level != 'GA':
+        print 'not letting you in' + user_level
         return redirect(index)
     # Get the groups within the Business Unit
     machine_groups = business_unit.machinegroup_set.all()
@@ -192,7 +195,7 @@ def bu_dashboard(request, bu_id):
         count = count + Machine.objects.filter(activity__isnull=False, machine_group=machine_group).count()
     machine_data['activity'] = count
     
-    c = {'user': request.user, 'machine_groups': machine_groups, 'is_editor': is_editor, 'business_unit': business_unit, 'os_info': os_info, 'machine_data': machine_data}
+    c = {'user': request.user, 'machine_groups': machine_groups, 'is_editor': is_editor, 'business_unit': business_unit, 'os_info': os_info, 'machine_data': machine_data, 'user_level': user_level}
     return render_to_response('server/bu_dashboard.html', c, context_instance=RequestContext(request))
 
 # Machine Group Dashboard
@@ -203,7 +206,7 @@ def group_dashboard(request, group_id):
     user_level = user.userprofile.level
     machine_group = get_object_or_404(MachineGroup, pk=group_id)
     business_unit = machine_group.business_unit
-    if business_unit not in user.businessunit_set.all():
+    if business_unit not in user.businessunit_set.all() or user_level != 'GA':
         return redirect(index)
     if user_level == 'GA' or user_level == 'RW':
         is_editor = True
@@ -271,7 +274,8 @@ def overview_list_group(request, group_id, req_type, data):
     activity = None
     inactivity = None
     user = request.user
-    if business_unit not in user.businessunit_set.all():
+    user_level = user.userprofile.level
+    if business_unit not in user.businessunit_set.all() or user_level != 'GA':
         return redirect(index)
     
     now = datetime.now()
@@ -309,17 +313,89 @@ def overview_list_group(request, group_id, req_type, data):
     return render_to_response('server/overview_list_group.html', c, context_instance=RequestContext(request))
 
 # Machine detail
+@login_required
+def machine_detail(request, req_type, machine_id):
+    # check the user is in a BU that's allowed to see this Machine
+    machine = get_object_or_404(Machine, pk=machine_id)
+    machine_group = machine.machine_group
+    business_unit = machine_group.business_unit
+    user = request.user
+    user_level = user.userprofile.level
+    if business_unit not in user.businessunit_set.all() or user_level != 'GA':
+        return redirect(index)
+    
+    report = machine.get_report()
+    #report = plistlib.readPlistFromString(report)
+    #report = ast.literal_eval(report)
+    #return HttpResponse(report)
+    install_results = {}
+    for result in report.get('InstallResults', []):
+        nameAndVers = result['name'] + '-' + result['version']
+        if result['status'] == 0:
+            install_results[nameAndVers] = "installed"
+        else:
+            install_results[nameAndVers] = 'error'
+    
+    if install_results:         
+        for item in report.get('ItemsToInstall', []):
+            name = item.get('display_name', item['name'])
+            nameAndVers = ('%s-%s' 
+                % (name, item['version_to_install']))
+            item['install_result'] = install_results.get(
+                nameAndVers, 'pending')
+                
+        for item in report.get('ManagedInstalls', []):
+            if 'version_to_install' in item:
+                name = item.get('display_name', item['name'])
+                nameAndVers = ('%s-%s' 
+                    % (name, item['version_to_install']))
+                if install_results.get(nameAndVers) == 'installed':
+                    item['installed'] = True
+                    
+    # handle items that were removed during the most recent run
+    # this is crappy. We should fix it in Munki.
+    removal_results = {}
+    for result in report.get('RemovalResults', []):
+        m = re.search('^Removal of (.+): (.+)$', result)
+        if m:
+            try:
+                if m.group(2) == 'SUCCESSFUL':
+                    removal_results[m.group(1)] = 'removed'
+                else:
+                    removal_results[m.group(1)] = m.group(2)
+            except IndexError:
+                pass
+    
+    if removal_results:
+        for item in report.get('ItemsToRemove', []):
+            name = item.get('display_name', item['name'])
+            item['install_result'] = removal_results.get(
+                name, 'pending')
+            if item['install_result'] == 'removed':
+                if not 'RemovedItems' in report:
+                    report['RemovedItems'] = [item['name']]
+                elif not name in report['RemovedItems']:
+                    report['RemovedItems'].append(item['name'])
+                
+    if 'managed_uninstalls_list' in report:
+        report['managed_uninstalls_list'].sort()
+    
+    c = {'user':user, 'req_type': req_type, 'machine_group': machine_group, 'business_unit': business_unit, 'report': report, 'install_results': install_results, 'removal_results': removal_results, 'machine': machine }
+    return render_to_response('server/machine_detail.html', c, context_instance=RequestContext(request))
 
 # checkin
 @csrf_exempt
 def checkin(request):
     if request.method != 'POST':
+        print 'not post data'
         raise Http404
     
     data = request.POST
     key = data.get('key')
     serial = data.get('serial')
     business_unit = get_object_or_404(BusinessUnit, key=key)
+    if not business_unit:
+        print 'no business unit'
     
     # look for serial number - if it doesn't exist, create one
     if serial:
@@ -337,11 +413,12 @@ def checkin(request):
         
         # extract machine data from the report
         report_data = machine.get_report()
-        machine.report = report_data
         # find the matching group based on manifest
         if 'ManifestName' in report_data:
             manifest = report_data['ManifestName']
             machine_group = get_object_or_404(MachineGroup, business_unit=business_unit, manifest=manifest)
+            if not machine_group:
+                print 'no machine group found'
             machine.machine_group = machine_group
             machine.manifest = manifest
         if 'MachineInfo' in report_data:
@@ -356,8 +433,12 @@ def checkin(request):
                     hwinfo = profile._items[0]
                     break
         if hwinfo:
+            machine.machine_model = hwinfo.get('machine_model') and hwinfo.get('machine_model') or u'unknown'
+            machine.cpu_type = hwinfo.get('cpu_type') and hwinfo.get('cpu_type') or u'unknown'
+            machine.cpu_speed = hwinfo.get('current_processor_speed') and hwinfo.get('current_processor_speed') or u'0'
             machine.memory = hwinfo.get('physical_memory') and hwinfo.get('physical_memory') or u'0'
-            
+        #machine.report = plistlib.writePlistToString(report_data)
         machine.save()
+        # 
         return HttpResponse("Sal report submmitted for %s.\n" 
                             % data.get('name'))

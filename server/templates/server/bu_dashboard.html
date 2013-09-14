@@ -11,7 +11,18 @@
 {% endif %}
 {% endblock %}
 {% block content %}
-<div class="row"><div class="span4"><h3>{{ business_unit.name }}</h3></div></div>
+<div class="row">
+    <div class="span4">
+        <h3>{{ business_unit.name }}</h3>
+    </div>
+</div>
+<div class="row">
+    <div class="span12">
+        {% if user_level == "GA" %}
+        Key: <code>{{ business_unit.key }}</code>
+        {% endif %}
+    </div>
+</div>
 {% if machine_groups.count > 0 %}
 <div class="row">
     <div class="span4">

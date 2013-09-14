@@ -1,0 +1,42 @@
+{% load dashboard_extras %}
+{% if pkglist|length %}
+  <h3>{{ title }} <span class="badge badge-info">{{ pkglist|length }}</span></h3>
+  <table class="client_info table table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Size</th>
+        <th>Status</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for item in pkglist|dictsort:"display_name" %}
+      <tr>
+        <td>
+          {% if item.display_name|length %}
+            {{ item.display_name }}
+          {% else %}
+            {{ item.name }}
+          {% endif %}
+          {{ item.version_to_install }}
+          {{ item.installed_version }}
+        </td>
+        <td style="text-align: right;">
+          {{ item.installed_size|humanreadablesize }} 
+       </td>
+        <td>
+          {% if 'install_result' in item %}
+            {{ item.install_result }}
+          {% else %}
+            {% if item.installed %}
+              installed
+            {% else %}
+              <span class='error'>not installed</span>
+            {% endif %}
+          {% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{% endif %}

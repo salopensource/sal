@@ -1,0 +1,151 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% load dashboard_extras %}
+
+{% block script %}
+
+
+{% endblock %}
+
+{% block nav %}
+{% endblock %}
+{% block content %}
+<div class="row">
+    <div class="span8">
+        <h2>{{ machine.hostname }}</h2>
+        <p>
+          <b>Report</b> 
+          <span title="Last report date">
+                  :: {{ machine.last_checkin|date:"Y-m-d H:i" }}
+          </span>
+        </p>
+        <p>
+            <a href="{% url 'bu_dashboard' business_unit.id %}">{{ business_unit.name }}</a> <i class="icon-chevron-right"></i> <a href="{% url 'group_dashboard' machine_group.id %}">{{ machine_group.name }}</a>{% if req_type == 'operating_system' %} <i class="icon-chevron-right"></i> <a href="{% url 'overview_list_group' machine_group.id 'operating_system' machine.operating_system %}">{{ machine.operating_system }}</a>{% endif %}
+        </p>
+      </div>
+</div>
+<div class="row">
+  <div class="span6">
+    <h3>Machine</h3>
+    <table class="table table-condensed">
+      <tbody>
+        <tr>
+          <th>Model:</th>
+          <td>
+            {{ machine.machine_model }}
+            {{ machine.cpu_type }}
+            {{ machine.cpu_speed}}
+          </td>
+        </tr>
+        <tr>
+          <th>RAM:</th>
+          <td>{{ machine.memory }}</td>
+        </tr>
+        <tr>
+          <th>Serial:</th>
+          <td>{{ machine.serial }}</td>
+        </tr>
+        {% if 'MachineInfo' in report %}
+        <tr>
+          <th>Hostname:</th>
+          <td>{{ report.MachineInfo.hostname }}</td>
+        </tr>
+        <tr>
+          <th>OS version:</th>
+          <td>{{ report.MachineInfo.os_vers }}
+              {{ report.MachineInfo.arch }}</td>
+        </tr>
+        {% endif %}
+        <tr>
+          <th>Free disk space:</th>
+          <td>{{ report.AvailableDiskSpace|humanreadablesize  }}</td>
+        </tr>
+        <tr>
+          <th>Console user:</th>
+          <td>{{ report.ConsoleUser }}</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <div class='span4'>
+    <h3>Managed Software Update</h3>
+    <table class="client_info table table-condensed">
+      <tbody>
+        <tr>
+          <th>Version:</th>
+          <td>{{ report.ManagedInstallVersion }}</td>
+        </tr>
+        {% if 'ManifestName' in report %}
+        <tr>
+          <th>Manifest:</th>
+          <td>
+            {{ report.ManifestName }}</a>
+          </td>
+        </tr>
+        {% endif %}
+        <tr>
+          <th>Run Type:</th>
+          <td>{{ report.RunType }}</td>
+        </tr>
+        <tr>
+          <th>Start:</th>
+          <td>{{ report.StartTime }}</td>
+        </tr>
+        <tr>
+          <th>End:</th>
+          <td>{{ report.EndTime }}</td>
+        </tr>
+      </tbody>
+    </table>
+ </div>
+</div>
+ <div class="row">
+   <div class="span8">
+ {% with title='Apple Updates' pkglist=report.AppleUpdates %}
+   {% include 'server/pkgtable.html' %}
+ {% endwith %}
+ {% with title='Active Installs' pkglist=report.ItemsToInstall %}
+   {% include 'server/pkgtable.html' %}
+ {% endwith %}
+ {% with title='Active Removals' pkglist=report.ItemsToRemove %}
+   {% include 'server/pkgtable.html' %}
+ {% endwith %}
+ {% with title='Problem Installs' pkglist=report.ProblemInstalls %}
+   {% include 'server/pkgtable.html' %}
+ {% endwith %}
+   </div>
+ </div>
+ <div class="row">
+   <div class="span8">
+       {% with title='Managed Installs' pkglist=report.ManagedInstalls %}
+         {% include 'server/pkgtable.html' %}
+       {% endwith %}
+   </div>
+   <div class="span4">
+       {% if 'managed_uninstalls_list' in report %}
+         <h3>Managed Uninstalls <span class="badge badge-info">{{ report.managed_uninstalls_list|length }}</span></h3>
+         <table class="client_info table table-striped table-condensed">
+           <thead>
+             <tr>
+               <th>Name</th>
+               <th>Status</th>
+             </tr>
+           </thead>
+           <tbody>
+             {% for item in report.managed_uninstalls_list %}
+             <tr>
+               <td>{{ item }}</td>
+               {% if item in report.RemovedItems %}
+                 <td>not installed</td>
+               {% else %}
+                 <td class='error'>installed</td>
+               {% endif %}
+             </tr>
+             {% endfor %}
+           </tbody>
+         </table>
+       {% endif %}
+   </div>
+ </div>
+ 
+{% endblock %}

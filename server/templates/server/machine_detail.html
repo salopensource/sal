@@ -12,15 +12,15 @@
 {% block content %}
 <div class="row">
     <div class="span8">
+        <p>
+            <a href="{% url 'bu_dashboard' business_unit.id %}">{{ business_unit.name }}</a> <i class="icon-chevron-right"></i> <a href="{% url 'group_dashboard' machine_group.id %}">{{ machine_group.name }}</a>{% if req_type == 'operating_system' %} <i class="icon-chevron-right"></i> <a href="{% url 'overview_list_group' machine_group.id 'operating_system' machine.operating_system %}">{{ machine.operating_system }}</a>{% endif %}
+        </p>
         <h2>{{ machine.hostname }}</h2>
         <p>
           <b>Report</b> 
           <span title="Last report date">
                   :: {{ machine.last_checkin|date:"Y-m-d H:i" }}
           </span>
-        </p>
-        <p>
-            <a href="{% url 'bu_dashboard' business_unit.id %}">{{ business_unit.name }}</a> <i class="icon-chevron-right"></i> <a href="{% url 'group_dashboard' machine_group.id %}">{{ machine_group.name }}</a>{% if req_type == 'operating_system' %} <i class="icon-chevron-right"></i> <a href="{% url 'overview_list_group' machine_group.id 'operating_system' machine.operating_system %}">{{ machine.operating_system }}</a>{% endif %}
         </p>
       </div>
 </div>

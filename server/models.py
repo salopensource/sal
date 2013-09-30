@@ -55,17 +55,13 @@ class MachineGroup(models.Model):
     
 class Machine(models.Model):
     machine_group = models.ForeignKey(MachineGroup)
-    serial = models.CharField(max_length=100, unique=True)
+    serial = models.CharField(max_length=100, unique=True, primary_key=True)
     hostname = models.CharField(max_length=256, null=True)
     operating_system = models.CharField(max_length=256)
     memory = models.CharField(max_length=256)
     munki_version = models.CharField(max_length=256)
     manifest = models.CharField(max_length=256)
     hd_space = models.CharField(max_length=256)
-    machine_model = models.CharField(max_length=64, blank=True, default="virtual-machine")
-    cpu_type = models.CharField(max_length=64, blank=True)
-    cpu_speed = models.CharField(max_length=32, blank=True)
-    cpu_arch = models.CharField(max_length=32, blank=True)
     console_user = models.CharField(max_length=256)
     last_checkin = models.DateTimeField(blank=True,null=True)
     report = models.TextField(editable=False, null=True)

@@ -7,6 +7,8 @@ urlpatterns = patterns('server.views',
     url(r'^dashboard/(?P<bu_id>.+)/', 'bu_dashboard', name='bu_dashboard'),
     # Overview List (Group)
     url(r'^machinegroup/overview/(?P<group_id>.+)/(?P<req_type>.+)/(?P<data>.+)/$', 'overview_list_group', name='overview_list_group'),
+    # Overview List (All)
+    url(r'^overview/(?P<req_type>.+)/(?P<data>.+)/$', 'overview_list_all', name='overview_list_all'),
     # Group Dashboard
     url(r'^machinegroup/(?P<group_id>.+)/', 'group_dashboard', name='group_dashboard'),
     # Machine detail

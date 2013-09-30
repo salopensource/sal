@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block script %}
+<script type="text/javascript" charset="utf-8">
+    $(document).ready(function() {
+        $('.groupList').dataTable({
+            "sDom": "<'row'<'span6'l><'span6'f>r>t<'row'<'span6'i><'span6'p>>",
+            "iDisplayLength": 20,
+            "aLengthMenu": [[20, 50, -1], [20, 50, "All"]],
+            "sPaginationType": "bootstrap",
+            "bStateSave": true,
+            "aaSorting": [[1,'asc']]
+        });
+    } );
+</script>
+
+{% endblock %}
+
+{% block nav %}
+
+{% endblock %}
+{% block content %}
+{% if req_type == 'operating_system' %}
+<h3>Machines running {{ data }}</h3>
+{% endif %}
+<table class="groupList table table-striped table-condensed">
+    <thead>
+        <tr>
+          <th>Machine</th>
+          <th>User</th>
+          <th>Latest Run</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for item in machines.all %}
+        <tr>
+            <td>
+                <a href="{% url 'machine_detail' req_type item.id %}">
+                {% if item.hostname %}
+                    {{ item.hostname }}
+                {% else %}
+                    {{ item.serial }}
+                {% endif %}
+                </a>
+            </td>
+        
+            <td>{{ item.console_user }}</td>
+            <td>{{ item.last_checkin }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+{% endblock %}

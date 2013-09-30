@@ -133,8 +133,9 @@ def bu_dashboard(request, bu_id):
     user_level = user.userprofile.level
     business_unit = get_object_or_404(BusinessUnit, pk=bu_id)
     bu = business_unit
-    if business_unit not in user.businessunit_set.all() or user_level != 'GA':
-        print 'not letting you in' + user_level
+    print user.businessunit_set.all()
+    if business_unit not in user.businessunit_set.all() and user_level != 'GA':
+        print 'not letting you in ' + user_level
         return redirect(index)
     # Get the groups within the Business Unit
     machine_groups = business_unit.machinegroup_set.all()
@@ -197,6 +198,53 @@ def bu_dashboard(request, bu_id):
     
     c = {'user': request.user, 'machine_groups': machine_groups, 'is_editor': is_editor, 'business_unit': business_unit, 'os_info': os_info, 'machine_data': machine_data, 'user_level': user_level}
     return render_to_response('server/bu_dashboard.html', c, context_instance=RequestContext(request))
+
+# Overview list (all)
+@login_required
+def overview_list_all(request, req_type, data):
+    # get all the BU's that the user has access to
+    user = request.user
+    business_units = user.businessunit_set.all
+    operating_system = None
+    activity = None
+    inactivity = None
+    # get all of the groups in those BU's
+    
+    machines = user.businessunit_set.select_related('machine_group').order_by('machine')
+    
+    now = datetime.now()
+    hour_ago = now - timedelta(hours=1)
+    today = date.today()
+    week_ago = today - timedelta(days=7)
+    month_ago = today - timedelta(days=30)
+    three_months_ago = today - timedelta(days=90)
+    
+    if req_type == 'operating_system':
+        operating_system = data
+    
+    if req_type == 'activity':
+        activity = data
+    
+    if req_type == 'inactivity':
+        inactivity = data
+    
+    if activity is not None:
+        if data == '1-hour':
+            machines = Machine.objects.filter(last_checkin__gte=hour_ago)
+        if data == 'today':
+            machines = Machine.objects.filter(last_checkin__gte=today)
+        if data == '1-week':
+            machines = Machine.objects.filter(last_checkin__gte=week_ago)
+    if inactivity is not None:
+        if data == '1-month':
+            machines = Machine.objects.filter(last_checkin__range=(three_months_ago, month_ago))
+        if data == '3-months':
+            machines = Machine.objects.exclude(last_checkin__gte=three_months_ago)
+    
+    if operating_system is not None:
+        machines = Machine.objects.filter(operating_system__exact=operating_system)
+    c = {'user':user, 'machines': machines, 'req_type': req_type, 'data': data }
+    return render_to_response('server/overview_list_all.html', c, context_instance=RequestContext(request))
 
 # Machine Group Dashboard
 @login_required 
@@ -325,9 +373,6 @@ def machine_detail(request, req_type, machine_id):
         return redirect(index)
     
     report = machine.get_report()
-    #report = plistlib.readPlistFromString(report)
-    #report = ast.literal_eval(report)
-    #return HttpResponse(report)
     install_results = {}
     for result in report.get('InstallResults', []):
         nameAndVers = result['name'] + '-' + result['version']
@@ -420,6 +465,7 @@ def checkin(request):
             if not machine_group:
                 print 'no machine group found'
             machine.machine_group = machine_group
+            # print machine_group
             machine.manifest = manifest
         if 'MachineInfo' in report_data:
             machine.operating_system = report_data['MachineInfo'].get(

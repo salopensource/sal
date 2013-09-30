@@ -11,7 +11,8 @@ class Migration(SchemaMigration):
         # Adding model 'UserProfile'
         db.create_table(u'server_userprofile', (
             (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('user', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['auth.User'], unique=True)),
+            ('user', self.gf('django.db.models.fields.related.OneToOneField')(to=orm['auth.User'], unique=True)),
+            ('level', self.gf('django.db.models.fields.CharField')(default='SO', max_length=2)),
         ))
         db.send_create_signal(u'server', ['UserProfile'])
 
@@ -19,7 +20,7 @@ class Migration(SchemaMigration):
         db.create_table(u'server_businessunit', (
             (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
             ('name', self.gf('django.db.models.fields.CharField')(max_length=100)),
-            ('key', self.gf('django.db.models.fields.CharField')(max_length=256)),
+            ('key', self.gf('django.db.models.fields.CharField')(max_length=256, unique=True, null=True, blank=True)),
         ))
         db.send_create_signal(u'server', ['BusinessUnit'])
 
@@ -44,13 +45,24 @@ class Migration(SchemaMigration):
         # Adding model 'Machine'
         db.create_table(u'server_machine', (
             (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('serial', self.gf('django.db.models.fields.CharField')(max_length=100)),
-            ('hostname', self.gf('django.db.models.fields.CharField')(max_length=256)),
+            ('machine_group', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['server.MachineGroup'])),
+            ('serial', self.gf('django.db.models.fields.CharField')(unique=True, max_length=100)),
+            ('hostname', self.gf('django.db.models.fields.CharField')(max_length=256, null=True)),
             ('operating_system', self.gf('django.db.models.fields.CharField')(max_length=256)),
             ('memory', self.gf('django.db.models.fields.CharField')(max_length=256)),
             ('munki_version', self.gf('django.db.models.fields.CharField')(max_length=256)),
             ('manifest', self.gf('django.db.models.fields.CharField')(max_length=256)),
             ('hd_space', self.gf('django.db.models.fields.CharField')(max_length=256)),
+            ('machine_model', self.gf('django.db.models.fields.CharField')(default='virtual-machine', max_length=64, blank=True)),
+            ('cpu_type', self.gf('django.db.models.fields.CharField')(max_length=64, blank=True)),
+            ('cpu_speed', self.gf('django.db.models.fields.CharField')(max_length=32, blank=True)),
+            ('cpu_arch', self.gf('django.db.models.fields.CharField')(max_length=32, blank=True)),
+            ('console_user', self.gf('django.db.models.fields.CharField')(max_length=256)),
+            ('last_checkin', self.gf('django.db.models.fields.DateTimeField')(null=True, blank=True)),
+            ('report', self.gf('django.db.models.fields.TextField')(null=True)),
+            ('errors', self.gf('django.db.models.fields.IntegerField')(default=0)),
+            ('warnings', self.gf('django.db.models.fields.IntegerField')(default=0)),
+            ('activity', self.gf('django.db.models.fields.TextField')(null=True)),
         ))
         db.send_create_signal(u'server', ['Machine'])
 
@@ -110,25 +122,36 @@ class Migration(SchemaMigration):
             'name': ('django.db.models.fields.CharField', [], {'max_length': '100'})
         },
         u'server.businessunit': {
-            'Meta': {'object_name': 'BusinessUnit'},
+            'Meta': {'ordering': "['name']", 'object_name': 'BusinessUnit'},
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'key': ('django.db.models.fields.CharField', [], {'max_length': '256'}),
+            'key': ('django.db.models.fields.CharField', [], {'max_length': '256', 'unique': 'True', 'null': 'True', 'blank': 'True'}),
             'name': ('django.db.models.fields.CharField', [], {'max_length': '100'}),
             'users': ('django.db.models.fields.related.ManyToManyField', [], {'to': u"orm['auth.User']", 'symmetrical': 'False'})
         },
         u'server.machine': {
             'Meta': {'object_name': 'Machine'},
+            'activity': ('django.db.models.fields.TextField', [], {'null': 'True'}),
+            'console_user': ('django.db.models.fields.CharField', [], {'max_length': '256'}),
+            'cpu_arch': ('django.db.models.fields.CharField', [], {'max_length': '32', 'blank': 'True'}),
+            'cpu_speed': ('django.db.models.fields.CharField', [], {'max_length': '32', 'blank': 'True'}),
+            'cpu_type': ('django.db.models.fields.CharField', [], {'max_length': '64', 'blank': 'True'}),
+            'errors': ('django.db.models.fields.IntegerField', [], {'default': '0'}),
             'hd_space': ('django.db.models.fields.CharField', [], {'max_length': '256'}),
-            'hostname': ('django.db.models.fields.CharField', [], {'max_length': '256'}),
+            'hostname': ('django.db.models.fields.CharField', [], {'max_length': '256', 'null': 'True'}),
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'last_checkin': ('django.db.models.fields.DateTimeField', [], {'null': 'True', 'blank': 'True'}),
+            'machine_group': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['server.MachineGroup']"}),
+            'machine_model': ('django.db.models.fields.CharField', [], {'default': "'virtual-machine'", 'max_length': '64', 'blank': 'True'}),
             'manifest': ('django.db.models.fields.CharField', [], {'max_length': '256'}),
             'memory': ('django.db.models.fields.CharField', [], {'max_length': '256'}),
             'munki_version': ('django.db.models.fields.CharField', [], {'max_length': '256'}),
             'operating_system': ('django.db.models.fields.CharField', [], {'max_length': '256'}),
-            'serial': ('django.db.models.fields.CharField', [], {'max_length': '100'})
+            'report': ('django.db.models.fields.TextField', [], {'null': 'True'}),
+            'serial': ('django.db.models.fields.CharField', [], {'unique': 'True', 'max_length': '100'}),
+            'warnings': ('django.db.models.fields.IntegerField', [], {'default': '0'})
         },
         u'server.machinegroup': {
-            'Meta': {'object_name': 'MachineGroup'},
+            'Meta': {'ordering': "['name']", 'object_name': 'MachineGroup'},
             'business_unit': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['server.BusinessUnit']"}),
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'manifest': ('django.db.models.fields.CharField', [], {'max_length': '256'}),
@@ -137,7 +160,8 @@ class Migration(SchemaMigration):
         u'server.userprofile': {
             'Meta': {'object_name': 'UserProfile'},
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'user': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['auth.User']", 'unique': 'True'})
+            'level': ('django.db.models.fields.CharField', [], {'default': "'SO'", 'max_length': '2'}),
+            'user': ('django.db.models.fields.related.OneToOneField', [], {'to': u"orm['auth.User']", 'unique': 'True'})
         }
     }
 

@@ -47,7 +47,7 @@
         <table class="table table-striped table-condensed table-bordered">
             <tr>
                 <td>
-                    {% if machine_data.checked_in_this_hour %}<a href="#">{% endif %}
+                    {% if machine_data.checked_in_this_hour %}<a href="{% url 'overview_list_bu' 'activity' '1-hour'  business_unit.id %}">{% endif %}
                     Machines this hour
                     <span class="badge badge-info pull-right">
                         {{ machine_data.checked_in_this_hour }}
@@ -56,7 +56,7 @@
                 </td>
             </tr>
             <tr>
-                <td>{% if machine_data.checked_in_today %}<a href="#">{% endif %}
+                <td>{% if machine_data.checked_in_today %}<a href="{% url 'overview_list_bu' 'activity' 'today'  business_unit.id %}">{% endif %}
                     Machines today
                     <span class="badge badge-info pull-right">
                         {{ machine_data.checked_in_today }}
@@ -65,7 +65,7 @@
                 </td>
             </tr>
             <tr>
-                <td>{% if machine_data.checked_in_this_week %}<a href="#">{% endif %}
+                <td>{% if machine_data.checked_in_this_week %}<a href="{% url 'overview_list_bu' 'activity' '1-week'  business_unit.id %}">{% endif %}
                     Machines this week
                     <span class="badge badge-info pull-right">
                         {{ machine_data.checked_in_this_week }}
@@ -74,7 +74,7 @@
                 </td>
             </tr>
             <tr>
-                <td>{% if machine_data.inactive_for_a_month %}<a href="#">{% endif %}
+                <td>{% if machine_data.inactive_for_a_month %}<a href="{% url 'overview_list_bu' 'inactivity' '1-month'  business_unit.id %}">{% endif %}
                     Inactive for a month
                     <span class="badge badge-warning pull-right">
                         {{ machine_data.inactive_for_a_month }}
@@ -83,7 +83,7 @@
                 </td>
             </tr>
             <tr>
-                <td>{% if machine_data.inactive_for_three_months %}<a href="#">{% endif %}
+                <td>{% if machine_data.inactive_for_three_months %}<a href="{% url 'overview_list_bu' 'inactivity' '3-months'  business_unit.id %}">{% endif %}
                     Inactive for three months
                     <span class="badge badge-important pull-right">
                         {{ machine_data.inactive_for_three_months }}
@@ -99,7 +99,7 @@
         <table class="table table-striped table-condensed table-bordered">
             <tr>
                 <td>
-                    {% if machine_data.errors %}<a href="#">{% endif %}
+                    {% if machine_data.errors %}<a href="{% url 'overview_list_bu' 'errors' 'view' business_unit.id %}">{% endif %}
                     Clients with errors
                     <span class="badge badge-important pull-right">
                         {{ machine_data.errors }}
@@ -107,7 +107,7 @@
                 </td>
             </tr>
             <tr>
-                <td>{% if machine_data.warnings %}<a href="#">{% endif %}
+                <td>{% if machine_data.warnings %}<a href="{% url 'overview_list_bu' 'warnings' 'view' business_unit.id %}">{% endif %}
                     Clients with warnings
                     <span class="badge badge-warning pull-right">
                         {{ machine_data.warnings }}
@@ -116,7 +116,7 @@
                 </td>
             </tr>
             <tr>
-                <td>{% if machine_data.activity %}<a href="#">{% endif %}
+                <td>{% if machine_data.activity %}<a href="{% url 'overview_list_bu' 'active' 'view' business_unit.id %}">{% endif %}
                     Clients with activity
                     <span class="badge badge-info pull-right">
                         {{ machine_data.activity }}
@@ -133,7 +133,7 @@
             {% for item in os_info|dictsort:'operating_system' %}
                 <tr>
                     <td>
-                        <a href="#">
+                        <a href="{% url 'overview_list_bu' 'operating_system' item.operating_system  business_unit.id %}">
                         {{ item.operating_system }}
                         <span class="badge pull-right">{{ item.count }}</span>
                         </a>

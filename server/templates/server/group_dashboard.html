@@ -75,7 +75,7 @@
         <table class="table table-striped table-condensed table-bordered">
             <tr>
                 <td>
-                    {% if machine_data.errors %}<a href="#">{% endif %}
+                    {% if machine_data.errors %}<a href="{% url 'overview_list_group' machine_group.id 'errors' 'view' %}">{% endif %}
                     Clients with errors
                     <span class="badge badge-important pull-right">
                         {{ machine_data.errors }}
@@ -83,7 +83,7 @@
                 </td>
             </tr>
             <tr>
-                <td>{% if machine_data.warnings %}<a href="#">{% endif %}
+                <td>{% if machine_data.warnings %}<a href="{% url 'overview_list_group' machine_group.id 'warnings' 'view' %}">{% endif %}
                     Clients with warnings
                     <span class="badge badge-warning pull-right">
                         {{ machine_data.warnings }}
@@ -92,7 +92,7 @@
                 </td>
             </tr>
             <tr>
-                <td>{% if machine_data.activity %}<a href="#">{% endif %}
+                <td>{% if machine_data.activity %}<a href="{% url 'overview_list_group' machine_group.id 'active' 'view' %}">{% endif %}
                     Clients with activity
                     <span class="badge badge-info pull-right">
                         {{ machine_data.activity }}

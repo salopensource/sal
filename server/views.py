@@ -100,7 +100,6 @@ def index(request):
                 for machine_group in bu.machinegroup_set.all():
                     count = count + Machine.objects.filter(activity__isnull=False, machine_group=machine_group).count()
             machine_data['activity'] = count
-        
         c = {'user': request.user, 'business_units': business_units, 'machine_data': machine_data, 'os_info':os_info}
         return render_to_response('server/index.html', c, context_instance=RequestContext(request)) 
 
@@ -156,11 +155,9 @@ def bu_dashboard(request, bu_id):
     for machine_group in machine_groups:
         osen.extend(Machine.objects.filter(machine_group=machine_group).values('operating_system').annotate(count=Count('operating_system')))
     os_info = osen
-    print os_info
     count = 0
     for machine_group in machine_groups:
         count = count + Machine.objects.filter(last_checkin__gte=hour_ago, machine_group=machine_group).count()
-    print count
     machine_data['checked_in_this_hour'] = count
 
     count = 0
@@ -201,24 +198,19 @@ def bu_dashboard(request, bu_id):
 
 # Overview list (all)
 @login_required
-def overview_list_all(request, req_type, data):
+def overview_list_all(request, req_type, data, bu_id=None):
     # get all the BU's that the user has access to
     user = request.user
-    business_units = user.businessunit_set.all
+    user_level = user.userprofile.level
     operating_system = None
     activity = None
     inactivity = None
-    # get all of the groups in those BU's
-    
-    machines = user.businessunit_set.select_related('machine_group').order_by('machine')
-    
     now = datetime.now()
     hour_ago = now - timedelta(hours=1)
     today = date.today()
     week_ago = today - timedelta(days=7)
     month_ago = today - timedelta(days=30)
     three_months_ago = today - timedelta(days=90)
-    
     if req_type == 'operating_system':
         operating_system = data
     
@@ -227,23 +219,61 @@ def overview_list_all(request, req_type, data):
     
     if req_type == 'inactivity':
         inactivity = data
+    if bu_id != None:
+        business_units = get_object_or_404(BusinessUnit, pk=bu_id)
+        machine_groups = MachineGroup.objects.filter(business_unit=business_units).prefetch_related('machine_set').all()
+
+        machines_unsorted = machine_groups[0].machine_set.all()
+        for machine_group in machine_groups[1:]:
+            machines_unsorted = machines_unsorted | machine_group.machines.all()
+        all_machines=machines_unsorted
+        # check user is allowed to see it
+        if business_units not in user.businessunit_set.all() and user_level != 'GA':
+            print 'not letting you in ' + user_level
+            return redirect(index)
+    else:
+        # all BUs the user has access to
+        business_units = user.businessunit_set.all()
+        # get all the machine groups
+        # business_unit = business_units[0].machinegroup_set.all()
+        machines_unsorted = Machine.objects.none()
+        for business_unit in business_units:
+            for machine_group in business_unit.machinegroup_set.all():
+                #print machines_unsorted
+                machines_unsorted = machines_unsorted | machine_group.machine_set.all()
+            #machines_unsorted = machines_unsorted | machine_group.machines.all()
+        #machines = user.businessunit_set.select_related('machine_group_set').order_by('machine')
+        all_machines = machines_unsorted
+        if user_level == 'GA':
+            business_units = BusinessUnit.objects.all()
+            all_machines = Machine.objects.all()
+            
+    if req_type == 'errors':
+        machines = all_machines.filter(errors__gt=0)
+    
+    if req_type == 'warnings':
+        machines = all_machines.filter(warnings__gt=0)
+    
+    if req_type == 'active':
+        machines = all_machines.filter(activity__isnull=False)
     
     if activity is not None:
         if data == '1-hour':
-            machines = Machine.objects.filter(last_checkin__gte=hour_ago)
+            machines = all_machines.filter(last_checkin__gte=hour_ago)
         if data == 'today':
-            machines = Machine.objects.filter(last_checkin__gte=today)
+            machines = all_machines.filter(last_checkin__gte=today)
         if data == '1-week':
-            machines = Machine.objects.filter(last_checkin__gte=week_ago)
+            machines = all_machines.filter(last_checkin__gte=week_ago)
     if inactivity is not None:
         if data == '1-month':
-            machines = Machine.objects.filter(last_checkin__range=(three_months_ago, month_ago))
+            machines = all_machines.filter(last_checkin__range=(three_months_ago, month_ago))
         if data == '3-months':
-            machines = Machine.objects.exclude(last_checkin__gte=three_months_ago)
+            machines = all_machines.exclude(last_checkin__gte=three_months_ago)
     
     if operating_system is not None:
-        machines = Machine.objects.filter(operating_system__exact=operating_system)
-    c = {'user':user, 'machines': machines, 'req_type': req_type, 'data': data }
+        machines = all_machines.filter(operating_system__exact=operating_system)
+    c = {'user':user, 'machines': machines, 'req_type': req_type, 'data': data, 'bu_id': bu_id }
+    
     return render_to_response('server/overview_list_all.html', c, context_instance=RequestContext(request))
 
 # Machine Group Dashboard
@@ -259,8 +289,7 @@ def group_dashboard(request, group_id):
     if user_level == 'GA' or user_level == 'RW':
         is_editor = True
     else:
-        is_editor = False
-       
+        is_editor = False   
     now = datetime.now()
     hour_ago = now - timedelta(hours=1)
     today = date.today()
@@ -301,10 +330,12 @@ def new_machine_group(request, bu_id):
     
     user = request.user
     user_level = user.userprofile.level
-    if user_level != 'GA' or user_level != 'RW':
+    if user_level == 'GA' or user_level == 'RW':
         is_editor = True
+    else:
+        is_editor = False 
         
-    if business_unit not in user.businessunit_set.all() or user_level != 'GA':
+    if business_unit not in user.businessunit_set.all() or is_editor == False:
         return redirect(index)
     c = {'form': form, 'is_editor': is_editor, 'business_unit': business_unit, }   
     return render_to_response('forms/new_machine_group.html', c, context_instance=RequestContext(request))
@@ -342,6 +373,15 @@ def overview_list_group(request, group_id, req_type, data):
     if req_type == 'inactivity':
         inactivity = data
     
+    if req_type == 'errors':
+        machines = Machine.objects.filter(errors__gt=0, machine_group=machine_group)
+    
+    if req_type == 'warnings':
+        machines = Machine.objects.filter(warnings__gt=0, machine_group=machine_group)
+    
+    if req_type == 'active':
+        machines = Machine.objects.filter(activity__isnull=False, machine_group=machine_group)
+    
     if activity is not None:
         if data == '1-hour':
             machines = Machine.objects.filter(last_checkin__gte=hour_ago, machine_group=machine_group)
@@ -362,14 +402,14 @@ def overview_list_group(request, group_id, req_type, data):
 
 # Machine detail
 @login_required
-def machine_detail(request, req_type, machine_id):
+def machine_detail(request, req_type, data, machine_id):
     # check the user is in a BU that's allowed to see this Machine
     machine = get_object_or_404(Machine, pk=machine_id)
     machine_group = machine.machine_group
     business_unit = machine_group.business_unit
     user = request.user
     user_level = user.userprofile.level
-    if business_unit not in user.businessunit_set.all() or user_level != 'GA':
+    if business_unit not in user.businessunit_set.all() and user_level != 'GA':
         return redirect(index)
     
     report = machine.get_report()
@@ -425,7 +465,7 @@ def machine_detail(request, req_type, machine_id):
     if 'managed_uninstalls_list' in report:
         report['managed_uninstalls_list'].sort()
     
-    c = {'user':user, 'req_type': req_type, 'machine_group': machine_group, 'business_unit': business_unit, 'report': report, 'install_results': install_results, 'removal_results': removal_results, 'machine': machine }
+    c = {'user':user, 'req_type': req_type, 'machine_group': machine_group, 'business_unit': business_unit, 'report': report, 'install_results': install_results, 'removal_results': removal_results, 'machine': machine, 'data': data }
     return render_to_response('server/machine_detail.html', c, context_instance=RequestContext(request))
 
 # checkin

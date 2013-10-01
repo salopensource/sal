@@ -24,6 +24,13 @@
 {% if req_type == 'operating_system' %}
 <h3>Machines running {{ data }}</h3>
 {% endif %}
+{% if req_type == 'activity' %}
+<h3>Machines active {% if data == '1-hour' %}in the last hour{% endif %}{% if data == 'today' %}today{% endif %}{% if data == '1-week' %}in the last week{% endif %}</h3>
+{% endif %}
+{% if req_type == 'inactivity' %}
+<h3>Machines inactive for {% if data == '1-month' %}a month{% endif %}{% if data == '3-months' %}three months{% endif %}</h3>
+{% endif %}
+
 <table class="groupList table table-striped table-condensed">
     <thead>
         <tr>
@@ -36,7 +43,7 @@
         {% for item in machines.all %}
         <tr>
             <td>
-                <a href="{% url 'machine_detail' req_type item.id %}">
+                <a href="{% url 'machine_detail' req_type data item.id %}">
                 {% if item.hostname %}
                     {{ item.hostname }}
                 {% else %}

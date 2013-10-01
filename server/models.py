@@ -33,7 +33,6 @@ class BusinessUnit(models.Model):
     name = models.CharField(max_length=100)
     key = models.CharField(max_length=256, unique=True, blank=True, null=True, editable=False)
     users = models.ManyToManyField(User)
-    
     def save(self):
             if not self.id:
                 self.key = GenerateKey()
@@ -55,7 +54,7 @@ class MachineGroup(models.Model):
     
 class Machine(models.Model):
     machine_group = models.ForeignKey(MachineGroup)
-    serial = models.CharField(max_length=100, unique=True, primary_key=True)
+    serial = models.CharField(max_length=100, unique=True)
     hostname = models.CharField(max_length=256, null=True)
     operating_system = models.CharField(max_length=256)
     memory = models.CharField(max_length=256)
@@ -67,7 +66,7 @@ class Machine(models.Model):
     report = models.TextField(editable=False, null=True)
     errors = models.IntegerField(default=0)
     warnings = models.IntegerField(default=0)
-    activity = models.TextField(editable=False, null=True)
+    activity = models.TextField(editable=False, null=True, blank=True)
         
     def encode(self, plist):
         string = plistlib.writePlistToString(plist)
@@ -154,7 +153,7 @@ class Machine(models.Model):
         self.console_user = "unknown"
         if "ConsoleUser" in plist:
             self.console_user = unicode(plist["ConsoleUser"])
-        def __unicode__(self):
-            return self.hostname
-        class Meta:
-            ordering = ['hostname']
+    def __unicode__(self):
+        return self.hostname
+    class Meta:
+        ordering = ['hostname']

@@ -3,7 +3,7 @@
 #    sal-submit.py
 #        Submits inventory to an instance of Sal
 #
-#    Last Revised - 14/09/2013
+#    Last Revised - 08/10/2013
 
 import urllib 
 import urllib2
@@ -15,6 +15,7 @@ except:
 from Foundation import *
 import subprocess
 import base64
+import yaml
 import bz2
 BUNDLE_ID = 'com.grahamgilbert.sal'
 
@@ -78,6 +79,18 @@ system_profile = FoundationPlist.readPlistFromString(stdout)
 
 # Merge the system profiler report into the Munki report
 report['MachineInfo']['SystemProfile'] = system_profile
+
+# if Facter is installed, perform a run
+try:
+    command = ['facter', '--puppet', '--yaml']
+    task = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    (stdout, stderr) = task.communicate()
+except:
+    print stderr
+    
+if stdout:
+    facter = yaml.load(stdout)
+    report['Facter'] = facter
 
 # Get the serial number
 serial = report['MachineInfo']['serial_number']

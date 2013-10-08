@@ -413,6 +413,10 @@ def machine_detail(request, req_type, data, machine_id):
         return redirect(index)
     
     report = machine.get_report()
+    if machine.fact_set.count() != 0:
+        facts = machine.fact_set.all()
+    else:
+        facts = None
     install_results = {}
     for result in report.get('InstallResults', []):
         nameAndVers = result['name'] + '-' + result['version']
@@ -465,7 +469,7 @@ def machine_detail(request, req_type, data, machine_id):
     if 'managed_uninstalls_list' in report:
         report['managed_uninstalls_list'].sort()
     
-    c = {'user':user, 'req_type': req_type, 'machine_group': machine_group, 'business_unit': business_unit, 'report': report, 'install_results': install_results, 'removal_results': removal_results, 'machine': machine, 'data': data }
+    c = {'user':user, 'req_type': req_type, 'machine_group': machine_group, 'business_unit': business_unit, 'report': report, 'install_results': install_results, 'removal_results': removal_results, 'machine': machine, 'data': data, 'facts':facts }
     return render_to_response('server/machine_detail.html', c, context_instance=RequestContext(request))
 
 # checkin
@@ -523,8 +527,16 @@ def checkin(request):
             machine.cpu_type = hwinfo.get('cpu_type') and hwinfo.get('cpu_type') or u'unknown'
             machine.cpu_speed = hwinfo.get('current_processor_speed') and hwinfo.get('current_processor_speed') or u'0'
             machine.memory = hwinfo.get('physical_memory') and hwinfo.get('physical_memory') or u'0'
-        #machine.report = plistlib.writePlistToString(report_data)
+
         machine.save()
-        # 
+        
+        # if Facter data is submitted, we need to first remove any existing facts for this machine
+        if 'Facter' in report_data:
+            facts = machine.fact_set.all()
+            facts.delete()
+            # now we need to loop over the submitted facts and save them
+            for fact_name, fact_data in report_data['Facter'].iteritems():
+                fact = Fact(machine=machine, fact_name=fact_name, fact_data=fact_data)
+                fact.save()
         return HttpResponse("Sal report submmitted for %s.\n" 
                             % data.get('name'))

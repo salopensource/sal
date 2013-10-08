@@ -63,7 +63,7 @@ class Machine(models.Model):
     hd_space = models.CharField(max_length=256)
     console_user = models.CharField(max_length=256)
     last_checkin = models.DateTimeField(blank=True,null=True)
-    report = models.TextField(editable=False, null=True)
+    report = models.TextField(editable=True, null=True)
     errors = models.IntegerField(default=0)
     warnings = models.IntegerField(default=0)
     activity = models.TextField(editable=False, null=True, blank=True)
@@ -157,3 +157,11 @@ class Machine(models.Model):
         return self.hostname
     class Meta:
         ordering = ['hostname']
+class Fact(models.Model):
+    machine = models.ForeignKey(Machine)
+    fact_name = models.TextField()
+    fact_data = models.TextField()
+    def __unicode__(self):
+        return self.fact_name
+    class Meta:
+        ordering = ['fact_name']

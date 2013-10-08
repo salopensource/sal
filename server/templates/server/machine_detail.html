@@ -70,6 +70,7 @@
           <th>Console user:</th>
           <td>{{ report.ConsoleUser }}</td>
         </tr>
+        
       </tbody>
     </table>
   </div>
@@ -105,30 +106,69 @@
     </table>
  </div>
 </div>
+    <div class="row">
+        <div class="span8">
+            {% if facts|length %}
+                <h3>Facter <span class="badge badge-info">{{ facts|length }}</span> <a class="btn btn-sm btn-info" data-toggle="collapse" data-target="#collapseOne">Toggle</a></h3>
+                    <div id="collapseOne" class="collapse">
+                    <table class="client_info table table-striped table-condensed">
+                        <thead>
+                            <tr>
+                                <th>Fact</th>
+                                <th>Value</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for fact in facts %}
+                                <tr>
+                                    <td>
+                                        {{ fact.fact_name }}
+                                    </td>
+                                    <td>
+                                        {{ fact.fact_data }}
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% endif %}
+        </div>
+    </div>
  <div class="row">
    <div class="span8">
- {% with title='Apple Updates' pkglist=report.AppleUpdates %}
-   {% include 'server/pkgtable.html' %}
- {% endwith %}
+    {% if report.AppleUpdates|length %}
+       <h3>Apple Updates <span class="badge badge-info">{{ report.AppleUpdates|length }}</span></h3>
+          {% with title='Apple Updates' pkglist=report.AppleUpdates %}
+          {% include 'server/pkgtable.html' %}
+          {% endwith %}
+    {% endif %}
+    {% if report.ItemsToInstall|length %}
+       <h3>Active Installs <span class="badge badge-info">{{ report.ItemsToInstall|length }}</span></h3>
  {% with title='Active Installs' pkglist=report.ItemsToInstall %}
    {% include 'server/pkgtable.html' %}
  {% endwith %}
+ {% endif %}
+ {% if report.ItemsToRemove|length %}
+    <h3>Active Removals <span class="badge badge-info">{{ report.ItemsToRemove|length }}</span></h3>
  {% with title='Active Removals' pkglist=report.ItemsToRemove %}
    {% include 'server/pkgtable.html' %}
  {% endwith %}
  {% with title='Problem Installs' pkglist=report.ProblemInstalls %}
    {% include 'server/pkgtable.html' %}
  {% endwith %}
+ {% endif %}
    </div>
  </div>
  <div class="row">
    <div class="span8">
+       <h3>Managed Installs <span class="badge badge-info">{{ report.ManagedInstalls|length }}</span></h3>
        {% with title='Managed Installs' pkglist=report.ManagedInstalls %}
          {% include 'server/pkgtable.html' %}
        {% endwith %}
    </div>
    <div class="span4">
-       {% if 'managed_uninstalls_list' in report %}
+       {% if report.managed_uninstalls_list|length %}
          <h3>Managed Uninstalls <span class="badge badge-info">{{ report.managed_uninstalls_list|length }}</span></h3>
          <table class="client_info table table-striped table-condensed">
            <thead>

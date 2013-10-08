@@ -31,7 +31,7 @@ User.userprofile = property(lambda u: UserProfile.objects.get_or_create(user=u)[
 
 class BusinessUnit(models.Model):
     name = models.CharField(max_length=100)
-    key = models.CharField(max_length=256, unique=True, blank=True, null=True, editable=False)
+    key = models.CharField(max_length=255, unique=True, blank=True, null=True, editable=False)
     users = models.ManyToManyField(User)
     def save(self):
             if not self.id:

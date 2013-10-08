@@ -106,70 +106,80 @@
     </table>
  </div>
 </div>
-    <div class="row">
-        <div class="span8">
-            {% if facts|length %}
-                <h3>Facter <span class="badge badge-info">{{ facts|length }}</span> <a class="btn btn-sm btn-info" data-toggle="collapse" data-target="#collapseOne">Toggle</a></h3>
-                    <div id="collapseOne" class="collapse">
-                    <table class="client_info table table-striped table-condensed">
-                        <thead>
-                            <tr>
-                                <th>Fact</th>
-                                <th>Value</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for fact in facts %}
-                                <tr>
-                                    <td>
-                                        {{ fact.fact_name }}
-                                    </td>
-                                    <td>
-                                        {{ fact.fact_data }}
-                                    </td>
-                                </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-            {% endif %}
-        </div>
-    </div>
  <div class="row">
    <div class="span8">
     {% if report.AppleUpdates|length %}
-       <h3>Apple Updates <span class="badge badge-info">{{ report.AppleUpdates|length }}</span></h3>
+       <h3>Apple Updates <span class="badge badge-info">{{ report.AppleUpdates|length }}</span> <a class="btn btn-sm" data-toggle="collapse" data-target="#collapseTwo">Toggle</a></h3>
+                    <div id="collapseTwo" class="collapse in">
           {% with title='Apple Updates' pkglist=report.AppleUpdates %}
           {% include 'server/pkgtable.html' %}
           {% endwith %}
+      </div>
     {% endif %}
     {% if report.ItemsToInstall|length %}
-       <h3>Active Installs <span class="badge badge-info">{{ report.ItemsToInstall|length }}</span></h3>
+       <h3>Active Installs <span class="badge badge-info">{{ report.ItemsToInstall|length }}</span> <a class="btn btn-sm" data-toggle="collapse" data-target="#collapse3">Toggle</a></h3>
+                    <div id="collapse3" class="collapse in">
  {% with title='Active Installs' pkglist=report.ItemsToInstall %}
    {% include 'server/pkgtable.html' %}
  {% endwith %}
+</div>
  {% endif %}
  {% if report.ItemsToRemove|length %}
-    <h3>Active Removals <span class="badge badge-info">{{ report.ItemsToRemove|length }}</span></h3>
+    <h3>Active Removals <span class="badge badge-info">{{ report.ItemsToRemove|length }}</span> <a class="btn btn-sm" data-toggle="collapse" data-target="#collapse4">Toggle</a></h3>
+                    <div id="collapse4" class="collapse in">
  {% with title='Active Removals' pkglist=report.ItemsToRemove %}
    {% include 'server/pkgtable.html' %}
  {% endwith %}
+</div>
+ {% endif %}
+ {% if report.ProblemInstalls|length %}
+    <h3>Active Removals <span class="badge badge-danger">{{ report.ProblemInstalls|length }}</span> <a class="btn btn-sm" data-toggle="collapse" data-target="#collapse5">Toggle</a></h3>
+                    <div id="collapse5" class="collapse in">
  {% with title='Problem Installs' pkglist=report.ProblemInstalls %}
    {% include 'server/pkgtable.html' %}
  {% endwith %}
+</div>
  {% endif %}
    </div>
  </div>
  <div class="row">
    <div class="span8">
-       <h3>Managed Installs <span class="badge badge-info">{{ report.ManagedInstalls|length }}</span></h3>
+       <h3>Managed Installs <span class="badge badge-info">{{ report.ManagedInstalls|length }}</span> <a class="btn btn-sm" data-toggle="collapse" data-target="#collapse6">Toggle</a></h3>
+                    <div id="collapse6" class="collapse">
        {% with title='Managed Installs' pkglist=report.ManagedInstalls %}
          {% include 'server/pkgtable.html' %}
        {% endwith %}
    </div>
+   {% if facts|length %}
+       <h3>Facter <span class="badge badge-info">{{ facts|length }}</span> <a class="btn btn-sm" data-toggle="collapse" data-target="#collapseOne">Toggle</a></h3>
+           <div id="collapseOne" class="collapse">
+           <table class="client_info table table-striped table-condensed">
+               <thead>
+                   <tr>
+                       <th>Fact</th>
+                       <th>Value</th>
+                   </tr>
+               </thead>
+               <tbody>
+                   {% for fact in facts %}
+                       <tr>
+                           <td>
+                               {{ fact.fact_name }}
+                           </td>
+                           <td>
+                               {{ fact.fact_data }}
+                           </td>
+                       </tr>
+                   {% endfor %}
+               </tbody>
+           </table>
+       </div>
+   {% endif %}
+</div>
    <div class="span4">
        {% if report.managed_uninstalls_list|length %}
-         <h3>Managed Uninstalls <span class="badge badge-info">{{ report.managed_uninstalls_list|length }}</span></h3>
+         <h3>Managed Uninstalls <span class="badge badge-info">{{ report.managed_uninstalls_list|length }}</span> <a class="btn btn-sm" data-toggle="collapse" data-target="#collapse7">Toggle</a></h3>
+                    <div id="collapse7" class="collapse">
          <table class="client_info table table-striped table-condensed">
            <thead>
              <tr>
@@ -190,6 +200,7 @@
              {% endfor %}
            </tbody>
          </table>
+     </div>
        {% endif %}
    </div>
  </div>

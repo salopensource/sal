@@ -40,7 +40,7 @@
         </tr>
     </thead>
     <tbody>
-        {% for item in machines.all %}
+        {% for item in machines.all|dictsort:'hostname' %}
         <tr>
             <td>
                 <a href="{% url 'machine_detail' req_type data item.id %}">

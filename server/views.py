@@ -15,6 +15,7 @@ from django.contrib import messages
 import plistlib
 import ast
 from forms import *
+import pprint
 
 @login_required 
 def index(request):
@@ -132,7 +133,6 @@ def bu_dashboard(request, bu_id):
     user_level = user.userprofile.level
     business_unit = get_object_or_404(BusinessUnit, pk=bu_id)
     bu = business_unit
-    print user.businessunit_set.all()
     if business_unit not in user.businessunit_set.all() and user_level != 'GA':
         print 'not letting you in ' + user_level
         return redirect(index)
@@ -149,12 +149,31 @@ def bu_dashboard(request, bu_id):
     week_ago = today - timedelta(days=7)
     month_ago = today - timedelta(days=30)
     three_months_ago = today - timedelta(days=90)
-
+    from itertools import chain
     machine_data = {}
-    osen = []
+    os_info = []
+    # osen = []
     for machine_group in machine_groups:
-        osen.extend(Machine.objects.filter(machine_group=machine_group).values('operating_system').annotate(count=Count('operating_system')))
-    os_info = osen
+        #osen.extend(Machine.objects.filter(machine_group=machine_group).values('operating_system').annotate(count=Count('operating_system')))
+        osen = Machine.objects.filter(machine_group=machine_group).values('operating_system').annotate(count=Count('operating_system'))
+        for item in osen:
+            pprint.pprint(os_info)
+            # loop over existing items, see if there is a dict with the right value
+            found = False
+            for os in os_info:
+                if os['operating_system'] == item['operating_system']:
+                    os['count'] = os['count'] + item['count']
+                    found = True
+                    break
+            if found == False:
+                os_info.append(item)
+            # operating_system = str(item['operating_system'])
+#             if item['operating_system'] not in os_info:
+#                 os_info[operating_system] = item['count']
+#             else:
+#                 os_info[operating_system] = item['count'] + os_info[operating_system]
+
+    pprint.pprint(os_info)
     count = 0
     for machine_group in machine_groups:
         count = count + Machine.objects.filter(last_checkin__gte=hour_ago, machine_group=machine_group).count()
@@ -225,7 +244,7 @@ def overview_list_all(request, req_type, data, bu_id=None):
 
         machines_unsorted = machine_groups[0].machine_set.all()
         for machine_group in machine_groups[1:]:
-            machines_unsorted = machines_unsorted | machine_group.machines.all()
+            machines_unsorted = machines_unsorted | machine_group.machine_set.all()
         all_machines=machines_unsorted
         # check user is allowed to see it
         if business_units not in user.businessunit_set.all() and user_level != 'GA':
@@ -522,11 +541,12 @@ def checkin(request):
                 if profile['_dataType'] == 'SPHardwareDataType':
                     hwinfo = profile._items[0]
                     break
+        
         if hwinfo:
-            machine.machine_model = hwinfo.get('machine_model') and hwinfo.get('machine_model') or u'unknown'
-            machine.cpu_type = hwinfo.get('cpu_type') and hwinfo.get('cpu_type') or u'unknown'
-            machine.cpu_speed = hwinfo.get('current_processor_speed') and hwinfo.get('current_processor_speed') or u'0'
-            machine.memory = hwinfo.get('physical_memory') and hwinfo.get('physical_memory') or u'0'
+            machine.machine_model = hwinfo.get('machine_model')
+            machine.cpu_type = hwinfo.get('cpu_type')
+            machine.cpu_speed = hwinfo.get('current_processor_speed')
+            machine.memory = hwinfo.get('physical_memory')
 
         machine.save()
         

@@ -12,6 +12,13 @@ AUTH_PROFILE_MODULE = "sal.UserProfile"
 DISPLAY_NAME = 'Sal'
 MANAGERS = ADMINS
 
+EXCLUDED_FACTS = {
+    'sshrsakey',
+    'sshfp_rsa',
+    'sshfp_dsa',
+    'sshdsakey',
+}
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3', # Add 'postgresql_psycopg2', 'mysql', 'sqlite3' or 'oracle'.

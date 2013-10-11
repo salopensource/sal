@@ -437,6 +437,7 @@ def machine_detail(request, req_type, data, machine_id):
         if settings.EXCLUDED_FACTS:
             for excluded in settings.EXCLUDED_FACTS:
                 print excluded
+                facts = facts.exclude(fact_name=excluded)
     else:
         facts = None
     install_results = {}

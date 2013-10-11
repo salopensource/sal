@@ -434,6 +434,9 @@ def machine_detail(request, req_type, data, machine_id):
     report = machine.get_report()
     if machine.fact_set.count() != 0:
         facts = machine.fact_set.all()
+        if settings.EXCLUDED_FACTS:
+            for excluded in settings.EXCLUDED_FACTS:
+                print excluded
     else:
         facts = None
     install_results = {}

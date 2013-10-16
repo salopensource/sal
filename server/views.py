@@ -40,12 +40,11 @@ def index(request):
         three_months_ago = today - timedelta(days=90)
         machine_data = {}
         
-        mem_2_gb = 2 * 1024 * 1024
-        mem_215_gb = 2.15 * 1024 * 1024
-        mem_375_gb = 3.75 * 1024 * 1024
         mem_4_gb = 4 * 1024 * 1024
-        
-        
+        mem_415_gb = 4.15 * 1024 * 1024
+        mem_775_gb = 7.75 * 1024 * 1024
+        mem_8_gb = 8 * 1024 * 1024
+
         if user_level == 'GA':
             os_info = Machine.objects.all().values('operating_system').annotate(count=Count('operating_system'))
             machine_data['checked_in_this_hour'] = Machine.objects.filter(last_checkin__gte=hour_ago).count()
@@ -59,9 +58,9 @@ def index(request):
             machine_data['disk_ok'] = Machine.objects.filter(hd_percent__lt=80).count()
             machine_data['disk_warning'] = Machine.objects.filter(hd_percent__range=["80", "89"]).count()
             machine_data['disk_alert'] = Machine.objects.filter(hd_percent__gte=90).count()
-            machine_data['mem_ok'] = Machine.objects.filter(memory_kb__gte=mem_4_gb).count()
-            machine_data['mem_warning'] = Machine.objects.filter(memory_kb__range=[mem_215_gb, mem_375_gb]).count()
-            machine_data['mem_alert'] = Machine.objects.filter(memory_kb__lt=mem_2_gb).count()
+            machine_data['mem_ok'] = Machine.objects.filter(memory_kb__gte=mem_8_gb).count()
+            machine_data['mem_warning'] = Machine.objects.filter(memory_kb__range=[mem_415_gb, mem_775_gb]).count()
+            machine_data['mem_alert'] = Machine.objects.filter(memory_kb__lt=mem_4_gb).count()
         else:
             osen = []
             for bu in business_units:
@@ -133,19 +132,19 @@ def index(request):
             count = 0
             for bu in business_units:
                 for machine_group in bu.machinegroup_set.all():
-                    count = count + Machine.objects.filter(memory_kb__gte=mem_4_gb, machine_group=machine_group).count()
+                    count = count + Machine.objects.filter(memory_kb__gte=mem_8_gb, machine_group=machine_group).count()
             machine_data['mem_ok'] = count
             
             count = 0
             for bu in business_units:
                 for machine_group in bu.machinegroup_set.all():
-                    count = count + Machine.objects.filter(memory_kb__range=[mem_215_gb, mem_375_gb], machine_group=machine_group).count()
+                    count = count + Machine.objects.filter(memory_kb__range=[mem_415_gb, mem_775_gb], machine_group=machine_group).count()
             machine_data['mem_warning'] = count
             
             count = 0
             for bu in business_units:
                 for machine_group in bu.machinegroup_set.all():
-                    count = count + Machine.objects.filter(memory_kb__lt=mem_2_gb, machine_group=machine_group).count()
+                    count = count + Machine.objects.filter(memory_kb__lt=mem_4_gb, machine_group=machine_group).count()
             machine_data['mem_alert'] = count
             
         c = {'user': request.user, 'business_units': business_units, 'machine_data': machine_data, 'os_info':os_info}
@@ -196,10 +195,10 @@ def bu_dashboard(request, bu_id):
     week_ago = today - timedelta(days=7)
     month_ago = today - timedelta(days=30)
     three_months_ago = today - timedelta(days=90)
-    mem_2_gb = 2 * 1024 * 1024
-    mem_215_gb = 2.15 * 1024 * 1024
-    mem_375_gb = 3.75 * 1024 * 1024
     mem_4_gb = 4 * 1024 * 1024
+    mem_415_gb = 4.15 * 1024 * 1024
+    mem_775_gb = 7.75 * 1024 * 1024
+    mem_8_gb = 8 * 1024 * 1024
     from itertools import chain
     machine_data = {}
     os_info = []
@@ -273,17 +272,17 @@ def bu_dashboard(request, bu_id):
     
     count = 0
     for machine_group in machine_groups:
-        count = count + Machine.objects.filter(memory_kb__gte=mem_4_gb, machine_group=machine_group).count()
+        count = count + Machine.objects.filter(memory_kb__gte=mem_8_gb, machine_group=machine_group).count()
     machine_data['mem_ok'] = count
     
     count = 0
     for machine_group in machine_groups:
-        count = count + Machine.objects.filter(memory_kb__range=[mem_215_gb, mem_375_gb], machine_group=machine_group).count()
+        count = count + Machine.objects.filter(memory_kb__range=[mem_415_gb, mem_775_gb], machine_group=machine_group).count()
     machine_data['mem_warning'] = count
     
     count = 0
     for machine_group in machine_groups:
-        count = count + Machine.objects.filter(memory_kb__lt=mem_2_gb, machine_group=machine_group).count()
+        count = count + Machine.objects.filter(memory_kb__lt=mem_4_gb, machine_group=machine_group).count()
     machine_data['mem_alert'] = count
     
     c = {'user': request.user, 'machine_groups': machine_groups, 'is_editor': is_editor, 'business_unit': business_unit, 'os_info': os_info, 'machine_data': machine_data, 'user_level': user_level}
@@ -305,10 +304,10 @@ def overview_list_all(request, req_type, data, bu_id=None):
     week_ago = today - timedelta(days=7)
     month_ago = today - timedelta(days=30)
     three_months_ago = today - timedelta(days=90)
-    mem_2_gb = 2 * 1024 * 1024
-    mem_215_gb = 2.15 * 1024 * 1024
-    mem_375_gb = 3.75 * 1024 * 1024
     mem_4_gb = 4 * 1024 * 1024
+    mem_415_gb = 4.15 * 1024 * 1024
+    mem_775_gb = 7.75 * 1024 * 1024
+    mem_8_gb = 8 * 1024 * 1024
     if req_type == 'operating_system':
         operating_system = data
     
@@ -384,13 +383,13 @@ def overview_list_all(request, req_type, data, bu_id=None):
         machines = all_machines.filter(hd_percent__gte=90)
     
     if req_type == 'mem_ok':
-        machines = all_machines.filter(memory_kb__gte=mem_4_gb)
+        machines = all_machines.filter(memory_kb__gte=mem_8_gb)
     
     if req_type == 'mem_warning':
-        machines = all_machines.filter(memory_kb__range=[mem_215_gb, mem_375_gb])
+        machines = all_machines.filter(memory_kb__range=[mem_415_gb, mem_775_gb])
         
     if req_type == 'mem_alert':
-        machines = all_machines.filter(memory_kb__lt=mem_2_gb)
+        machines = all_machines.filter(memory_kb__lt=mem_4_gb)
     
     if activity is not None:
         if data == '1-hour':
@@ -431,10 +430,10 @@ def group_dashboard(request, group_id):
     week_ago = today - timedelta(days=7)
     month_ago = today - timedelta(days=30)
     three_months_ago = today - timedelta(days=90)
-    mem_2_gb = 2 * 1024 * 1024
-    mem_215_gb = 2.15 * 1024 * 1024
-    mem_375_gb = 3.75 * 1024 * 1024
     mem_4_gb = 4 * 1024 * 1024
+    mem_415_gb = 4.15 * 1024 * 1024
+    mem_775_gb = 7.75 * 1024 * 1024
+    mem_8_gb = 8 * 1024 * 1024
     
     os_info = Machine.objects.filter(machine_group=machine_group).values('operating_system').annotate(count=Count('operating_system'))
     
@@ -450,9 +449,9 @@ def group_dashboard(request, group_id):
     machine_data['disk_ok'] = Machine.objects.filter(hd_percent__lt=80).filter(machine_group=machine_group).count()
     machine_data['disk_warning'] = Machine.objects.filter(hd_percent__range=["80", "89"]).filter(machine_group=machine_group).count()
     machine_data['disk_alert'] = Machine.objects.filter(hd_percent__gte=90).filter(machine_group=machine_group).count()
-    machine_data['mem_ok'] = Machine.objects.filter(memory_kb__gte=mem_4_gb).filter(machine_group=machine_group).count()
-    machine_data['mem_warning'] = Machine.objects.filter(memory_kb__range=[mem_215_gb, mem_375_gb]).filter(machine_group=machine_group).count()
-    machine_data['mem_alert'] = Machine.objects.filter(memory_kb__lt=mem_2_gb).filter(machine_group=machine_group).count()
+    machine_data['mem_ok'] = Machine.objects.filter(memory_kb__gte=mem_8_gb).filter(machine_group=machine_group).count()
+    machine_data['mem_warning'] = Machine.objects.filter(memory_kb__range=[mem_415_gb, mem_775_gb]).filter(machine_group=machine_group).count()
+    machine_data['mem_alert'] = Machine.objects.filter(memory_kb__lt=mem_4_gb).filter(machine_group=machine_group).count()
     c = {'user': request.user, 'machine_group': machine_group, 'user_level': user_level, 'machine_data':machine_data, 'is_editor': is_editor, 'business_unit': business_unit, 'os_info':os_info}
     return render_to_response('server/group_dashboard.html', c, context_instance=RequestContext(request))
 
@@ -508,10 +507,10 @@ def overview_list_group(request, group_id, req_type, data):
     week_ago = today - timedelta(days=7)
     month_ago = today - timedelta(days=30)
     three_months_ago = today - timedelta(days=90)
-    mem_2_gb = 2 * 1024 * 1024
-    mem_215_gb = 2.15 * 1024 * 1024
-    mem_375_gb = 3.75 * 1024 * 1024
     mem_4_gb = 4 * 1024 * 1024
+    mem_415_gb = 4.15 * 1024 * 1024
+    mem_775_gb = 7.75 * 1024 * 1024
+    mem_8_gb = 8 * 1024 * 1024
     
     if req_type == 'operating_system':
         operating_system = data
@@ -557,13 +556,13 @@ def overview_list_group(request, group_id, req_type, data):
         machines = Machine.objects.filter(hd_percent__gte=90, machine_group=machine_group)
     
     if req_type == 'mem_ok':
-        machines = Machine.objects.filter(memory_kb__gte=mem_4_gb, machine_group=machine_group)
+        machines = Machine.objects.filter(memory_kb__gte=mem_8_gb, machine_group=machine_group)
     
     if req_type == 'mem_warning':
-        machines = Machine.objects.filter(memory_kb__range=[mem_215_gb, mem_375_gb], machine_group=machine_group)
+        machines = Machine.objects.filter(memory_kb__range=[mem_415_gb, mem_775_gb], machine_group=machine_group)
         
     if req_type == 'mem_alert':
-        machines = Machine.objects.filter(memory_kb__lt=mem_2_gb, machine_group=machine_group)
+        machines = Machine.objects.filter(memory_kb__lt=mem_4_gb, machine_group=machine_group)
 
     c = {'user':user, 'machine_group': machine_group, 'business_unit': business_unit, 'machines': machines, 'req_type': req_type, 'data': data }
     return render_to_response('server/overview_list_group.html', c, context_instance=RequestContext(request))

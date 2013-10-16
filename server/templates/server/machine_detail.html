@@ -64,7 +64,7 @@
         {% endif %}
         <tr>
           <th>Free disk space:</th>
-          <td>{{ report.AvailableDiskSpace|humanreadablesize  }}</td>
+          <td>{{ report.AvailableDiskSpace|humanreadablesize  }} ({{ machine.hd_percent }}% used)</td>
         </tr>
         <tr>
           <th>Console user:</th>

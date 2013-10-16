@@ -58,7 +58,7 @@ class Machine(models.Model):
     hostname = models.CharField(max_length=256, null=True)
     operating_system = models.CharField(max_length=256)
     memory = models.CharField(max_length=256, null=True, blank=True)
-    memory_kb = models.CharField(max_length=256, null=True, blank=True)
+    memory_kb = models.IntegerField(default=0)
     munki_version = models.CharField(max_length=256, null=True, blank=True)
     manifest = models.CharField(max_length=256)
     hd_space = models.CharField(max_length=256, null=True, blank=True)

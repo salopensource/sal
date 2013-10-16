@@ -137,17 +137,34 @@
             <legend>Disk Space</legend>
               <a href="{% url 'overview_list_all' 'disk_space_ok' 'view' %}" class="btn btn-success">
 				<span class="bigger"> {{ machine_data.disk_ok }} </span><br />
-				Under 80%
+				&lt; 80%
               </a>
               
               <a href="{% url 'overview_list_all' 'disk_space_warning' 'view' %}" class="btn btn-warning">
 				<span class="bigger"> {{ machine_data.disk_warning }} </span><br />
-				Over 80%
+				80% +
               </a>
               
               <a href="{% url 'overview_list_all' 'disk_space_alert' 'view' %}" class="btn btn-danger">
 				<span class="bigger"> {{ machine_data.disk_alert }} </span><br />
-				Over 90%
+				90% +
+              </a>
+    </div>
+    <div class="span4">
+            <legend>Memory</legend>
+              <a href="{% url 'overview_list_all' 'mem_ok' 'view' %}" class="btn btn-success">
+				<span class="bigger"> {{ machine_data.mem_ok }} </span><br />
+				4GB +
+              </a>
+              
+              <a href="{% url 'overview_list_all' 'mem_warning' 'view' %}" class="btn btn-warning">
+				<span class="bigger"> {{ machine_data.mem_warning }} </span><br />
+				2GB +
+              </a>
+              
+              <a href="{% url 'overview_list_all' 'mem_alert' 'view' %}" class="btn btn-danger">
+				<span class="bigger"> {{ machine_data.mem_alert }} </span><br />
+				&lt; 2GB
               </a>
     </div>
 </div>

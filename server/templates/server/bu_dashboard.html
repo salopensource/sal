@@ -24,23 +24,7 @@
     </div>
 </div>
 {% if machine_groups.count > 0 %}
-<div class="row">
-    <div class="span4">
-        <legend>Groups</legend>
-        <table class="table table-striped table-condensed table-bordered">
-            {% for machine_group in machine_groups.all %}
-            <tr>
-                <td><a href="{% url 'group_dashboard' machine_group.id %}">{{ machine_group.name }}
-                    <span class="badge badge-info pull-right">
-                        {{ machine_group.machine_set.count }}
-                    </span>
-                    </a>
-                </td>
-            </tr>
-            {% endfor %}
-        </table>
-    </div>
-</div>
+
 <div class="row">
     <div class="span4">
         <legend>Activity</legend>
@@ -142,6 +126,40 @@
             {% endfor %}
             </table>
         </div>
+    </div>
+</div>
+<div class="row">
+    <div class="span4">
+        <legend>Groups</legend>
+        <table class="table table-striped table-condensed table-bordered">
+            {% for machine_group in machine_groups.all %}
+            <tr>
+                <td><a href="{% url 'group_dashboard' machine_group.id %}">{{ machine_group.name }}
+                    <span class="badge badge-info pull-right">
+                        {{ machine_group.machine_set.count }}
+                    </span>
+                    </a>
+                </td>
+            </tr>
+            {% endfor %}
+        </table>
+    </div>
+    <div class="span4">
+            <legend>Disk Space</legend>
+              <a href="{% url 'overview_list_bu' 'disk_space_ok' 'view' business_unit.id %}" class="btn btn-success">
+				<span class="bigger"> {{ machine_data.disk_ok }} </span><br />
+				Under 80%
+              </a>
+              
+              <a href="{% url 'overview_list_bu' 'disk_space_warning' 'view' business_unit.id %}" class="btn btn-warning">
+				<span class="bigger"> {{ machine_data.disk_warning }} </span><br />
+				Over 80%
+              </a>
+              
+              <a href="{% url 'overview_list_bu' 'disk_space_alert' 'view' business_unit.id %}" class="btn btn-danger">
+				<span class="bigger"> {{ machine_data.disk_alert }} </span><br />
+				Over 90%
+              </a>
     </div>
 </div>
 {% else %}No Machine groups configured.{% endif %}

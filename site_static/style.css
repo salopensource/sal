@@ -13,3 +13,7 @@ h1, h2, h3, h4, h5, h6, h3 a{
 	color: red;
 	font-weight: bold;
 }
+
+.bigger {
+    font-size: 150%;
+}

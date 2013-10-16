@@ -61,6 +61,8 @@ class Machine(models.Model):
     munki_version = models.CharField(max_length=256, null=True, blank=True)
     manifest = models.CharField(max_length=256)
     hd_space = models.CharField(max_length=256, null=True, blank=True)
+    hd_total = models.CharField(max_length=256, null=True, blank=True)
+    hd_percent = models.CharField(max_length=256, null=True, blank=True)
     console_user = models.CharField(max_length=256, null=True, blank=True)
     machine_model = models.CharField(max_length=256, null=True, blank=True)
     cpu_type = models.CharField(max_length=256, null=True, blank=True)

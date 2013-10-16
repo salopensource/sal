@@ -52,6 +52,9 @@ def index(request):
             machine_data['errors'] = Machine.objects.filter(errors__gt=0).count()
             machine_data['warnings'] = Machine.objects.filter(warnings__gt=0).count()
             machine_data['activity'] = Machine.objects.filter(activity__isnull=False).count()
+            machine_data['disk_ok'] = Machine.objects.filter(hd_percent__lt=80).count()
+            machine_data['disk_warning'] = Machine.objects.filter(hd_percent__range=["80", "89"]).count()
+            machine_data['disk_alert'] = Machine.objects.filter(hd_percent__gte=90).count()
         else:
             osen = []
             for bu in business_units:
@@ -101,6 +104,25 @@ def index(request):
                 for machine_group in bu.machinegroup_set.all():
                     count = count + Machine.objects.filter(activity__isnull=False, machine_group=machine_group).count()
             machine_data['activity'] = count
+            
+            count = 0
+            for bu in business_units:
+                for machine_group in bu.machinegroup_set.all():
+                    count = count + Machine.objects.filter(hd_percent__lt=80, machine_group=machine_group).count()
+            machine_data['disk_ok'] = count
+            
+            count = 0
+            for bu in business_units:
+                for machine_group in bu.machinegroup_set.all():
+                    count = count + Machine.objects.filter(hd_percent__range=["80", "89"], machine_group=machine_group).count()
+            machine_data['disk_warning'] = count
+            
+            count = 0
+            for bu in business_units:
+                for machine_group in bu.machinegroup_set.all():
+                    count = count + Machine.objects.filter(hd_percent__gte=90, machine_group=machine_group).count()
+            machine_data['disk_alert'] = count
+            
         c = {'user': request.user, 'business_units': business_units, 'machine_data': machine_data, 'os_info':os_info}
         return render_to_response('server/index.html', c, context_instance=RequestContext(request)) 
 
@@ -212,6 +234,21 @@ def bu_dashboard(request, bu_id):
         count = count + Machine.objects.filter(activity__isnull=False, machine_group=machine_group).count()
     machine_data['activity'] = count
     
+    count = 0
+    for machine_group in machine_groups:
+        count = count + Machine.objects.filter(hd_percent__lt=80, machine_group=machine_group).count()
+    machine_data['disk_ok'] = count
+    
+    count = 0
+    for machine_group in machine_groups:
+        count = count + Machine.objects.filter(hd_percent__range=["80", "89"], machine_group=machine_group).count()
+    machine_data['disk_warning'] = count
+    
+    count = 0
+    for machine_group in machine_groups:
+        count = count + Machine.objects.filter(hd_percent__gte=90, machine_group=machine_group).count()
+    machine_data['disk_alert'] = count
+    
     c = {'user': request.user, 'machine_groups': machine_groups, 'is_editor': is_editor, 'business_unit': business_unit, 'os_info': os_info, 'machine_data': machine_data, 'user_level': user_level}
     return render_to_response('server/bu_dashboard.html', c, context_instance=RequestContext(request))
 
@@ -224,6 +261,7 @@ def overview_list_all(request, req_type, data, bu_id=None):
     operating_system = None
     activity = None
     inactivity = None
+    disk_space = None
     now = datetime.now()
     hour_ago = now - timedelta(hours=1)
     today = date.today()
@@ -238,6 +276,16 @@ def overview_list_all(request, req_type, data, bu_id=None):
     
     if req_type == 'inactivity':
         inactivity = data
+        
+    if req_type == 'disk_space_ok':
+        disk_space_ok = data
+        
+    if req_type == 'disk_space_warning':
+        disk_space_warning = data
+    
+    if req_type == 'disk_space_alert':
+        disk_space_alert = data
+        
     if bu_id != None:
         business_units = get_object_or_404(BusinessUnit, pk=bu_id)
         machine_groups = MachineGroup.objects.filter(business_unit=business_units).prefetch_related('machine_set').all()
@@ -275,6 +323,15 @@ def overview_list_all(request, req_type, data, bu_id=None):
     
     if req_type == 'active':
         machines = all_machines.filter(activity__isnull=False)
+    
+    if req_type == 'disk_space_ok':
+        machines = all_machines.filter(hd_percent__lt=80)
+    
+    if req_type == 'disk_space_warning':
+        machines = all_machines.filter(hd_percent__range=["80", "89"])
+    
+    if req_type == 'disk_space_alert':
+        machines = all_machines.filter(hd_percent__gte=90)
     
     if activity is not None:
         if data == '1-hour':
@@ -327,6 +384,9 @@ def group_dashboard(request, group_id):
     machine_data['checked_in_this_week'] = Machine.objects.filter(last_checkin__gte=week_ago, machine_group=machine_group).count()
     machine_data['inactive_for_a_month'] = Machine.objects.filter(last_checkin__range=(three_months_ago, month_ago), machine_group=machine_group).count()
     machine_data['inactive_for_three_months'] = Machine.objects.exclude(last_checkin__gte=three_months_ago).filter(machine_group=machine_group).count()
+    machine_data['disk_ok'] = Machine.objects.filter(hd_percent__lt=80).filter(machine_group=machine_group).count()
+    machine_data['disk_warning'] = Machine.objects.filter(hd_percent__range=["80", "89"]).filter(machine_group=machine_group).count()
+    machine_data['disk_alert'] = Machine.objects.filter(hd_percent__gte=90).filter(machine_group=machine_group).count()
     c = {'user': request.user, 'machine_group': machine_group, 'user_level': user_level, 'machine_data':machine_data, 'is_editor': is_editor, 'business_unit': business_unit, 'os_info':os_info}
     return render_to_response('server/group_dashboard.html', c, context_instance=RequestContext(request))
 
@@ -400,6 +460,15 @@ def overview_list_group(request, group_id, req_type, data):
     
     if req_type == 'active':
         machines = Machine.objects.filter(activity__isnull=False, machine_group=machine_group)
+    
+    if req_type == 'disk_space_ok':
+        machines = Machine.objects.filter(hd_percent__lt=80, machine_group=machine_group)
+    
+    if req_type == 'disk_space_warning':
+        machines = Machine.objects.filter(hd_percent__range=["80", "89"], machine_group=machine_group)
+    
+    if req_type == 'disk_space_alert':
+        machines = Machine.objects.filter(hd_percent__gte=90, machine_group=machine_group)
     
     if activity is not None:
         if data == '1-hour':
@@ -538,6 +607,9 @@ def checkin(request):
             machine.operating_system = report_data['MachineInfo'].get(
                 'os_vers', 'UNKNOWN')
         machine.hd_space = report_data.get('AvailableDiskSpace') or 0
+        machine.hd_total = int(data.get('disk_size')) or 0
+        machine.hd_percent = round((float(machine.hd_space) / float(machine.hd_total))*100)
+        print machine.hd_percent
         machine.munki_version = report_data.get('ManagedInstallVersion') or 0
         hwinfo = {}
         if 'SystemProfile' in report_data.get('MachineInfo', []):

@@ -17,7 +17,28 @@ import subprocess
 import base64
 import yaml
 import bz2
+import os
 BUNDLE_ID = 'com.grahamgilbert.sal'
+
+def get_disk_size(path='/'):
+    """Returns total disk size in KBytes.
+
+    Args:
+      path: str, optional, default '/'
+    Returns:
+      int, KBytes in total disk space
+    """
+    if path is None:
+        path = '/'
+    try:
+        st = os.statvfs(path)
+    except OSError, e:
+        display_error(
+            'Error getting disk space in %s: %s', path, str(e))
+        return 0
+    total = (st.f_blocks * st.f_frsize) / 1024
+    return int(total)
+    
 
 def getconsoleuser():
     """Return console user"""
@@ -110,6 +131,7 @@ data['base64bz2report'] = base64.b64encode(zipped)
 data['serial'] = serial
 data['key'] = bu_key
 data['name'] = name
+data['disk_size'] = get_disk_size('/')
 
 
 data = urllib.urlencode(data) 

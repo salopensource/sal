@@ -119,6 +119,26 @@
             </table>
         </div>
     </div>
+    
+</div>
+<div class="row">
+    <div class="span4">
+            <legend>Disk Space</legend>
+              <a href="{% url 'overview_list_group' 'disk_space_ok' 'view' machine_group.id %}" class="btn btn-success">
+				<span class="bigger"> {{ machine_data.disk_ok }} </span><br />
+				Under 80%
+              </a>
+              
+              <a href="{% url 'overview_list_group' 'disk_space_warning' 'view' machine_group.id %}" class="btn btn-warning">
+				<span class="bigger"> {{ machine_data.disk_warning }} </span><br />
+				Over 80%
+              </a>
+              
+              <a href="{% url 'overview_list_group' 'disk_space_alert' 'view' machine_group.id %}" class="btn btn-danger">
+				<span class="bigger"> {{ machine_data.disk_alert }} </span><br />
+				Over 90%
+              </a>
+    </div>
 </div>
 
 

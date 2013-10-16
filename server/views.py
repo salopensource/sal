@@ -179,7 +179,6 @@ def bu_dashboard(request, bu_id):
         #osen.extend(Machine.objects.filter(machine_group=machine_group).values('operating_system').annotate(count=Count('operating_system')))
         osen = Machine.objects.filter(machine_group=machine_group).values('operating_system').annotate(count=Count('operating_system'))
         for item in osen:
-            pprint.pprint(os_info)
             # loop over existing items, see if there is a dict with the right value
             found = False
             for os in os_info:
@@ -195,7 +194,6 @@ def bu_dashboard(request, bu_id):
 #             else:
 #                 os_info[operating_system] = item['count'] + os_info[operating_system]
 
-    pprint.pprint(os_info)
     count = 0
     for machine_group in machine_groups:
         count = count + Machine.objects.filter(last_checkin__gte=hour_ago, machine_group=machine_group).count()
@@ -505,7 +503,6 @@ def machine_detail(request, req_type, data, machine_id):
         facts = machine.fact_set.all()
         if settings.EXCLUDED_FACTS:
             for excluded in settings.EXCLUDED_FACTS:
-                print excluded
                 facts = facts.exclude(fact_name=excluded)
     else:
         facts = None
@@ -608,7 +605,8 @@ def checkin(request):
                 'os_vers', 'UNKNOWN')
         machine.hd_space = report_data.get('AvailableDiskSpace') or 0
         machine.hd_total = int(data.get('disk_size')) or 0
-        machine.hd_percent = round((float(machine.hd_space) / float(machine.hd_total))*100)
+        #machine.hd_percent = round((float(machine.hd_total)-float(machine.hd_space)) / float(machine.hd_total))*100)
+        machine.hd_percent = int(round(((float(machine.hd_total)-float(machine.hd_space))/float(machine.hd_total))*100))
         machine.munki_version = report_data.get('ManagedInstallVersion') or 0
         hwinfo = {}
         if 'SystemProfile' in report_data.get('MachineInfo', []):

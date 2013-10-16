@@ -609,7 +609,6 @@ def checkin(request):
         machine.hd_space = report_data.get('AvailableDiskSpace') or 0
         machine.hd_total = int(data.get('disk_size')) or 0
         machine.hd_percent = round((float(machine.hd_space) / float(machine.hd_total))*100)
-        print machine.hd_percent
         machine.munki_version = report_data.get('ManagedInstallVersion') or 0
         hwinfo = {}
         if 'SystemProfile' in report_data.get('MachineInfo', []):

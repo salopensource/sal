@@ -59,7 +59,7 @@ def index(request):
             machine_data['disk_warning'] = Machine.objects.filter(hd_percent__range=["80", "89"]).count()
             machine_data['disk_alert'] = Machine.objects.filter(hd_percent__gte=90).count()
             machine_data['mem_ok'] = Machine.objects.filter(memory_kb__gte=mem_8_gb).count()
-            machine_data['mem_warning'] = Machine.objects.filter(memory_kb__range=[mem_415_gb, mem_775_gb]).count()
+            machine_data['mem_warning'] = Machine.objects.filter(memory_kb__range=[mem_4_gb, mem_775_gb]).count()
             machine_data['mem_alert'] = Machine.objects.filter(memory_kb__lt=mem_4_gb).count()
         else:
             osen = []
@@ -138,7 +138,7 @@ def index(request):
             count = 0
             for bu in business_units:
                 for machine_group in bu.machinegroup_set.all():
-                    count = count + Machine.objects.filter(memory_kb__range=[mem_415_gb, mem_775_gb], machine_group=machine_group).count()
+                    count = count + Machine.objects.filter(memory_kb__range=[mem_4_gb, mem_775_gb], machine_group=machine_group).count()
             machine_data['mem_warning'] = count
             
             count = 0
@@ -277,7 +277,7 @@ def bu_dashboard(request, bu_id):
     
     count = 0
     for machine_group in machine_groups:
-        count = count + Machine.objects.filter(memory_kb__range=[mem_415_gb, mem_775_gb], machine_group=machine_group).count()
+        count = count + Machine.objects.filter(memory_kb__range=[mem_4_gb, mem_775_gb], machine_group=machine_group).count()
     machine_data['mem_warning'] = count
     
     count = 0
@@ -386,7 +386,7 @@ def overview_list_all(request, req_type, data, bu_id=None):
         machines = all_machines.filter(memory_kb__gte=mem_8_gb)
     
     if req_type == 'mem_warning':
-        machines = all_machines.filter(memory_kb__range=[mem_415_gb, mem_775_gb])
+        machines = all_machines.filter(memory_kb__range=[mem_4_gb, mem_775_gb])
         
     if req_type == 'mem_alert':
         machines = all_machines.filter(memory_kb__lt=mem_4_gb)
@@ -450,7 +450,7 @@ def group_dashboard(request, group_id):
     machine_data['disk_warning'] = Machine.objects.filter(hd_percent__range=["80", "89"]).filter(machine_group=machine_group).count()
     machine_data['disk_alert'] = Machine.objects.filter(hd_percent__gte=90).filter(machine_group=machine_group).count()
     machine_data['mem_ok'] = Machine.objects.filter(memory_kb__gte=mem_8_gb).filter(machine_group=machine_group).count()
-    machine_data['mem_warning'] = Machine.objects.filter(memory_kb__range=[mem_415_gb, mem_775_gb]).filter(machine_group=machine_group).count()
+    machine_data['mem_warning'] = Machine.objects.filter(memory_kb__range=[mem_4_gb, mem_775_gb]).filter(machine_group=machine_group).count()
     machine_data['mem_alert'] = Machine.objects.filter(memory_kb__lt=mem_4_gb).filter(machine_group=machine_group).count()
     c = {'user': request.user, 'machine_group': machine_group, 'user_level': user_level, 'machine_data':machine_data, 'is_editor': is_editor, 'business_unit': business_unit, 'os_info':os_info}
     return render_to_response('server/group_dashboard.html', c, context_instance=RequestContext(request))
@@ -559,7 +559,7 @@ def overview_list_group(request, group_id, req_type, data):
         machines = Machine.objects.filter(memory_kb__gte=mem_8_gb, machine_group=machine_group)
     
     if req_type == 'mem_warning':
-        machines = Machine.objects.filter(memory_kb__range=[mem_415_gb, mem_775_gb], machine_group=machine_group)
+        machines = Machine.objects.filter(memory_kb__range=[mem_4_gb, mem_775_gb], machine_group=machine_group)
         
     if req_type == 'mem_alert':
         machines = Machine.objects.filter(memory_kb__lt=mem_4_gb, machine_group=machine_group)

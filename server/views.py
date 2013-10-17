@@ -344,9 +344,10 @@ def overview_list_all(request, req_type, data, bu_id=None):
             machines_unsorted = machines_unsorted | machine_group.machine_set.all()
         all_machines=machines_unsorted
         # check user is allowed to see it
-        if business_units not in user.businessunit_set.all() and user_level != 'GA':
-            print 'not letting you in ' + user_level
-            return redirect(index)
+        if business_units not in user.businessunit_set.all():
+            if user_level != 'GA':
+                print 'not letting you in ' + user_level
+                return redirect(index)
     else:
         # all BUs the user has access to
         business_units = user.businessunit_set.all()
@@ -418,8 +419,9 @@ def group_dashboard(request, group_id):
     user_level = user.userprofile.level
     machine_group = get_object_or_404(MachineGroup, pk=group_id)
     business_unit = machine_group.business_unit
-    if business_unit not in user.businessunit_set.all() or user_level != 'GA':
-        return redirect(index)
+    if business_unit not in user.businessunit_set.all():
+        if user_level != 'GA':
+            return redirect(index)
     if user_level == 'GA' or user_level == 'RW':
         is_editor = True
     else:
@@ -498,8 +500,9 @@ def overview_list_group(request, group_id, req_type, data):
     inactivity = None
     user = request.user
     user_level = user.userprofile.level
-    if business_unit not in user.businessunit_set.all() or user_level != 'GA':
-        return redirect(index)
+    if business_unit not in user.businessunit_set.all():
+        if user_level != 'GA':
+            return redirect(index)
     
     now = datetime.now()
     hour_ago = now - timedelta(hours=1)
@@ -576,8 +579,9 @@ def machine_detail(request, req_type, data, machine_id):
     business_unit = machine_group.business_unit
     user = request.user
     user_level = user.userprofile.level
-    if business_unit not in user.businessunit_set.all() and user_level != 'GA':
-        return redirect(index)
+    if business_unit not in user.businessunit_set.all():
+        if user_level != 'GA':
+            return redirect(index)
     
     report = machine.get_report()
     if machine.fact_set.count() != 0:

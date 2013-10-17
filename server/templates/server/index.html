@@ -100,7 +100,6 @@
     </div>
     <div class="span4">
         <legend>Operating System breakdown</legend>
-        <div class="widget-content">
             <table class="table table-striped table-condensed table-bordered">
             {% for item in os_info|dictsort:'operating_system' %}
                 <tr>
@@ -113,7 +112,6 @@
                 </tr>
             {% endfor %}
             </table>
-        </div>
     </div>
 </div>
 <div class="row">
@@ -133,39 +131,59 @@
             {% endfor %}
         </table>
     </div>
-    <div class="span4">
-            <legend>Disk Space</legend>
-              <a href="{% url 'overview_list_all' 'disk_space_ok' 'view' %}" class="btn btn-success">
-				<span class="bigger"> {{ machine_data.disk_ok }} </span><br />
-				&lt; 80%
-              </a>
+    <div class="row">
+        <div class="span4">
+                <legend>Disk Space</legend>
+                  <a href="{% url 'overview_list_all' 'disk_space_ok' 'view' %}" class="btn btn-success">
+    				<span class="bigger"> {{ machine_data.disk_ok }} </span><br />
+    				&lt; 80%
+                  </a>
               
-              <a href="{% url 'overview_list_all' 'disk_space_warning' 'view' %}" class="btn btn-warning">
-				<span class="bigger"> {{ machine_data.disk_warning }} </span><br />
-				80% +
-              </a>
+                  <a href="{% url 'overview_list_all' 'disk_space_warning' 'view' %}" class="btn btn-warning">
+    				<span class="bigger"> {{ machine_data.disk_warning }} </span><br />
+    				80% +
+                  </a>
               
-              <a href="{% url 'overview_list_all' 'disk_space_alert' 'view' %}" class="btn btn-danger">
-				<span class="bigger"> {{ machine_data.disk_alert }} </span><br />
-				90% +
-              </a>
-    </div>
-    <div class="span4">
-            <legend>Memory</legend>
-              <a href="{% url 'overview_list_all' 'mem_ok' 'view' %}" class="btn btn-success">
-				<span class="bigger"> {{ machine_data.mem_ok }} </span><br />
-				8GB +
-              </a>
+                  <a href="{% url 'overview_list_all' 'disk_space_alert' 'view' %}" class="btn btn-danger">
+    				<span class="bigger"> {{ machine_data.disk_alert }} </span><br />
+    				90% +
+                  </a>
+        </div>
+        <div class="span4">
+                <legend>Memory</legend>
+                  <a href="{% url 'overview_list_all' 'mem_ok' 'view' %}" class="btn btn-success">
+    				<span class="bigger"> {{ machine_data.mem_ok }} </span><br />
+    				8GB +
+                  </a>
               
+                  <a href="{% url 'overview_list_all' 'mem_warning' 'view' %}" class="btn btn-warning">
+    				<span class="bigger"> {{ machine_data.mem_warning }} </span><br />
+    				4GB +
+                  </a>
+              
+                  <a href="{% url 'overview_list_all' 'mem_alert' 'view' %}" class="btn btn-danger">
+    				<span class="bigger"> {{ machine_data.mem_alert }} </span><br />
+    				&lt; 4GB
+                  </a>
+        </div>
+    <div class="row">
+        <div class="span4">
+            <legend>Uptime</legend>
+              <a href="{% url 'overview_list_all' 'uptime_ok' 'view' %}" class="btn btn-success">
+    			<span class="bigger"> {{ machine_data.uptime_ok }} </span><br />
+    			&lt; 1 Day
+              </a>
+      
               <a href="{% url 'overview_list_all' 'mem_warning' 'view' %}" class="btn btn-warning">
-				<span class="bigger"> {{ machine_data.mem_warning }} </span><br />
-				4GB +
+    			<span class="bigger"> {{ machine_data.mem_warning }} </span><br />
+    			4GB +
               </a>
-              
+      
               <a href="{% url 'overview_list_all' 'mem_alert' 'view' %}" class="btn btn-danger">
-				<span class="bigger"> {{ machine_data.mem_alert }} </span><br />
-				&lt; 4GB
+    			<span class="bigger"> {{ machine_data.mem_alert }} </span><br />
+    			&lt; 4GB
               </a>
+        </div>
     </div>
 </div>
 {% endblock %}

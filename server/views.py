@@ -61,6 +61,7 @@ def index(request):
             machine_data['mem_ok'] = Machine.objects.filter(memory_kb__gte=mem_8_gb).count()
             machine_data['mem_warning'] = Machine.objects.filter(memory_kb__range=[mem_4_gb, mem_775_gb]).count()
             machine_data['mem_alert'] = Machine.objects.filter(memory_kb__lt=mem_4_gb).count()
+            machine_data['uptime_ok'] = Machine.objects.filter(fact__fact_name='uptime_days', fact__fact_data__lte=1).count()
         else:
             osen = []
             for bu in business_units:

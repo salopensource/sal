@@ -115,23 +115,6 @@
     </div>
 </div>
 <div class="row">
-    <div class="span4">
-        <legend>Business Units</legend>
-        <table class="table table-striped table-condensed table-bordered">
-            {% for business_unit in business_units.all %}
-            <tr>
-                <td><a href="{% url 'bu_dashboard' business_unit.id %}">{{ business_unit.name }}
-                    <span class="badge badge-info pull-right">
-                        {{ business_unit.id|bu_machine_count }}
-                    </span>
-                    </a>
-                </td>
-            </tr>
-
-            {% endfor %}
-        </table>
-    </div>
-    <div class="row">
         <div class="span4">
                 <legend>Disk Space</legend>
                   <a href="{% url 'overview_list_all' 'disk_space_ok' 'view' %}" class="btn btn-success">
@@ -166,7 +149,6 @@
     				&lt; 4GB
                   </a>
         </div>
-    <div class="row">
         <div class="span4">
             <legend>Uptime</legend>
               <a href="{% url 'overview_list_all' 'uptime_ok' 'view' %}" class="btn btn-success">
@@ -174,16 +156,33 @@
     			&lt; 1 Day
               </a>
       
-              <a href="{% url 'overview_list_all' 'mem_warning' 'view' %}" class="btn btn-warning">
-    			<span class="bigger"> {{ machine_data.mem_warning }} </span><br />
-    			4GB +
+              <a href="{% url 'overview_list_all' 'uptime_warning' 'view' %}" class="btn btn-warning">
+    			<span class="bigger"> {{ machine_data.uptime_warning }} </span><br />
+    			&lt; 7 Days
               </a>
       
-              <a href="{% url 'overview_list_all' 'mem_alert' 'view' %}" class="btn btn-danger">
-    			<span class="bigger"> {{ machine_data.mem_alert }} </span><br />
-    			&lt; 4GB
+              <a href="{% url 'overview_list_all' 'uptime_alert' 'view' %}" class="btn btn-danger">
+    			<span class="bigger"> {{ machine_data.uptime_alert }} </span><br />
+    			7 Days +
               </a>
-        </div>
+    </div>
+</div>
+<div class="row">
+    <div class="span4">
+        <legend>Business Units</legend>
+        <table class="table table-striped table-condensed table-bordered">
+            {% for business_unit in business_units.all %}
+            <tr>
+                <td><a href="{% url 'bu_dashboard' business_unit.id %}">{{ business_unit.name }}
+                    <span class="badge badge-info pull-right">
+                        {{ business_unit.id|bu_machine_count }}
+                    </span>
+                    </a>
+                </td>
+            </tr>
+
+            {% endfor %}
+        </table>
     </div>
 </div>
 {% endblock %}

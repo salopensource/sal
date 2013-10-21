@@ -21,17 +21,19 @@ import pprint
 def index(request):
     # Get the current user's Business Units
     user = request.user
-    if user.businessunit_set.count() == 1:
-        # user only has one BU, redirect to it
-        for bu in user.businessunit_set.all():
-            return redirect('server.views.bu_dashboard', bu_id=bu.id)
-            break
-    else:
+    user_level = user.userprofile.level
+    if user_level != 'GA':
         # user has many BU's display them all in a friendly manner
         business_units = user.businessunit_set.all()
-        # get the user level - if they're a global admin, show all of the machines. If not, show only the machines they have access to
-        user_level = user.userprofile.level
+        if user.businessunit_set.count() == 1:
+            # user only has one BU, redirect to it
+            for bu in user.businessunit_set.all():
+                return redirect('server.views.bu_dashboard', bu_id=bu.id)
+                break
+    else:
         
+        # get the user level - if they're a global admin, show all of the machines. If not, show only the machines they have access to
+        business_units = BusinessUnit.objects.all()
         now = datetime.now()
         hour_ago = now - timedelta(hours=1)
         today = date.today()
@@ -62,6 +64,8 @@ def index(request):
             machine_data['mem_warning'] = Machine.objects.filter(memory_kb__range=[mem_4_gb, mem_775_gb]).count()
             machine_data['mem_alert'] = Machine.objects.filter(memory_kb__lt=mem_4_gb).count()
             machine_data['uptime_ok'] = Machine.objects.filter(fact__fact_name='uptime_days', fact__fact_data__lte=1).count()
+            machine_data['uptime_warning'] = Machine.objects.filter(fact__fact_name='uptime_days', fact__fact_data__range=[1,7]).count()
+            machine_data['uptime_alert'] = Machine.objects.filter(fact__fact_name='uptime_days', fact__fact_data__gt=7).count()
         else:
             osen = []
             for bu in business_units:
@@ -147,6 +151,25 @@ def index(request):
                 for machine_group in bu.machinegroup_set.all():
                     count = count + Machine.objects.filter(memory_kb__lt=mem_4_gb, machine_group=machine_group).count()
             machine_data['mem_alert'] = count
+            
+            count = 0
+            for bu in business_units:
+                for machine_group in bu.machinegroup_set.all():
+                    count = count + Machine.objects.filter(fact__fact_name='uptime_days', fact__fact_data__lte=1, machine_group=machine_group).count()
+            machine_data['uptime_ok'] = count
+            
+            count = 0
+            for bu in business_units:
+                for machine_group in bu.machinegroup_set.all():
+                    count = count + Machine.objects.filter(fact__fact_name='uptime_days', fact__fact_data__range=[1,7], machine_group=machine_group).count()
+            machine_data['uptime_warning'] = count
+            
+            count = 0
+            for bu in business_units:
+                for machine_group in bu.machinegroup_set.all():
+                    count = count + Machine.objects.filter(fact__fact_name='uptime_days', fact__fact_data__gt=7, machine_group=machine_group).count()
+            machine_data['uptime_alert'] = count
+            
             
         c = {'user': request.user, 'business_units': business_units, 'machine_data': machine_data, 'os_info':os_info}
         return render_to_response('server/index.html', c, context_instance=RequestContext(request)) 
@@ -286,6 +309,21 @@ def bu_dashboard(request, bu_id):
         count = count + Machine.objects.filter(memory_kb__lt=mem_4_gb, machine_group=machine_group).count()
     machine_data['mem_alert'] = count
     
+    count = 0
+    for machine_group in bu.machinegroup_set.all():
+        count = count + Machine.objects.filter(fact__fact_name='uptime_days', fact__fact_data__lte=1, machine_group=machine_group).count()
+    machine_data['uptime_ok'] = count
+    
+    count = 0
+    for machine_group in bu.machinegroup_set.all():
+        count = count + Machine.objects.filter(fact__fact_name='uptime_days', fact__fact_data__range=[1,7], machine_group=machine_group).count()
+    machine_data['uptime_warning'] = count
+    
+    count = 0
+    for machine_group in bu.machinegroup_set.all():
+        count = count + Machine.objects.filter(fact__fact_name='uptime_days', fact__fact_data__gt=7, machine_group=machine_group).count()
+    machine_data['uptime_alert'] = count
+    
     c = {'user': request.user, 'machine_groups': machine_groups, 'is_editor': is_editor, 'business_unit': business_unit, 'os_info': os_info, 'machine_data': machine_data, 'user_level': user_level}
     return render_to_response('server/bu_dashboard.html', c, context_instance=RequestContext(request))
 
@@ -393,6 +431,15 @@ def overview_list_all(request, req_type, data, bu_id=None):
     if req_type == 'mem_alert':
         machines = all_machines.filter(memory_kb__lt=mem_4_gb)
     
+    if req_type == 'uptime_ok':
+        machines = all_machines.filter(fact__fact_name='uptime_days', fact__fact_data__lte=1)
+    
+    if req_type == 'uptime_warning':
+        machines = all_machines.filter(fact__fact_name='uptime_days', fact__fact_data__range=[1,7])
+    
+    if req_type == 'uptime_alert':
+        machines = all_machines.filter(fact__fact_name='uptime_days', fact__fact_data__gt=7)
+    
     if activity is not None:
         if data == '1-hour':
             machines = all_machines.filter(last_checkin__gte=hour_ago)
@@ -455,6 +502,9 @@ def group_dashboard(request, group_id):
     machine_data['mem_ok'] = Machine.objects.filter(memory_kb__gte=mem_8_gb).filter(machine_group=machine_group).count()
     machine_data['mem_warning'] = Machine.objects.filter(memory_kb__range=[mem_4_gb, mem_775_gb]).filter(machine_group=machine_group).count()
     machine_data['mem_alert'] = Machine.objects.filter(memory_kb__lt=mem_4_gb).filter(machine_group=machine_group).count()
+    machine_data['uptime_ok'] = Machine.objects.filter(fact__fact_name='uptime_days', fact__fact_data__lte=1).count()
+    machine_data['uptime_warning'] = Machine.objects.filter(fact__fact_name='uptime_days', fact__fact_data__range=[1,7]).count()
+    machine_data['uptime_alert'] = Machine.objects.filter(fact__fact_name='uptime_days', fact__fact_data__gt=7).count()
     c = {'user': request.user, 'machine_group': machine_group, 'user_level': user_level, 'machine_data':machine_data, 'is_editor': is_editor, 'business_unit': business_unit, 'os_info':os_info}
     return render_to_response('server/group_dashboard.html', c, context_instance=RequestContext(request))
 
@@ -567,6 +617,15 @@ def overview_list_group(request, group_id, req_type, data):
         
     if req_type == 'mem_alert':
         machines = Machine.objects.filter(memory_kb__lt=mem_4_gb, machine_group=machine_group)
+    
+    if req_type == 'uptime_ok':
+        machines = Machine.objects.filter(fact__fact_name='uptime_days', fact__fact_data__lte=1, machine_group=machine_group)
+    
+    if req_type == 'uptime_warning':
+        machines = Machine.objects.filter(fact__fact_name='uptime_days', fact__fact_data__range=[1,7], machine_group=machine_group)
+    
+    if req_type == 'uptime_alert':
+        machines = Machine.objects.filter(fact__fact_name='uptime_days', fact__fact_data__gt=7, machine_group=machine_group)
 
     c = {'user':user, 'machine_group': machine_group, 'business_unit': business_unit, 'machines': machines, 'req_type': req_type, 'data': data }
     return render_to_response('server/overview_list_group.html', c, context_instance=RequestContext(request))

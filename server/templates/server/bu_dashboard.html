@@ -16,13 +16,15 @@
         <h3>{{ business_unit.name }}</h3>
     </div>
 </div>
-<div class="row">
-    <div class="span12">
-        {% if user_level == "GA" %}
-        Key: <code>{{ business_unit.key }}</code>
-        {% endif %}
+
+{% if user_level == "GA" %}
+    <div class="row">
+        <div class="span12">
+            Key: <code>{{ business_unit.key }}</code>
+        </div>
     </div>
-</div>
+{% endif %}
+
 {% if machine_groups.count > 0 %}
 
 <div class="row">
@@ -31,7 +33,7 @@
         <table class="table table-striped table-condensed table-bordered">
             <tr>
                 <td>
-                    {% if machine_data.checked_in_this_hour %}<a href="{% url 'overview_list_bu' 'activity' '1-hour'  business_unit.id %}">{% endif %}
+                    {% if machine_data.checked_in_this_hour %}<a href="{% url 'overview_list_bu' 'activity' '1-hour' business_unit.id %}">{% endif %}
                     Machines this hour
                     <span class="badge badge-info pull-right">
                         {{ machine_data.checked_in_this_hour }}
@@ -40,7 +42,7 @@
                 </td>
             </tr>
             <tr>
-                <td>{% if machine_data.checked_in_today %}<a href="{% url 'overview_list_bu' 'activity' 'today'  business_unit.id %}">{% endif %}
+                <td>{% if machine_data.checked_in_today %}<a href="{% url 'overview_list_bu' 'activity' 'today' business_unit.id %}">{% endif %}
                     Machines today
                     <span class="badge badge-info pull-right">
                         {{ machine_data.checked_in_today }}
@@ -49,7 +51,7 @@
                 </td>
             </tr>
             <tr>
-                <td>{% if machine_data.checked_in_this_week %}<a href="{% url 'overview_list_bu' 'activity' '1-week'  business_unit.id %}">{% endif %}
+                <td>{% if machine_data.checked_in_this_week %}<a href="{% url 'overview_list_bu' 'activity' '1-week' business_unit.id %}">{% endif %}
                     Machines this week
                     <span class="badge badge-info pull-right">
                         {{ machine_data.checked_in_this_week }}
@@ -58,7 +60,7 @@
                 </td>
             </tr>
             <tr>
-                <td>{% if machine_data.inactive_for_a_month %}<a href="{% url 'overview_list_bu' 'inactivity' '1-month'  business_unit.id %}">{% endif %}
+                <td>{% if machine_data.inactive_for_a_month %}<a href="{% url 'overview_list_bu' 'inactivity' '1-month' business_unit.id %}">{% endif %}
                     Inactive for a month
                     <span class="badge badge-warning pull-right">
                         {{ machine_data.inactive_for_a_month }}
@@ -67,7 +69,7 @@
                 </td>
             </tr>
             <tr>
-                <td>{% if machine_data.inactive_for_three_months %}<a href="{% url 'overview_list_bu' 'inactivity' '3-months'  business_unit.id %}">{% endif %}
+                <td>{% if machine_data.inactive_for_three_months %}<a href="{% url 'overview_list_bu' 'inactivity' '3-months' business_unit.id %}">{% endif %}
                     Inactive for three months
                     <span class="badge badge-important pull-right">
                         {{ machine_data.inactive_for_three_months }}
@@ -112,12 +114,11 @@
     </div>
     <div class="span4">
         <legend>Operating System breakdown</legend>
-        <div class="widget-content">
             <table class="table table-striped table-condensed table-bordered">
             {% for item in os_info|dictsort:'operating_system' %}
                 <tr>
                     <td>
-                        <a href="{% url 'overview_list_bu' 'operating_system' item.operating_system  business_unit.id %}">
+                        <a href="{% url 'overview_list_bu' 'operating_system' item.operating_system business_unit.id %}">
                         {{ item.operating_system }}
                         <span class="badge pull-right">{{ item.count }}</span>
                         </a>
@@ -125,8 +126,61 @@
                 </tr>
             {% endfor %}
             </table>
-        </div>
     </div>
+</div>
+<div class="row">
+
+        <div class="span4">
+                <legend>Disk Space</legend>
+                  <a href="{% url 'overview_list_bu' 'disk_space_ok' 'view' business_unit.id %}" class="btn btn-success">
+    				<span class="bigger"> {{ machine_data.disk_ok }} </span><br />
+    				&lt; 80%
+                  </a>
+              
+                  <a href="{% url 'overview_list_bu' 'disk_space_warning' 'view' business_unit.id %}" class="btn btn-warning">
+    				<span class="bigger"> {{ machine_data.disk_warning }} </span><br />
+    				80% +
+                  </a>
+              
+                  <a href="{% url 'overview_list_bu' 'disk_space_alert' 'view' business_unit.id %}" class="btn btn-danger">
+    				<span class="bigger"> {{ machine_data.disk_alert }} </span><br />
+    				90% +
+                  </a>
+        </div>
+        <div class="span4">
+                <legend>Memory</legend>
+                  <a href="{% url 'overview_list_bu' 'mem_ok' 'view' business_unit.id %}" class="btn btn-success">
+    				<span class="bigger"> {{ machine_data.mem_ok }} </span><br />
+    				8GB +
+                  </a>
+              
+                  <a href="{% url 'overview_list_bu' 'mem_warning' 'view' business_unit.id %}" class="btn btn-warning">
+    				<span class="bigger"> {{ machine_data.mem_warning }} </span><br />
+    				4GB +
+                  </a>
+              
+                  <a href="{% url 'overview_list_bu' 'mem_alert' 'view' business_unit.id %}" class="btn btn-danger">
+    				<span class="bigger"> {{ machine_data.mem_alert }} </span><br />
+    				&lt; 4GB
+                  </a>
+        </div>
+        <div class="span4">
+            <legend>Uptime</legend>
+              <a href="{% url 'overview_list_bu' 'uptime_ok' 'view' business_unit.id %}" class="btn btn-success">
+    			<span class="bigger"> {{ machine_data.uptime_ok }} </span><br />
+    			&lt; 1 Day
+              </a>
+      
+              <a href="{% url 'overview_list_bu' 'uptime_warning' 'view' business_unit.id %}" class="btn btn-warning">
+    			<span class="bigger"> {{ machine_data.uptime_warning }} </span><br />
+    			&lt; 7 Days
+              </a>
+      
+              <a href="{% url 'overview_list_bu' 'uptime_alert' 'view' business_unit.id %}" class="btn btn-danger">
+    			<span class="bigger"> {{ machine_data.uptime_alert }} </span><br />
+    			7 Days +
+              </a>
+        </div>
 </div>
 <div class="row">
     <div class="span4">
@@ -141,42 +195,9 @@
                     </a>
                 </td>
             </tr>
+
             {% endfor %}
         </table>
-    </div>
-    <div class="span4">
-            <legend>Disk Space</legend>
-              <a href="{% url 'overview_list_bu' 'disk_space_ok' 'view' business_unit.id %}" class="btn btn-success">
-				<span class="bigger"> {{ machine_data.disk_ok }} </span><br />
-				&lt; 80%
-              </a>
-              
-              <a href="{% url 'overview_list_bu' 'disk_space_warning' 'view' business_unit.id %}" class="btn btn-warning">
-				<span class="bigger"> {{ machine_data.disk_warning }} </span><br />
-				80% +
-              </a>
-              
-              <a href="{% url 'overview_list_bu' 'disk_space_alert' 'view' business_unit.id %}" class="btn btn-danger">
-				<span class="bigger"> {{ machine_data.disk_alert }} </span><br />
-				90% +
-              </a>
-    </div>
-    <div class="span4">
-            <legend>Memory</legend>
-              <a href="{% url 'overview_list_bu' 'mem_ok' 'view' business_unit.id %}" class="btn btn-success">
-				<span class="bigger"> {{ machine_data.mem_ok }} </span><br />
-				8GB +
-              </a>
-              
-              <a href="{% url 'overview_list_bu' 'mem_warning' 'view' business_unit.id %}" class="btn btn-warning">
-				<span class="bigger"> {{ machine_data.mem_warning }} </span><br />
-				4GB +
-              </a>
-              
-              <a href="{% url 'overview_list_bu' 'mem_alert' 'view' business_unit.id %}" class="btn btn-danger">
-				<span class="bigger"> {{ machine_data.mem_alert }} </span><br />
-				&lt; 4GB
-              </a>
     </div>
 </div>
 {% else %}No Machine groups configured.{% endif %}

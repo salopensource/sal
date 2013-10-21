@@ -52,6 +52,18 @@
 <h3>Machines with less than 4GB of memory</h3>
 {% endif %}
 
+{% if req_type == 'uptime_ok' %}
+<h3>Machines with uptime of less than a day</h3>
+{% endif %}
+
+{% if req_type == 'uptime_warning' %}
+<h3>Machines with uptime of less than a week</h3>
+{% endif %}
+
+{% if req_type == 'uptime_alert' %}
+<h3>Machines with uptime of more than a week</h3>
+{% endif %}
+
 <table class="groupList table table-striped table-condensed">
     <thead>
         <tr>

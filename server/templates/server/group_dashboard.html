@@ -156,6 +156,23 @@
 				&lt; 4GB
               </a>
     </div>
+    <div class="span4">
+        <legend>Uptime</legend>
+          <a href="{% url 'overview_list_group' machine_group.id 'uptime_ok' 'view' %}" class="btn btn-success">
+			<span class="bigger"> {{ machine_data.uptime_ok }} </span><br />
+			&lt; 1 Day
+          </a>
+  
+          <a href="{% url 'overview_list_group' machine_group.id 'uptime_warning' 'view' %}" class="btn btn-warning">
+			<span class="bigger"> {{ machine_data.uptime_warning }} </span><br />
+			&lt; 7 Days
+          </a>
+  
+          <a href="{% url 'overview_list_group' machine_group.id 'uptime_alert' 'view' %}" class="btn btn-danger">
+			<span class="bigger"> {{ machine_data.uptime_alert }} </span><br />
+			7 Days +
+          </a>
+    </div>
 </div>
 
 

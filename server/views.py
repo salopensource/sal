@@ -748,9 +748,12 @@ def checkin(request):
         if 'MachineInfo' in report_data:
             machine.operating_system = report_data['MachineInfo'].get(
                 'os_vers', 'UNKNOWN')
+            # some machines are reporting 10.9, some 10.9.0 - make them the same
+            if len(machine.operating_system) <= 4:
+                machine.operating_system = machine.operating_system + '.0'
         machine.hd_space = report_data.get('AvailableDiskSpace') or 0
         machine.hd_total = int(data.get('disk_size')) or 0
-        #machine.hd_percent = round((float(machine.hd_total)-float(machine.hd_space)) / float(machine.hd_total))*100)
+        
         machine.hd_percent = int(round(((float(machine.hd_total)-float(machine.hd_space))/float(machine.hd_total))*100))
         machine.munki_version = report_data.get('ManagedInstallVersion') or 0
         hwinfo = {}

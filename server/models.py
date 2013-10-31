@@ -171,3 +171,25 @@ class Fact(models.Model):
         return self.fact_name
     class Meta:
         ordering = ['fact_name']
+        
+class PendingUpdate(models.Model):
+    machine = models.ForeignKey(Machine)
+    update = models.CharField(max_length=256, null=True, blank=True)
+    update_version = models.CharField(max_length=256, null=True, blank=True)
+    display_name = models.CharField(max_length=256, null=True, blank=True)
+    def __unicode__(self):
+        return self.update
+    class Meta:
+        ordering = ['display_name']
+        unique_together = ("machine", "update")
+    
+class PendingAppleUpdate(models.Model):
+    machine = models.ForeignKey(Machine)
+    update = models.CharField(max_length=256, null=True, blank=True)
+    update_version = models.CharField(max_length=256, null=True, blank=True)
+    display_name = models.CharField(max_length=256, null=True, blank=True)
+    def __unicode__(self):
+        return self.update
+    class Meta:
+        ordering = ['display_name']
+        unique_together = ("machine", "update")

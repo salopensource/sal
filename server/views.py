@@ -66,7 +66,22 @@ def index(request):
             machine_data['uptime_ok'] = Machine.objects.filter(fact__fact_name='uptime_days', fact__fact_data__lte=1).count()
             machine_data['uptime_warning'] = Machine.objects.filter(fact__fact_name='uptime_days', fact__fact_data__range=[1,7]).count()
             machine_data['uptime_alert'] = Machine.objects.filter(fact__fact_name='uptime_days', fact__fact_data__gt=7).count()
+            
+            pending_updates = PendingUpdate.objects.values('update', 'update_version', 'display_name').annotate(count=Count('update'))
+            
+            pending_apple_updates = PendingAppleUpdate.objects.values('update', 'update_version', 'display_name').annotate(count=Count('update'))
         else:
+            updates = []
+            for bu in business_units:
+                for machine_group in bu.machinegroup_set.all():
+                    updates.extend(PendingUpdate.objects.filter(machine__machine_group=machine_group).values('update', 'update_version', 'display_name').annotate(count=Count('update')))
+            pending_updates = updates
+            
+            updates = []
+            for bu in business_units:
+                for machine_group in bu.machinegroup_set.all():
+                    updates.extend(PendingAppleUpdate.objects.filter(machine__machine_group=machine_group).values('update', 'update_version', 'display_name').annotate(count=Count('update')))
+            pending_apple_updates = updates
             osen = []
             for bu in business_units:
                 for machine_group in bu.machinegroup_set.all():
@@ -171,7 +186,7 @@ def index(request):
             machine_data['uptime_alert'] = count
             
             
-        c = {'user': request.user, 'business_units': business_units, 'machine_data': machine_data, 'os_info':os_info}
+        c = {'user': request.user, 'business_units': business_units, 'machine_data': machine_data, 'os_info':os_info, 'pending_updates':pending_updates, 'pending_apple_updates':pending_apple_updates}
         return render_to_response('server/index.html', c, context_instance=RequestContext(request)) 
 
 # New BU
@@ -240,7 +255,38 @@ def bu_dashboard(request, bu_id):
                     break
             if found == False:
                 os_info.append(item)
+                
+    
+    pending_apple_updates = []
+    for machine_group in machine_groups:
 
+        updates = PendingAppleUpdate.objects.filter(machine__machine_group=machine_group).values('update', 'update_version', 'display_name').annotate(count=Count('update'))
+        for item in updates:
+            # loop over existing items, see if there is a dict with the right value
+            found = False
+            for update in pending_apple_updates:
+                if update['update'] == item['update']:
+                    update['count'] = update['count'] + item['count']
+                    found = True
+                    break
+            if found == False:
+                pending_apple_updates.append(item)
+                
+    pending_updates = []
+    for machine_group in machine_groups:
+
+        updates = PendingUpdate.objects.filter(machine__machine_group=machine_group).values('update', 'update_version', 'display_name').annotate(count=Count('update'))
+        for item in updates:
+            # loop over existing items, see if there is a dict with the right value
+            found = False
+            for update in pending_apple_updates:
+                if update['update'] == item['update']:
+                    update['count'] = update['count'] + item['count']
+                    found = True
+                    break
+            if found == False:
+                pending_updates.append(item)
+    
     count = 0
     for machine_group in machine_groups:
         count = count + Machine.objects.filter(last_checkin__gte=hour_ago, machine_group=machine_group).count()
@@ -324,7 +370,7 @@ def bu_dashboard(request, bu_id):
         count = count + Machine.objects.filter(fact__fact_name='uptime_days', fact__fact_data__gt=7, machine_group=machine_group).count()
     machine_data['uptime_alert'] = count
     
-    c = {'user': request.user, 'machine_groups': machine_groups, 'is_editor': is_editor, 'business_unit': business_unit, 'os_info': os_info, 'machine_data': machine_data, 'user_level': user_level}
+    c = {'user': request.user, 'machine_groups': machine_groups, 'is_editor': is_editor, 'business_unit': business_unit, 'os_info': os_info, 'machine_data': machine_data, 'user_level': user_level, 'pending_apple_updates': pending_apple_updates, 'pending_updates': pending_updates}
     return render_to_response('server/bu_dashboard.html', c, context_instance=RequestContext(request))
 
 # Overview list (all)
@@ -373,6 +419,12 @@ def overview_list_all(request, req_type, data, bu_id=None):
     
     if req_type == 'mem_alert':
         disk_space_alert = data
+    
+    if req_type == 'pending_updates':
+        pending_update = data
+    
+    if req_type == 'pending_apple_updates':
+        pending_apple_update = data
         
     if bu_id != None:
         business_units = get_object_or_404(BusinessUnit, pk=bu_id)
@@ -455,6 +507,12 @@ def overview_list_all(request, req_type, data, bu_id=None):
     
     if operating_system is not None:
         machines = all_machines.filter(operating_system__exact=operating_system)
+    
+    if req_type == 'pending_updates':
+        machines = all_machines.filter(pendingupdate__update=pending_update)
+        
+    if req_type == 'pending_apple_updates':
+        machines = all_machines.filter(pendingappleupdate__update=pending_apple_update)
     c = {'user':user, 'machines': machines, 'req_type': req_type, 'data': data, 'bu_id': bu_id }
     
     return render_to_response('server/overview_list_all.html', c, context_instance=RequestContext(request))
@@ -487,6 +545,10 @@ def group_dashboard(request, group_id):
     
     os_info = Machine.objects.filter(machine_group=machine_group).values('operating_system').annotate(count=Count('operating_system'))
     
+    pending_updates = PendingUpdate.objects.filter(machine__machine_group=machine_group).values('update', 'update_version', 'display_name').annotate(count=Count('update'))
+    
+    pending_apple_updates = PendingAppleUpdate.objects.filter(machine__machine_group=machine_group).values('update', 'update_version', 'display_name').annotate(count=Count('update'))
+    
     machine_data = {}
     machine_data['errors'] = Machine.objects.filter(errors__gt=0, machine_group=machine_group).count()
     machine_data['warnings'] = Machine.objects.filter(warnings__gt=0, machine_group=machine_group).count()
@@ -502,10 +564,10 @@ def group_dashboard(request, group_id):
     machine_data['mem_ok'] = Machine.objects.filter(memory_kb__gte=mem_8_gb).filter(machine_group=machine_group).count()
     machine_data['mem_warning'] = Machine.objects.filter(memory_kb__range=[mem_4_gb, mem_775_gb]).filter(machine_group=machine_group).count()
     machine_data['mem_alert'] = Machine.objects.filter(memory_kb__lt=mem_4_gb).filter(machine_group=machine_group).count()
-    machine_data['uptime_ok'] = Machine.objects.filter(fact__fact_name='uptime_days', fact__fact_data__lte=1).count()
-    machine_data['uptime_warning'] = Machine.objects.filter(fact__fact_name='uptime_days', fact__fact_data__range=[1,7]).count()
-    machine_data['uptime_alert'] = Machine.objects.filter(fact__fact_name='uptime_days', fact__fact_data__gt=7).count()
-    c = {'user': request.user, 'machine_group': machine_group, 'user_level': user_level, 'machine_data':machine_data, 'is_editor': is_editor, 'business_unit': business_unit, 'os_info':os_info}
+    machine_data['uptime_ok'] = Machine.objects.filter(fact__fact_name='uptime_days', fact__fact_data__lte=1).filter(machine_group=machine_group).count()
+    machine_data['uptime_warning'] = Machine.objects.filter(fact__fact_name='uptime_days', fact__fact_data__range=[1,7]).filter(machine_group=machine_group).count()
+    machine_data['uptime_alert'] = Machine.objects.filter(fact__fact_name='uptime_days', fact__fact_data__gt=7).filter(machine_group=machine_group).count()
+    c = {'user': request.user, 'machine_group': machine_group, 'user_level': user_level, 'machine_data':machine_data, 'is_editor': is_editor, 'business_unit': business_unit, 'os_info':os_info, 'pending_updates':pending_updates, 'pending_apple_updates':pending_apple_updates}
     return render_to_response('server/group_dashboard.html', c, context_instance=RequestContext(request))
 
 # New Group
@@ -575,6 +637,12 @@ def overview_list_group(request, group_id, req_type, data):
     if req_type == 'inactivity':
         inactivity = data
         
+    if req_type == 'pending_updates':
+        pending_update = data
+    
+    if req_type == 'pending_apple_updates':
+        pending_apple_update = data
+        
     if activity is not None:
         if data == '1-hour':
             machines = Machine.objects.filter(last_checkin__gte=hour_ago, machine_group=machine_group)
@@ -626,6 +694,12 @@ def overview_list_group(request, group_id, req_type, data):
     
     if req_type == 'uptime_alert':
         machines = Machine.objects.filter(fact__fact_name='uptime_days', fact__fact_data__gt=7, machine_group=machine_group)
+        
+    if req_type == 'pending_updates':
+        machines = Machine.objects.filter(pendingupdate__update=pending_update, machine_group=machine_group)
+        
+    if req_type == 'pending_apple_updates':
+        machines = Machine.objects.filter(pendingappleupdate__update=pending_apple_update, machine_group=machine_group)
 
     c = {'user':user, 'machine_group': machine_group, 'business_unit': business_unit, 'machines': machines, 'req_type': req_type, 'data': data }
     return render_to_response('server/overview_list_group.html', c, context_instance=RequestContext(request))
@@ -781,6 +855,28 @@ def checkin(request):
 
         machine.save()
         
+        # Remove existing PendingUpdates for the machine
+        updates = machine.pendingupdate_set.all()
+        updates.delete()
+        if 'ItemsToInstall' in report_data:
+            for update in report_data.get('ItemsToInstall'):
+                display_name = update.get('display_name', update['name'])
+                update_name = update.get('name')
+                version = str(update['version_to_install'])
+                pending_update = PendingUpdate(machine=machine, display_name=display_name, update_version=version, update=update_name)
+                pending_update.save()
+        
+        # Remove existing PendingAppleUpdates for the machine
+        updates = machine.pendingappleupdate_set.all()
+        updates.delete()
+        if 'AppleUpdates' in report_data:
+            for update in report_data.get('AppleUpdates'):
+                display_name = update.get('display_name', update['name'])
+                update_name = update.get('name')
+                version = str(update['version_to_install'])
+                pending_update = PendingAppleUpdate(machine=machine, display_name=display_name, update_version=version, update=update_name)
+                pending_update.save()
+            
         # if Facter data is submitted, we need to first remove any existing facts for this machine
         if 'Facter' in report_data:
             facts = machine.fact_set.all()
@@ -789,5 +885,6 @@ def checkin(request):
             for fact_name, fact_data in report_data['Facter'].iteritems():
                 fact = Fact(machine=machine, fact_name=fact_name, fact_data=fact_data)
                 fact.save()
+        
         return HttpResponse("Sal report submmitted for %s.\n" 
                             % data.get('name'))

@@ -106,12 +106,11 @@ try:
     command = ['facter', '--puppet', '--yaml']
     task = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     (stdout, stderr) = task.communicate()
+    if stdout:
+        facter = yaml.load(stdout)
+        report['Facter'] = facter
 except:
     print stderr
-    
-if stdout:
-    facter = yaml.load(stdout)
-    report['Facter'] = facter
 
 # Get the serial number
 serial = report['MachineInfo']['serial_number']

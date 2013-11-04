@@ -279,7 +279,7 @@ def bu_dashboard(request, bu_id):
         for item in updates:
             # loop over existing items, see if there is a dict with the right value
             found = False
-            for update in pending_apple_updates:
+            for update in pending_updates:
                 if update['update'] == item['update']:
                     update['count'] = update['count'] + item['count']
                     found = True

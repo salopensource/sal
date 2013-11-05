@@ -6,7 +6,7 @@ Sal is split into Business Units, and then subdivided into Groups. Each client w
 
 ##Server installation
 
-I owe you docs. Look at the instructions for Crypt-server for now.
+See ``Installation_on_Ubuntu_12.md`` for server installation docs.
 
 ### Getting started
 

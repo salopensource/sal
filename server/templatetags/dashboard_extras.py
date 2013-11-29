@@ -1,6 +1,7 @@
 from django import template
 from django.shortcuts import get_object_or_404
 from server.models import *
+from django.template.defaultfilters import stringfilter
 
 register = template.Library()
 
@@ -31,3 +32,8 @@ def bu_machine_count(bu_id):
     for machinegroup in machine_groups:
         count = count + machinegroup.machine_set.count()    
     return count
+
+@register.filter
+@stringfilter
+def trim(value):
+    return value.strip()

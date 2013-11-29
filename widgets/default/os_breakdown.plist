@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>name</key>
+	<string>os_breakdown</string>
+	<key>description</key>
+	<string>Provides a breakdown of operating systems used.</string>
+	<key>display_name</key>
+	<string>Operating System Breakdown</string>
+	<key>source</key>
+	<string>builtin</string>
+	<key>widget_type</key>
+	<string>list_count</string>
+	<key>search_item</key>
+	<string>operating_system</string>
+</dict>
+</plist>

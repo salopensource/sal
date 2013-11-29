@@ -9,8 +9,29 @@
 
 {% block nav %}
     {% if user.userprofile.level == 'GA' %}
-        <li><a href="{% url 'new_business_unit' %}">New Business Unit</a></li>
+        <li><a href="{% url 'widgetToTopList' %}">Manage Widgets</a></li>
     {% endif %}
+	  <li class="dropdown"><a class="dropdown-toggle" id="buLabel" data-toggle="dropdown" data-target="#" href="#">
+	    Business Units
+	    <b class="caret"></b>
+	  </a>
+	  <ul class="dropdown-menu" role="menu" aria-labelledby="buLabel">
+          {% for business_unit in business_units.all %}
+         <li><a href="{% url 'bu_dashboard' business_unit.id %}">{{ business_unit.name }}
+                  <span class="badge badge-info pull-right">
+                      {{ business_unit.id|bu_machine_count }}
+                  </span>
+                  </a>
+              </li>
+
+          {% endfor %}
+	  	
+          
+          {% if user.userprofile.level == 'GA' %}<li><a href="{% url 'new_business_unit' %}">New Business Unit</a></li>{% endif %}
+	  </ul>
+	</li>
+        
+    
 {% endblock %}
 {% block content %}
 <div class="row">
@@ -98,21 +119,27 @@
             </tr>
         </table>
     </div>
-    <div class="span4">
-        <legend>Operating System breakdown</legend>
+    
+        {% for result in widget_results %}
+        <div class="span4">
+            <legend>{{ result.displayname}}</legend>
+            {% if result.type == 'list_count' %}
             <table class="table table-striped table-condensed table-bordered">
-            {% for item in os_info|dictsort:'operating_system' %}
+               
+                {% for item in result.machines.all %}
                 <tr>
                     <td>
-                        <a href="{% url 'overview_list_all' 'operating_system' item.operating_system %}">
-                        {{ item.operating_system }}
+                        <a href="{% url 'overview_list_all' result.name item.data_value|trim %}">
+                        {{ item.data_value }}
                         <span class="badge pull-right">{{ item.count }}</span>
                         </a>
                     </td>
                 </tr>
-            {% endfor %}
+                {% endfor %}
             </table>
-    </div>
+            {% endif %}
+        </div>
+        {% endfor %}
 </div>
 <div class="row">
         <div class="span4">
@@ -168,22 +195,7 @@
     </div>
 </div>
 <div class="row">
-    <div class="span4">
-        <legend>Business Units</legend>
-        <table class="table table-striped table-condensed table-bordered">
-            {% for business_unit in business_units.all %}
-            <tr>
-                <td><a href="{% url 'bu_dashboard' business_unit.id %}">{{ business_unit.name }}
-                    <span class="badge badge-info pull-right">
-                        {{ business_unit.id|bu_machine_count }}
-                    </span>
-                    </a>
-                </td>
-            </tr>
 
-            {% endfor %}
-        </table>
-    </div>
     {% if pending_updates|length %}
     <div class="span4">
         <legend>Pending 3rd Party Updates</legend>

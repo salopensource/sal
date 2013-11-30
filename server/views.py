@@ -138,8 +138,12 @@ def processWidget(request, machines, widgetName):
             # ok label and search
             output['ok_label'] = widget.ok_label
             kwargs = {}
+            if widget.ok_search_operator == 'range':
+                search_value = widget.ok_search_value.split(',')
+            else:
+                search_value = widget.ok_search_value
             if widget.ok_search_operator:
-                kwargs[ widget.search_item + '__' + widget.ok_search_operator ] = widget.ok_search_value
+                kwargs[ widget.search_item + '__' + widget.ok_search_operator ] = search_value
             else:
                 kwargs[ widget.search_item ] = widget.ok_search_value
             output['ok_machines'] = machines.filter(**kwargs).count()
@@ -147,8 +151,13 @@ def processWidget(request, machines, widgetName):
             # warning label and search
             output['warning_label'] = widget.warning_label
             kwargs = {}
+            # if it's a range, split on comma, trim the spaces and use both values
+            if widget.warning_search_operator == 'range':
+                search_value = widget.warning_search_value.split(',')
+            else:
+                search_value = widget.warning_search_value
             if widget.warning_search_operator:
-                kwargs[ widget.search_item + '__' + widget.warning_search_operator ] = widget.warning_search_value
+                kwargs[ widget.search_item + '__' + widget.warning_search_operator ] = search_value
             else:
                 kwargs[ widget.search_item ] = widget.warning_search_value
             output['warning_machines'] = machines.filter(**kwargs).count()
@@ -156,10 +165,12 @@ def processWidget(request, machines, widgetName):
             # alert label and search
             output['alert_label'] = widget.alert_label
             kwargs = {}
-            # if it's a range, split on comma, trim the spaces and use both values
-            # '1,,2'.split(',')
+            if widget.alert_search_operator == 'range':
+                search_value = widget.alert_search_value.split(',')
+            else:
+                search_value = widget.alert_search_value
             if widget.alert_search_operator:
-                kwargs[ widget.search_item + '__' + widget.alert_search_operator ] = widget.alert_search_value
+                kwargs[ widget.search_item + '__' + widget.alert_search_operator ] = search_value
             else:
                 kwargs[ widget.search_item ] = widget.alert_search_value
             output['alert_machines'] = machines.filter(**kwargs).count()

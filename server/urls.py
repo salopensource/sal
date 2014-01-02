@@ -1,14 +1,8 @@
-from django.conf.urls import *
+from django.conf.urls.defaults import *
 
 urlpatterns = patterns('server.views',
     #front page
     url(r'^$', 'index', name='home'),
-    # List Widgets for Top
-    url(r'^dashboard/widget-list/', 'widgetToTopList', name='widgetToTopList'),
-    # Add top level widget
-    url(r'^dashboard/widget-add/(?P<widget_id>.+)/', 'widgetToTopAdd', name='widgetToTopAdd'),
-    # Remove top level widget
-    url(r'^dashboard/widget-remove/(?P<widget_id>.+)/', 'widgetToTopRemove', name='widgetToTopRemove'),
     # BU Dashboard
     url(r'^dashboard/(?P<bu_id>.+)/', 'bu_dashboard', name='bu_dashboard'),
     # Overview List (Group)

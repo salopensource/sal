@@ -12,10 +12,6 @@ AUTH_PROFILE_MODULE = "sal.UserProfile"
 DISPLAY_NAME = 'Sal'
 MANAGERS = ADMINS
 
-WIDGETS_DIR = os.path.join(PROJECT_DIR, 'widgets')
-# If new widgets are loaded, should they be applied automatically to all Business Units and Groups?
-AUTOLOAD_WIDGETS = False
-
 EXCLUDED_FACTS = {
     'sshrsakey',
     'sshfp_rsa',

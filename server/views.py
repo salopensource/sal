@@ -17,218 +17,23 @@ import ast
 from forms import *
 import pprint
 import re
-import os
-
-def load_widgets():
-    # iterate over all widgets in the directory
-    widget_dir = settings.WIDGETS_DIR
-    for dirname, dirnames, filenames in os.walk(widget_dir):
-        # print path to all filenames.
-        for filename in filenames:
-            plist = None
-            filePath = os.path.join(dirname, filename)
-            # Try to load it as a plist
-            try:
-                plist = plistlib.readPlist(filePath)
-            except:
-                pass
-                
-            if plist:
-                # if it's a valid plist, see if it's in the database
-                try:
-                    # if it exists, select it
-                    widget = Widget.objects.get(name=plist['name'])
-                except Widget.DoesNotExist:
-                    widget = Widget(name=plist['name'])
-                # Set the fields
-                widget.description = plist['description']
-                widget.display_name = plist['display_name']
-                widget.source = plist['source']
-                widget.widget_type = plist['widget_type']
-                widget.search_item = plist['search_item']
-                if plist['widget_type'] == 'traffic_light':
-                    widget.ok_label = plist['ok'][0]['label']
-                    widget.ok_search_operator = plist['ok'][0]['search_operator']
-                    widget.ok_search_value = plist['ok'][0]['search_value']
-                    widget.warning_label = plist['warning'][0]['label']
-                    widget.warning_search_operator = plist['warning'][0]['search_operator']
-                    widget.warning_search_value = plist['warning'][0]['search_value']
-                    widget.alert_label = plist['alert'][0]['label']
-                    widget.alert_search_value = plist['alert'][0]['search_value']
-                    widget.alert_search_operator = plist['alert'][0]['search_operator']
-                # Save it
-                widget.save()
-                
-                     
-    
-    # for each one in the db, loop over plists. If it's not in there, delete from the db
-
-@login_required
-def widgetToTopList(request):
-    user = request.user
-    user_level = user.userprofile.level
-    load_widgets()
-    if user_level != 'GA':
-        return redirect(index)
-    widgets = Widget.objects.all()
-    assigned_widgets = TopWidget.objects.all()
-    for widget in widgets:
-        # Is this widget already assigned?
-        for assigned_widget in assigned_widgets:
-            if widget.id == assigned_widget.widget.id:
-                # if it's already assigned, remove it from the lsit
-                widgets = widgets.exclude(id=widget.id)
-    c = {'user': user, 'widgets':widgets, 'assigned_widgets':assigned_widgets}
-    return render_to_response('server/widgetToTop.html', c, context_instance=RequestContext(request))
-
-@login_required
-def widgetToTopAdd(request, widget_id):
-    user = request.user
-    user_level = user.userprofile.level
-    load_widgets()
-    if user_level != 'GA':
-        return redirect(index)
-    # make sure it's not been added already
-    widget = get_object_or_404(Widget, pk=widget_id)
-    try:
-        top_widget = TopWidget.objects.get(widget=widget)
-    except TopWidget.DoesNotExist:
-        # get the widget with that ID
-        top_widget = TopWidget(widget=widget)
-        top_widget.save()
-    return redirect(widgetToTopList)
-    
-@login_required
-def widgetToTopRemove(request, widget_id):
-    user = request.user
-    user_level = user.userprofile.level
-    load_widgets()
-    if user_level != 'GA':
-        return redirect(index)
-    # make sure it's not been added already
-    widget = get_object_or_404(Widget, pk=widget_id)
-    try:
-        top_widget = TopWidget.objects.filter(widget=widget).delete()
-    except TopWidget.DoesNotExist:
-        # if it didn't delete, it's probably already gone
-        pass
-    return redirect(widgetToTopList)
-
-def processWidget(request, machines, widgetName):
-    # Get widget
-    output = {}
-    widget = get_object_or_404(Widget, name=widgetName)
-    # handle the types of widget
-    # list
-    output['displayname'] = widget.display_name
-    output['type'] = widget.widget_type
-    output['search_item'] = widget.search_item
-    output['name'] = widget.name
-    if widget.widget_type == 'list_count':
-        #Source - builtin or Facter?
-        if widget.source == 'builtin':
-            output['machines'] = machines.extra(select={'data_value':widget.search_item}).values(widget.search_item, 'data_value').annotate(count=Count(widget.search_item))
-        if widget.source == 'facter':
-            search_field = 'fact__fact_name'
-            output['machines'] = machines.filter(fact__fact_name=widget.search_item).count()
-    
-    # warning lights
-    if widget.widget_type == 'traffic_light':
-        if widget.source == 'builtin':
-            # ok label and search
-            output['ok_label'] = widget.ok_label
-            kwargs = {}
-            if widget.ok_search_operator == 'range':
-                search_value = widget.ok_search_value.split(',')
-            else:
-                search_value = widget.ok_search_value
-            if widget.ok_search_operator:
-                kwargs[ widget.search_item + '__' + widget.ok_search_operator ] = search_value
-            else:
-                kwargs[ widget.search_item ] = widget.ok_search_value
-            output['ok_machines'] = machines.filter(**kwargs).count()
-
-            # warning label and search
-            output['warning_label'] = widget.warning_label
-            kwargs = {}
-            # if it's a range, split on comma, trim the spaces and use both values
-            if widget.warning_search_operator == 'range':
-                search_value = widget.warning_search_value.split(',')
-            else:
-                search_value = widget.warning_search_value
-            if widget.warning_search_operator:
-                kwargs[ widget.search_item + '__' + widget.warning_search_operator ] = search_value
-            else:
-                kwargs[ widget.search_item ] = widget.warning_search_value
-            output['warning_machines'] = machines.filter(**kwargs).count()
-            
-            # alert label and search
-            output['alert_label'] = widget.alert_label
-            kwargs = {}
-            if widget.alert_search_operator == 'range':
-                search_value = widget.alert_search_value.split(',')
-            else:
-                search_value = widget.alert_search_value
-            if widget.alert_search_operator:
-                kwargs[ widget.search_item + '__' + widget.alert_search_operator ] = search_value
-            else:
-                kwargs[ widget.search_item ] = widget.alert_search_value
-            output['alert_machines'] = machines.filter(**kwargs).count()
-    print output
-    return output
-    
-def getWidgetMachines(request, machines, widgetName, data):
-    '''Outputs a queryset of Machine objects when passed a widget name and search data'''
-    # Get widget
-    output = {}
-    widget = get_object_or_404(Widget, name=widgetName)
-    if widget.widget_type == 'list_count':
-        kwargs[ widget.search_item ] = data
-        #Source - builtin or Facter?
-        if widget.source == 'builtin':
-            output = Machine.objects.filter(**kwargs)
-        if widget.source == 'facter':
-            search_field = 'fact__fact_name'
-            output['machines'] = Machine.objects.filter(fact__fact_name=widget.search_item, fact__fact_data=data)
-    
-    # warning lights
-    return output
-    
-def getWidgets(request, item_type, item_id=None):
-    # handle the various types
-    output = []
-    if item_type == 'top':
-        # get the list of widgets for the type
-        widgets = TopWidget.objects.all()
-        # get the machines
-        # if you're not GA, you shouldn't be here
-        user_level = request.user.userprofile.level
-        if user_level != 'GA':
-            return redirect(index)
-        machines = Machine.objects.all()
-        # loop over the widgets
-        for widget in widgets:
-            output.append(processWidget(request, machines, widget.widget.name))
-            #output = output.append(processWidget(request, machines, widget.widget.name))
-    #print output
-    return output 
 
 @login_required 
 def index(request):
     # Get the current user's Business Units
     user = request.user
     user_level = user.userprofile.level
-    load_widgets()
     if user_level != 'GA':
         # user has many BU's display them all in a friendly manner
         business_units = user.businessunit_set.all()
-    
-        # Later on, get the latest BU the user has looked at and dump them there
-        for bu in user.businessunit_set.all():
-            return redirect('server.views.bu_dashboard', bu_id=bu.id)
-            break
+        if user.businessunit_set.count() == 1:
+            # user only has one BU, redirect to it
+            for bu in user.businessunit_set.all():
+                return redirect('server.views.bu_dashboard', bu_id=bu.id)
+                break
     else:
         
+        # get the user level - if they're a global admin, show all of the machines. If not, show only the machines they have access to
         business_units = BusinessUnit.objects.all()
         now = datetime.now()
         hour_ago = now - timedelta(hours=1)
@@ -242,11 +47,9 @@ def index(request):
         mem_415_gb = 4.15 * 1024 * 1024
         mem_775_gb = 7.75 * 1024 * 1024
         mem_8_gb = 8 * 1024 * 1024
-        os_info = None
+
         if user_level == 'GA':
-            #os_info = Machine.objects.all().values('operating_system').annotate(count=Count('operating_system'))
-            
-            widget_results = getWidgets(request, 'top')
+            os_info = Machine.objects.all().values('operating_system').annotate(count=Count('operating_system'))
             machine_data['checked_in_this_hour'] = Machine.objects.filter(last_checkin__gte=hour_ago).count()
             machine_data['checked_in_today'] = Machine.objects.filter(last_checkin__gte=today).count()
             machine_data['checked_in_this_week'] = Machine.objects.filter(last_checkin__gte=week_ago).count()
@@ -384,8 +187,8 @@ def index(request):
             machine_data['uptime_alert'] = count
             
             
-    c = {'user': request.user, 'business_units': business_units, 'machine_data': machine_data, 'os_info':os_info, 'pending_updates':pending_updates, 'pending_apple_updates':pending_apple_updates, 'widget_results':widget_results}
-    return render_to_response('server/index.html', c, context_instance=RequestContext(request)) 
+        c = {'user': request.user, 'business_units': business_units, 'machine_data': machine_data, 'os_info':os_info, 'pending_updates':pending_updates, 'pending_apple_updates':pending_apple_updates}
+        return render_to_response('server/index.html', c, context_instance=RequestContext(request)) 
 
 # New BU
 @login_required
@@ -581,7 +384,6 @@ def overview_list_all(request, req_type, data, bu_id=None):
     activity = None
     inactivity = None
     disk_space = None
-    widget = None
     now = datetime.now()
     hour_ago = now - timedelta(hours=1)
     today = date.today()
@@ -592,43 +394,8 @@ def overview_list_all(request, req_type, data, bu_id=None):
     mem_415_gb = 4.15 * 1024 * 1024
     mem_775_gb = 7.75 * 1024 * 1024
     mem_8_gb = 8 * 1024 * 1024
-    
-    # Select the appropriate machines
-    if bu_id != None:
-        business_units = get_object_or_404(BusinessUnit, pk=bu_id)
-        machine_groups = MachineGroup.objects.filter(business_unit=business_units).prefetch_related('machine_set').all()
-
-        machines_unsorted = machine_groups[0].machine_set.all()
-        for machine_group in machine_groups[1:]:
-            machines_unsorted = machines_unsorted | machine_group.machine_set.all()
-        all_machines=machines_unsorted
-        # check user is allowed to see it
-        if business_units not in user.businessunit_set.all():
-            if user_level != 'GA':
-                print 'not letting you in ' + user_level
-                return redirect(index)
-    else:
-        # all BUs the user has access to
-        business_units = user.businessunit_set.all()
-        # get all the machine groups
-        # business_unit = business_units[0].machinegroup_set.all()
-        machines_unsorted = Machine.objects.none()
-        for business_unit in business_units:
-            for machine_group in business_unit.machinegroup_set.all():
-                machines_unsorted = machines_unsorted | machine_group.machine_set.all()
-
-        all_machines = machines_unsorted
-        if user_level == 'GA':
-            business_units = BusinessUnit.objects.all()
-            all_machines = Machine.objects.all()
-    # Try and get a widget with the name
-    try:
-        widget = Widget.objects.get(name=req_type)
-    except:
-        pass
-        
-    if widget:
-        machines = getWidgetMachines(request, all_machines, widget.name, data)
+    if req_type == 'operating_system':
+        operating_system = data
     
     if req_type == 'activity':
         activity = data
@@ -659,6 +426,36 @@ def overview_list_all(request, req_type, data, bu_id=None):
     
     if req_type == 'pending_apple_updates':
         pending_apple_update = data
+        
+    if bu_id != None:
+        business_units = get_object_or_404(BusinessUnit, pk=bu_id)
+        machine_groups = MachineGroup.objects.filter(business_unit=business_units).prefetch_related('machine_set').all()
+
+        machines_unsorted = machine_groups[0].machine_set.all()
+        for machine_group in machine_groups[1:]:
+            machines_unsorted = machines_unsorted | machine_group.machine_set.all()
+        all_machines=machines_unsorted
+        # check user is allowed to see it
+        if business_units not in user.businessunit_set.all():
+            if user_level != 'GA':
+                print 'not letting you in ' + user_level
+                return redirect(index)
+    else:
+        # all BUs the user has access to
+        business_units = user.businessunit_set.all()
+        # get all the machine groups
+        # business_unit = business_units[0].machinegroup_set.all()
+        machines_unsorted = Machine.objects.none()
+        for business_unit in business_units:
+            for machine_group in business_unit.machinegroup_set.all():
+                #print machines_unsorted
+                machines_unsorted = machines_unsorted | machine_group.machine_set.all()
+            #machines_unsorted = machines_unsorted | machine_group.machines.all()
+        #machines = user.businessunit_set.select_related('machine_group_set').order_by('machine')
+        all_machines = machines_unsorted
+        if user_level == 'GA':
+            business_units = BusinessUnit.objects.all()
+            all_machines = Machine.objects.all()
             
     if req_type == 'errors':
         machines = all_machines.filter(errors__gt=0)
@@ -708,6 +505,9 @@ def overview_list_all(request, req_type, data, bu_id=None):
             machines = all_machines.filter(last_checkin__range=(three_months_ago, month_ago))
         if data == '3-months':
             machines = all_machines.exclude(last_checkin__gte=three_months_ago)
+    
+    if operating_system is not None:
+        machines = all_machines.filter(operating_system__exact=operating_system)
     
     if req_type == 'pending_updates':
         machines = all_machines.filter(pendingupdate__update=pending_update)
@@ -1002,7 +802,7 @@ def checkin(request):
         except Machine.DoesNotExist:
             machine = Machine(serial=serial)
     if machine:
-        machine.hostname = data.get('name', '<NO NAME>').strip()
+        machine.hostname = data.get('name', '<NO NAME>')
         machine.last_checkin = datetime.now()
         if 'username' in data:
             machine.username = data.get('username')

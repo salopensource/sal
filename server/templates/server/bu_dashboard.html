@@ -7,25 +7,7 @@
 
 {% block nav %}
 {% if is_editor %}
-<li class="dropdown"><a class="dropdown-toggle" id="buLabel" data-toggle="dropdown" data-target="#" href="#">
-  Groups
-  <b class="caret"></b>
-</a>
-<ul class="dropdown-menu" role="menu" aria-labelledby="buLabel">
-    {% for machine_group in machine_groups.all %}
-    <li><a href="{% url 'group_dashboard' machine_group.id %}">{{ machine_group.name }}
-            <span class="badge badge-info pull-right">
-                {{ machine_group.machine_set.count }}
-            </span>
-            </a>
-       </li>
-
-    {% endfor %}
-	
-    
-    {% if is_editor %}<li><a href="{% url 'new_machine_group' business_unit.id %}">New Machine Group</a></li>{% endif %}
-    </ul>
-    
+    <li><a href="{% url 'new_machine_group' business_unit.id %}">New Machine Group</a></li>
 {% endif %}
 {% endblock %}
 {% block content %}
@@ -201,6 +183,22 @@
         </div>
 </div>
 <div class="row">
+    <div class="span4">
+        <legend>Groups</legend>
+        <table class="table table-striped table-condensed table-bordered">
+            {% for machine_group in machine_groups.all %}
+            <tr>
+                <td><a href="{% url 'group_dashboard' machine_group.id %}">{{ machine_group.name }}
+                    <span class="badge badge-info pull-right">
+                        {{ machine_group.machine_set.count }}
+                    </span>
+                    </a>
+                </td>
+            </tr>
+
+            {% endfor %}
+        </table>
+    </div>
     
     {% if pending_updates|length %}
     <div class="span4">

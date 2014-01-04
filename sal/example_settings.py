@@ -22,10 +22,6 @@ LIMIT_PLUGIN_TO_BUSINESS_UNIT = {
 
 PLUGIN_DIR = os.path.join(PROJECT_DIR, 'plugins')
 
-WIDGETS_DIR = os.path.join(PROJECT_DIR, 'widgets')
-# If new widgets are loaded, should they be applied automatically to all Business Units and Groups?
-AUTOLOAD_WIDGETS = False
-
 EXCLUDED_FACTS = {
     'sshrsakey',
     'sshfp_rsa',

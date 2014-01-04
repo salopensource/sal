@@ -12,6 +12,20 @@ AUTH_PROFILE_MODULE = "sal.UserProfile"
 DISPLAY_NAME = 'Sal'
 MANAGERS = ADMINS
 
+# The order plugins (if they're able to be shown on that particular page) will be displayed in. If not listed here, will be listed alphabetically after.
+PLUGIN_ORDER = ['Activity','Status','OperatingSystem']
+
+# Only show these plugins on the specified business units
+LIMIT_PLUGIN_TO_BUSINESS_UNIT = {
+    # 'DiskSpace':['1']
+}
+
+PLUGIN_DIR = os.path.join(PROJECT_DIR, 'plugins')
+
+WIDGETS_DIR = os.path.join(PROJECT_DIR, 'widgets')
+# If new widgets are loaded, should they be applied automatically to all Business Units and Groups?
+AUTOLOAD_WIDGETS = False
+
 EXCLUDED_FACTS = {
     'sshrsakey',
     'sshfp_rsa',

@@ -21,48 +21,7 @@
 
 {% endblock %}
 {% block content %}
-{% if req_type == 'operating_system' %}
-<h3>Machines running {{ data }}</h3>
-{% endif %}
-{% if req_type == 'activity' %}
-<h3>Machines active {% if data == '1-hour' %}in the last hour{% endif %}{% if data == 'today' %}today{% endif %}{% if data == '1-week' %}in the last week{% endif %}</h3>
-{% endif %}
-{% if req_type == 'inactivity' %}
-<h3>Machines inactive for {% if data == '1-month' %}a month{% endif %}{% if data == '3-months' %}three months{% endif %}</h3>
-{% endif %}
-{% if req_type == 'disk_space_ok' %}
-<h3>Machines with less than 80% hard disk used</h3>
-{% endif %}
-{% if req_type == 'disk_space_warning' %}
-<h3>Machines with more than 80% hard disk used</h3>
-{% endif %}
-{% if req_type == 'disk_space_alert' %}
-<h3>Machines with more than 90% hard disk used</h3>
-{% endif %}
-
-{% if req_type == 'mem_ok' %}
-<h3>Machines with 8GB or more of memory</h3>
-{% endif %}
-
-{% if req_type == 'mem_warning' %}
-<h3>Machines with 4GB or more of memory</h3>
-{% endif %}
-
-{% if req_type == 'mem_alert' %}
-<h3>Machines with less than 4GB of memory</h3>
-{% endif %}
-
-{% if req_type == 'uptime_ok' %}
-<h3>Machines with uptime of less than a day</h3>
-{% endif %}
-
-{% if req_type == 'uptime_warning' %}
-<h3>Machines with uptime of less than a week</h3>
-{% endif %}
-
-{% if req_type == 'uptime_alert' %}
-<h3>Machines with uptime of more than a week</h3>
-{% endif %}
+{% if title %}<h3>{{ title }}</h3>{% endif %}
 
 <table class="groupList table table-striped table-condensed">
     <thead>
@@ -76,7 +35,7 @@
         {% for item in machines.all|dictsort:'hostname' %}
         <tr>
             <td>
-                <a href="{% url 'machine_detail' req_type data item.id %}">
+                <a href="{% url 'machine_detail' item.id %}">
                 {% if item.hostname %}
                     {{ item.hostname }}
                 {% else %}

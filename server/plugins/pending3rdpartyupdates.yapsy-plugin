@@ -1,0 +1,9 @@
+[Core]
+Name = Pending3rdPartyUpdates
+Module = pending3rdpartyupdates
+
+[Documentation]
+Author = John Smith
+Version = 0.1
+Website = http://lotsofplugins.com
+Description = My first plugin

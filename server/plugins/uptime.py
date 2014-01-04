@@ -1,0 +1,66 @@
+from yapsy.IPlugin import IPlugin
+from yapsy.PluginManager import PluginManager
+from django.template import loader, Context
+from django.db.models import Count
+from server.models import *
+from django.shortcuts import get_object_or_404
+import server.utils as utils
+
+class Uptime(IPlugin):
+    def show_widget(self, page, theid=None):
+        # The data is data is pulled from the database and passed to a template.
+        
+        # There are three possible views we're going to be rendering to - front, bu_dashbaord and group_dashboard. If page is set to bu_dashboard, or group_dashboard, you will be passed a business_unit or machine_group id to use (mainly for linking to the right search).
+        if page == 'front':
+            t = loader.get_template('plugins/traffic_lights_front.html')
+            machines = Machine.objects.all()
+        
+        if page == 'bu_dashboard':
+            t = loader.get_template('plugins/traffic_lights_front.html')
+            machines = utils.getBUmachines(theid)
+        
+        if page == 'group_dashboard':
+            t = loader.get_template('plugins/traffic_lights_id.html')
+            machine_group = get_object_or_404(MachineGroup, pk=theid)
+            machines = Machine.objects.filter(machine_group=machine_group)
+        
+        if machines:
+            ok = machines.filter(fact__fact_name='uptime_days', fact__fact_data__lte=1).count()
+            warning = machines.filter(fact__fact_name='uptime_days', fact__fact_data__range=[1,7]).count()
+            alert = machines.filter(fact__fact_name='uptime_days', fact__fact_data__gt=7).count()
+        else:
+            ok = 0
+            warning = 0
+            alert = 0
+    
+        c = Context({
+            'title': 'Uptime',
+            'ok_label': '> 1 Day',
+            'ok_count': ok,
+            'warning_label': '> 7 Days',
+            'warning_count': warning,
+            'alert_label': '7 Days +',
+            'alert_count': alert,
+            'plugin': 'Uptime',
+            'page': page,
+            'theid': theid
+        })
+        return t.render(c), 4
+        
+    def filter_machines(self, machines, data):
+        if data == 'ok':
+            machines = machines.filter(fact__fact_name='uptime_days', fact__fact_data__lte=1)
+            title = 'Machines with less than 1 day of uptime'
+    
+        elif data == 'warning':
+            machines = machines.filter(fact__fact_name='uptime_days', fact__fact_data__range=[1,7])
+            title = 'Machines with less than 1 week of uptime'
+    
+        elif data == 'alert':
+            machines = machines.filter(fact__fact_name='uptime_days', fact__fact_data__gt=7)
+            title = 'Machines with more than a week of uptime'
+    
+        else:
+            machines = None
+    
+        return machines, title

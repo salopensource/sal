@@ -9,4 +9,4 @@ class BusinessUnitForm(forms.ModelForm):
 class MachineGroupForm(forms.ModelForm):
     class Meta:
         model = MachineGroup
-        fields = ('name','manifest',)
+        fields = ('name',)

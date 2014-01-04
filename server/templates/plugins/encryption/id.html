@@ -1,0 +1,22 @@
+<div class="span5">
+        <legend>{{ title }}</legend>
+          <a href="{% url 'machine_list_id' plugin 'laptopok' page theid %}" class="btn btn-success">
+			<span class="bigger"> {{ laptop_ok_count }} </span><br />
+			{{ laptop_label }}
+          </a>
+          
+          <a href="{% url 'machine_list_id' plugin 'desktopok' page theid %}" class="btn btn-success">
+			<span class="bigger"> {{ desktop_ok_count }} </span><br />
+			{{ desktop_label }}
+          </a>
+      
+          <a href="{% url 'machine_list_id' plugin 'laptopalert' page theid %}" class="btn btn-danger">
+			<span class="bigger"> {{ laptop_alert_count }} </span><br />
+			{{ laptop_label }}
+          </a>
+      
+          <a href="{% url 'machine_list_id' plugin 'desktopalert' page theid %}" class="btn btn-danger">
+			<span class="bigger"> {{ desktop_alert_count }} </span><br />
+			{{ desktop_label }}
+          </a>
+</div>

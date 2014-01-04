@@ -19,10 +19,6 @@ import pprint
 import re
 import os
 from yapsy.PluginManager import PluginManager
-import utils
-
-# import logging
-# logging.basicConfig(level=logging.DEBUG)
 
 @login_required 
 def index(request):
@@ -34,12 +30,7 @@ def index(request):
         profile.level = 'GA'
         profile.save()
     user_level = user.userprofile.level
-    now = datetime.now()
-    hour_ago = now - timedelta(hours=1)
-    today = date.today()
-    week_ago = today - timedelta(days=7)
-    month_ago = today - timedelta(days=30)
-    three_months_ago = today - timedelta(days=90)
+    
     if user_level != 'GA':
         # user has many BU's display them all in a friendly manner
         business_units = user.businessunit_set.all()
@@ -58,30 +49,178 @@ def index(request):
         output = []
         # Loop round the plugins and print their names.
         for plugin in manager.getAllPlugins():
-            data = {}
-            data['name'] = plugin.name
-            (data['html'], data['width']) = plugin.plugin_object.show_widget('front')
-            #output.append(plugin.plugin_object.show_widget('front'))
-            output.append(data)
-        output = utils.orderPluginOutput(output)    
-
+            print plugin.plugin_object # an instance of the class you extended from IPlugin
+            print plugin.name
+            print plugin.version
+            output.append(plugin.plugin_object.show_widget('front'))
+        
         # get the user level - if they're a global admin, show all of the machines. If not, show only the machines they have access to
         business_units = BusinessUnit.objects.all()
+        now = datetime.now()
+        hour_ago = now - timedelta(hours=1)
+        today = date.today()
+        week_ago = today - timedelta(days=7)
+        month_ago = today - timedelta(days=30)
+        three_months_ago = today - timedelta(days=90)
+        machine_data = {}
         
-        c = {'user': request.user, 'business_units': business_units, 'output': output}
+        mem_4_gb = 4 * 1024 * 1024
+        mem_415_gb = 4.15 * 1024 * 1024
+        mem_775_gb = 7.75 * 1024 * 1024
+        mem_8_gb = 8 * 1024 * 1024
+
+        if user_level == 'GA':
+            machine_data['checked_in_this_hour'] = Machine.objects.filter(last_checkin__gte=hour_ago).count()
+            machine_data['checked_in_today'] = Machine.objects.filter(last_checkin__gte=today).count()
+            machine_data['checked_in_this_week'] = Machine.objects.filter(last_checkin__gte=week_ago).count()
+            machine_data['inactive_for_a_month'] = Machine.objects.filter(last_checkin__range=(three_months_ago, month_ago)).count()
+            machine_data['inactive_for_three_months'] = Machine.objects.exclude(last_checkin__gte=three_months_ago).count()
+            machine_data['errors'] = Machine.objects.filter(errors__gt=0).count()
+            machine_data['warnings'] = Machine.objects.filter(warnings__gt=0).count()
+            machine_data['activity'] = Machine.objects.filter(activity__isnull=False).count()
+            machine_data['disk_ok'] = Machine.objects.filter(hd_percent__lt=80).count()
+            machine_data['disk_warning'] = Machine.objects.filter(hd_percent__range=["80", "89"]).count()
+            machine_data['disk_alert'] = Machine.objects.filter(hd_percent__gte=90).count()
+            machine_data['mem_ok'] = Machine.objects.filter(memory_kb__gte=mem_8_gb).count()
+            machine_data['mem_warning'] = Machine.objects.filter(memory_kb__range=[mem_4_gb, mem_775_gb]).count()
+            machine_data['mem_alert'] = Machine.objects.filter(memory_kb__lt=mem_4_gb).count()
+            machine_data['uptime_ok'] = Machine.objects.filter(fact__fact_name='uptime_days', fact__fact_data__lte=1).count()
+            machine_data['uptime_warning'] = Machine.objects.filter(fact__fact_name='uptime_days', fact__fact_data__range=[1,7]).count()
+            machine_data['uptime_alert'] = Machine.objects.filter(fact__fact_name='uptime_days', fact__fact_data__gt=7).count()
+            
+            pending_updates = PendingUpdate.objects.values('update', 'update_version', 'display_name').annotate(count=Count('update'))
+            
+            pending_apple_updates = PendingAppleUpdate.objects.values('update', 'update_version', 'display_name').annotate(count=Count('update'))
+        else:
+            updates = []
+            for bu in business_units:
+                for machine_group in bu.machinegroup_set.all():
+                    updates.extend(PendingUpdate.objects.filter(machine__machine_group=machine_group).values('update', 'update_version', 'display_name').annotate(count=Count('update')))
+            pending_updates = updates
+            
+            updates = []
+            for bu in business_units:
+                for machine_group in bu.machinegroup_set.all():
+                    updates.extend(PendingAppleUpdate.objects.filter(machine__machine_group=machine_group).values('update', 'update_version', 'display_name').annotate(count=Count('update')))
+            pending_apple_updates = updates
+            osen = []
+            for bu in business_units:
+                for machine_group in bu.machinegroup_set.all():
+                    osen.extend(Machine.objects.filter(machine_group=machine_group).values('operating_system').annotate(count=Count('operating_system')))
+            os_info = osen
+            count = 0
+            for bu in business_units:
+                for machine_group in bu.machinegroup_set.all():
+                    count = count + Machine.objects.filter(last_checkin__gte=hour_ago, machine_group=machine_group).count()
+            machine_data['checked_in_this_hour'] = count
+            count = 0
+            for bu in business_units:
+                for machine_group in bu.machinegroup_set.all():
+                    count = count + Machine.objects.filter(last_checkin__gte=today, machine_group=machine_group).count()
+            machine_data['checked_in_today'] = count
+            count = 0
+            for bu in business_units:
+                for machine_group in bu.machinegroup_set.all():
+                    count = count + Machine.objects.filter(last_checkin__gte=week_ago, machine_group=machine_group).count()
+            machine_data['checked_in_this_week'] = count
+            count = 0
+            for bu in business_units:
+                for machine_group in bu.machinegroup_set.all():
+                    count = count + Machine.objects.filter(last_checkin__range=(three_months_ago, month_ago), machine_group=machine_group).count()
+            machine_data['inactive_for_a_month'] = count
+            count = 0
+            for bu in business_units:
+                for machine_group in bu.machinegroup_set.all():
+                    count = count + Machine.objects.exclude(last_checkin__gte=three_months_ago).filter(machine_group=machine_group).count()
+            machine_data['inactive_for_three_months'] = count
+            
+            count = 0
+            for bu in business_units:
+                for machine_group in bu.machinegroup_set.all():
+                    count = count + Machine.objects.filter(errors__gt=0, machine_group=machine_group).count()
+            machine_data['errors'] = count
+                    
+            count = 0
+            for bu in business_units:
+                for machine_group in bu.machinegroup_set.all():
+                    count = count + Machine.objects.filter(warnings__gt=0, machine_group=machine_group).count()
+            machine_data['warnings'] = count
+            
+            count = 0
+            for bu in business_units:
+                for machine_group in bu.machinegroup_set.all():
+                    count = count + Machine.objects.filter(activity__isnull=False, machine_group=machine_group).count()
+            machine_data['activity'] = count
+            
+            count = 0
+            for bu in business_units:
+                for machine_group in bu.machinegroup_set.all():
+                    count = count + Machine.objects.filter(hd_percent__lt=80, machine_group=machine_group).count()
+            machine_data['disk_ok'] = count
+            
+            count = 0
+            for bu in business_units:
+                for machine_group in bu.machinegroup_set.all():
+                    count = count + Machine.objects.filter(hd_percent__range=["80", "89"], machine_group=machine_group).count()
+            machine_data['disk_warning'] = count
+            
+            count = 0
+            for bu in business_units:
+                for machine_group in bu.machinegroup_set.all():
+                    count = count + Machine.objects.filter(hd_percent__gte=90, machine_group=machine_group).count()
+            machine_data['disk_alert'] = count
+            
+            count = 0
+            for bu in business_units:
+                for machine_group in bu.machinegroup_set.all():
+                    count = count + Machine.objects.filter(memory_kb__gte=mem_8_gb, machine_group=machine_group).count()
+            machine_data['mem_ok'] = count
+            
+            count = 0
+            for bu in business_units:
+                for machine_group in bu.machinegroup_set.all():
+                    count = count + Machine.objects.filter(memory_kb__range=[mem_4_gb, mem_775_gb], machine_group=machine_group).count()
+            machine_data['mem_warning'] = count
+            
+            count = 0
+            for bu in business_units:
+                for machine_group in bu.machinegroup_set.all():
+                    count = count + Machine.objects.filter(memory_kb__lt=mem_4_gb, machine_group=machine_group).count()
+            machine_data['mem_alert'] = count
+            
+            count = 0
+            for bu in business_units:
+                for machine_group in bu.machinegroup_set.all():
+                    count = count + Machine.objects.filter(fact__fact_name='uptime_days', fact__fact_data__lte=1, machine_group=machine_group).count()
+            machine_data['uptime_ok'] = count
+            
+            count = 0
+            for bu in business_units:
+                for machine_group in bu.machinegroup_set.all():
+                    count = count + Machine.objects.filter(fact__fact_name='uptime_days', fact__fact_data__range=[1,7], machine_group=machine_group).count()
+            machine_data['uptime_warning'] = count
+            
+            count = 0
+            for bu in business_units:
+                for machine_group in bu.machinegroup_set.all():
+                    count = count + Machine.objects.filter(fact__fact_name='uptime_days', fact__fact_data__gt=7, machine_group=machine_group).count()
+            machine_data['uptime_alert'] = count
+            
+            
+        c = {'user': request.user, 'business_units': business_units, 'machine_data': machine_data, 'pending_updates':pending_updates, 'pending_apple_updates':pending_apple_updates, 'output': output}
         return render_to_response('server/index.html', c, context_instance=RequestContext(request)) 
 
 # Plugin machine list
 @login_required
 def machine_list(request, pluginName, data, page='front', theID=None):
     user = request.user
-    title = None
     # Build the manager
     manager = PluginManager()
     # Tell it the default place(s) where to find plugins
     manager.setPluginPlaces([settings.PLUGIN_DIR, os.path.join(settings.PROJECT_DIR, 'server/plugins')])
     # Load all plugins
     manager.collectPlugins()
+    
     # get a list of machines (either from the BU or the group)
     if page == 'front':
         # get all machines
@@ -91,14 +230,11 @@ def machine_list(request, pluginName, data, page='front', theID=None):
         # only get machines for that BU
         # Need to make sure the user is allowed to see this
         business_unit = get_object_or_404(BusinessUnit, pk=theID)
-        machine_groups = MachineGroup.objects.filter(business_unit=business_unit).prefetch_related('machine_set').all()
-        
-        if machine_groups.count() != 0:    
-            machines_unsorted = machine_groups[0].machine_set.all()
-            for machine_group in machine_groups[1:]:
-                machines_unsorted = machines_unsorted | machine_group.machine_set.all()
-        else:
-            machines_unsorted = None
+        machine_groups = MachineGroup.objects.filter(business_unit=business_units).prefetch_related('machine_set').all()
+
+        machines_unsorted = machine_groups[0].machine_set.all()
+        for machine_group in machine_groups[1:]:
+            machines_unsorted = machines_unsorted | machine_group.machine_set.all()
         machines=machines_unsorted
     
     if page == 'group_dashboard':
@@ -108,9 +244,12 @@ def machine_list(request, pluginName, data, page='front', theID=None):
         machines = Machine.objects.filter(machine_group=machine_group)
     # send the machines and the data to the plugin
     for plugin in manager.getAllPlugins():
+        print plugin.plugin_object # an instance of the class you extended from IPlugin
+        print plugin.name
+        print plugin.version
         if plugin.name == pluginName:
-            (machines, title) = plugin.plugin_object.filter_machines(machines, data)
-    c = {'user':user, 'machines': machines, 'req_type': page, 'title': title, 'bu_id': theID }
+            (machines, data) = plugin.plugin_object.filter_machines(machines, data)
+    c = {'user':user, 'machines': machines, 'req_type': page, 'data': data, 'bu_id': theID }
     
     return render_to_response('server/overview_list_all.html', c, context_instance=RequestContext(request))
 
@@ -159,25 +298,143 @@ def bu_dashboard(request, bu_id):
     week_ago = today - timedelta(days=7)
     month_ago = today - timedelta(days=30)
     three_months_ago = today - timedelta(days=90)
-   
-    # Build the manager
-    manager = PluginManager()
-    # Tell it the default place(s) where to find plugins
-    manager.setPluginPlaces([settings.PLUGIN_DIR, os.path.join(settings.PROJECT_DIR, 'server/plugins')])
-    # Load all plugins
-    manager.collectPlugins()
-    output = []
-    # import logging
-    # logging.basicConfig(level=logging.DEBUG)
-    # Loop round the plugins and print their names.
-    for plugin in manager.getAllPlugins():
-        data = {}
-        data['name'] = plugin.name
-        data['html'] = plugin.plugin_object.show_widget('bu_dashboard', bu.id)
-        output.append(data)
-    output = utils.orderPluginOutput(output, 'bu_dashboard', bu.id)
+    mem_4_gb = 4 * 1024 * 1024
+    mem_415_gb = 4.15 * 1024 * 1024
+    mem_775_gb = 7.75 * 1024 * 1024
+    mem_8_gb = 8 * 1024 * 1024
+    from itertools import chain
+    machine_data = {}
+    os_info = []
+    # osen = []
+    for machine_group in machine_groups:
+
+        osen = Machine.objects.filter(machine_group=machine_group).values('operating_system').annotate(count=Count('operating_system'))
+        for item in osen:
+            # loop over existing items, see if there is a dict with the right value
+            found = False
+            for os in os_info:
+                if os['operating_system'] == item['operating_system']:
+                    os['count'] = os['count'] + item['count']
+                    found = True
+                    break
+            if found == False:
+                os_info.append(item)
                 
-    c = {'user': request.user, 'machine_groups': machine_groups, 'is_editor': is_editor, 'business_unit': business_unit, 'user_level': user_level, 'output':output }
+    
+    pending_apple_updates = []
+    for machine_group in machine_groups:
+
+        updates = PendingAppleUpdate.objects.filter(machine__machine_group=machine_group).values('update', 'update_version', 'display_name').annotate(count=Count('update'))
+        for item in updates:
+            # loop over existing items, see if there is a dict with the right value
+            found = False
+            for update in pending_apple_updates:
+                if update['update'] == item['update']:
+                    update['count'] = update['count'] + item['count']
+                    found = True
+                    break
+            if found == False:
+                pending_apple_updates.append(item)
+                
+    pending_updates = []
+    for machine_group in machine_groups:
+
+        updates = PendingUpdate.objects.filter(machine__machine_group=machine_group).values('update', 'update_version', 'display_name').annotate(count=Count('update'))
+        for item in updates:
+            # loop over existing items, see if there is a dict with the right value
+            found = False
+            for update in pending_updates:
+                if update['update'] == item['update']:
+                    update['count'] = update['count'] + item['count']
+                    found = True
+                    break
+            if found == False:
+                pending_updates.append(item)
+    
+    count = 0
+    for machine_group in machine_groups:
+        count = count + Machine.objects.filter(last_checkin__gte=hour_ago, machine_group=machine_group).count()
+    machine_data['checked_in_this_hour'] = count
+
+    count = 0
+    for machine_group in machine_groups:
+        count = count + Machine.objects.filter(last_checkin__gte=today, machine_group=machine_group).count()
+    machine_data['checked_in_today'] = count
+    count = 0
+    for machine_group in machine_groups:
+        count = count + Machine.objects.filter(last_checkin__gte=week_ago, machine_group=machine_group).count()
+    machine_data['checked_in_this_week'] = count
+    count = 0
+    for machine_group in machine_groups:
+        count = count + Machine.objects.filter(last_checkin__range=(three_months_ago, month_ago), machine_group=machine_group).count()
+    machine_data['inactive_for_a_month'] = count
+    count = 0
+    for machine_group in machine_groups:
+        count = count + Machine.objects.exclude(last_checkin__gte=three_months_ago).filter(machine_group=machine_group).count()
+    machine_data['inactive_for_three_months'] = count
+    
+    count = 0
+    for machine_group in machine_groups:
+        count = count + Machine.objects.filter(errors__gt=0, machine_group=machine_group).count()
+    machine_data['errors'] = count
+            
+    count = 0
+    for machine_group in machine_groups:
+        count = count + Machine.objects.filter(warnings__gt=0, machine_group=machine_group).count()
+    machine_data['warnings'] = count
+    
+    count = 0
+    
+    for machine_group in machine_groups:
+        count = count + Machine.objects.filter(activity__isnull=False, machine_group=machine_group).count()
+    machine_data['activity'] = count
+    
+    count = 0
+    for machine_group in machine_groups:
+        count = count + Machine.objects.filter(hd_percent__lt=80, machine_group=machine_group).count()
+    machine_data['disk_ok'] = count
+    
+    count = 0
+    for machine_group in machine_groups:
+        count = count + Machine.objects.filter(hd_percent__range=["80", "89"], machine_group=machine_group).count()
+    machine_data['disk_warning'] = count
+    
+    count = 0
+    for machine_group in machine_groups:
+        count = count + Machine.objects.filter(hd_percent__gte=90, machine_group=machine_group).count()
+    machine_data['disk_alert'] = count
+    
+    count = 0
+    for machine_group in machine_groups:
+        count = count + Machine.objects.filter(memory_kb__gte=mem_8_gb, machine_group=machine_group).count()
+    machine_data['mem_ok'] = count
+    
+    count = 0
+    for machine_group in machine_groups:
+        count = count + Machine.objects.filter(memory_kb__range=[mem_4_gb, mem_775_gb], machine_group=machine_group).count()
+    machine_data['mem_warning'] = count
+    
+    count = 0
+    for machine_group in machine_groups:
+        count = count + Machine.objects.filter(memory_kb__lt=mem_4_gb, machine_group=machine_group).count()
+    machine_data['mem_alert'] = count
+    
+    count = 0
+    for machine_group in bu.machinegroup_set.all():
+        count = count + Machine.objects.filter(fact__fact_name='uptime_days', fact__fact_data__lte=1, machine_group=machine_group).count()
+    machine_data['uptime_ok'] = count
+    
+    count = 0
+    for machine_group in bu.machinegroup_set.all():
+        count = count + Machine.objects.filter(fact__fact_name='uptime_days', fact__fact_data__range=[1,7], machine_group=machine_group).count()
+    machine_data['uptime_warning'] = count
+    
+    count = 0
+    for machine_group in bu.machinegroup_set.all():
+        count = count + Machine.objects.filter(fact__fact_name='uptime_days', fact__fact_data__gt=7, machine_group=machine_group).count()
+    machine_data['uptime_alert'] = count
+    
+    c = {'user': request.user, 'machine_groups': machine_groups, 'is_editor': is_editor, 'business_unit': business_unit, 'os_info': os_info, 'machine_data': machine_data, 'user_level': user_level, 'pending_apple_updates': pending_apple_updates, 'pending_updates': pending_updates}
     return render_to_response('server/bu_dashboard.html', c, context_instance=RequestContext(request))
 
 # Overview list (all)
@@ -339,20 +596,42 @@ def group_dashboard(request, group_id):
         is_editor = True
     else:
         is_editor = False   
-    # Build the manager
-    manager = PluginManager()
-    # Tell it the default place(s) where to find plugins
-    manager.setPluginPlaces([settings.PLUGIN_DIR, os.path.join(settings.PROJECT_DIR, 'server/plugins')])
-    # Load all plugins
-    manager.collectPlugins()
-    output = []
-    for plugin in manager.getAllPlugins():
-        data = {}
-        data['name'] = plugin.name
-        data['html'] = plugin.plugin_object.show_widget('group_dashboard', machine_group.id)
-        output.append(data)
-    output = utils.orderPluginOutput(output, 'group_dashboard', machine_group.id)
-    c = {'user': request.user, 'machine_group': machine_group, 'user_level': user_level,  'is_editor': is_editor, 'business_unit': business_unit, 'output':output}
+    now = datetime.now()
+    hour_ago = now - timedelta(hours=1)
+    today = date.today()
+    week_ago = today - timedelta(days=7)
+    month_ago = today - timedelta(days=30)
+    three_months_ago = today - timedelta(days=90)
+    mem_4_gb = 4 * 1024 * 1024
+    mem_415_gb = 4.15 * 1024 * 1024
+    mem_775_gb = 7.75 * 1024 * 1024
+    mem_8_gb = 8 * 1024 * 1024
+    
+    os_info = Machine.objects.filter(machine_group=machine_group).values('operating_system').annotate(count=Count('operating_system'))
+    
+    pending_updates = PendingUpdate.objects.filter(machine__machine_group=machine_group).values('update', 'update_version', 'display_name').annotate(count=Count('update'))
+    
+    pending_apple_updates = PendingAppleUpdate.objects.filter(machine__machine_group=machine_group).values('update', 'update_version', 'display_name').annotate(count=Count('update'))
+    
+    machine_data = {}
+    machine_data['errors'] = Machine.objects.filter(errors__gt=0, machine_group=machine_group).count()
+    machine_data['warnings'] = Machine.objects.filter(warnings__gt=0, machine_group=machine_group).count()
+    machine_data['activity'] = Machine.objects.filter(activity__isnull=False, machine_group=machine_group).count()
+    machine_data['checked_in_this_hour'] = Machine.objects.filter(last_checkin__gte=hour_ago, machine_group=machine_group).count()
+    machine_data['checked_in_today'] = Machine.objects.filter(last_checkin__gte=today, machine_group=machine_group).count()
+    machine_data['checked_in_this_week'] = Machine.objects.filter(last_checkin__gte=week_ago, machine_group=machine_group).count()
+    machine_data['inactive_for_a_month'] = Machine.objects.filter(last_checkin__range=(three_months_ago, month_ago), machine_group=machine_group).count()
+    machine_data['inactive_for_three_months'] = Machine.objects.exclude(last_checkin__gte=three_months_ago).filter(machine_group=machine_group).count()
+    machine_data['disk_ok'] = Machine.objects.filter(hd_percent__lt=80).filter(machine_group=machine_group).count()
+    machine_data['disk_warning'] = Machine.objects.filter(hd_percent__range=["80", "89"]).filter(machine_group=machine_group).count()
+    machine_data['disk_alert'] = Machine.objects.filter(hd_percent__gte=90).filter(machine_group=machine_group).count()
+    machine_data['mem_ok'] = Machine.objects.filter(memory_kb__gte=mem_8_gb).filter(machine_group=machine_group).count()
+    machine_data['mem_warning'] = Machine.objects.filter(memory_kb__range=[mem_4_gb, mem_775_gb]).filter(machine_group=machine_group).count()
+    machine_data['mem_alert'] = Machine.objects.filter(memory_kb__lt=mem_4_gb).filter(machine_group=machine_group).count()
+    machine_data['uptime_ok'] = Machine.objects.filter(fact__fact_name='uptime_days', fact__fact_data__lte=1).filter(machine_group=machine_group).count()
+    machine_data['uptime_warning'] = Machine.objects.filter(fact__fact_name='uptime_days', fact__fact_data__range=[1,7]).filter(machine_group=machine_group).count()
+    machine_data['uptime_alert'] = Machine.objects.filter(fact__fact_name='uptime_days', fact__fact_data__gt=7).filter(machine_group=machine_group).count()
+    c = {'user': request.user, 'machine_group': machine_group, 'user_level': user_level, 'machine_data':machine_data, 'is_editor': is_editor, 'business_unit': business_unit, 'os_info':os_info, 'pending_updates':pending_updates, 'pending_apple_updates':pending_apple_updates}
     return render_to_response('server/group_dashboard.html', c, context_instance=RequestContext(request))
 
 # New Group
@@ -491,7 +770,7 @@ def overview_list_group(request, group_id, req_type, data):
 
 # Machine detail
 @login_required
-def machine_detail(request, machine_id):
+def machine_detail(request, req_type, data, machine_id):
     # check the user is in a BU that's allowed to see this Machine
     machine = get_object_or_404(Machine, pk=machine_id)
     machine_group = machine.machine_group
@@ -562,7 +841,7 @@ def machine_detail(request, machine_id):
     if 'managed_uninstalls_list' in report:
         report['managed_uninstalls_list'].sort()
     
-    c = {'user':user, 'machine_group': machine_group, 'business_unit': business_unit, 'report': report, 'install_results': install_results, 'removal_results': removal_results, 'machine': machine, 'facts':facts }
+    c = {'user':user, 'req_type': req_type, 'machine_group': machine_group, 'business_unit': business_unit, 'report': report, 'install_results': install_results, 'removal_results': removal_results, 'machine': machine, 'data': data, 'facts':facts }
     return render_to_response('server/machine_detail.html', c, context_instance=RequestContext(request))
 
 # checkin

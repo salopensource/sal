@@ -13,9 +13,9 @@ from datetime import datetime
 def GenerateKey():
     key = ''.join(random.choice(string.ascii_lowercase + string.digits) for x in range(128))
     try:
-        BusinessUnit.objects.get(key=key)
+        MachineGroup.objects.get(key=key)
         return GenerateKey()
-    except BusinessUnit.DoesNotExist:
+    except MachineGroup.DoesNotExist:
         return key;
 class UserProfile(models.Model):
     user = models.OneToOneField(User, unique=True)
@@ -31,12 +31,7 @@ User.userprofile = property(lambda u: UserProfile.objects.get_or_create(user=u)[
 
 class BusinessUnit(models.Model):
     name = models.CharField(max_length=100)
-    key = models.CharField(max_length=255, unique=True, blank=True, null=True, editable=False)
     users = models.ManyToManyField(User)
-    def save(self):
-            if not self.id:
-                self.key = GenerateKey()
-            super(BusinessUnit, self).save()
             
     def __unicode__(self):
         return self.name
@@ -46,7 +41,11 @@ class BusinessUnit(models.Model):
 class MachineGroup(models.Model):
     business_unit = models.ForeignKey(BusinessUnit)
     name = models.CharField(max_length=100)
-    manifest = models.CharField(max_length=256)
+    key = models.CharField(max_length=255, unique=True, blank=True, null=True, editable=False)
+    def save(self):
+            if not self.id:
+                self.key = GenerateKey()
+            super(MachineGroup, self).save()
     def __unicode__(self):
         return self.name
     class Meta:

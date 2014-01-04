@@ -1,0 +1,32 @@
+<div class="span4">
+    <legend>{{ title }}</legend>
+    <table class="table table-striped table-condensed table-bordered">
+        <tr>
+            <td>
+                {% if errors %}<a href="{% url 'machine_list_id' 'Status' 'errors' page theid %}">{% endif %}
+                Clients with errors
+                <span class="badge badge-important pull-right">
+                    {{ errors }}
+                </span>
+            </td>
+        </tr>
+        <tr>
+            <td>{% if warnings %}<a href="{% url 'machine_list_id' 'Status' 'warnings' page theid %}">{% endif %}
+                Clients with warnings
+                <span class="badge badge-warning pull-right">
+                    {{ warnings }}
+                </span>
+                {% if warnings %}</a>{% endif %}
+            </td>
+        </tr>
+        <tr>
+            <td>{% if activity %}<a href="{% url 'machine_list_id' 'Status' 'acitvity' page theid %}">{% endif %}
+                Clients with activity
+                <span class="badge badge-info pull-right">
+                    {{ activity }}
+                </span>
+                {% if activity %}</a>{% endif %}
+            </td>
+        </tr>
+    </table>
+</div>

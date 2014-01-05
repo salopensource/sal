@@ -40,22 +40,29 @@ def orderPluginOutput(pluginOutput, page='front', theID=None):
     col_width = 12
     total_width = 0
     counter = 0
+    needs_break = False
     # length of the output, but starting at 0, so subtract one
     length = len(output)-1
     for item in output:
         # reset total width if we went over last time
-        if total_width > col_width:
-            total_width = 0
-        #print item['name']+' prev: '+str(prev)
+        # if total_width >= col_width:
+#             #total_width = 0
+#             needs_break = True
+#         # if we've gone through all the items, just stop
         if counter >= length:
             break
-        if total_width+output[counter+1]['width'] > col_width:
-            item['html'] = '\n</div>\n\n<div class="row">\n'+item['html']
-            print 'breaking'
-            total_width = 0
-        else:
-            total_width = int(item['width']) + total_width
-        #total_width = prev + total_width
+#         if total_width+output[counter+1]['width'] > col_width:
+#             needs_break = True
+        # No point doing anything if the plugin isn't going to return any output
+        if int(item['width']) != 0:
+            #if total_width+output[counter+1]['width'] > col_width:
+            if total_width+item['width'] > col_width:
+                item['html'] = '\n</div>\n\n<div class="row">\n'+item['html']
+                print 'breaking'
+                total_width = item['width']
+                needs_break = False
+            else:
+                total_width = int(item['width']) + total_width
         counter = counter +1
         print item['name']+' total: '+str(total_width)
     

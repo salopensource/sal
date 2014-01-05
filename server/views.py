@@ -173,7 +173,7 @@ def bu_dashboard(request, bu_id):
     for plugin in manager.getAllPlugins():
         data = {}
         data['name'] = plugin.name
-        data['html'] = plugin.plugin_object.show_widget('bu_dashboard', bu.id)
+        (data['html'], data['width']) = plugin.plugin_object.show_widget('bu_dashboard', bu.id)
         output.append(data)
     output = utils.orderPluginOutput(output, 'bu_dashboard', bu.id)
                 
@@ -349,7 +349,7 @@ def group_dashboard(request, group_id):
     for plugin in manager.getAllPlugins():
         data = {}
         data['name'] = plugin.name
-        data['html'] = plugin.plugin_object.show_widget('group_dashboard', machine_group.id)
+        (data['html'], data['width']) = plugin.plugin_object.show_widget('group_dashboard', machine_group.id)
         output.append(data)
     output = utils.orderPluginOutput(output, 'group_dashboard', machine_group.id)
     c = {'user': request.user, 'machine_group': machine_group, 'user_level': user_level,  'is_editor': is_editor, 'business_unit': business_unit, 'output':output}

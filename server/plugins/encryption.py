@@ -51,19 +51,24 @@ class Encryption(IPlugin):
         return t.render(c), 5
     
     def filter_machines(self, machines, data):
-        if data == 'ok':
-            machines = machines.filter(hd_percent__lt=80)
-            title = 'Machines with more than 80% disk space remaining'
+        if data == 'laptopok':
+            machines = machines.filter(fact__fact_name='mac_encryption_enabled', fact__fact_data='true').filter(fact__fact_name='mac_laptop', fact__fact_data='mac_laptop')
+            title = 'Laptops with encryption enabled'
         
-        elif data == 'warning':
-            machines = machines.filter(hd_percent__range=["80", "89"])
-            title = 'Machines with 80%-90% disk space remaining'
+        elif data == 'desktopok':
+            machines = machines.filter(fact__fact_name='mac_encryption_enabled', fact__fact_data__exact='true').filter(fact__fact_name='mac_laptop', fact__fact_data__exact='mac_desktop')
+            title = 'Desktops with encryption enabled'
         
-        elif data == 'alert':
-            machines = machines.filter(hd_percent__gte=90)
-            title = 'Machines with less than 90% disk space remaining'
+        elif data == 'laptopalert':
+            machines = machines.filter(fact__fact_name='mac_encryption_enabled', fact__fact_data__exact='false').filter(fact__fact_name='mac_laptop', fact__fact_data__exact='mac_laptop')
+            title = 'Laptops without encryption enabled'
+            
+        elif data == 'desktopalert':
+            machines = machines.filter(fact__fact_name='mac_encryption_enabled', fact__fact_data__exact='false').filter(fact__fact_name='mac_laptop', fact__fact_data__exact='mac_desktop')
+            title = 'Desktops without encryption enabled'
         
         else:
             machines = None
+            title = None
         
         return machines, title

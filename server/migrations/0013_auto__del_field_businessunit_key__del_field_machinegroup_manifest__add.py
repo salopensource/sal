@@ -7,14 +7,14 @@ import string
 import random
 
 class Migration(SchemaMigration):
-    def GenerateKey():
-        key = ''.join(random.choice(string.ascii_lowercase + string.digits) for x in range(128))
-        try:
-            orm.MachineGroup.objects.get(key=key)
-            return GenerateKey()
-        except MachineGroup.DoesNotExist:
-            return key;
     def forwards(self, orm):
+        def GenerateKey():
+            key = ''.join(random.choice(string.ascii_lowercase + string.digits) for x in range(128))
+            try:
+                orm.MachineGroup.objects.get(key=key)
+                return GenerateKey()
+            except orm.MachineGroup.DoesNotExist:
+                return key;
         # Deleting field 'BusinessUnit.key'
         db.delete_column(u'server_businessunit', 'key')
 
@@ -26,9 +26,10 @@ class Migration(SchemaMigration):
                       self.gf('django.db.models.fields.CharField')(max_length=255, unique=True, null=True, blank=True),
                       keep_default=False)
         
-        for group in orm.MachineGroup.objects.all():
-                group.key = GenerateKey()
-                group.save()
+        if not db.dry_run:
+            for group in orm.MachineGroup.objects.all():
+                    group.key = GenerateKey()
+                    group.save()
 
 
     def backwards(self, orm):

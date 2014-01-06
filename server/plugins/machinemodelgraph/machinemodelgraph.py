@@ -27,11 +27,24 @@ class MachineModelGraph(IPlugin):
         else:
             machines = None
         
-        print machines
+        out = []
+        for machine in machines:
+            found = False
+            nodigits=''.join(i for i in machine['machine_model'] if i.isalpha())
+            machine['machine_model']=nodigits
+            for item in out:
+                if item['machine_model'] == machine['machine_model']:
+                    item['count'] = item['count']+machine['count']
+                    found = True
+                    break
+            #if we get this far, it's not been seen before
+            if found == False:
+                print machine['machine_model']
+                out.append(machine)
 
         c = Context({
             'title': 'Hardware models',
-            'machines': machines,
+            'machines': out,
             'theid': theid,
             'page': page
         })

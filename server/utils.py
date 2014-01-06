@@ -23,10 +23,9 @@ def orderPluginOutput(pluginOutput, page='front', theID=None):
     if page =='front':
         # remove the plugins that are in the list
         for item in output:
-            for key, ids in settings.HIDE_PLUGIN_FROM_FRONT_PAGE.iteritems():
+            for key in settings.HIDE_PLUGIN_FROM_FRONT_PAGE:
                 if item['name'] == key:
-                    if str(theID) in ids or int(theID) in ids:
-                        output.remove(item)
+                    output.remove(item)
     
     if page != 'front':
         if page == 'bu_dashboard':
@@ -38,10 +37,9 @@ def orderPluginOutput(pluginOutput, page='front', theID=None):
                         if str(theID) in ids:
                             output.remove(item)
                 # remove the plugins that are set to only be shown on the front page
-                for key, ids in settings.LIMIT_PLUGIN_TO_FRONT_PAGE.iteritems():
+                for key in settings.LIMIT_PLUGIN_TO_FRONT_PAGE:
                     if item['name'] == key:
-                        if str(theID) in ids:
-                            output.remove(item)
+                        output.remove(item)
         
         if page == 'group_dashboard':
             machine_group = get_object_or_404(MachineGroup, pk=theID)
@@ -59,10 +57,9 @@ def orderPluginOutput(pluginOutput, page='front', theID=None):
                             output.remove(item)
                 
                 # remove the plugins that are set to only be shown on the front page
-                for key, ids in settings.LIMIT_PLUGIN_TO_FRONT_PAGE.iteritems():
+                for key in settings.LIMIT_PLUGIN_TO_FRONT_PAGE:
                     if item['name'] == key:
-                        if str(theID) in ids:
-                            output.remove(item)
+                        output.remove(item)
     # Loop over all of the items, their width will have been returned 
     col_width = 12
     total_width = 0

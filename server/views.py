@@ -167,8 +167,7 @@ def bu_dashboard(request, bu_id):
     # Load all plugins
     manager.collectPlugins()
     output = []
-    # import logging
-    # logging.basicConfig(level=logging.DEBUG)
+
     # Loop round the plugins and print their names.
     for plugin in manager.getAllPlugins():
         data = {}
@@ -387,107 +386,6 @@ def new_machine_group(request, bu_id):
 # Edit Group
 
 # Delete Group
-
-# Overview list (group)
-@login_required
-def overview_list_group(request, group_id, req_type, data):
-    machine_group = get_object_or_404(MachineGroup, pk=group_id)
-    business_unit = machine_group.business_unit
-    operating_system = None
-    activity = None
-    inactivity = None
-    user = request.user
-    user_level = user.userprofile.level
-    if business_unit not in user.businessunit_set.all():
-        if user_level != 'GA':
-            return redirect(index)
-    
-    now = datetime.now()
-    hour_ago = now - timedelta(hours=1)
-    today = date.today()
-    week_ago = today - timedelta(days=7)
-    month_ago = today - timedelta(days=30)
-    three_months_ago = today - timedelta(days=90)
-    mem_4_gb = 4 * 1024 * 1024
-    mem_415_gb = 4.15 * 1024 * 1024
-    mem_775_gb = 7.75 * 1024 * 1024
-    mem_8_gb = 8 * 1024 * 1024
-    
-    if req_type == 'operating_system':
-        operating_system = data
-    
-    if req_type == 'activity':
-        activity = data
-    
-    if req_type == 'inactivity':
-        inactivity = data
-        
-    if req_type == 'pending_updates':
-        pending_update = data
-    
-    if req_type == 'pending_apple_updates':
-        pending_apple_update = data
-        
-    if activity is not None:
-        if data == '1-hour':
-            machines = Machine.objects.filter(last_checkin__gte=hour_ago, machine_group=machine_group)
-        if data == 'today':
-            machines = Machine.objects.filter(last_checkin__gte=today, machine_group=machine_group)
-        if data == '1-week':
-            machines = Machine.objects.filter(last_checkin__gte=week_ago, machine_group=machine_group)
-    if inactivity is not None:
-        if data == '1-month':
-            machines = Machine.objects.filter(last_checkin__range=(three_months_ago, month_ago), machine_group=machine_group)
-        if data == '3-months':
-            machines = Machine.objects.exclude(last_checkin__gte=three_months_ago).filter(machine_group=machine_group)
-    
-    if operating_system is not None:
-        machines = Machine.objects.filter(machine_group=machine_group).filter(operating_system__exact=operating_system)
-    
-    if req_type == 'errors':
-        machines = Machine.objects.filter(errors__gt=0, machine_group=machine_group)
-    
-    if req_type == 'warnings':
-        machines = Machine.objects.filter(warnings__gt=0, machine_group=machine_group)
-    
-    if req_type == 'active':
-        machines = Machine.objects.filter(activity__isnull=False, machine_group=machine_group)
-    
-    if req_type == 'disk_space_ok':
-        machines = Machine.objects.filter(hd_percent__lt=80, machine_group=machine_group)
-    
-    if req_type == 'disk_space_warning':
-        machines = Machine.objects.filter(hd_percent__range=["80", "89"], machine_group=machine_group)
-    
-    if req_type == 'disk_space_alert':
-        machines = Machine.objects.filter(hd_percent__gte=90, machine_group=machine_group)
-    
-    if req_type == 'mem_ok':
-        machines = Machine.objects.filter(memory_kb__gte=mem_8_gb, machine_group=machine_group)
-    
-    if req_type == 'mem_warning':
-        machines = Machine.objects.filter(memory_kb__range=[mem_4_gb, mem_775_gb], machine_group=machine_group)
-        
-    if req_type == 'mem_alert':
-        machines = Machine.objects.filter(memory_kb__lt=mem_4_gb, machine_group=machine_group)
-    
-    if req_type == 'uptime_ok':
-        machines = Machine.objects.filter(fact__fact_name='uptime_days', fact__fact_data__lte=1, machine_group=machine_group)
-    
-    if req_type == 'uptime_warning':
-        machines = Machine.objects.filter(fact__fact_name='uptime_days', fact__fact_data__range=[1,7], machine_group=machine_group)
-    
-    if req_type == 'uptime_alert':
-        machines = Machine.objects.filter(fact__fact_name='uptime_days', fact__fact_data__gt=7, machine_group=machine_group)
-        
-    if req_type == 'pending_updates':
-        machines = Machine.objects.filter(pendingupdate__update=pending_update, machine_group=machine_group)
-        
-    if req_type == 'pending_apple_updates':
-        machines = Machine.objects.filter(pendingappleupdate__update=pending_apple_update, machine_group=machine_group)
-
-    c = {'user':user, 'machine_group': machine_group, 'business_unit': business_unit, 'machines': machines, 'req_type': req_type, 'data': data }
-    return render_to_response('server/overview_list_group.html', c, context_instance=RequestContext(request))
 
 # Machine detail
 @login_required

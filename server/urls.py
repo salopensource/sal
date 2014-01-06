@@ -6,11 +6,11 @@ urlpatterns = patterns('server.views',
     # BU Dashboard
     url(r'^dashboard/(?P<bu_id>.+)/', 'bu_dashboard', name='bu_dashboard'),
     # Overview List (Group)
-    url(r'^machinegroup/overview/(?P<group_id>.+)/(?P<req_type>.+)/(?P<data>.+)/$', 'overview_list_group', name='overview_list_group'),
+    #url(r'^machinegroup/overview/(?P<group_id>.+)/(?P<req_type>.+)/(?P<data>.+)/$', 'overview_list_group', name='overview_list_group'),
     # Overview List (Group)
-    url(r'^bu/overview/(?P<req_type>.+)/(?P<data>.+)/(?P<bu_id>.+)/$', 'overview_list_all', name='overview_list_bu'),
+    #url(r'^bu/overview/(?P<req_type>.+)/(?P<data>.+)/(?P<bu_id>.+)/$', 'overview_list_all', name='overview_list_bu'),
     # Overview List (All)
-    url(r'^overview/(?P<req_type>.+)/(?P<data>.+)/$', 'overview_list_all', name='overview_list_all'),
+    #url(r'^overview/(?P<req_type>.+)/(?P<data>.+)/$', 'overview_list_all', name='overview_list_all'),
     # Machine List (front page)
     url(r'^list/(?P<pluginName>.+)/(?P<data>.+)/$', 'machine_list', name='machine_list_front'),
     

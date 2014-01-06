@@ -3,10 +3,17 @@ import datetime
 from south.db import db
 from south.v2 import SchemaMigration
 from django.db import models
-
+import string
+import random
 
 class Migration(SchemaMigration):
-
+    def GenerateKey():
+        key = ''.join(random.choice(string.ascii_lowercase + string.digits) for x in range(128))
+        try:
+            orm.MachineGroup.objects.get(key=key)
+            return GenerateKey()
+        except MachineGroup.DoesNotExist:
+            return key;
     def forwards(self, orm):
         # Deleting field 'BusinessUnit.key'
         db.delete_column(u'server_businessunit', 'key')
@@ -18,6 +25,10 @@ class Migration(SchemaMigration):
         db.add_column(u'server_machinegroup', 'key',
                       self.gf('django.db.models.fields.CharField')(max_length=255, unique=True, null=True, blank=True),
                       keep_default=False)
+        
+        for group in orm.MachineGroup.objects.all():
+                group.key = GenerateKey()
+                group.save()
 
 
     def backwards(self, orm):

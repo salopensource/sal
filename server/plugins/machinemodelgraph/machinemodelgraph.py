@@ -7,20 +7,23 @@ from django.shortcuts import get_object_or_404
 import server.utils as utils
 
 class MachineModelGraph(IPlugin):
-    def show_widget(self, page, theid=None):
+    def show_widget(self, page, machines=None, theid=None):
         # The data is data is pulled from the database and passed to a template.
         
         # we're not linking anywhere, so the template will be the same for all
         t = loader.get_template('machinemodelgraph/templates/front.html')
         if page == 'front':
-            machines = Machine.objects.all()
+            if not machines:
+                machines = Machine.objects.all()
         
         if page == 'bu_dashboard':
-            machines = utils.getBUmachines(theid)
+            if not machines:
+                machines = utils.getBUmachines(theid)
         
         if page == 'group_dashboard':
-            machine_group = get_object_or_404(MachineGroup, pk=theid)
-            machines = Machine.objects.filter(machine_group=machine_group)
+            if not machines:
+                machine_group = get_object_or_404(MachineGroup, pk=theid)
+                machines = Machine.objects.filter(machine_group=machine_group)
         
         if machines:
             machines = machines.values('machine_model').annotate(count=Count('machine_model'))
@@ -28,19 +31,21 @@ class MachineModelGraph(IPlugin):
             machines = None
         
         out = []
-        for machine in machines:
-            found = False
-            nodigits=''.join(i for i in machine['machine_model'] if i.isalpha())
-            machine['machine_model']=nodigits
-            for item in out:
-                if item['machine_model'] == machine['machine_model']:
-                    item['count'] = item['count']+machine['count']
-                    found = True
-                    break
-            #if we get this far, it's not been seen before
-            if found == False:
-                print machine['machine_model']
-                out.append(machine)
+        if machines:
+            for machine in machines:
+                if machine['machine_model']:
+                    found = False
+                    nodigits=''.join(i for i in machine['machine_model'] if i.isalpha())
+                    machine['machine_model']=nodigits
+                    for item in out:
+                        if item['machine_model'] == machine['machine_model']:
+                            item['count'] = item['count']+machine['count']
+                            found = True
+                            break
+                    #if we get this far, it's not been seen before
+                    if found == False:
+                        print machine['machine_model']
+                        out.append(machine)
 
         c = Context({
             'title': 'Hardware models',

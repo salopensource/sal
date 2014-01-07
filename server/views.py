@@ -49,6 +49,7 @@ def index(request):
                 return redirect('server.views.bu_dashboard', bu_id=bu.id)
                 break
     else:
+        machines = Machine.objects.all()
         # Build the manager
         manager = PluginManager()
         # Tell it the default place(s) where to find plugins
@@ -60,7 +61,7 @@ def index(request):
         for plugin in manager.getAllPlugins():
             data = {}
             data['name'] = plugin.name
-            (data['html'], data['width']) = plugin.plugin_object.show_widget('front')
+            (data['html'], data['width']) = plugin.plugin_object.show_widget('front', machines)
             #output.append(plugin.plugin_object.show_widget('front'))
             output.append(data)
         output = utils.orderPluginOutput(output)    
@@ -152,7 +153,7 @@ def bu_dashboard(request, bu_id):
         is_editor = True
     else:
         is_editor = False
-    
+    machines = utils.getBUmachines(bu_id)
     now = datetime.now()
     hour_ago = now - timedelta(hours=1)
     today = date.today()
@@ -172,7 +173,7 @@ def bu_dashboard(request, bu_id):
     for plugin in manager.getAllPlugins():
         data = {}
         data['name'] = plugin.name
-        (data['html'], data['width']) = plugin.plugin_object.show_widget('bu_dashboard', bu.id)
+        (data['html'], data['width']) = plugin.plugin_object.show_widget('bu_dashboard', machines, bu.id)
         output.append(data)
     output = utils.orderPluginOutput(output, 'bu_dashboard', bu.id)
                 
@@ -338,6 +339,7 @@ def group_dashboard(request, group_id):
         is_editor = True
     else:
         is_editor = False   
+    machines = machine_group.machine_set.all()
     # Build the manager
     manager = PluginManager()
     # Tell it the default place(s) where to find plugins
@@ -348,7 +350,7 @@ def group_dashboard(request, group_id):
     for plugin in manager.getAllPlugins():
         data = {}
         data['name'] = plugin.name
-        (data['html'], data['width']) = plugin.plugin_object.show_widget('group_dashboard', machine_group.id)
+        (data['html'], data['width']) = plugin.plugin_object.show_widget('group_dashboard', machines, machine_group.id)
         output.append(data)
     output = utils.orderPluginOutput(output, 'group_dashboard', machine_group.id)
     c = {'user': request.user, 'machine_group': machine_group, 'user_level': user_level,  'is_editor': is_editor, 'business_unit': business_unit, 'output':output}

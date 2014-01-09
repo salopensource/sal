@@ -39,7 +39,8 @@ class PendingAppleUpdates(IPlugin):
         c = Context({
             'title': 'Pending Apple Updates',
             'data': pending_updates,
-            'id': id,
+            'theid': id,
+            'page': page,
             'plugin': 'PendingAppleUpdates'
         })
         

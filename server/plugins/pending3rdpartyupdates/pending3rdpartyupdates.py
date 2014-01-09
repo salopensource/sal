@@ -39,7 +39,8 @@ class Pending3rdPartyUpdates(IPlugin):
         c = Context({
             'title': 'Pending 3rd Party Updates',
             'data': pending_updates,
-            'id': id,
+            'theid': id,
+            'page': page,
             'plugin': 'Pending3rdPartyUpdates'
         })
         

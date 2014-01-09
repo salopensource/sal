@@ -5,7 +5,7 @@
         {% for item in data|dictsort:'update' %}
             <tr>
                 <td>
-                    <a href="{% url 'machine_list_front' plugin item.update %}">
+                    <a href="{% url 'machine_list_id' plugin item.update page theid %}">
                     {{ item.display_name }} {{ item.update_version }}
                     <span class="badge pull-right">{{ item.count }}</span>
                     </a>

@@ -1,0 +1,17 @@
+{% if data|length %}
+<div class="span4">
+    <legend>{{ title }}</legend>
+        <table class="table table-striped table-condensed table-bordered">
+        {% for item in data|dictsort:'update' %}
+            <tr>
+                <td>
+                    <a href="{% url 'machine_list_front' plugin item.update %}">
+                    {{ item.display_name }} {{ item.update_version }}
+                    <span class="badge pull-right">{{ item.count }}</span>
+                    </a>
+                </td>
+            </tr>
+        {% endfor %}
+        </table>
+</div>
+{% endif %}

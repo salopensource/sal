@@ -13,9 +13,9 @@ from datetime import datetime
 def GenerateKey():
     key = ''.join(random.choice(string.ascii_lowercase + string.digits) for x in range(128))
     try:
-        BusinessUnit.objects.get(key=key)
+        MachineGroup.objects.get(key=key)
         return GenerateKey()
-    except BusinessUnit.DoesNotExist:
+    except MachineGroup.DoesNotExist:
         return key;
 class UserProfile(models.Model):
     user = models.OneToOneField(User, unique=True)
@@ -29,55 +29,23 @@ class UserProfile(models.Model):
     level = models.CharField(max_length=2, choices=LEVEL_CHOICES, default='SO')
 User.userprofile = property(lambda u: UserProfile.objects.get_or_create(user=u)[0])
 
-class Widget(models.Model):
-    name = models.CharField(max_length=256, unique=True)
-    description = models.TextField()
-    display_name = models.CharField(max_length=256)
-    source = models.CharField(max_length=256)
-    widget_type = models.CharField(max_length=256)
-    search_item = models.CharField(max_length=256)
-    ok_label = models.CharField(max_length=256, null=True, blank=True)
-    ok_search_operator = models.CharField(max_length=256, null=True, blank=True)
-    ok_search_value = models.CharField(max_length=256, null=True, blank=True)
-    warning_label = models.CharField(max_length=256, null=True, blank=True)
-    warning_search_operator = models.CharField(max_length=256, null=True, blank=True)
-    warning_search_value = models.CharField(max_length=256, null=True, blank=True)
-    alert_label = models.CharField(max_length=256, null=True, blank=True)
-    alert_search_operator = models.CharField(max_length=256, null=True, blank=True)
-    alert_search_value = models.CharField(max_length=256, null=True, blank=True)
-    
-    def __unicode__(self):
-        return self.name
-    
-class TopWidget(models.Model):
-    widget = models.ForeignKey(Widget)
-    order = models.IntegerField(default=0)
-    def __unicode__(self):
-        return self.widget.name
-
 class BusinessUnit(models.Model):
     name = models.CharField(max_length=100)
-    key = models.CharField(max_length=255, unique=True, blank=True, null=True, editable=False)
     users = models.ManyToManyField(User)
-    def save(self):
-            if not self.id:
-                self.key = GenerateKey()
-            super(BusinessUnit, self).save()
             
     def __unicode__(self):
         return self.name
     class Meta:
         ordering = ['name']
 
-class WidgetToBusinnessUnit(models.Model):
-    business_unit = models.ForeignKey(BusinessUnit)
-    widget = models.ForeignKey(Widget)
-    order = models.IntegerField(default=0)
-
 class MachineGroup(models.Model):
     business_unit = models.ForeignKey(BusinessUnit)
     name = models.CharField(max_length=100)
-    manifest = models.CharField(max_length=256)
+    key = models.CharField(max_length=255, unique=True, blank=True, null=True, editable=False)
+    def save(self):
+            if not self.id:
+                self.key = GenerateKey()
+            super(MachineGroup, self).save()
     def __unicode__(self):
         return self.name
     class Meta:

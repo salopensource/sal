@@ -12,9 +12,30 @@ AUTH_PROFILE_MODULE = "sal.UserProfile"
 DISPLAY_NAME = 'Sal'
 MANAGERS = ADMINS
 
-WIDGETS_DIR = os.path.join(PROJECT_DIR, 'widgets')
-# If new widgets are loaded, should they be applied automatically to all Business Units and Groups?
-AUTOLOAD_WIDGETS = False
+# The order plugins (if they're able to be shown on that particular page) will be displayed in. If not listed here, will be listed alphabetically after.
+PLUGIN_ORDER = ['Activity','Status','OperatingSystem','Uptime', 'Memory']
+
+# Only show these plugins on the front page - some things only the admins should see.
+LIMIT_PLUGIN_TO_FRONT_PAGE = {
+    # 'DiskSpace':['1']
+}
+
+# Hide these plugins from the front page
+HIDE_PLUGIN_FROM_FRONT_PAGE = {
+    # 'DiskSpace':['1']
+}
+
+# Hide these plugins from the specified business units
+HIDE_PLUGIN_FROM_BUSINESS_UNIT = {
+    'Encryption':['1']
+}
+
+# Hide these plugins from the specified machine groups
+HIDE_PLUGIN_FROM_MACHINE_GROUP = {
+    # 'DiskSpace':['1']
+}
+
+PLUGIN_DIR = os.path.join(PROJECT_DIR, 'plugins')
 
 EXCLUDED_FACTS = {
     'sshrsakey',
@@ -140,7 +161,10 @@ TEMPLATE_DIRS = (
     # Always use forward slashes, even on Windows.
     # Don't forget to use absolute paths, not relative paths.
     os.path.join(PROJECT_DIR, 'templates'),
+    os.path.join(PROJECT_DIR, 'server', 'plugins'),
+    PLUGIN_DIR,
 )
+
 
 INSTALLED_APPS = (
     'django.contrib.auth',

@@ -3,32 +3,48 @@ import datetime
 from south.db import db
 from south.v2 import SchemaMigration
 from django.db import models
-
+import string
+import random
 
 class Migration(SchemaMigration):
-
     def forwards(self, orm):
-        # Deleting field 'Widget.search_term'
-        db.delete_column(u'server_widget', 'search_term')
+        def GenerateKey():
+            key = ''.join(random.choice(string.ascii_lowercase + string.digits) for x in range(128))
+            try:
+                orm.MachineGroup.objects.get(key=key)
+                return GenerateKey()
+            except orm.MachineGroup.DoesNotExist:
+                return key;
+        # Deleting field 'BusinessUnit.key'
+        db.delete_column(u'server_businessunit', 'key')
 
-        # Adding field 'Widget.search_item'
-        db.add_column(u'server_widget', 'search_item',
-                      self.gf('django.db.models.fields.CharField')(default='operating_system', max_length=256),
+        # Deleting field 'MachineGroup.manifest'
+        db.delete_column(u'server_machinegroup', 'manifest')
+
+        # Adding field 'MachineGroup.key'
+        db.add_column(u'server_machinegroup', 'key',
+                      self.gf('django.db.models.fields.CharField')(max_length=255, unique=True, null=True, blank=True),
                       keep_default=False)
+        
+        if not db.dry_run:
+            for group in orm.MachineGroup.objects.all():
+                    group.key = GenerateKey()
+                    group.save()
 
 
     def backwards(self, orm):
-
-        # User chose to not deal with backwards NULL issues for 'Widget.search_term'
-        raise RuntimeError("Cannot reverse this migration. 'Widget.search_term' and its values cannot be restored.")
-        
-        # The following code is provided here to aid in writing a correct migration        # Adding field 'Widget.search_term'
-        db.add_column(u'server_widget', 'search_term',
-                      self.gf('django.db.models.fields.CharField')(max_length=256),
+        # Adding field 'BusinessUnit.key'
+        db.add_column(u'server_businessunit', 'key',
+                      self.gf('django.db.models.fields.CharField')(unique=True, max_length=255, null=True, blank=True),
                       keep_default=False)
 
-        # Deleting field 'Widget.search_item'
-        db.delete_column(u'server_widget', 'search_item')
+        # Adding field 'MachineGroup.manifest'
+        db.add_column(u'server_machinegroup', 'manifest',
+                      self.gf('django.db.models.fields.CharField')(default='None', max_length=256),
+                      keep_default=False)
+
+        # Deleting field 'MachineGroup.key'
+        db.delete_column(u'server_machinegroup', 'key')
 
 
     models = {
@@ -71,7 +87,6 @@ class Migration(SchemaMigration):
         u'server.businessunit': {
             'Meta': {'ordering': "['name']", 'object_name': 'BusinessUnit'},
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'key': ('django.db.models.fields.CharField', [], {'max_length': '255', 'unique': 'True', 'null': 'True', 'blank': 'True'}),
             'name': ('django.db.models.fields.CharField', [], {'max_length': '100'}),
             'users': ('django.db.models.fields.related.ManyToManyField', [], {'to': u"orm['auth.User']", 'symmetrical': 'False'})
         },
@@ -110,7 +125,7 @@ class Migration(SchemaMigration):
             'Meta': {'ordering': "['name']", 'object_name': 'MachineGroup'},
             'business_unit': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['server.BusinessUnit']"}),
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'manifest': ('django.db.models.fields.CharField', [], {'max_length': '256'}),
+            'key': ('django.db.models.fields.CharField', [], {'max_length': '255', 'unique': 'True', 'null': 'True', 'blank': 'True'}),
             'name': ('django.db.models.fields.CharField', [], {'max_length': '100'})
         },
         u'server.pendingappleupdate': {
@@ -129,34 +144,11 @@ class Migration(SchemaMigration):
             'update': ('django.db.models.fields.CharField', [], {'max_length': '256', 'null': 'True', 'blank': 'True'}),
             'update_version': ('django.db.models.fields.CharField', [], {'max_length': '256', 'null': 'True', 'blank': 'True'})
         },
-        u'server.topwidgets': {
-            'Meta': {'object_name': 'TopWidgets'},
-            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'order': ('django.db.models.fields.IntegerField', [], {'default': '0'}),
-            'widget': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['server.Widget']"})
-        },
         u'server.userprofile': {
             'Meta': {'object_name': 'UserProfile'},
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'level': ('django.db.models.fields.CharField', [], {'default': "'SO'", 'max_length': '2'}),
             'user': ('django.db.models.fields.related.OneToOneField', [], {'to': u"orm['auth.User']", 'unique': 'True'})
-        },
-        u'server.widget': {
-            'Meta': {'object_name': 'Widget'},
-            'description': ('django.db.models.fields.TextField', [], {}),
-            'display_name': ('django.db.models.fields.CharField', [], {'max_length': '256'}),
-            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'name': ('django.db.models.fields.CharField', [], {'unique': 'True', 'max_length': '256'}),
-            'search_item': ('django.db.models.fields.CharField', [], {'max_length': '256'}),
-            'source': ('django.db.models.fields.CharField', [], {'max_length': '256'}),
-            'widget_type': ('django.db.models.fields.CharField', [], {'max_length': '256'})
-        },
-        u'server.widgettobusinnessunit': {
-            'Meta': {'object_name': 'WidgetToBusinnessUnit'},
-            'business_unit': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['server.BusinessUnit']"}),
-            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'order': ('django.db.models.fields.IntegerField', [], {'default': '0'}),
-            'widget': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['server.Widget']"})
         }
     }
 

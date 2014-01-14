@@ -1,13 +1,12 @@
 from django.contrib import admin
 from server.models import *
     
-class BusinessUnitAdmin(admin.ModelAdmin):
+class MachineGroupAdmin(admin.ModelAdmin):
     readonly_fields=('key',)
 admin.site.register(UserProfile)
-admin.site.register(BusinessUnit, BusinessUnitAdmin)
-admin.site.register(MachineGroup)
+admin.site.register(BusinessUnit)
+admin.site.register(MachineGroup, MachineGroupAdmin)
 admin.site.register(Machine)
 admin.site.register(Fact)
 admin.site.register(PendingUpdate)
-admin.site.register(Widget)
-admin.site.register(TopWidget)
+admin.site.register(PendingAppleUpdate)

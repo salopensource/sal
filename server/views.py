@@ -410,6 +410,14 @@ def machine_detail(request, machine_id):
                 facts = facts.exclude(fact_name=excluded)
     else:
         facts = None
+        
+    if machine.condition_set.count() != 0:
+        conditions = machine.condition_set.all()
+        if settings.EXCLUDED_CONDITIONS:
+            for excluded in settings.EXCLUDED_CONDITIONS:
+                conditions = conditions.exclude(condition_name=excluded)
+    else:
+        conditions = None
     install_results = {}
     for result in report.get('InstallResults', []):
         nameAndVers = result['name'] + '-' + result['version']
@@ -462,7 +470,7 @@ def machine_detail(request, machine_id):
     if 'managed_uninstalls_list' in report:
         report['managed_uninstalls_list'].sort()
     
-    c = {'user':user, 'machine_group': machine_group, 'business_unit': business_unit, 'report': report, 'install_results': install_results, 'removal_results': removal_results, 'machine': machine, 'facts':facts }
+    c = {'user':user, 'machine_group': machine_group, 'business_unit': business_unit, 'report': report, 'install_results': install_results, 'removal_results': removal_results, 'machine': machine, 'facts':facts, 'conditions':conditions }
     return render_to_response('server/machine_detail.html', c, context_instance=RequestContext(request))
 
 # checkin
@@ -498,6 +506,8 @@ def checkin(request):
         # extract machine data from the report
         report_data = machine.get_report()
         # find the matching group based on manifest
+        if 'Puppet_Version' in report_data:
+            machine.puppet_version = report_data['Puppet_Version']
         if 'ManifestName' in report_data:
             manifest = report_data['ManifestName']
             machine.manifest = manifest
@@ -567,6 +577,25 @@ def checkin(request):
             for fact_name, fact_data in report_data['Facter'].iteritems():
                 fact = Fact(machine=machine, fact_name=fact_name, fact_data=fact_data)
                 fact.save()
+        
+        if 'Conditions' in report_data:
+            conditions = machine.condition_set.all()
+            conditions.delete()
+            for condition_name, condition_data in report_data['Conditions'].iteritems():
+                # if it's a list (more than one result), we're going to conacetnate it into one comma separated string
+                if type(condition_data) == list:
+                    result = None
+                    for item in condition_data:
+                        # is this the first loop? If so, no need for a comma
+                        if result:
+                            result = result + ', '+str(item)
+                        else:
+                            result = item
+                    condition_data = result
+                
+                print condition_data
+                condition = Condition(machine=machine, condition_name=condition_name, condition_data=str(condition_data))
+                condition.save()
         
         return HttpResponse("Sal report submmitted for %s.\n" 
                             % data.get('name'))

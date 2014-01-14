@@ -1,6 +1,6 @@
 [Core]
-Name = MachineModelGraph
-Module = machinemodelgraph
+Name = HardwareTypes
+Module = hardwaretypes
 
 [Documentation]
 Author = John Smith

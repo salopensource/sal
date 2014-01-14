@@ -1,9 +1,12 @@
 #!/usr/bin/env python
 #
-#    sal-submit.py
+#    postflight
 #        Submits inventory to an instance of Sal
 #
-#    Last Revised - 08/10/2013
+#    Last Revised - 2014-01-14
+
+import sys
+sys.path.append('/usr/local/sal')
 
 import urllib 
 import urllib2
@@ -18,6 +21,7 @@ import base64
 import yaml
 import bz2
 import os
+import sys
 BUNDLE_ID = 'com.grahamgilbert.sal'
 
 def get_disk_size(path='/'):
@@ -101,6 +105,27 @@ system_profile = FoundationPlist.readPlistFromString(stdout)
 # Merge the system profiler report into the Munki report
 report['MachineInfo']['SystemProfile'] = system_profile
 
+# Set the FACTERLIB environment variable if it's not already what we want it to be.
+desiredfacter = '/usr/local/sal/facter:'
+
+facterlib = os.environ.get('FACTERLIB')
+facterflag = False
+if facterlib:
+    if desiredfacter not in facterlib:
+        # set the flag to true, we need to put it back
+        facterflag = True
+        os.environ['FACTERLIB'] = desiredfacter
+
+# if Puppet is installed, get it's verion
+try:
+    command = ['puppet', '--version']
+    task = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    (stdout, stderr) = task.communicate()
+    if stdout:
+        report['Puppet_Version'] = stdout
+except:
+    print stderr
+
 # if Facter is installed, perform a run
 try:
     command = ['facter', '--puppet', '--yaml']
@@ -137,4 +162,8 @@ data = urllib.urlencode(data)
 req = urllib2.Request(checkinurl, data) 
 response = urllib2.urlopen(req) 
 response = response.read()
+# cleanup
+if facterflag:
+    os.environ['FACTERLIB'] = facterlib
+
 print response

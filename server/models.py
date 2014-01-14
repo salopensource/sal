@@ -72,6 +72,7 @@ class Machine(models.Model):
     errors = models.IntegerField(default=0)
     warnings = models.IntegerField(default=0)
     activity = models.TextField(editable=False, null=True, blank=True)
+    puppet_version = models.TextField(null=True, blank=True)
         
     def encode(self, plist):
         string = plistlib.writePlistToString(plist)
@@ -170,6 +171,15 @@ class Fact(models.Model):
         return self.fact_name
     class Meta:
         ordering = ['fact_name']
+
+class Condition(models.Model):
+    machine = models.ForeignKey(Machine)
+    condition_name = models.TextField()
+    condition_data = models.TextField()
+    def __unicode__(self):
+        return self.condition_name
+    class Meta:
+        ordering = ['condition_name']
         
 class PendingUpdate(models.Model):
     machine = models.ForeignKey(Machine)

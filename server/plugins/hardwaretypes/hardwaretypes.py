@@ -6,12 +6,12 @@ from server.models import *
 from django.shortcuts import get_object_or_404
 import server.utils as utils
 
-class MachineModelGraph(IPlugin):
+class HardwareTypes(IPlugin):
     def show_widget(self, page, machines=None, theid=None):
         # The data is data is pulled from the database and passed to a template.
         
         # we're not linking anywhere, so the template will be the same for all
-        t = loader.get_template('machinemodelgraph/templates/front.html')
+        t = loader.get_template('hardwaretypes/templates/front.html')
         if page == 'front':
             if not machines:
                 machines = Machine.objects.all()
@@ -44,11 +44,10 @@ class MachineModelGraph(IPlugin):
                             break
                     #if we get this far, it's not been seen before
                     if found == False:
-                        print machine['machine_model']
                         out.append(machine)
 
         c = Context({
-            'title': 'Hardware models',
+            'title': 'Hardware Types',
             'machines': out,
             'theid': theid,
             'page': page

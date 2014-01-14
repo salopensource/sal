@@ -78,8 +78,14 @@
     <h3>Managed Software Update</h3>
     <table class="client_info table table-condensed">
       <tbody>
+          {% if machine.puppet_version %}
+          <tr>
+            <th>Puppet Version:</th>
+            <td>{{ machine.puppet_version }}</td>
+          </tr>
+          {% endif %}
         <tr>
-          <th>Version:</th>
+          <th>MSU Version:</th>
           <td>{{ report.ManagedInstallVersion }}</td>
         </tr>
         {% if 'ManifestName' in report %}
@@ -188,11 +194,37 @@
            </table>
        </div>
    {% endif %}
+   
+   {% if conditions|length %}
+       <h3>MSU Conditions <span class="badge badge-info">{{ conditions|length }}</span> <a class="btn btn-sm" data-toggle="collapse" data-target="#collapse7">Toggle</a></h3>
+           <div id="collapse7" class="collapse">
+           <table class="client_info table table-striped table-condensed">
+               <thead>
+                   <tr>
+                       <th>Condition</th>
+                       <th>Value</th>
+                   </tr>
+               </thead>
+               <tbody>
+                   {% for condition in conditions %}
+                       <tr>
+                           <td>
+                               {{ condition.condition_name }}
+                           </td>
+                           <td>
+                               {{ condition.condition_data }}
+                           </td>
+                       </tr>
+                   {% endfor %}
+               </tbody>
+           </table>
+       </div>
+   {% endif %}
 </div>
    <div class="span4">
        {% if report.managed_uninstalls_list|length %}
-         <h3>Managed Uninstalls <span class="badge badge-info">{{ report.managed_uninstalls_list|length }}</span> <a class="btn btn-sm" data-toggle="collapse" data-target="#collapse7">Toggle</a></h3>
-                    <div id="collapse7" class="collapse">
+         <h3>Managed Uninstalls <span class="badge badge-info">{{ report.managed_uninstalls_list|length }}</span> <a class="btn btn-sm" data-toggle="collapse" data-target="#collapse8">Toggle</a></h3>
+                    <div id="collapse8" class="collapse">
          <table class="client_info table table-striped table-condensed">
            <thead>
              <tr>

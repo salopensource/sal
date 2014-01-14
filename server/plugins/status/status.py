@@ -31,16 +31,19 @@ class Status(IPlugin):
             errors = machines.filter(errors__gt=0).count()
             warnings = machines.filter(warnings__gt=0).count()
             activity = machines.filter(activity__isnull=False).count()
+            all_machines = machines.count()
         else:
             errors = None
             warnings = None
             activity = None
+            all_machines = None
 
         c = Context({
             'title': 'Status',
             'errors': errors,
             'warnings': warnings,
             'activity': activity,
+            'all_machines': all_machines,
             'theid': theid,
             'page': page
         })
@@ -57,8 +60,12 @@ class Status(IPlugin):
             machines = machines.filter(warnings__gt=0)
             title = 'Machines with MSU warnings'
         
-        if data == '1-week':
+        if data == 'activity':
             machines = machines.filter(activity__isnull=False)
             title = 'Machines with MSU activity'
+        
+        if data == 'all_machines':
+            machines = machines
+            title = 'All Machines'
         
         return machines, title    

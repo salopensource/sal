@@ -20,12 +20,22 @@
             </td>
         </tr>
         <tr>
-            <td>{% if activity %}<a href="{% url 'machine_list_id' 'Status' 'acitvity' page theid %}">{% endif %}
+            <td>{% if activity %}<a href="{% url 'machine_list_id' 'Status' 'activity' page theid %}">{% endif %}
                 Clients with activity
                 <span class="badge badge-info pull-right">
                     {{ activity }}
                 </span>
                 {% if activity %}</a>{% endif %}
+            </td>
+        </tr>
+        
+        <tr>
+            <td><a href="{% url 'machine_list_id' 'Status' 'all_machines' page theid %}">
+                All machines
+                <span class="badge badge-info pull-right">
+                    {{ all_machines }}
+                </span>
+                </a>
             </td>
         </tr>
     </table>

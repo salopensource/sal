@@ -10,7 +10,7 @@ With Sal, you are able to allow access to reports on certain sets of machines to
 
 First off, you're going to need to get the Server and then the Client installed. [Instructions can be found here](https://github.com/grahamgilbert/sal/blob/master/docs/Installation.md).
 
-Once you've got clients reporting in, you're probably going to want to customise what you see on the various screens. [Here is a full list]((https://github.com/grahamgilbert/sal/blob/master/docs/Settings.md) of the various options that can be set in ``sal/settings.py``.
+Once you've got clients reporting in, you're probably going to want to customise what you see on the various screens. [Here is a full list](https://github.com/grahamgilbert/sal/blob/master/docs/Settings.md) of the various options that can be set in ``sal/settings.py``.
 
 After re-ordering and hiding plugins from some screens, you might even want to make your own plugins. At the moment, you'll need to base yours off of the included ones, and my [repository of optional ones](https://github.com/grahamgilbert/sal-plugins). I owe you a blog post and some documentation on that, but trust me, it's easy if you know python, and completely possible if you don't.
 

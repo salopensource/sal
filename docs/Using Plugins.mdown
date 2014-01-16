@@ -9,28 +9,7 @@ It's easy to extend Sal with plugins created by others. A plugin could consist o
 3. To hide the plugin from a specific Business Unit or Machine Group, add it to the ``HIDE_PLUGIN_FROM_BUSINESS_UNIT`` or ``HIDE_PLUGIN_FROM_MACHINE_GROUP`` settings in ``sal/settings.py``. You will need the ID number of the Business Unit or Machine Group, which you can get from the URL displayed in your browser when on that BU or Group's page. Hiding a plugin from a business unit will also hide it from it's child groups. 
 4. Similarly, to only show or hide the plugin on the front page, the plugin's name should be added to the list in ``sal/settings.py``.
 
-The below example will hide the Encryption plugin from Business Unit #1, hide the DiskSpace plugin from the front page and Machine Group #1 (showing it everywhere else).
-
-``` python
-# The order plugins (if they're able to be shown on that particular page) will be displayed in. If not listed here, will be listed alphabetically after.
-PLUGIN_ORDER = ['Activity','Status','OperatingSystem','Uptime', 'Memory']
-
-# Only show these plugins on the front page - some things only the admins should see.
-LIMIT_PLUGIN_TO_FRONT_PAGE = []
-
-# Hide these plugins from the front page
-HIDE_PLUGIN_FROM_FRONT_PAGE = ['DiskSpace']
-
-# Hide these plugins from the specified business units
-HIDE_PLUGIN_FROM_BUSINESS_UNIT = {
-    'Encryption':['1']
-}
-
-# Hide these plugins from the specified machine groups
-HIDE_PLUGIN_FROM_MACHINE_GROUP = {
-    'DiskSpace':['1']
-}
-```
+For more details on configuring ``sal/settings.py`` please see it's [documentation](https://github.com/grahamgilbert/sal/blob/master/docs/Settings.md).
 
 ## Troubleshooting
 

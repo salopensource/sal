@@ -152,7 +152,7 @@
 </div>
  {% endif %}
  {% if report.ProblemInstalls|length %}
-    <h3>Active Removals <span class="badge badge-danger">{{ report.ProblemInstalls|length }}</span> <a class="btn btn-sm" data-toggle="collapse" data-target="#collapse5">Toggle</a></h3>
+    <h3>Problem Installs <span class="badge badge-danger">{{ report.ProblemInstalls|length }}</span> <a class="btn btn-sm" data-toggle="collapse" data-target="#collapse5">Toggle</a></h3>
                     <div id="collapse5" class="collapse in">
  {% with title='Problem Installs' pkglist=report.ProblemInstalls %}
    {% include 'server/pkgtable.html' %}

@@ -85,7 +85,7 @@ Edit settings.py:
 * Set ADMINS to an administrative name and email
 * Set TIME_ZONE to the appropriate timezone
 * Modify DISPLAY_NAME to what you want the header to be
-* Modify EXCLUDED_FACTS to contain any Facts from Facter that you don't wish to be visible
+* This is enough to get you going. See [Settings.md](https://github.com/grahamgilbert/sal/blob/master/docs/Settings.md) for more options in detail.
 
 ###More Setup
 We need to use Django's manage.py to initialise the app's database and create an admin user. Running the syncdb command will ask you to create an admin user - make sure you do this!

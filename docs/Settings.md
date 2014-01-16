@@ -53,3 +53,26 @@ HIDE_PLUGIN_FROM_MACHINE_GROUP = {
     'Uptime':['2','8']
 }
 ```
+
+## EXCLUDED_FACTS
+
+These Facts won't be displayed on the Machine Information page. This won't effect any plugins that rely on the Fact.
+
+```python
+EXCLUDED_FACTS = {
+    'sshrsakey',
+    'sshfp_rsa',
+    'sshfp_dsa',
+    'sshdsakey',
+}
+```
+
+## EXCLUDED_CONDTIONS
+
+The same as ``EXCLUDED_FACTS``, but will hide Munki Conditions instead.
+
+```python
+EXCLUDED_CONDTIONS = {
+    'ipv4_address',
+}
+```

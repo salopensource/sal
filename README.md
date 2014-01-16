@@ -1,6 +1,8 @@
 # Sal
 
-Sal is (currently) a reporting dashboard for [Munki](https://code.google.com/p/munki/) and optionally, information from [Facter](http://puppetlabs.com/facter). It has a plugin system allowing you to easily build widgets to display your custom information from Facter or Munki's conditional items (or both!).
+Sal is (currently) a multi-tennanted reporting dashboard for [Munki](https://code.google.com/p/munki/) and optionally, information from [Facter](http://puppetlabs.com/facter). It has a plugin system allowing you to easily build widgets to display your custom information from Facter or Munki's [conditional items](https://code.google.com/p/munki/wiki/ConditionalItems) (or both!). 
+
+With Sal, you are able to allow access to reports on certain sets of machines to certain people - for example, giving a manager access to the reports on the machines in their department.
 
 ![Sal](docs/img/Sal.png)
 
@@ -15,3 +17,11 @@ After re-ordering and hiding plugins from some screens, you might even want to m
 ## Why Sal?
 
 It's the Internet's fault! I asked on Twitter what I should call it, and Peter Bukowinski ([@pmbuko](https://twitter.com/pmbuko)) [suggested the name](https://twitter.com/pmbuko/status/377155523726290944), based on a Monkey puppet called [Sal Minella](http://muppet.wikia.com/wiki/Sal_Minella).
+
+## Thank yous
+
+First off, thanks to Greg Neagle and the rest of the Munki Project. This started off using quite a lot of Munki Web Admin's code (and still contains portions of it). Munki is an amazing product, and managing OS X at any scale would be miserable without it.
+
+Thanks to Puppet Labs for basically giving away the crown jewels for nothing.
+
+And finally, thanks to my lovely employers, [pebble.it](http://pebbleit.com) for letting me release this. They could just as easily have told me that this was staying in house, but they believe in open source as much as I do (did I mention they were lovely?).

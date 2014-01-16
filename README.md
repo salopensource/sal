@@ -1,6 +1,6 @@
 # Sal
 
-Sal is (currently) a reporting dashboard for Munki and optionally, information from Facter.
+Sal is (currently) a reporting dashboard for [Munki](https://code.google.com/p/munki/) and optionally, information from [Facter](http://puppetlabs.com/facter). It has a plugin system allowing you to easily build widgets to display your custom information from Facter or Munki's conditional items (or both!).
 
 ![Sal](docs/img/Sal.png)
 

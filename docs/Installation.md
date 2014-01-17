@@ -2,7 +2,7 @@
 
 ## How it works
 
-Sal is split into Business Units, and then subdivided into Groups. Each client would be a Business Unit, and then each Munki manifest is a Group. 
+Sal is split into Business Units, and then subdivided into Groups. Each customer would be a Business Unit, and then the machines can be divided into Machine Groups. 
 
 ##Server installation
 

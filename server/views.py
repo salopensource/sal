@@ -30,7 +30,11 @@ def index(request):
     user = request.user
     # Count the number of users. If there is only one, they need to be made a GA
     if User.objects.count() == 1:
-        profile = get_object_or_404(UserProfile, user=user)
+        try:
+            profile = UserProfile.objects.get(user=user)
+        except Poll.DoesNotExist:
+            profile = Profile(user=user)
+        
         profile.level = 'GA'
         profile.save()
     user_level = user.userprofile.level

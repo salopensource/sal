@@ -30,6 +30,7 @@ def index(request):
     user = request.user
     # Count the number of users. If there is only one, they need to be made a GA
     if User.objects.count() == 1:
+        # The first user created by syncdb won't have a profile. If there isn't one, make sure they get one.
         try:
             profile = UserProfile.objects.get(user=user)
         except UserProfile.DoesNotExist:

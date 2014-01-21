@@ -6,6 +6,11 @@ All commands should be run as root, unless specified
 
 ##Install Prerequisites
 ###Setup the Virtual Environment
+
+Get your sever up to date:
+
+	apt-get update && apt-get upgrade -y
+
 Make sure git is installed:
 
 	which git
@@ -24,7 +29,7 @@ Make sure virtualenv is installed
 	
 If it's not, install it:
 
-	easy_install virtualenv
+	easy_install virtualenv==1.10.1
 
 ###Create a non-admin service account and group
 Create the Sal user:
@@ -78,10 +83,11 @@ Now we need to get the other components for Sal
 	
 Next we need to make a copy of the example_settings.py file and put in your info:
 
-	cd sal/server
+	cd sal/sal
 	cp example_settings.py settings.py
 	
 Edit settings.py:
+
 * Set ADMINS to an administrative name and email
 * Set TIME_ZONE to the appropriate timezone
 * Modify DISPLAY_NAME to what you want the header to be
@@ -113,7 +119,7 @@ And then enter something like:
 	<VirtualHost *:80>
 	ServerName sal.yourdomain.com
    	WSGIScriptAlias / /usr/local/sal_env/sal/sal.wsgi
-   	WSGIDaemonProcess sal user=saluser group=sa.group
+   	WSGIDaemonProcess sal user=saluser group=salgroup
    	Alias /static/ /usr/local/sal_env/sal/static/
    	<Directory /usr/local/sal_env/sal>
     	   WSGIProcessGroup sal
@@ -125,5 +131,5 @@ And then enter something like:
 	
 Now we just need to enable our site, and then your can go and configure your clients (exit back to root for this):
 
-	a2ensite crypt.conf
+	a2ensite sal.conf
 	service apache2 reload

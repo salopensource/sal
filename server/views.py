@@ -32,8 +32,8 @@ def index(request):
     if User.objects.count() == 1:
         try:
             profile = UserProfile.objects.get(user=user)
-        except Poll.DoesNotExist:
-            profile = Profile(user=user)
+        except UserProfile.DoesNotExist:
+            profile = UserProfile(user=user)
         
         profile.level = 'GA'
         profile.save()

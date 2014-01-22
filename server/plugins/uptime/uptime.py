@@ -17,7 +17,7 @@ class Uptime(IPlugin):
                 machines = Machine.objects.all()
         
         if page == 'bu_dashboard':
-            t = loader.get_template('plugins/traffic_lights_front.html')
+            t = loader.get_template('plugins/traffic_lights_id.html')
             if not machines:
                 machines = utils.getBUmachines(theid)
         

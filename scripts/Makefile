@@ -10,7 +10,7 @@ PAYLOAD=\
 	
 pack-yaml: l_usr_local
 	@sudo mkdir -p ${WORK_D}/usr/local/sal/yaml
-	@sudo ${CP} -R yaml ${WORK_D}/usr/local/sal/yaml
+	@sudo ${CP} -R yaml ${WORK_D}/usr/local/sal
 	@sudo chown -R root:wheel ${WORK_D}/usr/local/sal/yaml
 	@sudo chmod -R 755 ${WORK_D}/usr/local/sal/yaml
 

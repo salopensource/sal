@@ -114,7 +114,7 @@ if facterlib:
     if desiredfacter not in facterlib:
         # set the flag to true, we need to put it back
         facterflag = True
-        os.environ['FACTERLIB'] = desiredfacter
+os.environ['FACTERLIB'] = desiredfacter
 
 # if Puppet is installed, get it's verion
 try:

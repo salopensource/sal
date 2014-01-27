@@ -28,7 +28,7 @@ class OperatingSystem(IPlugin):
                 machines = Machine.objects.filter(machine_group=machine_group)
         
         if machines:
-            os_info = machines.values('operating_system').annotate(count=Count('operating_system'))
+            os_info = machines.values('operating_system').annotate(count=Count('operating_system')).order_by()
         else:
             os_info = []
 

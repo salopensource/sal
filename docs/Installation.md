@@ -8,6 +8,10 @@ Sal is split into Business Units, and then subdivided into Groups. Each customer
 
 See [Installation_on_Ubuntu_12.md](https://github.com/grahamgilbert/sal/blob/master/docs/Installation_on_Ubuntu_12.md) for server installation docs.
 
+## Server upgrade
+
+See [Upgrading_on_Ubuntu_12.md](https://github.com/grahamgilbert/sal/blob/master/docs/Upgrading_on_Ubuntu_12.md) for upgrade docs.
+
 ### Getting started
 
 Log in with the username and password you set when performing the server setup. You will need to create a Business Unit and Machine Group to get started.

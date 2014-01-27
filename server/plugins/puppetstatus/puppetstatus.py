@@ -40,10 +40,8 @@ class PuppetStatus(IPlugin):
             puppet_error = 0
         
         # if there aren't any records with last checkin dates, assume puppet isn't being used
-        
-        # last_checkin = machines.filter(Q(last_puppet_run__isnull=True) | Q(last_puppet_run__exact=''))
-        last_checkin = machines.filter(last_puppet_run__isnull=True)
-        print week_ago
+        last_checkin = machines.filter(last_puppet_run__isnull=False)
+
         checked_in_this_week = machines.filter(last_puppet_run__lte=week_ago).count()
         
         if last_checkin:
@@ -71,7 +69,7 @@ class PuppetStatus(IPlugin):
             title = 'Machines with Puppet errors'
         elif data =='7days':
             machines = machines.filter(last_puppet_run__lte=week_ago)
-            title = 'Machines that haven\'t run Puppet for more than 7 Days
+            title = 'Machines that haven\'t run Puppet for more than 7 Days''
         
         else:
             machines = None

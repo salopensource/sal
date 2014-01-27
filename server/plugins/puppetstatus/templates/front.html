@@ -1,3 +1,4 @@
+{% if last_checkin_count > 0 %}
 <div class="span2">
         <legend>{{ title }}</legend>
         {% if error_count == 0 %}
@@ -19,3 +20,4 @@
 		{{ week_label }}
         </a>
 </div>
+{% endif %}

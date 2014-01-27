@@ -423,6 +423,12 @@ def machine_detail(request, machine_id):
                 conditions = conditions.exclude(condition_name=excluded)
     else:
         conditions = None
+    
+    # get the IP address(es) from the condition
+    ip_address = conditions.get(machine=machine, condition_name__exact='ipv4_address')
+    ip_address = ip_address.condition_data
+    print ip_address
+    
     install_results = {}
     for result in report.get('InstallResults', []):
         nameAndVers = result['name'] + '-' + result['version']
@@ -475,7 +481,7 @@ def machine_detail(request, machine_id):
     if 'managed_uninstalls_list' in report:
         report['managed_uninstalls_list'].sort()
     
-    c = {'user':user, 'machine_group': machine_group, 'business_unit': business_unit, 'report': report, 'install_results': install_results, 'removal_results': removal_results, 'machine': machine, 'facts':facts, 'conditions':conditions }
+    c = {'user':user, 'machine_group': machine_group, 'business_unit': business_unit, 'report': report, 'install_results': install_results, 'removal_results': removal_results, 'machine': machine, 'facts':facts, 'conditions':conditions, 'ip_address':ip_address }
     return render_to_response('server/machine_detail.html', c, context_instance=RequestContext(request))
 
 # checkin

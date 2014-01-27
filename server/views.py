@@ -533,7 +533,11 @@ def checkin(request):
                 if profile['_dataType'] == 'SPHardwareDataType':
                     hwinfo = profile._items[0]
                     break
-        
+        if 'Puppet' in report_data:
+            puppet = report_data.get('Puppet')
+            machine.last_puppet_run = datetime.fromtimestamp(float(puppet['time']['last_run']))
+            machine.puppet_errors = puppet['events']['failure']
+            
         if hwinfo:
             machine.machine_model = hwinfo.get('machine_model')
             machine.cpu_type = hwinfo.get('cpu_type')
@@ -573,7 +577,7 @@ def checkin(request):
                 version = str(update['version_to_install'])
                 pending_update = PendingAppleUpdate(machine=machine, display_name=display_name, update_version=version, update=update_name)
                 pending_update.save()
-            
+        
         # if Facter data is submitted, we need to first remove any existing facts for this machine
         if 'Facter' in report_data:
             facts = machine.fact_set.all()
@@ -598,7 +602,7 @@ def checkin(request):
                             result = item
                     condition_data = result
                 
-                print condition_data
+                #print condition_data
                 condition = Condition(machine=machine, condition_name=condition_name, condition_data=str(condition_data))
                 condition.save()
         

@@ -1,0 +1,8 @@
+[Core]
+Name = PuppetStatus
+Module = puppetstatus
+
+[Documentation]
+Author = Graham Gilbert
+Version = 0.1
+Website = http://grahamgilbert.com

@@ -1,0 +1,20 @@
+<div class="span3">
+        <legend>{{ title }}</legend>
+        {% if error_count == 0 %}
+        <a href="{% url 'machine_list_id' plugin 'puppeterror' page theid %}" class="btn btn-success">
+        {% else %}
+        <a href="{% url 'machine_list_id' plugin 'puppeterror' page theid %}" class="btn btn-danger">
+        {% endif %}
+  			<span class="bigger"> {{ error_count }} </span><br />
+  			{{ error_label }}
+          </a>
+          
+          {% if week_count == 0 %}
+          <a href="{% url 'machine_list_front' plugin '7days' page theid %}" class="btn btn-success">
+          {% else %}
+          <a href="{% url 'machine_list_front' plugin '7days' page theid %}" class="btn btn-danger">
+          {% endif %}
+    		<span class="bigger"> {{ week_count }} </span><br />
+    		{{ week_label }}
+            </a>
+</div>

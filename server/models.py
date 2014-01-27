@@ -73,6 +73,8 @@ class Machine(models.Model):
     warnings = models.IntegerField(default=0)
     activity = models.TextField(editable=False, null=True, blank=True)
     puppet_version = models.TextField(null=True, blank=True)
+    last_puppet_run = models.DateTimeField(blank=True,null=True)
+    puppet_errors = models.IntegerField(default=0)
         
     def encode(self, plist):
         string = plistlib.writePlistToString(plist)

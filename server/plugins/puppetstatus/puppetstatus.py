@@ -36,13 +36,14 @@ class PuppetStatus(IPlugin):
         
         if machines:
             puppet_error = machines.filter(puppet_errors__gt=0).count()
+            # if there aren't any records with last checkin dates, assume puppet isn't being used
+            last_checkin = machines.filter(last_puppet_run__isnull=False).count()
+            checked_in_this_week = machines.filter(last_puppet_run__lte=week_ago).count()
         else:
             puppet_error = 0
+            last_checkin = 0
+            checked_in_this_week = 0
         
-        # if there aren't any records with last checkin dates, assume puppet isn't being used
-        last_checkin = machines.filter(last_puppet_run__isnull=False).count()
-        print last_checkin
-        checked_in_this_week = machines.filter(last_puppet_run__lte=week_ago).count()
         
         if last_checkin > 0:
             size = 2

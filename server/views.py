@@ -418,16 +418,15 @@ def machine_detail(request, machine_id):
         
     if machine.condition_set.count() != 0:
         conditions = machine.condition_set.all()
+        # get the IP address(es) from the condition
+        ip_address = conditions.get(machine=machine, condition_name__exact='ipv4_address')
+        ip_address = ip_address.condition_data
         if settings.EXCLUDED_CONDITIONS:
             for excluded in settings.EXCLUDED_CONDITIONS:
                 conditions = conditions.exclude(condition_name=excluded)
     else:
         conditions = None
-    
-    # get the IP address(es) from the condition
-    ip_address = conditions.get(machine=machine, condition_name__exact='ipv4_address')
-    ip_address = ip_address.condition_data
-    print ip_address
+        ip_address = None
     
     install_results = {}
     for result in report.get('InstallResults', []):

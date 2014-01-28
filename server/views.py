@@ -419,8 +419,11 @@ def machine_detail(request, machine_id):
     if machine.condition_set.count() != 0:
         conditions = machine.condition_set.all()
         # get the IP address(es) from the condition
-        ip_address = conditions.get(machine=machine, condition_name__exact='ipv4_address')
-        ip_address = ip_address.condition_data
+        try:
+            ip_address = conditions.get(machine=machine, condition_name__exact='ipv4_address')
+            ip_address = ip_address.condition_data
+        except:
+            ip_address = None
         if settings.EXCLUDED_CONDITIONS:
             for excluded in settings.EXCLUDED_CONDITIONS:
                 conditions = conditions.exclude(condition_name=excluded)

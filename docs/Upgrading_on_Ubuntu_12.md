@@ -13,7 +13,7 @@ Start bash
 	
 Change into the Sal virtualenv directory
 	
-	cd /usr/local/salt_env
+	cd /usr/local/sal_env
 
 Activate the virtualenv
 

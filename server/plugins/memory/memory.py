@@ -47,7 +47,7 @@ class Memory(IPlugin):
             'ok_count': mem_ok,
             'warning_label': '4GB +',
             'warning_count': mem_warning,
-            'alert_label': '> 4GB',
+            'alert_label': '< 4GB',
             'alert_count': mem_alert,
             'plugin': 'Memory',
             'theid': theid,

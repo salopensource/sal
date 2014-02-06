@@ -38,7 +38,7 @@ class DiskSpace(IPlugin):
 
         c = Context({
             'title': 'Disk Space',
-            'ok_label': '> 80%',
+            'ok_label': '< 80%',
             'ok_count': disk_ok,
             'warning_label': '80% +',
             'warning_count': disk_warning,

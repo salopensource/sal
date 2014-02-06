@@ -38,9 +38,9 @@ class Uptime(IPlugin):
     
         c = Context({
             'title': 'Uptime',
-            'ok_label': '> 1 Day',
+            'ok_label': '< 1 Day',
             'ok_count': ok,
-            'warning_label': '> 7 Days',
+            'warning_label': '< 7 Days',
             'warning_count': warning,
             'alert_label': '7 Days +',
             'alert_count': alert,

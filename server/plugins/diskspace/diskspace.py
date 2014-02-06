@@ -53,7 +53,7 @@ class DiskSpace(IPlugin):
     def filter_machines(self, machines, data):
         if data == 'ok':
             machines = machines.filter(hd_percent__lt=80)
-            title = 'Machines with more than 80% disk space remaining'
+            title = 'Machines with less than 80% disk space remaining'
         
         elif data == 'warning':
             machines = machines.filter(hd_percent__range=["80", "89"])

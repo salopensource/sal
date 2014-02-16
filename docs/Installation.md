@@ -6,7 +6,7 @@ Sal is split into Business Units, and then subdivided into Groups. Each customer
 
 ##Server installation
 
-See [Installation_on_Ubuntu_12.md](https://github.com/grahamgilbert/sal/blob/master/docs/Installation_on_Ubuntu_12.md) for server installation docs. If you are installing on a different operating system, please ensure you have Python 2.7 installed.
+See [Installation_on_Ubuntu_12.md](https://github.com/grahamgilbert/sal/blob/master/docs/Installation_on_Ubuntu_12.md) (or for [CentOS](https://github.com/grahamgilbert/sal/blob/master/docs/Installation_on_CentOS6.md))for server installation docs. If you are installing on a different operating system, please ensure you have Python 2.7 installed.
 
 ## Server upgrade
 

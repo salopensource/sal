@@ -46,7 +46,7 @@ We need to edit ``/usr/local/sal_env/sal/sal/settings.py``. Make the database se
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql', # Add 'postgresql_psycopg2', 'mysql', 'sqlite3' or 'oracle'.
-        'NAME': 'DATABASENAME'),                      # Or path to database file if using sqlite3.
+        'NAME': 'DATABASENAME',                      # Or path to database file if using sqlite3.
         # The following settings are not used with sqlite3:
         'USER': 'DATABASEUSER',
         'PASSWORD': 'PASSWORD',

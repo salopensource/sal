@@ -19,9 +19,9 @@
       }
     </style>
     {% bootstrap_stylesheet_tag "responsive" %}
-<link href="/static/style.css" rel="stylesheet">
+<link href="{{ STATIC_URL }}style.css" rel="stylesheet">
 <link rel="stylesheet"
-  href='/static/datatables-bootstrap.css' 
+  href='{{ STATIC_URL }}datatables-bootstrap.css' 
   type="text/css" media="all" />
     <!-- Le HTML5 shim, for IE6-8 support of HTML5 elements -->
     <!--[if lt IE 9]>
@@ -55,9 +55,9 @@
   			  </a>
   			  <ul class="dropdown-menu" role="menu" aria-labelledby="dLabel">
 
-  			  	<li><a href="/changepassword/">{% trans "Change password" %}</a></li>
-                {% if user.is_staff %}<li><a href="/admin/">Administraton</a></li>{% endif %}
-                <li><a href="/logout/">{% trans "Log out" %}</a></li>
+  			  	<li><a href="{% url 'django.contrib.auth.views.password_change' %>">{% trans "Change password" %}</a></li>
+                {% if user.is_staff %}<li><a href="{% url 'admin:index' %}">Administraton</a></li>{% endif %}
+                <li><a href="{% url 'django.contrib.auth.views.logout_then_login' %}">{% trans "Log out" %}</a></li>
   			  </ul>
   			</li>
   			
@@ -110,10 +110,10 @@
     <!-- Placed at the end of the document so the pages load faster -->
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
 <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.23/jquery-ui.min.js"></script>
-<script type="text/javascript" src="/static/jquery.dataTables.min.js"></script>
+<script type="text/javascript" src="{{ STATIC_URL }}jquery.dataTables.min.js"></script>
 {% bootstrap_javascript_tag %}
 
-<script type="text/javascript" src="/static/datatables-bootstrap.js"></script>
+<script type="text/javascript" src="{{ STATIC_URL }}datatables-bootstrap.js"></script>
 {% block script %}
 {% endblock%}
   </body>

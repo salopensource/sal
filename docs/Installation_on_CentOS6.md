@@ -139,14 +139,14 @@ Stage the static files (type yes when prompted)
 ##Installing mod_wsgi and configuring Apache
 To run Sal in a production environment, we need to set up a suitable webserver. Make sure you exit out of the Sal_env virtualenv and the saluser user (back to root) before continuing).
 
-	yum install httpd
+	yum install httpd httpd-devel
 	chkconfig httpd on
 	service httpd start
 
 Now we need to install mod_wsgi:
 
 	cd /usr/local/lib/python2.7/config/
-	ln -s ../../libpython2.7.so
+	ln -s ../../libpython2.7.so .
 	cd /tmp
 	wget https://modwsgi.googlecode.com/files/mod_wsgi-3.4.tar.gz
 	tar xf mod_wsgi-3.4.tar.gz && cd mod_wsgi-3.4

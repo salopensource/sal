@@ -14,6 +14,10 @@ Once you've got clients reporting in, you're probably going to want to customise
 
 After re-ordering and hiding plugins from some screens, you might even want to make your own plugins. At the moment, you'll need to base yours off of the included ones, and my [repository of optional ones](https://github.com/grahamgilbert/sal-plugins). I owe you a blog post and some documentation on that, but trust me, it's easy if you know python, and completely possible if you don't.
 
+## Discussion
+
+Discussion on the use and development of Sal is [available on the Google Group](http://groups.google.com/group/sal-discuss).
+
 ## Why Sal?
 
 It's the Internet's fault! I asked on Twitter what I should call it, and Peter Bukowinski ([@pmbuko](https://twitter.com/pmbuko)) [suggested the name](https://twitter.com/pmbuko/status/377155523726290944), based on a Monkey puppet called [Sal Minella](http://muppet.wikia.com/wiki/Sal_Minella).

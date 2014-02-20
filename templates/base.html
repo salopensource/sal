@@ -55,7 +55,7 @@
   			  </a>
   			  <ul class="dropdown-menu" role="menu" aria-labelledby="dLabel">
 
-  			  	<li><a href="{% url 'django.contrib.auth.views.password_change' %>">{% trans "Change password" %}</a></li>
+  			  	<li><a href="{% url 'django.contrib.auth.views.password_change' %}">{% trans "Change password" %}</a></li>
                 {% if user.is_staff %}<li><a href="{% url 'admin:index' %}">Administraton</a></li>{% endif %}
                 <li><a href="{% url 'django.contrib.auth.views.logout_then_login' %}">{% trans "Log out" %}</a></li>
   			  </ul>

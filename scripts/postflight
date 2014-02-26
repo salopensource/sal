@@ -125,7 +125,7 @@ os.environ['FACTERLIB'] = desiredfacter
 
 # if Puppet is installed, get it's verion
 try:
-    command = ['puppet', '--version']
+    command = ['/usr/bin/puppet', '--version']
     task = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     (stdout, stderr) = task.communicate()
     if stdout:
@@ -135,7 +135,7 @@ except:
 
 # if Facter is installed, perform a run
 try:
-    command = ['facter', '--puppet', '--yaml']
+    command = ['/usr/bin/facter', '--puppet', '--yaml']
     task = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     (stdout, stderr) = task.communicate()
     if stdout:

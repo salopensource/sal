@@ -8,15 +8,15 @@
         {% endif %}
   			<span class="bigger"> {{ error_count }} </span><br />
   			{{ error_label }}
-          </a>
+         </a>
           
-          {% if week_count == 0 %}
-          <a href="{% url 'machine_list_id' plugin '7days' page theid %}" class="btn btn-success">
+          {% if month_count == 0 %}
+          <a href="{% url 'machine_list_id' plugin '1month' page theid %}" class="btn btn-success">
           {% else %}
-          <a href="{% url 'machine_list_id' plugin '7days' page theid %}" class="btn btn-danger">
+          <a href="{% url 'machine_list_id' plugin '1month' page theid %}" class="btn btn-danger">
           {% endif %}
-    		<span class="bigger"> {{ week_count }} </span><br />
-    		{{ week_label }}
-            </a>
+    		<span class="bigger"> {{ month_count }} </span><br />
+    		{{ month_label }}
+          </a>
 </div>
 {% endif %}

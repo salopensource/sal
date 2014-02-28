@@ -38,15 +38,15 @@ class PuppetStatus(IPlugin):
             puppet_error = machines.filter(puppet_errors__gt=0).count()
             # if there aren't any records with last checkin dates, assume puppet isn't being used
             last_checkin = machines.filter(last_puppet_run__isnull=False).count()
-            checked_in_this_week = machines.filter(last_puppet_run__lte=week_ago).count()
+            checked_in_this_month = machines.filter(last_puppet_run__lte=month_ago).count()
         else:
             puppet_error = 0
             last_checkin = 0
-            checked_in_this_week = 0
+            checked_in_this_month = 0
         
         
         if last_checkin > 0:
-            size = 2
+            size = 3
         else:
             size = 0
         
@@ -54,8 +54,8 @@ class PuppetStatus(IPlugin):
             'title': 'Puppet Status',
             'error_label': 'Errors',
             'error_count': puppet_error,
-            'week_label': '+ 7 Days',
-            'week_count': checked_in_this_week,
+            'month_label': '+ 1 Month',
+            'month_count': checked_in_this_month,
             'plugin': 'PuppetStatus',
             'last_checkin_count': last_checkin,
             'theid': theid,
@@ -69,9 +69,9 @@ class PuppetStatus(IPlugin):
         if data == 'puppeterror':
             machines = machines.filter(puppet_errors__gt=0)
             title = 'Machines with Puppet errors'
-        elif data =='7days':
-            machines = machines.filter(last_puppet_run__lte=week_ago)
-            title = 'Machines that haven\'t run Puppet for more than 7 Days'
+        elif data =='1month':
+            machines = machines.filter(last_puppet_run__lte=month_ago)
+            title = 'Machines that haven\'t run Puppet for more than 1 Month'
         
         else:
             machines = None

@@ -1,5 +1,5 @@
 {% if last_checkin_count > 0 %}
-<div class="span2">
+<div class="span3">
         <legend>{{ title }}</legend>
         {% if error_count == 0 %}
         <a href="{% url 'machine_list_front' plugin 'puppeterror' %}" class="btn btn-success">
@@ -11,13 +11,13 @@
           </a>
           
           
-      {% if week_count == 0 %}
-      <a href="{% url 'machine_list_front' plugin '7days' %}" class="btn btn-success">
+      {% if month_count == 0 %}
+      <a href="{% url 'machine_list_front' plugin '1month' %}" class="btn btn-success">
       {% else %}
-      <a href="{% url 'machine_list_front' plugin '7days' %}" class="btn btn-danger">
+      <a href="{% url 'machine_list_front' plugin '1month' %}" class="btn btn-danger">
       {% endif %}
-		<span class="bigger"> {{ week_count }} </span><br />
-		{{ week_label }}
+		<span class="bigger"> {{ month_count }} </span><br />
+		{{ month_label }}
         </a>
 </div>
 {% endif %}

@@ -94,24 +94,30 @@
         </tr>
         {% if 'ManifestName' in report %}
         <tr>
-          <th>Manifest:</th>
+          <th>MSU Manifest:</th>
           <td>
             {{ report.ManifestName }}</a>
           </td>
         </tr>
         {% endif %}
         <tr>
-          <th>Run Type:</th>
+          <th>MSU Run Type:</th>
           <td>{{ report.RunType }}</td>
         </tr>
         <tr>
-          <th>Start:</th>
+          <th>MSU Start:</th>
           <td>{{ report.StartTime }}</td>
         </tr>
         <tr>
-          <th>End:</th>
+          <th>MSU End:</th>
           <td>{{ report.EndTime }}</td>
         </tr>
+        {% if machine.last_puppet_run %}
+        <tr>
+          <th>Puppet Run:</th>
+          <td>{{ machine.last_puppet_run }}</td>
+        </tr>
+        {% endif %}
       </tbody>
     </table>
  </div>

@@ -1,6 +1,8 @@
 from django import template
 from django.shortcuts import get_object_or_404
 from server.models import *
+from datetime import datetime
+from django.template.defaultfilters import date
 
 register = template.Library()
 
@@ -31,3 +33,10 @@ def bu_machine_count(bu_id):
     for machinegroup in machine_groups:
         count = count + machinegroup.machine_set.count()    
     return count
+
+@register.filter
+def convert_datetime(string):
+    """Converts a string into a formatted date"""
+    the_date = datetime.strptime(string, "%Y-%m-%d %H:%M:%S +0000")
+    return date(the_date, "N j, Y, P")
+    

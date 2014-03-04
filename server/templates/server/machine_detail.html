@@ -106,11 +106,11 @@
         </tr>
         <tr>
           <th>MSU Start:</th>
-          <td>{{ report.StartTime }}</td>
+          <td>{{ report.StartTime:convert_datetime }}</td>
         </tr>
         <tr>
           <th>MSU End:</th>
-          <td>{{ report.EndTime }}</td>
+          <td>{{ report.EndTime|convert_datetime }}</td>
         </tr>
         {% if machine.last_puppet_run %}
         <tr>

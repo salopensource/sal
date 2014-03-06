@@ -62,7 +62,7 @@ class Memory(IPlugin):
     
         elif data == 'warning':
             machines = machines.filter(memory_kb__range=[mem_4_gb, mem_775_gb])
-            title = 'Machines with more than 4GB memory'
+            title = 'Machines with between 4GB and 8GB memory'
     
         elif data == 'alert':
             machines = machines.filter(memory_kb__lt=mem_4_gb)

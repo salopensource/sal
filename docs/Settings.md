@@ -79,7 +79,7 @@ EXCLUDED_CONDTIONS = {
 
 ## DEFAULT_MACHINE_GROUP_KEY
 
-By default, all machine submissions must include a machine group key otherwise an error will occur. By defining this value to an existing machine group key then machines without having a group key already defined in its preferences will be placed in this group.
+By default, all machine submissions must include a machine group key otherwise an error will occur. By defining this value to an existing machine group key then machines without a group key already defined in its preferences will be placed into this group. This can be used, for example, to determine which machines have not been setup properly with the correct machine group.
 
 ```python
 DEFAULT_MACHINE_GROUP_KEY = 'x1eru38unri08badpo0ux4ahz043hapbyqyixdz482l047u9xe60nn6cux1sj0ad5bq7hwblyzjpmaqb17psygfwlfeo4x6hozb1jejaf1nee6paj68glducdt5575dz'

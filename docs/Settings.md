@@ -76,3 +76,12 @@ EXCLUDED_CONDTIONS = {
     'ipv4_address',
 }
 ```
+
+## DEFAULT_MACHINE_GROUP_KEY
+
+By default, all machine submissions must include a machine group key otherwise an error will occur. By defining this value to an existing machine group key then machines without having a group key already defined in its preferences will be placed in this group.
+
+```python
+DEFAULT_MACHINE_GROUP_KEY = 'x1eru38unri08badpo0ux4ahz043hapbyqyixdz482l047u9xe60nn6cux1sj0ad5bq7hwblyzjpmaqb17psygfwlfeo4x6hozb1jejaf1nee6paj68glducdt5575dz'
+```
+

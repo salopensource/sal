@@ -146,7 +146,11 @@ except:
     print stderr
 
 # Get the serial number
-serial = report['MachineInfo']['serial_number']
+try:
+    serial = report['MachineInfo']['serial_number']
+except:
+    print 'Unable to get MachineInfo from ManagedInstallReport.plist. This is usually due to running Munki in Apple Software only mode.'
+    sys.exit(0)
 
 # Get Machine Name
 command = ['/usr/sbin/scutil', '--get', 'ComputerName']

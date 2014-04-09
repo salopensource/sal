@@ -3,7 +3,7 @@
 #    postflight
 #        Submits inventory to an instance of Sal
 #
-#    Last Revised - 2014-01-14
+#    Last Revised - 2014-04-09
 
 import sys
 sys.path.append('/usr/local/sal')
@@ -14,7 +14,8 @@ import urllib2
 try:
     from munkilib import FoundationPlist
 except:
-    import FoundationPlist
+    sys.path.append('/usr/local/munki')
+    from munkilib import FoundationPlist
 from Foundation import *
 import subprocess
 import base64

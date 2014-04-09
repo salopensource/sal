@@ -38,5 +38,9 @@ def bu_machine_count(bu_id):
 def convert_datetime(string):
     """Converts a string into a formatted date"""
     the_date = datetime.strptime(string, "%Y-%m-%d %H:%M:%S +0000")
-    return date(the_date, "N j, Y, P")
-    
+    return date(the_date, "Y-m-d H:i")
+
+@register.filter
+def format_date(string):
+    """Converts a date object into something that can be sorted separately"""
+    return date (string, "Y-m-d H:i")

@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% load i18n %}
-
+{% load dashboard_extras %}
 {% block script %}
 <script type="text/javascript" charset="utf-8">
     $(document).ready(function() {
@@ -45,7 +45,7 @@
             </td>
         
             <td>{{ item.console_user }}</td>
-            <td>{{ item.last_checkin }}</td>
+            <td>{{ item.last_checkin|format_date }}</td>
         </tr>
         {% endfor %}
     </tbody>

@@ -115,7 +115,7 @@
         {% if machine.last_puppet_run %}
         <tr>
           <th>Puppet Run:</th>
-          <td>{{ machine.last_puppet_run }}</td>
+          <td>{{ machine.last_puppet_run|format_date }}</td>
         </tr>
         {% endif %}
       </tbody>

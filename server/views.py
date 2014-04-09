@@ -497,6 +497,12 @@ def checkin(request):
     key = data.get('key')
     serial = data.get('serial')
     
+    if key is None or key == 'None':
+        try:
+            key = settings.DEFAULT_MACHINE_GROUP_KEY
+        except Exception:
+            pass
+    
     machine_group = get_object_or_404(MachineGroup, key=key)
     
     business_unit = machine_group.business_unit

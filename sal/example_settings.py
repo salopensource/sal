@@ -33,6 +33,10 @@ HIDE_PLUGIN_FROM_MACHINE_GROUP = {
 
 PLUGIN_DIR = os.path.join(PROJECT_DIR, 'plugins')
 
+# If you want to have a default machine group, define this to the key of
+# that group.
+#DEFAULT_MACHINE_GROUP_KEY = ''
+
 EXCLUDED_FACTS = {
     'sshrsakey',
     'sshfp_rsa',

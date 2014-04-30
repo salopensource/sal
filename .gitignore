@@ -37,3 +37,4 @@ nosetests.xml
 sal.db
 sal/settings.py
 scripts/sal_scripts.pkg
+config

@@ -8,9 +8,11 @@
 {% endblock %}
 
 {% block nav %}
+{% if user.userprofile.level == 'GA' or user.userprofile.level == 'RW' %}
         {% if config_installed %}
             <li><a href="{% url 'config_configure_machine' machine.id %}">Configure Machine</a></li>
         {% endif %}
+{% endif %}
 {% endblock %}
 {% block content %}
 <div class="row">

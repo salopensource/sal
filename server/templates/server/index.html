@@ -10,6 +10,8 @@
 {% block nav %}
     {% if user.userprofile.level == 'GA' %}
         <li><a href="{% url 'new_business_unit' %}">New Business Unit</a></li>
+    {% endif %}
+    {% if user.userprofile.level == 'GA' or user.userprofile.level == 'RW' %}
         {% if config_installed %}
             <li><a href="{% url 'config_index' %}">Configure Machines</a></li>
         {% endif %}

@@ -23,3 +23,9 @@ urlpatterns = patterns('',
 )
 if settings.DEBUG:
     urlpatterns += staticfiles_urlpatterns()
+
+if 'config' in settings.INSTALLED_APPS:
+    config_pattern = patterns('',
+    url(r'^config/', include('config.urls'))
+    )
+    urlpatterns += config_pattern

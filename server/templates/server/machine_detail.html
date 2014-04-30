@@ -8,6 +8,9 @@
 {% endblock %}
 
 {% block nav %}
+        {% if config_installed %}
+            <li><a href="{% url 'config_configure_machine' machine.id %}">Configure Machine</a></li>
+        {% endif %}
 {% endblock %}
 {% block content %}
 <div class="row">
@@ -62,7 +65,9 @@
         </tr>
         <tr>
           <th>OS version:</th>
-          <td>{{ report.MachineInfo.os_vers }}
+          <td>{% if report.os_family == 'Darwin' %}
+              OS X {% endif %}
+              {{ report.MachineInfo.os_vers }}
               {{ report.MachineInfo.arch }}</td>
         </tr>
         {% endif %}

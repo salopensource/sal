@@ -73,8 +73,9 @@ def index(request):
 
         # get the user level - if they're a global admin, show all of the machines. If not, show only the machines they have access to
         business_units = BusinessUnit.objects.all()
+        config_installed = 'config' in settings.INSTALLED_APPS
         
-        c = {'user': request.user, 'business_units': business_units, 'output': output}
+        c = {'user': request.user, 'business_units': business_units, 'output': output, 'config_installed': config_installed}
         return render_to_response('server/index.html', c, context_instance=RequestContext(request)) 
 
 # Plugin machine list
@@ -482,8 +483,8 @@ def machine_detail(request, machine_id):
                 
     if 'managed_uninstalls_list' in report:
         report['managed_uninstalls_list'].sort()
-    
-    c = {'user':user, 'machine_group': machine_group, 'business_unit': business_unit, 'report': report, 'install_results': install_results, 'removal_results': removal_results, 'machine': machine, 'facts':facts, 'conditions':conditions, 'ip_address':ip_address }
+    config_installed = 'config' in settings.INSTALLED_APPS
+    c = {'user':user, 'machine_group': machine_group, 'business_unit': business_unit, 'report': report, 'install_results': install_results, 'removal_results': removal_results, 'machine': machine, 'facts':facts, 'conditions':conditions, 'ip_address':ip_address, 'config_installed':config_installed }
     return render_to_response('server/machine_detail.html', c, context_instance=RequestContext(request))
 
 # checkin
@@ -515,7 +516,10 @@ def checkin(request):
             machine = Machine(serial=serial)
     if machine:
         machine.hostname = data.get('name', '<NO NAME>')
-        machine.machine_group = machine_group
+        if not settings.USE_ENC:
+            # If we're using Sal's Puppet ENC, don't change the machine group, 
+            # as we're setting it in the GUI
+            machine.machine_group = machine_group
         machine.last_checkin = datetime.now()
         if 'username' in data:
             machine.username = data.get('username')
@@ -567,6 +571,9 @@ def checkin(request):
             if hwinfo.get('physical_memory')[-2:] == 'TB':
                 memory_tb = float(hwinfo.get('physical_memory')[:-3])
                 machine.memory_kb = int(memory_tb * 1024 * 1024 * 1024)
+        
+        if 'os_family' in report_data:
+            machine.os_family = report_data['os_family']
 
         machine.save()
         

@@ -1,6 +1,6 @@
 USE_PKGBUILD=1
 include /usr/local/share/luggage/luggage.make
-VERSION=0.0.6
+PACKAGE_VERSION=0.1.0
 TITLE=sal_scripts
 PACKAGE_NAME=sal_scripts
 REVERSE_DOMAIN=com.grahamgilbert

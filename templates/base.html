@@ -28,6 +28,14 @@
     <!--[if lt IE 9]>
       <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
     <![endif]-->
+   <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
+   <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.23/jquery-ui.min.js"></script>
+   <script type="text/javascript" src="{{ STATIC_URL }}jquery.dataTables.min.js"></script>
+   {% bootstrap_javascript_tag %}
+
+   <script type="text/javascript" src="{{ STATIC_URL }}datatables-bootstrap.js"></script>
+   {% block script %}
+   {% endblock%}
 
   </head>
 
@@ -106,16 +114,5 @@
 
     </div> <!-- /container -->
 
-    <!-- Le javascript
-    ================================================== -->
-    <!-- Placed at the end of the document so the pages load faster -->
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
-<script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.23/jquery-ui.min.js"></script>
-<script type="text/javascript" src="{{ STATIC_URL }}jquery.dataTables.min.js"></script>
-{% bootstrap_javascript_tag %}
-
-<script type="text/javascript" src="{{ STATIC_URL }}datatables-bootstrap.js"></script>
-{% block script %}
-{% endblock%}
   </body>
 </html>

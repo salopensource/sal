@@ -159,6 +159,9 @@ task = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 name = stdout
 data = {}
 
+# Set the OS family
+report['os_family'] = 'Darwin'
+
 # Compress the report
 plist = FoundationPlist.writePlistToString(report)
 zipped = bz2.compress(plist)

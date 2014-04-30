@@ -67,6 +67,7 @@ class Machine(models.Model):
     machine_model = models.CharField(max_length=256, null=True, blank=True)
     cpu_type = models.CharField(max_length=256, null=True, blank=True)
     cpu_speed = models.CharField(max_length=256, null=True, blank=True)
+    os_family = models.CharField(max_length=256, null=True, blank=True)
     last_checkin = models.DateTimeField(blank=True,null=True)
     report = models.TextField(editable=True, null=True)
     errors = models.IntegerField(default=0)

@@ -52,9 +52,14 @@ class MachineGroup(models.Model):
         ordering = ['name']
     
 class Machine(models.Model):
+    OS_CHOICES = (
+        ('Darwin', 'OS X'),
+        ('Windows', 'Windows'),
+        ('Linux', 'Linux'),
+    )
     machine_group = models.ForeignKey(MachineGroup)
     serial = models.CharField(max_length=100, unique=True)
-    hostname = models.CharField(max_length=256, null=True)
+    hostname = models.CharField(max_length=256, null=True, blank=True)
     operating_system = models.CharField(max_length=256)
     memory = models.CharField(max_length=256, null=True, blank=True)
     memory_kb = models.IntegerField(default=0)
@@ -67,7 +72,7 @@ class Machine(models.Model):
     machine_model = models.CharField(max_length=256, null=True, blank=True)
     cpu_type = models.CharField(max_length=256, null=True, blank=True)
     cpu_speed = models.CharField(max_length=256, null=True, blank=True)
-    os_family = models.CharField(max_length=256, null=True, blank=True)
+    os_family = models.CharField(max_length=256, choices=OS_CHOICES, verbose_name="OS Family", default="Darwin")
     last_checkin = models.DateTimeField(blank=True,null=True)
     report = models.TextField(editable=True, null=True)
     errors = models.IntegerField(default=0)

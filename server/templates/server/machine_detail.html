@@ -95,10 +95,12 @@
             <td>{{ machine.puppet_version }}</td>
           </tr>
           {% endif %}
+        {% if report.ManagedInstallVersion %}
         <tr>
           <th>MSU Version:</th>
           <td>{{ report.ManagedInstallVersion }}</td>
         </tr>
+        {% endif %}
         {% if 'ManifestName' in report %}
         <tr>
           <th>MSU Manifest:</th>
@@ -107,6 +109,7 @@
           </td>
         </tr>
         {% endif %}
+        {% if report.ManagedInstallVersion %}
         <tr>
           <th>MSU Run Type:</th>
           <td>{{ report.RunType }}</td>
@@ -119,6 +122,7 @@
           <th>MSU End:</th>
           <td>{{ report.EndTime|convert_datetime }}</td>
         </tr>
+        {% endif %}
         {% if machine.last_puppet_run %}
         <tr>
           <th>Puppet Run:</th>

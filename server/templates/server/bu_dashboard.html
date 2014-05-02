@@ -8,6 +8,9 @@
 {% block nav %}
 {% if is_editor %}
     <li><a href="{% url 'new_machine_group' business_unit.id %}">New Machine Group</a></li>
+    {% if config_installed %}
+        <li><a href="{% url 'config_new_machine' business_unit.id %}">New Machine</a></li>
+    {% endif %}
 {% endif %}
 {% endblock %}
 {% block content %}

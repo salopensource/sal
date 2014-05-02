@@ -516,9 +516,14 @@ def checkin(request):
             machine = Machine(serial=serial)
     if machine:
         machine.hostname = data.get('name', '<NO NAME>')
-        if not settings.USE_ENC:
+        try: 
+            use_enc = settings.USE_ENC
             # If we're using Sal's Puppet ENC, don't change the machine group, 
             # as we're setting it in the GUI
+        except:
+            use_enc = False
+            
+        if use_enc == False:
             machine.machine_group = machine_group
         machine.last_checkin = datetime.now()
         if 'username' in data:

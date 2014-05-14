@@ -6,3 +6,4 @@ docutils==0.11
 puppetdb==0.0.1
 requests==2.0.0
 wsgiref==0.1.2
+python-dateutil==2.2

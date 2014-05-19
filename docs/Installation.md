@@ -20,7 +20,7 @@ Log in with the username and password you set when performing the server setup. 
 
 ### User Levels
 
-There are currently the User Levels used by Sal. To set these, log into the admin page (link at the top of the Sal screen), and choose User Profile from the menu. The Stats Only user level is not used at this time, and should not be assigned to a user.
+There are currently three User Levels used by Sal. To set these, log into the admin page (link at the top of the Sal screen), and choose User Profile from the menu. The Stats Only user level is not used at this time, and should not be assigned to a user.
 
 #### Global Administrator
 

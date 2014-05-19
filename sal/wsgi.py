@@ -25,7 +25,12 @@ os.environ.setdefault("DJANGO_SETTINGS_MODULE", "sal.settings")
 # file. This includes Django's development server, if the WSGI_APPLICATION
 # setting points here.
 from django.core.wsgi import get_wsgi_application
-application = get_wsgi_application()
+if 'DYNO' in os.environ:
+  from dj_static import Cling
+
+  application = Cling(get_wsgi_application())
+else:
+  application = get_wsgi_application()
 
 # Apply WSGI middleware here.
 # from helloworld.wsgi import HelloWorldApplication

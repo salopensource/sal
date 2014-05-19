@@ -35,6 +35,5 @@ nosetests.xml
 .project
 .pydevproject
 sal.db
-sal/settings.py
 scripts/sal_scripts.pkg
 config

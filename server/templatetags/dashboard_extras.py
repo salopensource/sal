@@ -4,6 +4,9 @@ from server.models import *
 from datetime import datetime
 import dateutil.parser
 from django.template.defaultfilters import date
+from django.utils.timezone import utc
+import pytz
+from django.conf import settings
 
 register = template.Library()
 
@@ -37,12 +40,8 @@ def bu_machine_count(bu_id):
 
 @register.filter
 def convert_datetime(string):
-    """Converts a string into a formatted date"""
-    the_date = dateutil.parser.parse(string)
-    print the_date
-    return date(the_date, "Y-m-d H:i")
-
-@register.filter
-def format_date(string):
-    """Converts a date object into something that can be sorted separately"""
-    return date (string, "Y-m-d H:i")
+    """Converts a string into a date object"""
+    the_date = dateutil.parser.parse(string).replace(tzinfo=utc)
+#
+    #return date(the_date, "Y-m-d H:i")
+    return the_date

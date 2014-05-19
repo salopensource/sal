@@ -19,16 +19,16 @@
     <div class="span8">
         <p>
             <a href="{% url 'bu_dashboard' business_unit.id %}">{{ business_unit.name }}</a> <i class="icon-chevron-right"></i> <a href="{% url 'group_dashboard' machine_group.id %}">{{ machine_group.name }}</a>{% if req_type == 'operating_system' %} <i class="icon-chevron-right"></i> <a href="{% url 'overview_list_group' machine_group.id 'operating_system' machine.operating_system %}">{{ machine.operating_system }}</a>{% endif %}
-            
+
             {% if req_type == 'activity' %} <i class="icon-chevron-right"></i> <a href="{% url 'overview_list_group' machine_group.id 'activity' data %}">{% if data == 'today' %}Today{% endif %}{% if data == '1-week' %}1 Week{% endif %}{% if data == '1-hour' %}1 Hour{% endif %}</a>{% endif %}
-            
+
             {% if req_type == 'inactivity' %} <i class="icon-chevron-right"></i> <a href="{% url 'overview_list_group' machine_group.id 'inactivity' data %}">{% if data == '1-month' %}1 Month{% endif %}{% if data == '3-months' %}3 Months{% endif %}</a>{% endif %}
-            
-            
+
+
         </p>
         <h2>{{ machine.hostname }}</h2>
         <p>
-          <b>Report</b> 
+          <b>Report</b>
           <span title="Last report date">
                   :: {{ machine.last_checkin|date:"Y-m-d H:i" }}
           </span>
@@ -81,7 +81,7 @@
           <th>Console user:</th>
           <td>{{ report.ConsoleUser }}</td>
         </tr>
-        
+
       </tbody>
     </table>
   </div>
@@ -116,17 +116,17 @@
         </tr>
         <tr>
           <th>MSU Start:</th>
-          <td>{{ report.StartTime|convert_datetime }}</td>
+          <td>{{ report.StartTime|convert_datetime|date:"Y-m-d H:i" }}</td>
         </tr>
         <tr>
           <th>MSU End:</th>
-          <td>{{ report.EndTime|convert_datetime }}</td>
+          <td>{{ report.EndTime|convert_datetime|date:"Y-m-d H:i" }}</td>
         </tr>
         {% endif %}
         {% if machine.last_puppet_run %}
         <tr>
           <th>Puppet Run:</th>
-          <td>{{ machine.last_puppet_run|format_date }}</td>
+          <td>{{ machine.last_puppet_run|date:"Y-m-d H:i" }}</td>
         </tr>
         {% endif %}
       </tbody>
@@ -215,7 +215,7 @@
            </table>
        </div>
    {% endif %}
-   
+
    {% if conditions|length %}
        <h3>MSU Conditions <span class="badge badge-info">{{ conditions|length }}</span> <a class="btn btn-sm" data-toggle="collapse" data-target="#collapse7">Toggle</a></h3>
            <div id="collapse7" class="collapse">
@@ -270,5 +270,5 @@
        {% endif %}
    </div>
  </div>
- 
+
 {% endblock %}

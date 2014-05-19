@@ -43,9 +43,9 @@
                 {% endif %}
                 </a>
             </td>
-        
+
             <td>{{ item.console_user }}</td>
-            <td>{{ item.last_checkin|format_date }}</td>
+            <td>{{ item.last_checkin|date:"Y-m-d H:i" }}</td>
         </tr>
         {% endfor %}
     </tbody>

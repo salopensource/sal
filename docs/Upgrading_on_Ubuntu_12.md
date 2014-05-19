@@ -24,6 +24,10 @@ Change into the Sal directory and update the code from GitHub
 	cd sal
 	git pull
 	
+Install any extra dependencies:
+	
+	pip install -r setup/requirements.txt
+	
 Run the migration so your database is up to date
 	
 	python manage.py migrate

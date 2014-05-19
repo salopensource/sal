@@ -37,6 +37,15 @@ PLUGIN_DIR = os.path.join(PROJECT_DIR, 'plugins')
 # that group.
 #DEFAULT_MACHINE_GROUP_KEY = ''
 
+# Facts which will have historical data kept in addition to the most
+# recent instanct of that fact.
+HISTORICAL_FACTS = [
+    # 'memoryfree_mb',
+]
+
+# How long to keep historical facts around before pruning them.
+HISTORICAL_DAYS = 180
+
 EXCLUDED_FACTS = {
     'sshrsakey',
     'sshfp_rsa',

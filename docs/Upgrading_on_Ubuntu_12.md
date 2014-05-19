@@ -31,6 +31,8 @@ Install any extra dependencies:
 Run the migration so your database is up to date
 	
 	python manage.py migrate
+	
+If you get errors about a failed migration, run ``python manage.py migrate`` again. Some errors are just temporary.
 
 Finally, as root (not saluser) restart Apache
 

@@ -10,7 +10,9 @@ class Migration(SchemaMigration):
     def forwards(self, orm):
 
         # Changing field 'Machine.memory_kb'
-        db.alter_column(u'server_machine', 'memory_kb', self.gf('django.db.models.fields.BigIntegerField')())
+        #db.alter_column(u'server_machine', 'memory_kb', self.gf('django.db.models.fields.BigIntegerField')())
+        db.delete_column('server_machine', 'memory_kb')
+        db.add_column('server_machine', 'memory_kb', self.gf('django.db.models.fields.BigIntegerField')())
 
     def backwards(self, orm):
 

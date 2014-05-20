@@ -45,6 +45,10 @@ fi
 
 The configuration of the server, and the Machine Group key is from ``/Library/Preferences/com.grahamgilbert.sal``. Plists, MCX (untested, but should work) and Profiles can be used.
 
+### Using custom Facts
+
+If you are using [Puppet](http://puppetlabs.com) to manage your Macs, you can deploy custom Facts in the usual manner using pluginsync. If you're not using Puppet, you can still utilise custom Facts. You should deploy the ``.rb`` files to ``/usr/local/sal/facter``. If you want to use [external Facts](http://docs.puppetlabs.com/guides/custom_facts.html#external-facts), you can deploy them to the usual location (``/etc/facter/facts.d/``).
+
 ### Example
 
 ``defaults write /Library/Preferences/com.grahamgilbert.sal ServerURL http://sal.somewhere.com``

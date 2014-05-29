@@ -96,6 +96,10 @@ Edit settings.py:
 ###More Setup
 We need to use Django's manage.py to initialise the app's database and create an admin user. Running the syncdb command will ask you to create an admin user - make sure you do this! If you are running Sal in a large environment, it is recommended you use MySQL rather than the default SQLite database. If this is the case, follow the [guide on setting up MySQL before continuing](https://github.com/grahamgilbert/sal/blob/master/docs/Using_mysql_on_ubuntu.md).
 
+####EDIT
+
+It is currently not only recommended that you don't use SQLite, but required. There is a bug with new SQLite installations that we're working on. This bug doesn't exist with Postgres or MySQL.
+
 	cd ..
 	python manage.py syncdb
 	python manage.py migrate

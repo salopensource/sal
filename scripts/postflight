@@ -114,7 +114,7 @@ except:
 report['MachineInfo']['SystemProfile'] = system_profile
 
 # Set the FACTERLIB environment variable if it's not already what we want it to be.
-desiredfacter = '/usr/local/sal/facter:'
+desiredfacter = '/usr/local/sal/facter'
 
 facterlib = os.environ.get('FACTERLIB')
 facterflag = False

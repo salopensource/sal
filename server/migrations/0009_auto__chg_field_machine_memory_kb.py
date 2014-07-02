@@ -12,12 +12,12 @@ class Migration(SchemaMigration):
         # Changing field 'Machine.memory_kb'
         #db.alter_column(u'server_machine', 'memory_kb', self.gf('django.db.models.fields.BigIntegerField')())
         db.delete_column('server_machine', 'memory_kb')
-        db.add_column('server_machine', 'memory_kb', self.gf('django.db.models.fields.BigIntegerField')())
+        db.add_column('server_machine', 'memory_kb', self.gf('django.db.models.fields.BigIntegerField')(default='0', blank=True))
 
     def backwards(self, orm):
 
         # Changing field 'Machine.memory_kb'
-        db.alter_column(u'server_machine', 'memory_kb', self.gf('django.db.models.fields.CharField')(max_length=256, null=True))
+        db.alter_column(u'server_machine', 'memory_kb', self.gf('django.db.models.fields.CharField')(max_length=256, null=True, default=""))
 
     models = {
         u'auth.group': {

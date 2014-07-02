@@ -46,7 +46,7 @@ class PuppetStatus(IPlugin):
         
         
         if last_checkin > 0:
-            size = 3
+            size = 4
         else:
             size = 0
         

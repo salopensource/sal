@@ -32,7 +32,7 @@ These users are limited to the Business Units they are given access to. RW users
 
 ## Client configuration
 
-``postflight`` is in the ``scripts`` directory. This needs to be deployed in ``/usr/local/munki``, and the ``yaml`` directory should be deployed in ``/usr/local/sal/yaml`` (a luggage makefile is included).  The published package will do this for you.
+``postflight`` is in the ``scripts`` directory. This needs to be deployed in ``/usr/local/munki``, and the ``yaml`` directory should be deployed in ``/usr/local/sal/yaml`` (a luggage makefile is included).  The [published package](https://github.com/grahamgilbert/sal/releases/latest) will do this for you.
 
 If you have an existing ``postflight`` script (for example, Munki Web Admin), you will need to rename the postflight script (for example, ``sal-submit``) and put something in your existing postflight like this:
 

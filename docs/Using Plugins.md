@@ -1,6 +1,6 @@
 # Using plugins with Sal
 
-It's easy to extend Sal with plugins created by others. A plugin could consist of a "traffic light" display (similar to the built in memory plugin), a listing (e.g. the operating system breakdown), or anything else. I've created plugins that report data in graphs using Google Charts with data from a custom fact.
+It's easy to extend Sal with plugins created by others. A plugin could consist of a "traffic light" display (similar to the built in memory plugin), a listing (e.g. the operating system breakdown), or anything else. I've created plugins that report data in graphs using Google Charts with data from a custom fact. 
 
 ## Installing plugins
 
@@ -11,6 +11,38 @@ It's easy to extend Sal with plugins created by others. A plugin could consist o
 
 For more details on configuring ``sal/settings.py`` please see it's [documentation](https://github.com/grahamgilbert/sal/blob/master/docs/Settings.md).
 
+## Installing plugins for Heroku
+
+If your installation is on Heroku additional steps are required due to the way Heroku uses git to push updates to the server. The following steps outline how to add the encrypting plugin from my [plugins repo](https://github.com/grahamgilbert/sal-plugins):
+
+1. Cd into your sal directory. 
+2. Clone the plugins from Github.  
+	````bash
+	git clone https://github.com/grahamgilbert/sal-plugins.git plugins/grahamgilbert
+	````
+	
+3. Remove the gitignore file from the plugins directory.
+	````bash
+	git rm plugins/.gitignore
+	````
+	
+4. Add the encryption plugin to the git repo.
+	````bash
+	git add plugins/grahamgilbert/encryption
+	````
+	
+5. Add a commit.
+	````bash
+	git commit -m "add encryption plugin"
+	````
+	
+6. Push the changes to Heroku.
+	````bash
+	git push heroku master
+	````
+
+*Note*: This plugin relies on the client having the [mac_facts](https://github.com/grahamgilbert/grahamgilbert-mac_facts) custom Facts installed, either through Puppet's built in plugin sync (if using Puppet), or by installing the package following [facts-package](https://github.com/grahamgilbert/sal-plugins/blob/master/encryption/facts-package/sal_mac_facts.pkg). 	
+	
 ## Troubleshooting
 
 ###  I'm not seeing anything after installing the plugin

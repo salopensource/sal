@@ -130,6 +130,8 @@ And then enter something like:
    	</Directory>
 	</VirtualHost>
 	
+If you are running Ubuntu 14, you also need to add in ``Require all granted`` after the ``Allow from all`` line.
+	
 Now we just need to enable our site, and then your can go and configure your clients (exit back to root for this):
 
 	a2ensite sal.conf

@@ -20,6 +20,8 @@ urlpatterns = patterns('server.views',
     url(r'^machinegroup/(?P<group_id>.+)/', 'group_dashboard', name='group_dashboard'),
     # Machine detail
     url(r'^machine_detail/(?P<machine_id>.+)/', 'machine_detail', name='machine_detail'),
+    # Delete Machine
+    url(r'^machine/delete/(?P<machine_id>.+)/', 'delete_machine', name='delete_machine'),
     # checkin
     url(r'^checkin', 'checkin', name='checkin'),
     # New Business Unit

@@ -150,6 +150,7 @@ def bu_dashboard(request, bu_id):
     user_level = user.userprofile.level
     business_unit = get_object_or_404(BusinessUnit, pk=bu_id)
     bu = business_unit
+    config_installed = 'config' in settings.INSTALLED_APPS
     if business_unit not in user.businessunit_set.all() and user_level != 'GA':
         print 'not letting you in ' + user_level
         return redirect(index)
@@ -183,7 +184,7 @@ def bu_dashboard(request, bu_id):
         output.append(data)
     output = utils.orderPluginOutput(output, 'bu_dashboard', bu.id)
 
-    c = {'user': request.user, 'machine_groups': machine_groups, 'is_editor': is_editor, 'business_unit': business_unit, 'user_level': user_level, 'output':output }
+    c = {'user': request.user, 'machine_groups': machine_groups, 'is_editor': is_editor, 'business_unit': business_unit, 'user_level': user_level, 'output':output, 'config_installed':config_installed }
     return render_to_response('server/bu_dashboard.html', c, context_instance=RequestContext(request))
 
 # Overview list (all)
@@ -335,6 +336,7 @@ def overview_list_all(request, req_type, data, bu_id=None):
 def group_dashboard(request, group_id):
     # check user is allowed to access this
     user = request.user
+    config_installed = 'config' in settings.INSTALLED_APPS
     user_level = user.userprofile.level
     machine_group = get_object_or_404(MachineGroup, pk=group_id)
     business_unit = machine_group.business_unit
@@ -359,7 +361,7 @@ def group_dashboard(request, group_id):
         (data['html'], data['width']) = plugin.plugin_object.show_widget('group_dashboard', machines, machine_group.id)
         output.append(data)
     output = utils.orderPluginOutput(output, 'group_dashboard', machine_group.id)
-    c = {'user': request.user, 'machine_group': machine_group, 'user_level': user_level,  'is_editor': is_editor, 'business_unit': business_unit, 'output':output}
+    c = {'user': request.user, 'machine_group': machine_group, 'user_level': user_level,  'is_editor': is_editor, 'business_unit': business_unit, 'output':output, 'config_installed':config_installed}
     return render_to_response('server/group_dashboard.html', c, context_instance=RequestContext(request))
 
 # New Group
@@ -487,6 +489,22 @@ def machine_detail(request, machine_id):
     c = {'user':user, 'machine_group': machine_group, 'business_unit': business_unit, 'report': report, 'install_results': install_results, 'removal_results': removal_results, 'machine': machine, 'facts':facts, 'conditions':conditions, 'ip_address':ip_address, 'config_installed':config_installed }
     return render_to_response('server/machine_detail.html', c, context_instance=RequestContext(request))
 
+# Edit Machine
+
+# Delete Machine
+@login_required
+def delete_machine(request, machine_id):
+    machine = get_object_or_404(Machine, pk=machine_id)
+    machine_group = machine.machine_group
+    business_unit = machine_group.business_unit
+    user = request.user
+    user_level = user.userprofile.level
+    if business_unit not in user.businessunit_set.all():
+        if user_level != 'GA':
+            return redirect(index)
+    machine.delete()
+    return redirect('group_dashboard', machine_group.id)
+
 # checkin
 @csrf_exempt
 def checkin(request):
@@ -497,7 +515,7 @@ def checkin(request):
     data = request.POST
     key = data.get('key')
     serial = data.get('serial')
-
+    serial = serial.upper()
     if key is None or key == 'None':
         try:
             key = settings.DEFAULT_MACHINE_GROUP_KEY

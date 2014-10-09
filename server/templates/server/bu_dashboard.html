@@ -10,6 +10,7 @@
     <li><a href="{% url 'new_machine_group' business_unit.id %}">New Machine Group</a></li>
     {% if config_installed %}
         <li><a href="{% url 'config_new_machine' business_unit.id %}">New Machine</a></li>
+        <li><a href="{% url 'config_business_unit_index' business_unit.id %}"><i class="icon-edit icon-white"></i> Configure Business Unit</a></li>
     {% endif %}
 {% endif %}
 {% endblock %}

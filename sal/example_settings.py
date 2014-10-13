@@ -193,7 +193,7 @@ INSTALLED_APPS = (
     'sal',
     'server',
     'south',
-    'bootstrap_toolkit',
+    'bootstrap3',
 )
 
 # A sample logging configuration. The only tangible logging

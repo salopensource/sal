@@ -13,7 +13,7 @@ DISPLAY_NAME = 'Sal'
 MANAGERS = ADMINS
 
 # The order plugins (if they're able to be shown on that particular page) will be displayed in. If not listed here, will be listed alphabetically after.
-PLUGIN_ORDER = ['Activity','Status','OperatingSystem','Uptime', 'Memory']
+PLUGIN_ORDER = ['Activity','Status','OperatingSystem', 'MunkiVersion', 'Uptime', 'Memory']
 
 # Only show these plugins on the front page - some things only the admins should see.
 LIMIT_PLUGIN_TO_FRONT_PAGE = []

@@ -61,7 +61,7 @@ class Activity(IPlugin):
             'theid': theid,
             'page': page
         })
-        return t.render(c), 4
+        return t.render(c), 12
     
     def filter_machines(self, machines, data):
         # You will be passed a QuerySet of machines, you then need to perform some filtering based on the 'data' part of the url from the show_widget output. Just return your filtered list of machines and the page title.

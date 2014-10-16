@@ -1,0 +1,25 @@
+<div class="col-md-4">
+    <div class="panel panel-default">
+        <div class="panel-heading">
+            {{ title }}
+        </div>
+        <!-- /.panel-heading -->
+        <div class="panel-body">
+        <div id="munkiversiongraph">
+    </div>
+    </div>
+</div>
+<script type="text/javascript">
+{% for item in data|dictsort:'munki_version' %}
+{% if item.operating_system %}
+    <tr>
+        <td>
+            <a href="{% url 'machine_list_id' 'OperatingSystem' item.operating_system page theid %}">
+            {{ item.operating_system }}
+            <span class="badge pull-right">{{ item.count }}</span>
+            </a>
+        </td>
+    </tr>
+{% endif %}
+{% endfor %}
+</script>

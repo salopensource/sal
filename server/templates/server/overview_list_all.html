@@ -4,10 +4,10 @@
 {% block script %}
 <script type="text/javascript" charset="utf-8">
     $(document).ready(function() {
-        $('.groupList').DataTable({
+        $('.groupList').dataTable({
             //"sDom": "<'row'<'span6'l><'span6'f>r>t<'row'<'span6'i><'span6'p>>",
             // "iDisplayLength": 20,
-            // "aLengthMenu": [[20, 50, -1], [20, 50, "All"]],
+            "aLengthMenu": [[20, 50, -1], [20, 50, "All"]],
             // "sPaginationType": "bootstrap",
             // "bStateSave": true,
             // "aaSorting": [[1,'asc']]
@@ -18,37 +18,46 @@
 {% endblock %}
 
 {% block nav %}
-
+<li> <a href="{{ request.META.HTTP_REFERER }}"><i class="fa fa-fw fa-chevron-left"></i> Back</a></li>
 {% endblock %}
 {% block content %}
-{% if title %}<h3>{{ title }}</h3>{% endif %}
 
-<table class="groupList table table-striped table-condensed">
-    <thead>
-        <tr>
-          <th>Machine</th>
-          <th>User</th>
-          <th>Latest Run</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for item in machines.all|dictsort:'hostname' %}
-        <tr>
-            <td>
-                <a href="{% url 'machine_detail' item.id %}">
-                {% if item.hostname %}
-                    {{ item.hostname }}
-                {% else %}
-                    {{ item.serial }}
-                {% endif %}
-                </a>
-            </td>
+<div class="panel panel-default">
+{% if title %}
+    <div class="panel-heading">
+        {{ title }}
+    </div>
+{% endif %}
+<div class="panel-body">
+    <div class="table-responsive">
+        <table class="groupList table table-striped table-condensed">
+            <thead>
+                <tr>
+                  <th>Machine</th>
+                  <th>User</th>
+                  <th>Latest Run</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in machines.all|dictsort:'hostname' %}
+                <tr>
+                    <td>
+                        <a href="{% url 'machine_detail' item.id %}">
+                        {% if item.hostname %}
+                            {{ item.hostname }}
+                        {% else %}
+                            {{ item.serial }}
+                        {% endif %}
+                        </a>
+                    </td>
 
-            <td>{{ item.console_user }}</td>
-            <td>{{ item.last_checkin|date:"Y-m-d H:i" }}</td>
-        </tr>
-        {% endfor %}
-    </tbody>
-</table>
-
+                    <td>{{ item.console_user }}</td>
+                    <td>{{ item.last_checkin|date:"Y-m-d H:i" }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    </div>
+</div>
 {% endblock %}

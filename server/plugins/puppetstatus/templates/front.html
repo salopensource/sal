@@ -1,6 +1,11 @@
 {% if last_checkin_count > 0 %}
 <div class="col-md-4">
-        <legend>{{ title }}</legend>
+    <div class="panel panel-default">
+        <div class="panel-heading">
+            {{ title }}
+        </div>
+        <!-- /.panel-heading -->
+        <div class="panel-body">
         {% if error_count == 0 %}
         <a href="{% url 'machine_list_front' plugin 'puppeterror' %}" class="btn btn-success">
         {% else %}
@@ -19,5 +24,7 @@
 		<span class="bigger"> {{ month_count }} </span><br />
 		{{ month_label }}
         </a>
+</div>
+</div>
 </div>
 {% endif %}

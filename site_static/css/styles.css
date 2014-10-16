@@ -1,0 +1,214 @@
+/* line 5, /Users/mark/repos/pmx-select-test/sass/_normalize.scss */
+html {
+  font-family: sans-serif;
+  -ms-text-size-adjust: 100%;
+  -webkit-text-size-adjust: 100%; }
+
+/* line 12, /Users/mark/repos/pmx-select-test/sass/_normalize.scss */
+body {
+  margin: 0; }
+
+/* line 31, /Users/mark/repos/pmx-select-test/sass/_normalize.scss */
+article, aside, details, figcaption, figure, footer, header, hgroup, main, nav, section, summary {
+  display: block; }
+
+/* line 40, /Users/mark/repos/pmx-select-test/sass/_normalize.scss */
+audio, canvas, progress, video {
+  display: inline-block;
+  /* 1 */
+  vertical-align: baseline;
+  /* 2 */ }
+
+/* line 47, /Users/mark/repos/pmx-select-test/sass/_normalize.scss */
+audio:not([controls]) {
+  display: none;
+  height: 0; }
+
+/* line 55, /Users/mark/repos/pmx-select-test/sass/_normalize.scss */
+[hidden], template {
+  display: none; }
+
+/* line 63, /Users/mark/repos/pmx-select-test/sass/_normalize.scss */
+a {
+  background: transparent; }
+
+/* line 69, /Users/mark/repos/pmx-select-test/sass/_normalize.scss */
+a:active, a:hover {
+  outline: 0; }
+
+/* line 77, /Users/mark/repos/pmx-select-test/sass/_normalize.scss */
+abbr[title] {
+  border-bottom: 1px dotted; }
+
+/* line 83, /Users/mark/repos/pmx-select-test/sass/_normalize.scss */
+b, strong {
+  font-weight: bold; }
+
+/* line 88, /Users/mark/repos/pmx-select-test/sass/_normalize.scss */
+dfn {
+  font-style: italic; }
+
+/* line 93, /Users/mark/repos/pmx-select-test/sass/_normalize.scss */
+h1 {
+  font-size: 2em;
+  margin: 0.67em 0; }
+
+/* line 99, /Users/mark/repos/pmx-select-test/sass/_normalize.scss */
+mark {
+  background: #ff0;
+  color: #000; }
+
+/* line 105, /Users/mark/repos/pmx-select-test/sass/_normalize.scss */
+small {
+  font-size: 80%; }
+
+/* line 111, /Users/mark/repos/pmx-select-test/sass/_normalize.scss */
+sub, sup {
+  font-size: 75%;
+  line-height: 0;
+  position: relative;
+  vertical-align: baseline; }
+
+/* line 118, /Users/mark/repos/pmx-select-test/sass/_normalize.scss */
+sup {
+  top: -0.5em; }
+
+/* line 122, /Users/mark/repos/pmx-select-test/sass/_normalize.scss */
+sub {
+  bottom: -0.25em; }
+
+/* line 130, /Users/mark/repos/pmx-select-test/sass/_normalize.scss */
+img {
+  border: 0; }
+
+/* line 135, /Users/mark/repos/pmx-select-test/sass/_normalize.scss */
+svg:not(:root) {
+  overflow: hidden; }
+
+/* line 143, /Users/mark/repos/pmx-select-test/sass/_normalize.scss */
+figure {
+  margin: 1em 40px; }
+
+/* line 148, /Users/mark/repos/pmx-select-test/sass/_normalize.scss */
+hr {
+  -moz-box-sizing: content-box;
+  -webkit-box-sizing: content-box;
+  box-sizing: content-box;
+  height: 0; }
+
+/* line 155, /Users/mark/repos/pmx-select-test/sass/_normalize.scss */
+pre {
+  overflow: auto; }
+
+/* line 163, /Users/mark/repos/pmx-select-test/sass/_normalize.scss */
+code, kbd, pre, samp {
+  font-family: monospace, monospace;
+  font-size: 1em; }
+
+/* line 182, /Users/mark/repos/pmx-select-test/sass/_normalize.scss */
+button, input, optgroup, select, textarea {
+  color: inherit;
+  font: inherit;
+  margin: 0; }
+
+/* line 189, /Users/mark/repos/pmx-select-test/sass/_normalize.scss */
+button {
+  overflow: visible; }
+
+/* line 198, /Users/mark/repos/pmx-select-test/sass/_normalize.scss */
+button, select {
+  text-transform: none; }
+
+/* line 208, /Users/mark/repos/pmx-select-test/sass/_normalize.scss */
+button, html input[type="button"], input[type="reset"], input[type="submit"] {
+  -webkit-appearance: button;
+  /* 2 */
+  cursor: pointer;
+  /* 3 */ }
+
+/* line 215, /Users/mark/repos/pmx-select-test/sass/_normalize.scss */
+button[disabled], html input[disabled] {
+  cursor: default; }
+
+/* line 221, /Users/mark/repos/pmx-select-test/sass/_normalize.scss */
+button::-moz-focus-inner, input::-moz-focus-inner {
+  border: 0;
+  padding: 0; }
+
+/* line 228, /Users/mark/repos/pmx-select-test/sass/_normalize.scss */
+input {
+  line-height: normal; }
+
+/* line 238, /Users/mark/repos/pmx-select-test/sass/_normalize.scss */
+input[type="checkbox"], input[type="radio"] {
+  -webkit-box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  box-sizing: border-box;
+  padding: 0; }
+
+/* line 247, /Users/mark/repos/pmx-select-test/sass/_normalize.scss */
+input[type="number"]::-webkit-inner-spin-button, input[type="number"]::-webkit-outer-spin-button {
+  height: auto; }
+
+/* line 253, /Users/mark/repos/pmx-select-test/sass/_normalize.scss */
+input[type="search"] {
+  -webkit-appearance: textfield;
+  -moz-box-sizing: content-box;
+  -webkit-box-sizing: content-box;
+  box-sizing: content-box; }
+
+/* line 263, /Users/mark/repos/pmx-select-test/sass/_normalize.scss */
+input[type="search"]::-webkit-search-cancel-button, input[type="search"]::-webkit-search-decoration {
+  -webkit-appearance: none; }
+
+/* line 268, /Users/mark/repos/pmx-select-test/sass/_normalize.scss */
+fieldset {
+  border: 1px solid #c0c0c0;
+  margin: 0 2px;
+  padding: 0.35em 0.625em 0.75em; }
+
+/* line 276, /Users/mark/repos/pmx-select-test/sass/_normalize.scss */
+legend {
+  border: 0;
+  padding: 0; }
+
+/* line 282, /Users/mark/repos/pmx-select-test/sass/_normalize.scss */
+textarea {
+  overflow: auto; }
+
+/* line 288, /Users/mark/repos/pmx-select-test/sass/_normalize.scss */
+optgroup {
+  font-weight: bold; }
+
+/* line 296, /Users/mark/repos/pmx-select-test/sass/_normalize.scss */
+table {
+  border-collapse: collapse;
+  border-spacing: 0; }
+
+/* line 302, /Users/mark/repos/pmx-select-test/sass/_normalize.scss */
+td, th {
+  padding: 0; }
+
+/* line 22, /Users/mark/repos/pmx-select-test/sass/styles.scss */
+*, *::before, *:after {
+  -webkit-box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  box-sizing: border-box;
+  -webkit-font-smoothing: antialiased; }
+
+/* line 28, /Users/mark/repos/pmx-select-test/sass/styles.scss */
+ul {
+  padding: 0;
+  list-style: none; }
+
+/* line 34, /Users/mark/repos/pmx-select-test/sass/styles.scss */
+html, body {
+  background-color: white;
+  color: black;
+  font-family: sans-serif;
+  line-height: 1.4; }
+
+/* line 44, /Users/mark/repos/pmx-select-test/sass/styles.scss */
+.select2-container {
+  margin: 3em;
+  width: 300px; }

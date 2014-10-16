@@ -224,6 +224,9 @@ LOGGING = {
         },
     }
 }
+BOOTSTRAP3 = {
+    'set_placeholder': False,
+}
 if 'DYNO' in os.environ:
   # Parse database configuration from $DATABASE_URL
   import dj_database_url

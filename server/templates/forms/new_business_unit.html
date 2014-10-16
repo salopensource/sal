@@ -1,8 +1,11 @@
 {% extends "base.html" %}
 {% load i18n %}
 {% load bootstrap3 %}
+{% block nav %}
+<li><a href="{% url 'index' %}"><i class="fa fa-fw fa-chevron-left"></i> Back</i></a>
+{% endblock %}
 {% block content %}
-<div class="container">
+<div class="row">
     <div class="col-md-4">
     <h1>New Business Unit</h1>
 

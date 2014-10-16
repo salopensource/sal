@@ -1,0 +1,118 @@
+{% load i18n %} {% load bootstrap3 %}
+<html lang="en">
+    
+    <head>
+        <meta charset="utf-8" />
+        <title>{% block title %}{{ DISPLAY_NAME }}{% endblock %}</title>
+        <meta name="viewport"
+        content="width=device-width, initial-scale=1.0" />
+        <meta name="description" content="" />
+        <meta name="author" content="" />
+        <!-- Le styles -->
+        <!--link href="https://fonts.googleapis.com/css?family=Lato:400,700" rel="stylesheet"
+        type="text/css" /-->
+        
+        <!--style type="text/css">
+            body {
+                padding-top: 60px;
+                padding-bottom: 40px;
+            }
+        </style-->
+        
+        <!--link href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css"
+        rel="stylesheet" /-->
+        <!-- Bootstrap Core CSS -->
+    <link href="{{ STATIC_URL }}css/bootstrap.min.css" rel="stylesheet">
+        <!-- MetisMenu CSS -->
+        <link href="{{ STATIC_URL }}css/plugins/metisMenu/metisMenu.min.css" rel="stylesheet">
+
+        <!-- Timeline CSS -->
+        <link href="{{ STATIC_URL }}css/plugins/timeline.css" rel="stylesheet">
+
+        <!-- Custom CSS -->
+        <link href="{{ STATIC_URL }}css/sb-admin-2.css" rel="stylesheet">
+
+        <!-- Morris Charts CSS -->
+        <link href="{{ STATIC_URL }}css/plugins/morris.css" rel="stylesheet">
+
+        <!-- Custom Fonts -->
+        <link href="{{ STATIC_URL }}font-awesome-4.1.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+        <!--link href="{{ STATIC_URL }}style.css" rel="stylesheet" /-->
+        
+        <!--script src="//cdn.datatables.net/1.10.3/js/jquery.dataTables.min.js"></script-->
+        <!--link rel="stylesheet" href="//cdn.datatables.net/plug-ins/a5734b29083/integration/bootstrap/3/dataTables.bootstrap.css"
+        type="text/css" media="all" /-->
+        <!--script src="//cdn.datatables.net/plug-ins/a5734b29083/integration/bootstrap/3/dataTables.bootstrap.js"></script-->
+        <!-- Le HTML5 shim, for IE6-8 support of HTML5 elements -->
+        <!--[if lt IE 9]>
+            <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+        <![endif]--> </head>
+    
+    <body>
+        <div id="wrapper">
+        <nav class="navbar navbar-default">
+            <div class="container"> 
+                <a class="navbar-btn" data-toggle="collapse" data-target=".navbar-collapse">
+                <a class="navbar-brand" href="{% url 'home' %}">{{ DISPLAY_NAME }}</a>
+                <ul class="nav pull-right">
+                {% if user.is_authenticated %}
+                        <li class="dropdown">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown">{{ user.username }} <span class="caret"></span></a>
+                          <ul class="dropdown-menu" role="menu">
+                                <li><a href="{% url 'django.contrib.auth.views.password_change' %}">{% trans "Change password" %}</a></li>
+                                {% if user.is_staff %}<li><a href="{% url 'admin:index' %}">Administraton</a></li>{% endif %}
+                                <li><a href="{% url 'django.contrib.auth.views.logout_then_login' %}">{% trans "Log out" %}</a></li>
+                            </ul>
+                        </li>{% endif %}
+                    </ul>
+            </div>  
+        
+        <div class="navbar-default sidebar" role="navigation">
+                <div class="sidebar-nav navbar-collapse">
+                    <ul class="nav" id="side-menu">
+                        {% block nav %} {% endblock %} 
+                        <li class="divider"></li>
+                        <li>
+                            <a href="index.html"><i class="fa fa-dashboard fa-fw"></i> Dashboard</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            </nav>
+        <div id="page-wrapper">
+        <div class="container">{% block content %}
+            <!-- Main hero unit for a primary marketing message
+            or call to action -->
+            <div class="jumbotron">
+                 <h1>{{ DISPLAY_NAME }}</h1>
+                <p>You need to log in first before doing anything</p>
+                <p><a class="btn btn-primary btn-lg">Learn more »</a>
+                </p>
+            </div>
+            <!-- Example row of columns -->
+            <div class="row">
+               
+            </div>{% endblock %}
+            <hr />
+            <footer></footer>
+        </div>
+        </div>
+        <!-- /container -->
+        </div>
+        <!-- /wrapper -->
+        <script src="//ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+        {% bootstrap_javascript %}
+        <!-- Metis Menu Plugin JavaScript -->
+    <script src="{{ STATIC_URL }}js/plugins/metisMenu/metisMenu.min.js"></script>
+
+    <!-- Morris Charts JavaScript -->
+    <!--script src="{{ STATIC_URL }}js/plugins/morris/raphael.min.js"></script>
+    <script src="{{ STATIC_URL }}js/plugins/morris/morris.min.js"></script>
+    <script src="{{ STATIC_URL }}js/plugins/morris/morris-data.js"></script-->
+
+    <!-- Custom Theme JavaScript -->
+    <script src="{{ STATIC_URL }}js/sb-admin-2.js"></script>
+    {% block script %} {% endblock%}
+    </body>
+
+</html>

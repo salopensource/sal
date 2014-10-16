@@ -9,38 +9,35 @@
 
 {% block nav %}
     {% if user.userprofile.level == 'GA' %}
-        <li><a href="{% url 'new_business_unit' %}">New Business Unit</a></li>
+        <li><a href="{% url 'new_business_unit' %}"><i class="fa fa-plus fa-fw"></i> New Business Unit</a></li>
     {% endif %}
     {% if user.userprofile.level == 'GA' or user.userprofile.level == 'RW' %}
         {% if config_installed %}
-            <li><a href="{% url 'config_index' %}">Configure Machines</a></li>
+            <li><a href="{% url 'config_index' %}"><i class="fa fa-wrench fa-fw"></i> Configure Machines</a></li>
         {% endif %}
     {% endif %}
+    <li class="active">
+        <a href="#"><i class="fa fa-building fa-fw"></i> Business Units<span class="fa arrow"></span></a>
+        <ul class="nav nav-second-level">
+            {% for business_unit in business_units.all %}
+                <li><a href="{% url 'bu_dashboard' business_unit.id %}">{{ business_unit.name }}
+                    <span class="badge badge-info pull-right">
+                        {{ business_unit.id|bu_machine_count }}
+                    </span>
+                    </a>
+                </li>
+            {% endfor %}
+        </ul>
+        <!-- /.nav-second-level -->
+    </li>
     
 {% endblock %}
 {% block content %}
+
 <div class="row">
     {% for widget in output %}
     {{ widget.html|safe }}
     {% endfor %}
 </div>
-<div class="row">
-    <div class="col-md-4">
-        <legend>Business Units</legend>
-        <table class="table table-striped table-condensed table-bordered">
-            {% for business_unit in business_units.all %}
-            <tr>
-                <td><a href="{% url 'bu_dashboard' business_unit.id %}">{{ business_unit.name }}
-                    <span class="badge badge-info pull-right">
-                        {{ business_unit.id|bu_machine_count }}
-                    </span>
-                    </a>
-                </td>
-            </tr>
 
-            {% endfor %}
-        </table>
-    </div>
-
-</div>
 {% endblock %}

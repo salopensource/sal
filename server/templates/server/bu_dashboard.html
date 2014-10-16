@@ -7,11 +7,25 @@
 
 {% block nav %}
 {% if is_editor %}
-    <li><a href="{% url 'new_machine_group' business_unit.id %}">New Machine Group</a></li>
+    <li><a href="{% url 'new_machine_group' business_unit.id %}"><i class="fa fa-desktop fa-fw"></i> New Machine Group</a></li>
     {% if config_installed %}
-        <li><a href="{% url 'config_new_machine' business_unit.id %}">New Machine</a></li>
-        <li><a href="{% url 'config_business_unit_index' business_unit.id %}"><i class="icon-edit icon-white"></i> Configure Business Unit</a></li>
+        <li><a href="{% url 'config_new_machine' business_unit.id %}"><i class="fa fa-laptop fa-fw"></i> New Machine</a></li>
+        <li><a href="{% url 'config_business_unit_index' business_unit.id %}"><i class="fa fa-wrench fa-fw"></i>  Configure Business Unit</a></li>
     {% endif %}
+    <li class="active">
+        <a href="#"><i class="fa fa-building fa-fw"></i> {{business_unit}}<span class="fa arrow"></span></a>
+        <ul class="nav nav-second-level">
+            {% for machine_group in business_unit.machinegroup_set.all %}
+                <li><a href="{% url 'group_dashboard' machine_group.id %}">{{ machine_group.name }}
+                    <span class="badge badge-info pull-right">
+                        {{ machine_group.machine_set.count }}
+                    </span>
+                    </a>
+                </li>
+            {% endfor %}
+        </ul>
+        <!-- /.nav-second-level -->
+    </li>
 {% endif %}
 {% endblock %}
 {% block content %}
@@ -29,23 +43,6 @@
     {% endfor %}
 </div>
 <div class="row">
-    <div class="col-md-4">
-        <legend>Groups</legend>
-        <table class="table table-striped table-condensed table-bordered">
-            {% for machine_group in machine_groups.all %}
-            <tr>
-                <td><a href="{% url 'group_dashboard' machine_group.id %}">{{ machine_group.name }}
-                    <span class="badge badge-info pull-right">
-                        {{ machine_group.machine_set.count }}
-                    </span>
-                    </a>
-                </td>
-            </tr>
-
-            {% endfor %}
-        </table>
-    </div>
-    
     {% if pending_updates|length %}
     <div class="col-md-4">
         <legend>Pending 3rd Party Updates</legend>

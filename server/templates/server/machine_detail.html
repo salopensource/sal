@@ -10,23 +10,31 @@
 {% block nav %}
 {% if user.userprofile.level == 'GA' or user.userprofile.level == 'RW' %}
         {% if config_installed %}
-            <li><a href="{% url 'config_configure_machine' machine.id %}"><i class="icon-edit icon-white"></i> Configure Machine</a></li>
+            <li><a href="{% url 'config_configure_machine' machine.id %}"><i class="fa fa-wrench fa-fw"></i> Configure Machine</a></li>
         {% endif %}
-        <li><a href="#myModal" data-toggle="modal"><span class="glyphicon glyphicon-remove"></span> Computer</a></i>
+        <li><a href="#myModal" data-toggle="modal"><i class="fa fa-times fa-fw"></i> Computer</a></i>
+
+        
 {% endif %}
+<li class="active">
+        <a href="#"><i class="fa fa-building fa-fw"></i> {{business_unit}}<span class="fa arrow"></span></a>
+        <ul class="nav nav-second-level">
+            {% for machine_group in business_unit.machinegroup_set.all %}
+                <li><a href="{% url 'group_dashboard' machine_group.id %}">{{ machine_group.name }}
+                    <span class="badge badge-info pull-right">
+                        {{ machine_group.machine_set.count }}
+                    </span>
+                    </a>
+                </li>
+            {% endfor %}
+        </ul>
+        <!-- /.nav-second-level -->
+    </li>
 {% endblock %}
 {% block content %}
 <div class="row">
     <div class="col-md-8">
-        <p>
-            <a href="{% url 'bu_dashboard' business_unit.id %}">{{ business_unit.name }}</a> <span class="glyphicon glyphicon-chevron-right"></span> <a href="{% url 'group_dashboard' machine_group.id %}">{{ machine_group.name }}</a>{% if req_type == 'operating_system' %} <span class="glyphicon glyphicon-chevron-right"></span> <a href="{% url 'overview_list_group' machine_group.id 'operating_system' machine.operating_system %}">{{ machine.operating_system }}</a>{% endif %}
 
-            {% if req_type == 'activity' %} <span class="glyphicon glyphicon-chevron-right"></span> <a href="{% url 'overview_list_group' machine_group.id 'activity' data %}">{% if data == 'today' %}Today{% endif %}{% if data == '1-week' %}1 Week{% endif %}{% if data == '1-hour' %}1 Hour{% endif %}</a>{% endif %}
-
-            {% if req_type == 'inactivity' %} <span class="glyphicon glyphicon-chevron-right"></span> <a href="{% url 'overview_list_group' machine_group.id 'inactivity' data %}">{% if data == '1-month' %}1 Month{% endif %}{% if data == '3-months' %}3 Months{% endif %}</a>{% endif %}
-
-
-        </p>
         <h2>{{ machine.hostname }}</h2>
         <p>
           <b>Report</b>
@@ -87,7 +95,7 @@
     </table>
   </div>
   <div class='col-md-4'>
-    <h3>Managed Software Update</h3>
+    <h3>Management Tools</h3>
     <table class="client_info table table-condensed">
       <tbody>
           {% if machine.puppet_version %}
@@ -98,13 +106,13 @@
           {% endif %}
         {% if report.ManagedInstallVersion %}
         <tr>
-          <th>MSU Version:</th>
+          <th>MSC Version:</th>
           <td>{{ report.ManagedInstallVersion }}</td>
         </tr>
         {% endif %}
         {% if 'ManifestName' in report %}
         <tr>
-          <th>MSU Manifest:</th>
+          <th>MSC Manifest:</th>
           <td>
             {{ report.ManifestName }}</a>
           </td>
@@ -112,15 +120,15 @@
         {% endif %}
         {% if report.ManagedInstallVersion %}
         <tr>
-          <th>MSU Run Type:</th>
+          <th>MSC Run Type:</th>
           <td>{{ report.RunType }}</td>
         </tr>
         <tr>
-          <th>MSU Start:</th>
+          <th>MSC Start:</th>
           <td>{{ report.StartTime|convert_datetime|date:"Y-m-d H:i" }}</td>
         </tr>
         <tr>
-          <th>MSU End:</th>
+          <th>MSC End:</th>
           <td>{{ report.EndTime|convert_datetime|date:"Y-m-d H:i" }}</td>
         </tr>
         {% endif %}
@@ -135,13 +143,56 @@
  </div>
 </div>
 <div class="row">
-  <div class="col-md-12">
+  <div class="col-md-4">
   <a name="errors">&nbsp;</a>
-<h3>Errors <span class="badge alert-danger">{{ report.Errors|length }}</span>        </h3>
-{% if report.Errors|length %}
-  <pre class="text-error">{{ report.Errors|join:'<br>' }}</pre>
-{% endif %}
-<h3>Warnings <span class="badge alert-warning">{{ report.Warnings|length }}</span></h3>
+
+    <div class="panel panel-red">
+        <div class="panel-heading">
+            <div class="row">
+                <div class="col-xs-3">
+                    <i class="fa fa-exclamation-triangle fa-5x"></i>
+                </div>
+                <div class="col-xs-9 text-right">
+                    <div class="huge">{{ report.Errors|length }}</div>
+                    <div>Errors</div>
+                </div>
+            </div>
+        </div>
+          {% if report.Errors|length %}
+          <div class="panel-footer">   
+            <pre class="text-error">{{ report.Errors|join:'<br>' }}</pre>
+          </div>
+          {% endif %}
+
+    </div>
+  </div>
+
+    <div class="col-md-4 col-md-offset-2">
+    <a name="errors">&nbsp;</a>
+
+      <div class="panel panel-yellow">
+          <div class="panel-heading">
+              <div class="row">
+                  <div class="col-xs-3">
+                      <i class="fa fa-bell fa-5x"></i>
+                  </div>
+                  <div class="col-xs-9 text-right">
+                      <div class="huge">{{ report.Warnings|length }}</div>
+                      <div>Warnings</div>
+                  </div>
+              </div>
+          </div>
+            {% if report.Errors|length %}
+            <div class="panel-footer">   
+              <pre class="text-warning">{{ report.Warnings|join:'<br>' }}</pre>
+            </div>
+            {% endif %}
+
+      </div>
+  </div>
+
+  <div class="row">
+
 {% if report.Warnings|length %}
   <pre class="text-warning">{{ report.Warnings|join:'<br>' }}</pre>
 {% endif %}
@@ -218,7 +269,7 @@
    {% endif %}
 
    {% if conditions|length %}
-       <h3>MSU Conditions <span class="badge alert-info">{{ conditions|length }}</span> <a class="btn btn-sm btn-info" data-toggle="collapse" data-target="#collapse7">Toggle</a></h3>
+       <h3>MSC Conditions <span class="badge alert-info">{{ conditions|length }}</span> <a class="btn btn-sm btn-info" data-toggle="collapse" data-target="#collapse7">Toggle</a></h3>
            <div id="collapse7" class="collapse">
            <table class="client_info table table-striped table-condensed">
                <thead>
@@ -271,17 +322,23 @@
        {% endif %}
    </div>
  </div>
-<div class="modal hide fade in" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" style="display: none; ">
-        <div class="modal-header">
-            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-            <h3 id="myModalLabel">Are you sure?</h3>
-        </div>
-        <div class="modal-body">
-            <p>This will delete the computer permanently - are you sure you want to do this?</p>
-        </div>
-        <div class="modal-footer">
-            <button class="btn" data-dismiss="modal" aria-hidden="true">Cancel</button>
-            <a class="btn btn-danger" href="{% url 'delete_machine' machine.id %}">Delete Item</a>
-        </div>
+{% if user.userprofile.level == 'GA' or user.userprofile.level == 'RW' %}
+<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+          <div class="modal-header">
+              <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+              <h3 class="modal-title" id="myModalLabel">Are you sure?</h3>
+          </div>
+          <div class="modal-body">
+              <p>This will delete the computer permanently - are you sure you want to do this?</p>
+          </div>
+          <div class="modal-footer">
+              <button class="btn" data-dismiss="modal" aria-hidden="true">Cancel</button>
+              <a class="btn btn-danger" href="{% url 'delete_machine' machine.id %}">Delete Item</a>
+          </div>
+      </div>
     </div>
+  </div>
+{% endif %}
 {% endblock %}

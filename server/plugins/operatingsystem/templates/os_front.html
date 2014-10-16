@@ -1,5 +1,10 @@
 <div class="col-md-4">
-    <legend>{{ title }}</legend>
+    <div class="panel panel-default">
+        <div class="panel-heading">
+            {{ title }}
+        </div>
+        <!-- /.panel-heading -->
+        <div class="panel-body">
         <table class="table table-striped table-condensed table-bordered">
         {% for item in data|dictsort:'operating_system' %}
         {% if item.operating_system %}
@@ -14,4 +19,6 @@
             {% endif %}
         {% endfor %}
         </table>
+    </div>
+    </div>
 </div>

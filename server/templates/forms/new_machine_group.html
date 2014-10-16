@@ -1,8 +1,11 @@
 {% extends "base.html" %}
 {% load i18n %}
 {% load bootstrap3 %}
+{% block nav %}
+<li><a href="{% url 'bu_dashboard' business_unit.id %}"><i class="fa fa-fw fa-chevron-left"></i> Back</i></a>
+{% endblock %}
 {% block content %}
-<div class="container">
+<div class="row">
     <div class="col-md-4">
     <h1>New Machine Group</h1>
     <h3>{{ business_unit.name }}</h3>

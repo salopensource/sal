@@ -25,3 +25,7 @@ legend {
 legend a.pull-right{
 	margin-top:10px
 }
+
+.select2-container {
+  margin: 3em;
+  width: 300px; }

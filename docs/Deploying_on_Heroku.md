@@ -44,6 +44,11 @@ Of course we haven't pushed Sal to Heroku yet. Let's fix that.
 ``` bash
 $ git push heroku master
 ```
+If you get a "Permission denied (publickey)." error at this point, it means you need to create/push an RSA public key for your current local machine account (the one active in terminal) to Heroku.
+
+``` bash
+$ heroku keys:add
+```
 
 You'll see Sal being pushed up to Heroku and Sal's requirements being installed. A Postgres database will also automatically be created for you. The database will be empty though, so let's populate it with what we need.
 

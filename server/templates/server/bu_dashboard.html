@@ -6,8 +6,11 @@
 {% endblock %}
 
 {% block nav %}
-{% if is_editor %}
-    <li><a href="{% url 'new_machine_group' business_unit.id %}"><i class="fa fa-desktop fa-fw"></i> New Machine Group</a></li>
+
+    {% if user.userprofile.level == 'GA' %}
+            <li><a href="{% url 'home' %}"><i class="fa fa-home fa-fw"></i> Home</a></li>
+    {% endif %}
+    {% if is_editor %}
     {% if config_installed %}
         <li><a href="{% url 'config_new_machine' business_unit.id %}"><i class="fa fa-laptop fa-fw"></i> New Machine</a></li>
         <li><a href="{% url 'config_business_unit_index' business_unit.id %}"><i class="fa fa-wrench fa-fw"></i>  Configure Business Unit</a></li>
@@ -23,6 +26,7 @@
                     </a>
                 </li>
             {% endfor %}
+            <li><a href="{% url 'new_machine_group' business_unit.id %}"><i class="fa fa-desktop fa-fw"></i> New Machine Group</a></li>
         </ul>
         <!-- /.nav-second-level -->
     </li>

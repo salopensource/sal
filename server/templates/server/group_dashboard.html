@@ -33,7 +33,8 @@
     <div class="col-md-12">
         <h3>{{ machine_group.name }}</h3>
         {% if user_level == "GA" %}
-        Key: <code>{{ machine_group.key }}</code>
+        <legend>Key</legend>
+        <pre class="scrollable">{{ machine_group.key }}</pre>
         {% endif %}
     </div>
 </div>

@@ -8,9 +8,6 @@
 {% endblock %}
 
 {% block nav %}
-    {% if user.userprofile.level == 'GA' %}
-        <li><a href="{% url 'new_business_unit' %}"><i class="fa fa-plus fa-fw"></i> New Business Unit</a></li>
-    {% endif %}
     {% if user.userprofile.level == 'GA' or user.userprofile.level == 'RW' %}
         {% if config_installed %}
             <li><a href="{% url 'config_index' %}"><i class="fa fa-wrench fa-fw"></i> Configure Machines</a></li>
@@ -26,7 +23,11 @@
                     </span>
                     </a>
                 </li>
+
             {% endfor %}
+            {% if user.userprofile.level == 'GA' %}
+        <li><a href="{% url 'new_business_unit' %}"><i class="fa fa-plus fa-fw"></i> New Business Unit</a></li>
+    {% endif %}
         </ul>
         <!-- /.nav-second-level -->
     </li>

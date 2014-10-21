@@ -3,7 +3,7 @@
 #    postflight
 #        Submits inventory to an instance of Sal
 #
-#    Last Revised - 2014-04-09
+#    Last Revised - 2014-10-22
 
 import sys
 sys.path.append('/usr/local/sal')
@@ -173,12 +173,17 @@ data['name'] = name
 data['disk_size'] = get_disk_size('/')
 
 data = urllib.urlencode(data) 
-req = urllib2.Request(checkinurl, data) 
-response = urllib2.urlopen(req) 
-response = response.read()
+
+# req = urllib2.Request(checkinurl, data) 
+# response = urllib2.urlopen(req) 
+# response = response.read()
+
+cmd = ['/usr/bin/curl', '--data', data, checkinurl]
+task = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+(stdout, stderr) = task.communicate()
 
 # cleanup
 if facterflag:
     os.environ['FACTERLIB'] = facterlib
 
-print response
+print stdout

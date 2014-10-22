@@ -5,21 +5,35 @@
         </div>
         <!-- /.panel-heading -->
         <div class="panel-body">
-        <div id="munkiversiongraph">
+        <div id="munkiversiongraph" style="max-height: 250px;"></div>
     </div>
     </div>
 </div>
+{% block script %}
+<!-- Morris Charts JavaScript -->
+<script src="/static/js/plugins/morris/raphael.min.js"></script>
+<script src="/static/js/plugins/morris/morris.min.js"></script>
 <script type="text/javascript">
+$(function() {
+Morris.Donut({
+        element: 'munkiversiongraph',
+        data: [
 {% for item in data|dictsort:'munki_version' %}
-{% if item.operating_system %}
-    <tr>
-        <td>
-            <a href="{% url 'machine_list_id' 'OperatingSystem' item.operating_system page theid %}">
-            {{ item.operating_system }}
-            <span class="badge pull-right">{{ item.count }}</span>
-            </a>
-        </td>
-    </tr>
+{% if item.munki_version %}
+    {
+            label: "{{ item.munki_version }}",
+            value: {{ item.count }}
+        },
+
 {% endif %}
 {% endfor %}
+],
+        resize: true
+    }).on('click', function(i, row){
+  console.log(row['label']);
+  var url_mask = "{% url 'machine_list_id' 'MunkiVersion' 'abc123' page theid %}".replace(/abc123/, row['label'].toString());
+  window.location=url_mask;
+});
+});
 </script>
+{% endblock %}

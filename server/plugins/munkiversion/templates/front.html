@@ -29,7 +29,11 @@ Morris.Donut({
 {% endfor %}
 ],
         resize: true
-    });
+    }).on('click', function(i, row){
+  console.log(row['label']);
+  var url_mask = "{% url 'machine_list_front' 'MunkiVersion' 'abc123' %}".replace(/abc123/, row['label'].toString());
+  window.location=url_mask;
+});
 });
 </script>
 {% endblock %}

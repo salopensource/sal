@@ -17,12 +17,12 @@ class OperatingSystem(IPlugin):
                 machines = Machine.objects.all()
         
         if page == 'bu_dashboard':
-            t = loader.get_template('munkiversion/templates/front.html')
+            t = loader.get_template('munkiversion/templates/id.html')
             if not machines:
                 machines = utils.getBUmachines(theid)
         
         if page == 'group_dashboard':
-            t = loader.get_template('munkiversion/templates/front.html')
+            t = loader.get_template('munkiversion/templates/id.html')
             if not machines:
                 machine_group = get_object_or_404(MachineGroup, pk=theid)
                 machines = Machine.objects.filter(machine_group=machine_group)
@@ -43,7 +43,8 @@ class OperatingSystem(IPlugin):
     def filter_machines(self, machines, data):
         # You will be passed a QuerySet of machines, you then need to perform some filtering based on the 'data' part of the url from the show_widget output. Just return your filtered list of machines and the page title.
         
-        machines = machines.filter(operating_system__exact=data)
+        machines = machines.filter(munki_version__exact=data)
         
-        return machines, 'Machines running '+data
+        title = 'Machines running version '+data+' of MSC'
+        return machines, title
         

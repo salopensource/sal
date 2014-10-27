@@ -37,3 +37,6 @@ nosetests.xml
 sal.db
 scripts/sal_scripts.pkg
 config
+
+# Gulp
+node_modules

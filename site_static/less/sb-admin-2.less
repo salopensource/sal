@@ -5,6 +5,17 @@
 
 body {
     background-color: @gray-lightest;
+    font-family: "HelveticaNeue-Light", "Helvetica Neue Light", "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif; 
+    color: @ink;
+}
+
+a {
+  color: @blue;
+
+  &:hover {
+    color: darken(@blue, 20);
+    text-decoration: none;
+  }
 }
 
 // Wrappers
@@ -33,16 +44,20 @@ body {
 // --Topbar
 
 .navbar-top-links li {
+
+   li {
     display: inline-block;
-}
 
-.navbar-top-links li:last-child {
-    margin-right: 15px;
-}
+    &:last-child {
+      margin-right: 15px;
+    }
 
-.navbar-top-links li a {
+  }
+
+  a {
     padding: 15px;
     min-height: 50px;
+  } 
 }
 
 .navbar-top-links .dropdown-menu li {
@@ -359,4 +374,218 @@ table.dataTable thead .sorting:after {
             color: darken(@brand-warning, 15%);
         }
     }
+}
+
+// ========================= //
+// ===== CUSTOM STYLES ===== //
+// ========================= //
+
+// Main Wrapper
+#wrapper {
+  background-color: @ink;
+}
+
+// Main Header
+.navbar {
+  background: @blue url(../img/atom-head-white.svg) no-repeat top;
+  background-size: 100%;
+  color: white;
+  border: none;
+  height: 60px;
+  z-index: 1005;
+}
+
+.navbar-top-links li {
+
+  &:last-child {
+    margin-right: 0;
+  }
+
+  a {
+    min-height: 60px;
+    padding: 15px 15px 15px 10px;
+    color: white;
+  }
+
+  &>a:hover, &>a:focus {
+    background-color: rgba(21, 85, 181, 0.7);
+    color: white;
+  }
+
+  &.dropdown {
+
+    .fa-user {
+      font-size: 30px;
+      vertical-align: middle;
+    }
+    .fa-caret-down {
+      font-size: 20px;
+      color: rgba(255, 255, 255, 0.5);
+      vertical-align: middle;
+    }
+
+    .dropdown-menu {
+      background-color: rgba(21, 85, 181, 0.98);
+      margin-top: 0;
+      border-radius: 0;
+      padding: 0;
+      box-shadow: none;
+      border: none;
+
+       li a {
+        padding: 10px 10px;
+
+        &:hover {
+          background-color: darken(@blue, 20);
+        }
+       }
+
+      .divider {
+        background-color: darken(@blue, 10);
+        margin: 0;
+      }
+
+      .fa-user {
+        font-size: 14px;
+      }
+    }
+  }
+}
+
+.nav .open>a, .nav .open>a:hover, .nav .open>a:focus {
+  background-color: rgba(21, 85, 181, 0.7);
+}
+
+.dropdown-menu {
+  z-index: 1005;
+  background-color: darken(@blue, 15);
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.navbar-brand {
+  text-indent: -9999px;
+  background: url(../img/sal-logo-white.svg) no-repeat left;
+  margin: 5px 10px;
+  width: 50px;
+  background-size: 38px 38px;
+  transition: 0.1s;
+
+  &:hover {
+    transform: scale(1.1);
+  }
+}
+
+
+// Sidebar navigation
+.sidebar {
+  background-color: @ink;
+  border-top: 1px solid darken(@ink, 4);
+
+  .badge {
+    background-color: rgba(255, 255, 255, 0.2);
+    color: white;
+  }
+
+  @media (min-width: 768px) {
+    margin-top: 60px;
+  }
+
+  a {
+    color: #D9DCDF;
+  }
+
+  ul {
+
+    li {
+      border: none;
+
+      &.active {
+        background-color: darken(@ink, 4);
+      }
+    }
+  }
+
+  .nav > li > a:hover, .nav > li > a:focus {
+    background-color: darken(@ink, 3);
+  }
+  .nav > li.active a:hover, .nav > li.active a:focus {
+    background-color: darken(@ink, 6);
+  }
+
+  li.active > a:first-of-type {
+    color: white;
+    background-color: darken(@ink, 8);
+
+    &:hover {
+      background-color: darken(@ink, 9);
+    }
+  }
+}
+
+// Page Wrapper
+#page-wrapper {
+  background-color: #F2F2F2;
+  z-index: 1002;
+  position: relative;
+}
+
+
+// Tables
+.table {
+  background-color: white;
+
+  .panel-body & {
+    margin-bottom: 0;
+  }
+}
+
+// Alert Boxes
+.panel-primary {
+
+  .panel-heading {
+    background-color: @blue;
+    border: none;
+  }
+}
+
+.col-md-3 > .panel-body {
+  padding: 10px;
+
+  & > a > .panel {
+    margin-bottom: 0;
+  }
+}
+
+.row > .col-md-3 > .panel-body {
+  padding: 10px 5px;
+}
+
+.row > .col-md-3:first-child > .panel-body {
+  padding-left: 15px;
+}
+
+.row > .col-md-3:last-child > .panel-body {
+  padding-right: 15px;
+}
+
+.panel-body > .col-md-3 {
+  padding: 0 5px;
+}
+
+.panel > .row {
+  margin: 5px;
+}
+
+.panel > .row > .col-md-3, .panel-body > .col-md-3 > .panel-body {
+  padding: 0;
+}
+
+.panel-body > a {
+  opacity: 0.9;
+}
+
+
+// Badges
+.badge {
+  background-color: lighten(@ink, 15);
 }

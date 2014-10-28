@@ -95,7 +95,7 @@
       </tbody>
     </table>
   </div>
-  <div class='col-md-4'>
+  <div class='col-md-6'>
     <h3>Management Tools</h3>
     <table class="client_info table table-condensed">
       <tbody>
@@ -324,6 +324,8 @@
        {% endif %}
    </div>
  </div>
+{% endblock %}
+{% block modal %}
 {% if user.userprofile.level == 'GA' or user.userprofile.level == 'RW' %}
 <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
     <div class="modal-dialog">

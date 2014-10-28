@@ -15,7 +15,7 @@
     <link rel="icon" href="{{ STATIC_URL }}img/favicon.ico" type="image/x-icon">
 
     <!-- LESS Compiler -->
-    <script src="{{ STATIC_URL }}js/less.min.js"></script>
+    <script src="{{ STATIC_URL }}js/less-1.4.2.min.js"></script>
 
     <!-- Bootstrap Core CSS -->
     <link href="{{ STATIC_URL }}css/bootstrap.min.css" rel="stylesheet">
@@ -130,7 +130,8 @@
 
     </div>
     <!-- /#wrapper -->
-
+{% block modal %}
+{% endblock %}
 
 </body>
 

@@ -125,7 +125,7 @@ a:hover {
   color: #17c666;
 }
 .btn-info.btn-outline {
-  color: #5bc0de;
+  color: #2f79e7;
 }
 .btn-warning.btn-outline {
   color: #fd9827;
@@ -279,6 +279,58 @@ table.dataTable thead .sorting:after {
 }
 .panel-yellow a:hover {
   color: #d67202;
+}
+.btn-success {
+  border-color: #17c666;
+  color: white;
+  background-color: #17c666;
+}
+.btn-success a {
+  border-color: #17c666;
+  color: white;
+  background-color: #17c666;
+}
+.btn-success a:hover {
+  color: #0f8143;
+}
+.btn-warning {
+  border-color: #fd9827;
+  color: white;
+  background-color: #fd9827;
+}
+.btn-warning a {
+  border-color: #fd9827;
+  color: white;
+  background-color: #fd9827;
+}
+.btn-warning a:hover {
+  color: #d67202;
+}
+.btn-danger {
+  border-color: #e5421c;
+  color: white;
+  background-color: #e5421c;
+}
+.btn-danger a {
+  border-color: #e5421c;
+  color: white;
+  background-color: #e5421c;
+}
+.btn-danger a:hover {
+  color: #a22e13;
+}
+.btn-info {
+  border-color: #2f79e7;
+  color: white;
+  background-color: #2f79e7;
+}
+.btn-info a {
+  border-color: #2f79e7;
+  color: white;
+  background-color: #2f79e7;
+}
+.btn-info a:hover {
+  color: #1555b5;
 }
 #wrapper {
   background-color: #374d5f;

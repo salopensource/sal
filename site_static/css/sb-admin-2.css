@@ -280,23 +280,21 @@ table.dataTable thead .sorting:after {
 .panel-yellow a:hover {
   color: #d67202;
 }
-.btn-success {
+a.btn-success {
   border-color: #17c666;
   color: white;
   background-color: #17c666;
 }
-.btn-success a {
-  border-color: #17c666;
-  color: white;
-  background-color: #17c666;
-}
-.btn-success a:hover {
-  color: #0f8143;
+a.btn-success:hover {
+  background-color: #0f8143;
 }
 .btn-warning {
   border-color: #fd9827;
   color: white;
   background-color: #fd9827;
+}
+.btn-warning:hover {
+  background-color: #d67202;
 }
 .btn-warning a {
   border-color: #fd9827;
@@ -306,17 +304,20 @@ table.dataTable thead .sorting:after {
 .btn-warning a:hover {
   color: #d67202;
 }
-.btn-danger {
+a.btn-danger {
   border-color: #e5421c;
   color: white;
   background-color: #e5421c;
 }
-.btn-danger a {
+a.btn-danger:hover {
+  background-color: #a22e13;
+}
+a.btn-danger a {
   border-color: #e5421c;
   color: white;
   background-color: #e5421c;
 }
-.btn-danger a:hover {
+a.btn-danger a:hover {
   color: #a22e13;
 }
 .btn-info {
@@ -489,4 +490,5 @@ table.dataTable thead .sorting:after {
 }
 .badge {
   background-color: #53748f;
+  color: white;
 }

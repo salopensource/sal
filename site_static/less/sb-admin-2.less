@@ -376,22 +376,32 @@ table.dataTable thead .sorting:after {
     }
 }
 
+// a {
+//   &:hover{
+//     .panel-yellow{
+//          background-color: darken(@brand-success, 15%);
+//       }
+//   }
+// }
+
 // Custom Button Colours
 
-.btn-success {
-    border-color: @brand-success;
+a.btn-success {
     border-color: @brand-success;
     color: white;
     background-color: @brand-success;
-    a {
-        //color: @brand-success;
-        border-color: @brand-success;
-        color: white;
-        background-color: @brand-success;
-        &:hover {
-            color: darken(@brand-success, 15%);
-        }
+    &:hover {
+        background-color: darken(@brand-success, 15%);
     }
+    // a {
+    //     //color: @brand-success;
+    //     border-color: @brand-success;
+    //     color: white;
+    //     background-color: @brand-success;
+    //     &:hover {
+    //         color: darken(@brand-success, 15%);
+    //     }
+    // }
 }
 
 .btn-warning {
@@ -399,6 +409,9 @@ table.dataTable thead .sorting:after {
     border-color: @brand-warning;
     color: white;
     background-color: @brand-warning;
+    &:hover {
+        background-color: darken(@brand-warning, 15%);
+    }
     a {
         //color: @brand-warning;
         border-color: @brand-warning;
@@ -410,11 +423,13 @@ table.dataTable thead .sorting:after {
     }
 }
 
-.btn-danger {
-    border-color: @brand-danger;
+a.btn-danger {
     border-color: @brand-danger;
     color: white;
     background-color: @brand-danger;
+    &:hover {
+        background-color: darken(@brand-danger, 15%);
+    }
     a {
         //color: @brand-danger;
         border-color: @brand-danger;
@@ -657,4 +672,5 @@ table.dataTable thead .sorting:after {
 // Badges
 .badge {
   background-color: lighten(@ink, 15);
+  color: white;
 }

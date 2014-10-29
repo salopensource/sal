@@ -395,6 +395,33 @@ def new_machine_group(request, bu_id):
     return render_to_response('forms/new_machine_group.html', c, context_instance=RequestContext(request))
 
 # Edit Group
+@login_required
+def edit_machine_group(request, group_id):
+    c = {}
+    c.update(csrf(request))
+    machine_group = get_object_or_404(MachineGroup, pk=group_id)
+    business_unit = machine_group.business_unit
+    user = request.user
+    user_level = user.userprofile.level
+    if user_level == 'GA' or user_level == 'RW':
+        is_editor = True
+    else:
+        is_editor = False
+
+    if business_unit not in user.businessunit_set.all() or is_editor == False:
+        if user_level != 'GA':
+            return redirect(index)
+    if request.method == 'POST':
+        form = EditMachineGroupForm(request.POST, instance=machine_group)
+        if form.is_valid():
+            machine_group.save()
+            #form.save_m2m()
+            return redirect('group_dashboard', machine_group.id)
+    else:
+        form = EditMachineGroupForm(instance=machine_group)
+
+    c = {'form': form, 'is_editor': is_editor, 'business_unit': business_unit, 'machine_group':machine_group}
+    return render_to_response('forms/edit_machine_group.html', c, context_instance=RequestContext(request))
 
 # Delete Group
 

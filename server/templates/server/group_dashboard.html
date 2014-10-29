@@ -11,6 +11,7 @@
         {% if config_installed %}
             <li><a href="{% url 'config_machine_group_index' machine_group.id %}"><i class="fa fa-wrench fa-fw"></i> Configure Group</a></li>
         {% endif %}
+        <li><a href="{% url 'edit_machine_group' machine_group.id %}"><i class="fa fa-fw fa-pencil"></i> Rename Group</a></li>
     {% endif %}
     <li class="active">
         <a href="#"><i class="fa fa-building fa-fw"></i> {{business_unit}}<span class="fa arrow"></span></a>

@@ -26,6 +26,6 @@ It's the Internet's fault! I asked on Twitter what I should call it, and Peter B
 
 ## Thank yous
 
-First off, thanks to Greg Neagle and the rest of the Munki Project. This started off using quite a lot of Munki Web Admin's code (and still contains portions of it). Munki is an amazing product, and managing OS X at any scale would be miserable without it.
+First off, thanks to Greg Neagle and the rest of the Munki Project. Munki is an amazing product, and managing OS X at any scale would be miserable without it.
 
 Thanks to Puppet Labs for basically giving away the crown jewels for nothing.

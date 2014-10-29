@@ -84,7 +84,7 @@
             <!-- /.navbar-header -->
 
             <ul class="nav navbar-top-links navbar-right">
-
+                {% if user.is_authenticated %}
                 <li class="dropdown">
                     <a class="dropdown-toggle" data-toggle="dropdown" href="#">
                         <i class="fa fa-user fa-fw"></i>  <i class="fa fa-caret-down"></i>
@@ -92,14 +92,17 @@
                     <ul class="dropdown-menu dropdown-user">
                         <li><a href="{% url 'django.contrib.auth.views.password_change' %}"><i class="fa fa-user fa-fw"></i> {% trans "Change password" %}</a>
                         </li>
+                        {% if user.is_staff %}
                         <li><a href="{% url 'admin:index' %}"><i class="fa fa-gear fa-fw"></i> Administration</a>
                         </li>
+                        {% endif %}
                         <li class="divider"></li>
                         <li><a href="{% url 'django.contrib.auth.views.logout_then_login' %}"><i class="fa fa-sign-out fa-fw"></i> Logout</a>
                         </li>
                     </ul>
                     <!-- /.dropdown-user -->
                 </li>
+                {% endif %}
                 <!-- /.dropdown -->
             </ul>
             <!-- /.navbar-top-links -->

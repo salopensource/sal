@@ -389,7 +389,8 @@ def new_machine_group(request, bu_id):
         is_editor = False
 
     if business_unit not in user.businessunit_set.all() or is_editor == False:
-        return redirect(index)
+        if user_level != 'GA':
+            return redirect(index)
     c = {'form': form, 'is_editor': is_editor, 'business_unit': business_unit, }
     return render_to_response('forms/new_machine_group.html', c, context_instance=RequestContext(request))
 

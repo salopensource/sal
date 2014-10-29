@@ -17,20 +17,7 @@
 
         
 {% endif %}
-<li class="active">
-        <a href="#"><i class="fa fa-building fa-fw"></i> {{business_unit}}<span class="fa arrow"></span></a>
-        <ul class="nav nav-second-level">
-            {% for machine_group in business_unit.machinegroup_set.all %}
-                <li><a href="{% url 'group_dashboard' machine_group.id %}">{{ machine_group.name }}
-                    <span class="badge badge-info pull-right">
-                        {{ machine_group.machine_set.count }}
-                    </span>
-                    </a>
-                </li>
-            {% endfor %}
-        </ul>
-        <!-- /.nav-second-level -->
-    </li>
+
 {% endblock %}
 {% block content %}
 <div class="row">

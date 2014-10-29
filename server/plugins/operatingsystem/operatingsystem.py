@@ -33,7 +33,7 @@ class OperatingSystem(IPlugin):
             os_info = []
 
         c = Context({
-            'title': 'Operating System breakdown',
+            'title': 'Operating Systems',
             'data': os_info,
             'theid': theid,
             'page': page

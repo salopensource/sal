@@ -6,6 +6,8 @@ Sal is split into Business Units, and then subdivided into Groups. Each customer
 
 ##Server installation/upgrade
 
+The recommended (and easiest) way of getting running on your own hardware is using [Docker](https://github.com/grahamgilbert/sal/blob/master/docs/Docker.md).
+
 If you aren't comfortable with Linux, it's recommended that your [first installation is on Heroku](https://github.com/grahamgilbert/sal/blob/master/docs/Deploying_on_Heroku.md) which will handle the server configuration for you.
 
 If you plan on installing on your own hardware, see [Installation on Ubuntu 12](https://github.com/grahamgilbert/sal/blob/master/docs/Installation_on_Ubuntu_12.md) (or [CentOS](https://github.com/grahamgilbert/sal/blob/master/docs/Installation_on_CentOS6.md)) for server installation docs. If you are installing on a different operating system, please ensure you have Python 2.7 installed.

@@ -117,7 +117,7 @@ def machine_list(request, pluginName, data, page='front', theID=None):
     for plugin in manager.getAllPlugins():
         if plugin.name == pluginName:
             (machines, title) = plugin.plugin_object.filter_machines(machines, data)
-    c = {'user':user, 'machines': machines, 'req_type': page, 'title': title, 'bu_id': theID }
+    c = {'user':user, 'machines': machines, 'req_type': page, 'title': title, 'bu_id': theID, 'request':request }
 
     return render_to_response('server/overview_list_all.html', c, context_instance=RequestContext(request))
 
@@ -361,7 +361,7 @@ def group_dashboard(request, group_id):
         (data['html'], data['width']) = plugin.plugin_object.show_widget('group_dashboard', machines, machine_group.id)
         output.append(data)
     output = utils.orderPluginOutput(output, 'group_dashboard', machine_group.id)
-    c = {'user': request.user, 'machine_group': machine_group, 'user_level': user_level,  'is_editor': is_editor, 'business_unit': business_unit, 'output':output, 'config_installed':config_installed}
+    c = {'user': request.user, 'machine_group': machine_group, 'user_level': user_level,  'is_editor': is_editor, 'business_unit': business_unit, 'output':output, 'config_installed':config_installed, 'request':request}
     return render_to_response('server/group_dashboard.html', c, context_instance=RequestContext(request))
 
 # New Group
@@ -389,11 +389,39 @@ def new_machine_group(request, bu_id):
         is_editor = False
 
     if business_unit not in user.businessunit_set.all() or is_editor == False:
-        return redirect(index)
+        if user_level != 'GA':
+            return redirect(index)
     c = {'form': form, 'is_editor': is_editor, 'business_unit': business_unit, }
     return render_to_response('forms/new_machine_group.html', c, context_instance=RequestContext(request))
 
 # Edit Group
+@login_required
+def edit_machine_group(request, group_id):
+    c = {}
+    c.update(csrf(request))
+    machine_group = get_object_or_404(MachineGroup, pk=group_id)
+    business_unit = machine_group.business_unit
+    user = request.user
+    user_level = user.userprofile.level
+    if user_level == 'GA' or user_level == 'RW':
+        is_editor = True
+    else:
+        is_editor = False
+
+    if business_unit not in user.businessunit_set.all() or is_editor == False:
+        if user_level != 'GA':
+            return redirect(index)
+    if request.method == 'POST':
+        form = EditMachineGroupForm(request.POST, instance=machine_group)
+        if form.is_valid():
+            machine_group.save()
+            #form.save_m2m()
+            return redirect('group_dashboard', machine_group.id)
+    else:
+        form = EditMachineGroupForm(instance=machine_group)
+
+    c = {'form': form, 'is_editor': is_editor, 'business_unit': business_unit, 'machine_group':machine_group}
+    return render_to_response('forms/edit_machine_group.html', c, context_instance=RequestContext(request))
 
 # Delete Group
 

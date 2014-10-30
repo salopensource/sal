@@ -10,3 +10,8 @@ class MachineGroupForm(forms.ModelForm):
     class Meta:
         model = MachineGroup
         fields = ('name',)
+
+class EditMachineGroupForm(forms.ModelForm):
+    class Meta:
+        model = MachineGroup
+        fields = ('name',)

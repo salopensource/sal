@@ -6,19 +6,37 @@
 {% endblock %}
 
 {% block nav %}
-    {% if user.userprofile.level == 'GA' or user.userprofile.level == 'RW' %}
+<li> <a href="{% url 'bu_dashboard' business_unit.id %}"><i class="fa fa-fw fa-chevron-left"></i> Back</a></li>
+
+    <li class="active">
+        <a href="#"><i class="fa fa-building fa-fw"></i> {{business_unit}}<span class="fa arrow"></span></a>
+        <ul class="nav nav-second-level">
+            {% for group in business_unit.machinegroup_set.all %}
+                <li class="active"><a href="{% url 'group_dashboard' group.id %}">{{ group.name }}
+                    <span class="badge badge-info pull-right">
+                        {{ group.machine_set.count }}
+                    </span>
+                    </a>
+                </li>
+            {% endfor %}
+            {% if user.userprofile.level == 'GA' or user.userprofile.level == 'RW' %}
         {% if config_installed %}
-            <li><a href="{% url 'config_machine_group_index' machine_group.id %}"><i class="icon-edit icon-white"></i> Configure Group</a></li>
+            <li><a href="{% url 'config_machine_group_index' machine_group.id %}"><i class="fa fa-wrench fa-fw"></i> Configure Group</a></li>
         {% endif %}
+        <li><a href="{% url 'edit_machine_group' machine_group.id %}"><i class="fa fa-fw fa-pencil"></i> Rename Group</a></li>
     {% endif %}
+        </ul>
+        <!-- /.nav-second-level -->
+    </li>
     
 {% endblock %}
 {% block content %}
 <div class="row">
-    <div class="span12">
+    <div class="col-md-12">
         <h3>{{ machine_group.name }}</h3>
         {% if user_level == "GA" %}
-        Key: <code>{{ machine_group.key }}</code>
+        <legend>Key</legend>
+        <pre class="scrollable">{{ machine_group.key }}</pre>
         {% endif %}
     </div>
 </div>

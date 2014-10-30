@@ -1,118 +1,141 @@
-{% load i18n %}
-{% load bootstrap_toolkit %}
+{% load i18n %} {% load bootstrap3 %}
 <!DOCTYPE html>
 <html lang="en">
-  <head>
+
+<head>
+
     <meta charset="utf-8">
-    <title>{% block title %}{{ DISPLAY_NAME }}{% endblock %}</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="description" content="">
     <meta name="author" content="">
-    <script type="text/javascript" src="https://www.google.com/jsapi"></script>
-    <!-- Le styles -->
-	<link href='https://fonts.googleapis.com/css?family=Lato:400,700' rel='stylesheet' type='text/css' />
-    {% bootstrap_stylesheet_tag %}
-    <style type="text/css">
-      body {
-        padding-top: 60px;
-        padding-bottom: 40px;
-      }
-    </style>
-    {% bootstrap_stylesheet_tag "responsive" %}
-    <link href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css" rel="stylesheet">
-<link href="{{ STATIC_URL }}style.css" rel="stylesheet">
-<link rel="stylesheet"
-  href='{{ STATIC_URL }}datatables-bootstrap.css' 
-  type="text/css" media="all" />
-    <!-- Le HTML5 shim, for IE6-8 support of HTML5 elements -->
+
+    <title>{% block title %}{{ DISPLAY_NAME }}{% endblock %}</title>
+
+    <link rel="icon" href="{{ STATIC_URL }}img/favicon.ico" type="image/x-icon">
+
+    <!-- LESS Compiler -->
+    <script src="{{ STATIC_URL }}js/less-1.4.2.min.js"></script>
+
+    <!-- Bootstrap Core CSS -->
+    <link href="{{ STATIC_URL }}css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- MetisMenu CSS -->
+    <link href="{{ STATIC_URL }}css/plugins/metisMenu/metisMenu.min.css" rel="stylesheet">
+
+    <!-- Timeline CSS -->
+    <link href="{{ STATIC_URL }}css/plugins/timeline.css" rel="stylesheet">
+
+    <!-- DataTables CSS -->
+    <link href="{{ STATIC_URL }}css/plugins/dataTables.bootstrap.css" rel="stylesheet">
+
+    <!-- Custom CSS -->
+    <link href="{{ STATIC_URL }}css/sb-admin-2.css" rel="stylesheet">
+
+    <!-- Morris Charts CSS -->
+    <link href="{{ STATIC_URL }}css/plugins/morris.css" rel="stylesheet">
+
+    <!-- Custom Fonts -->
+    <link href="{{ STATIC_URL }}font-awesome-4.1.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
     <!--[if lt IE 9]>
-      <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
     <![endif]-->
-   <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
-   <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.23/jquery-ui.min.js"></script>
-   <script type="text/javascript" src="{{ STATIC_URL }}jquery.dataTables.min.js"></script>
-   {% bootstrap_javascript_tag %}
 
-   <script type="text/javascript" src="{{ STATIC_URL }}datatables-bootstrap.js"></script>
-   {% block script %}
-   {% endblock%}
+    <!-- jQuery Version 1.11.0 -->
+    <script src="{{ STATIC_URL }}js/jquery-1.11.0.js"></script>
 
-  </head>
+    <!-- Bootstrap Core JavaScript -->
+    <script src="{{ STATIC_URL }}js/bootstrap.min.js"></script>
 
-  <body>
+    <!-- Metis Menu Plugin JavaScript -->
+    <script src="{{ STATIC_URL }}js/plugins/metisMenu/metisMenu.min.js"></script>
 
-    <div class="navbar navbar-inverse navbar-fixed-top">
-      <div class="navbar-inner">
-        <div class="container">
-          <a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
-            <span class="icon-bar"></span>
-            <span class="icon-bar"></span>
-            <span class="icon-bar"></span>
-          </a>
-          <a class="brand" href="{% url 'home' %}">{{ DISPLAY_NAME }}</a>
-          <div class="nav-collapse collapse">
-            <ul class="nav pull-right">
-				
-				{% block nav %}
-              
-			  {% endblock %}
-  			{% if user.is_authenticated %}
-  			
-  			  <li class="dropdown"><a class="dropdown-toggle" id="dLabel" data-toggle="dropdown" data-target="#" href="#">
-  			    {{ user.username }}
-  			    <b class="caret"></b>
-  			  </a>
-  			  <ul class="dropdown-menu" role="menu" aria-labelledby="dLabel">
+    
+    <!-- Custom Theme JavaScript -->
+    <script src="{{ STATIC_URL }}js/sb-admin-2.js"></script>
 
-  			  	<li><a href="{% url 'django.contrib.auth.views.password_change' %}">{% trans "Change password" %}</a></li>
-                {% if user.is_staff %}<li><a href="{% url 'admin:index' %}">Administraton</a></li>{% endif %}
-                <li><a href="{% url 'django.contrib.auth.views.logout_then_login' %}">{% trans "Log out" %}</a></li>
-  			  </ul>
-  			</li>
-  			
-  			{% endif %}
-			  
+    <!-- DataTables JavaScript -->
+    <script src="{{ STATIC_URL }}js/plugins/dataTables/jquery.dataTables.js"></script>
+    <script src="{{ STATIC_URL }}js/plugins/dataTables/dataTables.bootstrap.js"></script>
+    {% block script %}
+    {% endblock %}
+
+</head>
+
+<body>
+
+    <div id="wrapper">
+
+        <!-- Navigation -->
+        <nav class="navbar navbar-default navbar-static-top" role="navigation" style="margin-bottom: 0">
+            <div class="navbar-header">
+                <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+                    <span class="sr-only">Toggle navigation</span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+                <a class="navbar-brand" href="{% url 'home' %}">{{ DISPLAY_NAME }}</a>
+            </div>
+            <!-- /.navbar-header -->
+
+            <ul class="nav navbar-top-links navbar-right">
+                {% if user.is_authenticated %}
+                <li class="dropdown">
+                    <a class="dropdown-toggle" data-toggle="dropdown" href="#">
+                        <i class="fa fa-user fa-fw"></i>  <i class="fa fa-caret-down"></i>
+                    </a>
+                    <ul class="dropdown-menu dropdown-user">
+                        <li><a href="{% url 'django.contrib.auth.views.password_change' %}"><i class="fa fa-user fa-fw"></i> {% trans "Change password" %}</a>
+                        </li>
+                        {% if user.is_staff %}
+                        <li><a href="{% url 'admin:index' %}"><i class="fa fa-gear fa-fw"></i> Administration</a>
+                        </li>
+                        {% endif %}
+                        <li class="divider"></li>
+                        <li><a href="{% url 'django.contrib.auth.views.logout_then_login' %}"><i class="fa fa-sign-out fa-fw"></i> Logout</a>
+                        </li>
+                    </ul>
+                    <!-- /.dropdown-user -->
+                </li>
+                {% endif %}
+                <!-- /.dropdown -->
             </ul>
-			
-          </div><!--/.nav-collapse -->
+            <!-- /.navbar-top-links -->
+
+            <div class="navbar-default sidebar" role="navigation">
+                <div class="sidebar-nav navbar-collapse">
+                    <ul class="nav" id="side-menu">
+                        {% block nav %}
+                        {% endblock %}
+                        
+                    </ul>
+                </div>
+                <!-- /.sidebar-collapse -->
+            </div>
+            <!-- /.navbar-static-side -->
+        </nav>
+
+        <div id="page-wrapper">
+        <div class="row">
+            <div class="col-md-12">&nbsp;</div>
         </div>
-      </div>
+            {% block content %}
+            {% endblock %}
+            
+            
+        </div>
+        <!-- /#page-wrapper -->
+
     </div>
-
-    <div class="container">
-		{% block content %}
-      <!-- Main hero unit for a primary marketing message or call to action -->
-      <div class="hero-unit">
-        <h1>{{ DISPLAY_NAME }}</h1>
-        <p>You need to log in first before doing anything</p>
-        <p><a class="btn btn-primary btn-large">Learn more &raquo;</a></p>
-      </div>
-
-      <!-- Example row of columns -->
-      <div class="row">
-        <div class="span4">
-          <h2>Heading</h2>
-          <p>Donec id elit non mi porta gravida at eget metus. Fusce dapibus, tellus ac cursus commodo, tortor mauris condimentum nibh, ut fermentum massa justo sit amet risus. Etiam porta sem malesuada magna mollis euismod. Donec sed odio dui. </p>
-          <p><a class="btn" href="#">View details &raquo;</a></p>
-        </div>
-        <div class="span4">
-          <h2>Heading</h2>
-          <p>Donec id elit non mi porta gravida at eget metus. Fusce dapibus, tellus ac cursus commodo, tortor mauris condimentum nibh, ut fermentum massa justo sit amet risus. Etiam porta sem malesuada magna mollis euismod. Donec sed odio dui. </p>
-          <p><a class="btn" href="#">View details &raquo;</a></p>
-       </div>
-        <div class="span4">
-          <h2>Heading</h2>
-          <p>Donec sed odio dui. Cras justo odio, dapibus ac facilisis in, egestas eget quam. Vestibulum id ligula porta felis euismod semper. Fusce dapibus, tellus ac cursus commodo, tortor mauris condimentum nibh, ut fermentum massa justo sit amet risus.</p>
-          <p><a class="btn" href="#">View details &raquo;</a></p>
-        </div>
-      </div>
+    <!-- /#wrapper -->
+{% block modal %}
 {% endblock %}
-      <hr>
 
-      <footer>
-      </footer>
+</body>
 
-    </div> <!-- /container -->
-
-  </body>
 </html>

@@ -28,4 +28,6 @@ urlpatterns = patterns('server.views',
     url(r'^new-bu/', 'new_business_unit', name='new_business_unit'),
     # New Machine Group
     url(r'^new-machine-group/(?P<bu_id>.+)/', 'new_machine_group', name='new_machine_group'),
+    # Edit Machine Group
+    url(r'^edit-machine-group/(?P<group_id>.+)/', 'edit_machine_group', name='edit_machine_group'),
 )

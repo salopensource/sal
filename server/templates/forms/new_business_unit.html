@@ -1,17 +1,24 @@
 {% extends "base.html" %}
 {% load i18n %}
-{% load bootstrap_toolkit %}
+{% load bootstrap3 %}
+{% block nav %}
+<li><a href="{% url 'home' %}"><i class="fa fa-fw fa-chevron-left"></i> Back</i></a>
+{% endblock %}
 {% block content %}
-<h1>New Business Unit</h1>
+<div class="row">
+    <div class="col-md-4">
+    <h1>New Business Unit</h1>
 
-{% if error_message %}<p><strong>{{ error_message }}</strong></p>{% endif %}
+    {% if error_message %}<p><strong>{{ error_message }}</strong></p>{% endif %}
 
-    <form action="{% url 'new_business_unit' %}" method="post">{% csrf_token %}
-	
-        <table>
-	
-            {{ form|as_bootstrap }}
-        </table>
-        <p><button type="submit" class="btn primary">Save</button></p>
-    </form>
+        <form action="{% url 'new_business_unit' %}" method="post">{% csrf_token %}
+    	
+            <table>
+    	
+                {% bootstrap_form form %}
+            </table>
+            <p><button type="submit" class="btn btn-primary">Save</button></p>
+        </form>
+    </div>
+</div>
 {% endblock %}

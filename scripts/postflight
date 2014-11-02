@@ -8,7 +8,7 @@
 import sys
 sys.path.append('/usr/local/sal')
 
-import urllib 
+import urllib
 import urllib2
 # try to import from the default place Munki installs it
 try:
@@ -43,7 +43,7 @@ def get_disk_size(path='/'):
         return 0
     total = (st.f_blocks * st.f_frsize) / 1024
     return int(total)
-    
+
 
 def getconsoleuser():
     """Return console user"""
@@ -93,7 +93,7 @@ ServerURL = pref('ServerURL');
 checkinurl = ServerURL+'/checkin'
 # read in the BU Key
 bu_key = pref('key')
-   
+
 # read in Munki Report
 report = FoundationPlist.readPlist('/Library/Managed Installs/ManagedInstallReport.plist')
 
@@ -172,10 +172,10 @@ data['key'] = bu_key
 data['name'] = name
 data['disk_size'] = get_disk_size('/')
 
-data = urllib.urlencode(data) 
+data = urllib.urlencode(data)
 
-# req = urllib2.Request(checkinurl, data) 
-# response = urllib2.urlopen(req) 
+# req = urllib2.Request(checkinurl, data)
+# response = urllib2.urlopen(req)
 # response = response.read()
 
 cmd = ['/usr/bin/curl', '--data', data, checkinurl]

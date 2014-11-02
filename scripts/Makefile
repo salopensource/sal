@@ -7,7 +7,7 @@ REVERSE_DOMAIN=com.grahamgilbert
 PAYLOAD=\
 	pack-yaml \
 	pack-sal-submit
-	
+
 pack-yaml: l_usr_local
 	@sudo mkdir -p ${WORK_D}/usr/local/sal/yaml
 	@sudo ${CP} -R yaml ${WORK_D}/usr/local/sal

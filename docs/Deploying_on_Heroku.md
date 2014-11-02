@@ -1,4 +1,4 @@
-This was originally published at [http://grahamgilbert.com/blog/2014/05/19/deploying-sal-on-heroku/](http://grahamgilbert.com/blog/2014/05/19/deploying-sal-on-heroku/).
+[Original post](http://grahamgilbert.com/blog/2014/05/19/deploying-sal-on-heroku/).
 
 Setting up everything you need for Sal can be difficult, especially if you only have an OS X server available. Thankfully, Sal is built on top of a very common Python framework, Django. And even more thankfully, you can run Django on a whole host of [PaaS](http://en.wikipedia.org/wiki/Platform_as_a_service) providers, including [Heroku](https://www.heroku.com).
 
@@ -14,7 +14,7 @@ Now we need to get a copy of Sal and configure it. Assuming you keep your code i
 
 ``` bash
 $ cd ~/src
-$ git clone https://github.com/grahamgilbert/sal
+$ git clone https://github.com/salsoftware/sal
 $ cd sal
 ```
 
@@ -24,7 +24,7 @@ Now we need to make a copy of sal/example_settings.py
 $ cp sal/example_settings.py sal/settings.py
 ```
 
-And edit sal/settings.py in your favourite editor to your liking (probably time zone at least). [Here is a full list](https://github.com/grahamgilbert/sal/blob/master/docs/Settings.md) of the various options that can be set in sal/settings.py.
+And edit sal/settings.py in your favourite editor to your liking (probably time zone at least). [Here is a full list](https://github.com/salsoftware/sal/blob/master/docs/Settings.md) of the various options that can be set in sal/settings.py.
 
 Heroku uses git for deployment, so we need to commit our changes.
 

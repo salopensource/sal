@@ -2,17 +2,17 @@
 
 ## How it works
 
-Sal is split into Business Units, and then subdivided into Groups. Each customer would be a Business Unit, and then the machines can be divided into Machine Groups. 
+Sal is split into Business Units, and then subdivided into Groups. Each customer would be a Business Unit, and then the machines can be divided into Machine Groups.
 
 ##Server installation/upgrade
 
-The recommended (and easiest) way of getting running on your own hardware is using [Docker](https://github.com/grahamgilbert/sal/blob/master/docs/Docker.md).
+The recommended (and easiest) way of getting running on your own hardware is using [Docker](https://github.com/salsoftware/sal/blob/master/docs/Docker.md).
 
-If you aren't comfortable with Linux, it's recommended that your [first installation is on Heroku](https://github.com/grahamgilbert/sal/blob/master/docs/Deploying_on_Heroku.md) which will handle the server configuration for you.
+If you aren't comfortable with Linux, it's recommended that your [first installation is on Heroku](https://github.com/salsoftware/sal/blob/master/docs/Deploying_on_Heroku.md) which will handle the server configuration for you.
 
-If you plan on installing on your own hardware, see [Installation on Ubuntu 12](https://github.com/grahamgilbert/sal/blob/master/docs/Installation_on_Ubuntu_12.md) (or [CentOS](https://github.com/grahamgilbert/sal/blob/master/docs/Installation_on_CentOS6.md)) for server installation docs. If you are installing on a different operating system, please ensure you have Python 2.7 installed.
+If you plan on installing on your own hardware, see [Installation on Ubuntu 12](https://github.com/salsoftware/sal/blob/master/docs/Installation_on_Ubuntu_12.md) (or [CentOS](https://github.com/salsoftware/sal/blob/master/docs/Installation_on_CentOS6.md)) for server installation docs. If you are installing on a different operating system, please ensure you have Python 2.7 installed.
 
-See [Upgrading on Ubuntu 12](https://github.com/grahamgilbert/sal/blob/master/docs/Upgrading_on_Ubuntu_12.md) for upgrade docs.
+See [Upgrading on Ubuntu 12](https://github.com/salsoftware/sal/blob/master/docs/Upgrading_on_Ubuntu_12.md) for upgrade docs.
 
 ## Getting started
 
@@ -36,11 +36,11 @@ The Stats Only user level is not used at this time, and should *not* be assigned
 
 ## Client configuration
 
-The sal ``postflight`` script needs to be deployed in the ``/usr/local/munki`` directory, and the ``yaml`` directory should be deployed in ``/usr/local/sal/yaml`` (a luggage makefile is included). Alternately, you can use the [published package](https://github.com/grahamgilbert/sal/releases/latest) to deploy the necessary client files.
+The sal ``postflight`` script needs to be deployed in the ``/usr/local/munki`` directory, and the ``yaml`` directory should be deployed in ``/usr/local/sal/yaml`` (a luggage makefile is included). Alternately, you can use the [published package](https://github.com/salsoftware/sal/releases/latest) to deploy the necessary client files.
 
 If you have an existing ``postflight`` script (for example, Munki Web Admin), you will need to rename the sal postflight script (for example, ``sal-submit``) and add a reference in your existing postflight like this:
 
-```
+``` bash
 if [ -f /usr/local/munki/sal-submit ]
   then
     /usr/local/munki/sal-submit
@@ -60,4 +60,3 @@ If you wish to set the Server Address and Machine Group Key via defaults you can
 ### Using custom Facts
 
 If you are using [Puppet](http://puppetlabs.com) to manage your Macs, you can deploy custom Facts in the usual manner using pluginsync. If you're not using Puppet, you can still utilise custom Facts. You should deploy the ``.rb`` files to ``/usr/local/sal/facter``. If you want to use [external Facts](http://docs.puppetlabs.com/guides/custom_facts.html#external-facts), you can deploy them to the usual location (``/etc/facter/facts.d/``).
-

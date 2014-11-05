@@ -43,7 +43,7 @@ INSTALLED_APPS = (
     'sal',
     'server',
     'south',
-     'bootstrap3',
+    'bootstrap3',
 )
 ```
 

@@ -1,8 +1,8 @@
-Upgrading on Ubuntu 12.04 LTS
+Upgrading on Ubuntu 12.04 LTS and 14.04.1 
 =====================
-This document assumes Ubuntu 12.04 LTS and that you have an existing installation of Sal, installed using the [instructions provided](https://github.com/salsoftware/sal/blob/master/docs/Installation_on_Ubuntu_12.md). If you don't have an existing installation, you just need to follow the installation instructions.
+This document assumes Ubuntu 12.04 LTS or 14.04.1 and that you have an existing installation of Sal, installed using the [instructions provided](https://github.com/salsoftware/sal/blob/master/docs/Installation_on_Ubuntu_12.md). If you don't have an existing installation, you just need to follow the installation instructions.
 
-**If you are upgrading from Sal 1 to Sal 2, please add the following to your ``sal/settings.py`` file:**
+**If you are upgrading from Sal 1 to Sal 2, please make the following changes to your ``sal/settings.py`` file:**
 
 ``` python
 BOOTSTRAP3 = {
@@ -16,6 +16,35 @@ There is also a new plugin: MunkiVersion. To set it's order, add it to ``PLUGIN_
 
 ```python
 PLUGIN_ORDER = ['Activity','Status','OperatingSystem', 'MunkiVersion', 'Uptime', 'Memory']
+```
+
+Under installed apps add 
+
+	'bootstrap3', 
+
+and remove 
+
+	'bootstrap-toolkit'
+	
+Your installed apps should look like this:
+
+```python
+INSTALLED_APPS = (
+    'django.contrib.auth',
+    'django.contrib.contenttypes',
+    'django.contrib.sessions',
+    'django.contrib.sites',
+    'django.contrib.messages',
+    'django.contrib.staticfiles',
+    # Uncomment the next line to enable the admin:
+    'django.contrib.admin',
+    # Uncomment the next line to enable admin documentation:
+    'django.contrib.admindocs',
+    'sal',
+    'server',
+    'south',
+    'bootstrap3',
+)
 ```
 
 ##Upgrade guide
@@ -49,6 +78,12 @@ Run the migration so your database is up to date
 	python manage.py migrate
 	
 If you get errors about a failed migration, run ``python manage.py migrate`` again. Some errors are just temporary.
+
+Now you have to upgrade the static images
+
+	python manage.py collectstatic
+
+Press yes when asked.
 
 Finally, as root (not saluser) restart Apache
 

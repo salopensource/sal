@@ -106,7 +106,8 @@ system_profile = FoundationPlist.readPlistFromString(stdout)
 try:
     f = open('/var/lib/puppet/state/last_run_summary.yaml', 'r')
     puppetreport = yaml.load(f.read())
-    report['Puppet'] = puppetreport
+    report['Puppet']['time']['last_run'] = puppetreport['time']['last_run']
+    report['Puppet']['events']['failure'] = puppetreport['events']['failure']
 except:
     pass
 

@@ -10,7 +10,7 @@ The recommended (and easiest) way of getting running on your own hardware is usi
 
 If you aren't comfortable with Linux, it's recommended that your [first installation is on Heroku](https://github.com/salsoftware/sal/blob/master/docs/Deploying_on_Heroku.md) which will handle the server configuration for you.
 
-If you plan on installing on your own hardware, see [Installation on Ubuntu 12](https://github.com/salsoftware/sal/blob/master/docs/Installation_on_Ubuntu_12.md) (or [CentOS](https://github.com/salsoftware/sal/blob/master/docs/Installation_on_CentOS6.md)) for server installation docs. If you are installing on a different operating system, please ensure you have Python 2.7 installed.
+If you plan on installing on your own hardware, see [Installation on Ubuntu 12](https://github.com/salsoftware/sal/blob/master/docs/Installation_on_Ubuntu_12.md) (or [CentOS](https://github.com/salsoftware/sal/blob/master/docs/Installation_on_CentOS6.md) or [Ubuntu 14](https://github.com/salsoftware/sal/blob/master/docs/Installation_on_Ubuntu_14.md)) for server installation docs. If you are installing on a different operating system, please ensure you have Python 2.7 installed.
 
 See [Upgrading on Ubuntu 12](https://github.com/salsoftware/sal/blob/master/docs/Upgrading_on_Ubuntu_12.md) for upgrade docs.
 

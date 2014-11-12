@@ -511,9 +511,15 @@ def machine_detail(request, machine_id):
                 elif not name in report['RemovedItems']:
                     report['RemovedItems'].append(item['name'])
 
+    config_installed = 'config' in settings.INSTALLED_APPS
+
     if 'managed_uninstalls_list' in report:
         report['managed_uninstalls_list'].sort()
-    config_installed = 'config' in settings.INSTALLED_APPS
+        if config_installed:
+            from config.views import filter_uninstalls
+            report['managed_uninstalls_list'] = filter_uninstalls(business_unit.id, report['managed_uninstalls_list'])
+
+    
     c = {'user':user, 'machine_group': machine_group, 'business_unit': business_unit, 'report': report, 'install_results': install_results, 'removal_results': removal_results, 'machine': machine, 'facts':facts, 'conditions':conditions, 'ip_address':ip_address, 'config_installed':config_installed }
     return render_to_response('server/machine_detail.html', c, context_instance=RequestContext(request))
 

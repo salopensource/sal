@@ -75,7 +75,7 @@ def index(request):
         business_units = BusinessUnit.objects.all()
         config_installed = 'config' in settings.INSTALLED_APPS
 
-        c = {'user': request.user, 'business_units': business_units, 'output': output, 'config_installed': config_installed}
+        c = {'user': request.user, 'business_units': business_units, 'output': output, }
         return render_to_response('server/index.html', c, context_instance=RequestContext(request))
 
 # Plugin machine list

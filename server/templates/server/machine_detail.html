@@ -10,7 +10,7 @@
 {% block nav %}
 <li><a href="{% url 'bu_dashboard' business_unit.id %}"><i class="fa fa-chevron-left fa-fw"></i> Back</a></li>
 {% if user.userprofile.level == 'GA' or user.userprofile.level == 'RW' %}
-        {% if config_installed %}
+        {% if CONFIG_INSTALLED %}
             <li><a href="{% url 'config_configure_machine' machine.id %}"><i class="fa fa-wrench fa-fw"></i> Configure Machine</a></li>
         {% endif %}
         <li><a href="#myModal" data-toggle="modal"><i class="fa fa-times fa-fw"></i> Computer</a></i>

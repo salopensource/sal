@@ -22,7 +22,7 @@
                 </li>
             {% endfor %}
             {% if is_editor %}
-            {% if config_installed %}
+            {% if CONFIG_INSTALLED %}
                 <li><a href="{% url 'config_business_unit_index' business_unit.id %}"><i class="fa fa-wrench fa-fw"></i>  Configure Business Unit</a></li>
                 <li><a href="{% url 'config_new_machine' business_unit.id %}"><i class="fa fa-plus fa-fw"></i> New Machine</a></li>
             {% endif %}

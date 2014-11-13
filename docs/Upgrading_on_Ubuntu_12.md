@@ -10,7 +10,23 @@ BOOTSTRAP3 = {
 }
 ```
 
-This is in ``sal/example_settings.py`` if you want to copy and paste.
+And add a line to ``TEMPLATE_CONTEXT_PROCESSORS`` so it looks like:
+
+```python
+TEMPLATE_CONTEXT_PROCESSORS = (
+    "django.contrib.auth.context_processors.auth",
+    "django.core.context_processors.debug",
+    "django.core.context_processors.i18n",
+    "django.core.context_processors.media",
+    "django.core.context_processors.static",
+    "django.core.context_processors.tz",
+    "django.contrib.messages.context_processors.messages",
+    "sal.context_processors.display_name",
+    "sal.context_processors.config_installed",
+)
+```
+
+These are in ``sal/example_settings.py`` if you want to copy and paste.
 
 There is also a new plugin: MunkiVersion. To set it's order, add it to ``PLUGIN_ORDER``:
 

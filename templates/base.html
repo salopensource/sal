@@ -1,4 +1,5 @@
 {% load i18n %} {% load bootstrap3 %}
+{% load includeifapp %}
 <!DOCTYPE html>
 <html lang="en">
 
@@ -96,6 +97,9 @@
                         <li><a href="{% url 'admin:index' %}"><i class="fa fa-gear fa-fw"></i> Administration</a>
                         </li>
                         {% endif %}
+                        {% if CONFIG_INSTALLED %}
+                        {% includeifapp config 'config/help.html' %}
+                        {% endif %}
                         <li class="divider"></li>
                         <li><a href="{% url 'django.contrib.auth.views.logout_then_login' %}"><i class="fa fa-sign-out fa-fw"></i> Logout</a>
                         </li>
@@ -127,12 +131,12 @@
             {% block content %}
             {% endblock %}
             
-            
         </div>
         <!-- /#page-wrapper -->
 
     </div>
     <!-- /#wrapper -->
+
 {% block modal %}
 {% endblock %}
 

@@ -14,6 +14,8 @@ If you plan on installing on your own hardware, see [Installation on Ubuntu 12](
 
 See [Upgrading on Ubuntu 12](https://github.com/salsoftware/sal/blob/master/docs/Upgrading_on_Ubuntu_12.md) for upgrade docs.
 
+If you are running a manual installation and would like to migrate to Docker, please see the [migration document](https://github.com/salsoftware/sal/blob/master/docs/DockerMigration.md) written by Nick McSpadden.
+
 ## Getting started
 
 You will need to have the server component of Sal setup before continuing to the following steps. Log in with the username and password you set when performing the server setup. You will need to create a Business Unit and Machine Group to get started.

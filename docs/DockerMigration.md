@@ -15,7 +15,7 @@ Setup your Docker host:
 1. Install Docker (as you'd expect).
 2. `docker pull postgres`
    *  We're using Postgres simply because it's recommended.
-3. `docker pull macadmins\sal`
+3. `docker pull macadmins/sal`
 4. Obtain the setup_db.sh script from the Sal github: 
   `curl -o https://raw.githubusercontent.com/macadmins/sal/master/setup_db.sh`
 5. `chmod +x setup_db.sh`

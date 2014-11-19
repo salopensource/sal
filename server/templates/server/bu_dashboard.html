@@ -24,7 +24,9 @@
             {% if is_editor %}
             {% if CONFIG_INSTALLED %}
                 <li><a href="{% url 'config_business_unit_index' business_unit.id %}"><i class="fa fa-wrench fa-fw"></i>  Configure Business Unit</a></li>
+                {% if machine_groups.count > 0 %}
                 <li><a href="{% url 'config_new_machine' business_unit.id %}"><i class="fa fa-plus fa-fw"></i> New Machine</a></li>
+                {% endif %}
             {% endif %}
             <li><a href="{% url 'new_machine_group' business_unit.id %}"><i class="fa fa-plus fa-fw"></i> New Machine Group</a></li>
             {% endif %}

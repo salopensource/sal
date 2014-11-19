@@ -1,0 +1,68 @@
+#!/usr/bin/python
+
+import sys
+import os
+import socket
+import re
+
+try:
+    from munkilib import updatecheck
+except:
+    sys.path.append('/usr/local/munki')
+    from munkilib import updatecheck
+
+try:
+    from munkilib import FoundationPlist
+except:
+    sys.path.append('/usr/local/munki')
+    from munkilib import FoundationPlist
+
+try:
+    from munkilib import munkicommon
+except:
+    sys.path.append('/usr/local/munki')
+    from munkilib import munkicommon
+
+
+RepoURL = "https://macsvc.hires-berlin.de"
+ConfigName = "ManagedInstalls.plist"
+HostsFileName = "ManagedMunkiHosts.plist"
+ConfigDir = "/Library/Preferences"
+ConfigPath = os.path.join(ConfigDir, ConfigName)
+HostsFileURL = os.path.join(RepoURL, HostsFileName)
+HostsFilePath = os.path.join(ConfigDir, HostsFileName)
+ServerConfigName = "ManagedMunkiServer.plist"
+ServerConfigURL = os.path.join(RepoURL, ServerConfigName)
+ServerConfigPath = os.path.join(ConfigDir, ServerConfigName)
+def UpdateClientIdentifier(ManifestName):
+	munkicommon.set_pref("ClientIdentifier", ManifestName)
+def MergePlists(FromPlist, ToPlist):
+	FromPlistData = FoundationPlist.readPlist(FromPlist)
+	ToPlistData = FoundationPlist.readPlist(ToPlist)
+	for item in FromPlistData:
+		ToPlistData[item] = FromPlistData[item]
+	FoundationPlist.writePlist(ToPlistData, ToPlist)
+if (sys.argv[1] != "logoutinstall") and (sys.argv[1] != "installwithnologout"):
+	print "Checking for new %s" % (HostsFileName)
+	if updatecheck.getResourceIfChangedAtomically(HostsFileURL, HostsFilePath):
+		hostname = socket.gethostname()
+		#This is necessary as if the hostname has caps in it, it will not match!
+		hostname = hostname.lower()
+		print "     Matching machine hostname: %s to manifest." % (hostname)
+		for host in FoundationPlist.readPlist(HostsFilePath)["hosts"]:
+			name = host["name"].lower()
+			# Handy-dandy debugging print -- would be nice if this only appeared when -v or
+			# greater level of verbosity was requested...
+			print "          Name from file = %s." % (name)
+			manifest = host["manifest-id"].lower()
+			# Handy-dandy debugging print -- would be nice if this only appeared when -v or
+			# greater level of verbosity was requested...
+			print "          manifest-id from file = %s." % (manifest)
+			if re.match(name, hostname):
+				print "     Setting ClientIdentifier to manifest name: %s." % (manifest)
+				UpdateClientIdentifier(manifest)
+				break
+	print "Checking for new %s" % (ServerConfigName)
+	if updatecheck.getResourceIfChangedAtomically(ServerConfigURL, ServerConfigPath):
+		print "     Merging new server settings into configuration."
+		MergePlists(ServerConfigPath, ConfigPath)

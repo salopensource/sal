@@ -1,0 +1,67 @@
+#!/bin/bash
+source "`dirname "${0}"`/munkiwebadmin-config"
+
+REPORTSUBMITURL="${MWA_HOST}/update"
+INVENTORYHASHURL="${MWA_HOST}/inventory/hash"
+INVENTORYSUBMITURL="${MWA_HOST}/inventory/submit"
+
+RUNTYPE="$1"
+MAC=`ifconfig en0 | awk '$1=="ether" {print $2}'`
+NAME=`/usr/sbin/scutil --get ComputerName | cut -d' ' -f1`
+REPORTPATH="/Library/Managed Installs/ManagedInstallReport.plist"
+INVENTORYPATH="/Library/Managed Installs/ApplicationInventory.plist"
+
+PLISTBUDDY="/usr/libexec/PlistBuddy"
+
+# Copy the report to a temporary file.
+TMPPLIST=/tmp/`head -c10 /dev/urandom | md5`.plist
+cp "$REPORTPATH" "$TMPPLIST"
+
+# Generate a system_profiler report.
+PROFILEPLIST=/tmp/`head -c10 /dev/urandom | md5`.plist
+/usr/sbin/system_profiler -xml SPNetworkDataType SPHardwareDataType > "$PROFILEPLIST"
+
+# Merge system profiler report with munki report.
+$PLISTBUDDY -c "Add :MachineInfo:SystemProfile array" "$TMPPLIST"
+$PLISTBUDDY -c "Merge $PROFILEPLIST :MachineInfo:SystemProfile" "$TMPPLIST"
+
+# Compress and encode report.
+REPORTTMP=`mktemp -t postflight`
+echo -n "base64bz2report=" > "$REPORTTMP"
+bzip2 --best < "$TMPPLIST" | openssl base64 >> "$REPORTTMP"
+
+# Submit Munki report to server.
+mwa_curl --max-time 30 \
+    -d runtype="$RUNTYPE" \
+    -d mac="$MAC" \
+    -d name=\""$NAME"\" \
+    -d "@$REPORTTMP" \
+    "$REPORTSUBMITURL/postflight"
+    
+
+if [ -e "$INVENTORYPATH" ] ; then
+    #INVENTORY_CHECKSUM=`cat /Library/Managed\ Installs/ApplicationInventory.plist | openssl dgst -sha256`
+    # Above doesn't work on Leopard. So let's call Python.
+    INVENTORY_CHECKSUM=`/usr/bin/python -c 'import hashlib; f = open("/Library/Managed Installs/ApplicationInventory.plist").read(); print hashlib.sha256(f).hexdigest()'`
+    STORED_CHECKSUM=`mwa_curl --max-time 30 "$INVENTORYHASHURL/$MAC"`
+    if [ "$INVENTORY_CHECKSUM" != "$STORED_CHECKSUM" ]; then 
+        # inventory changed, sumbit to server
+        # Compress and encode inventory.
+        INVENTORYTMP=`mktemp -t inventory`
+        echo -n "base64bz2inventory=" > "$INVENTORYTMP"
+        bzip2 --best < "$INVENTORYPATH" | openssl base64 >> "$INVENTORYTMP"
+        # Submit inventory to server.
+        mwa_curl --max-time 30 \
+            -d runtype="$RUNTYPE" \
+            -d mac="$MAC" \
+            -d hostname=\""$NAME"\" \
+            -d "@$INVENTORYTMP" \
+            "$INVENTORYSUBMITURL"
+        # clean up
+        rm -f "$INVENTORYTMP"
+    fi
+fi
+
+# Clean up and exit
+rm -f "$REPORTTMP" "$TMPPLIST" "$PROFILEPLIST"
+exit 0

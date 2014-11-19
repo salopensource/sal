@@ -10,7 +10,9 @@
 {% block nav %}
     {% if user.userprofile.level == 'GA' or user.userprofile.level == 'RW' %}
         {% if CONFIG_INSTALLED %}
-            <li><a href="{% url 'config_index' %}"><i class="fa fa-wrench fa-fw"></i> Configure Machines</a></li>
+            {% if user.userprofile.level == 'GA' %}
+                <li><a href="{% url 'config_index' %}"><i class="fa fa-wrench fa-fw"></i> Configure Machines</a></li>
+            {% endif %}
         {% endif %}
     {% endif %}
     <li class="active">

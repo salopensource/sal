@@ -48,35 +48,47 @@ def index(request):
     if user_level != 'GA':
         # user has many BU's display them all in a friendly manner
         business_units = user.businessunit_set.all()
+        if user.businessunit_set.count() == 0:
+            c = {'user': request.user, }
+            return render_to_response('server/no_access.html', c, context_instance=RequestContext(request))
         if user.businessunit_set.count() == 1:
             # user only has one BU, redirect to it
             for bu in user.businessunit_set.all():
                 return redirect('server.views.bu_dashboard', bu_id=bu.id)
                 break
-    else:
+
+    if user_level == 'GA':
         machines = Machine.objects.all()
-        # Build the manager
-        manager = PluginManager()
-        # Tell it the default place(s) where to find plugins
-        manager.setPluginPlaces([settings.PLUGIN_DIR, os.path.join(settings.PROJECT_DIR, 'server/plugins')])
-        # Load all plugins
-        manager.collectPlugins()
-        output = []
-        # Loop round the plugins and print their names.
-        for plugin in manager.getAllPlugins():
-            data = {}
-            data['name'] = plugin.name
-            (data['html'], data['width']) = plugin.plugin_object.show_widget('front', machines)
-            #output.append(plugin.plugin_object.show_widget('front'))
-            output.append(data)
-        output = utils.orderPluginOutput(output)
+    else:
+        machines = Machine.objects.none()
+        for business_unit in user.businessunit_set.all():
+            for group in business_unit.machinegroup_set.all():
+                machines = machines | group.machine_set.all()
+    # Build the manager
+    manager = PluginManager()
+    # Tell it the default place(s) where to find plugins
+    manager.setPluginPlaces([settings.PLUGIN_DIR, os.path.join(settings.PROJECT_DIR, 'server/plugins')])
+    # Load all plugins
+    manager.collectPlugins()
+    output = []
+    # Loop round the plugins and print their names.
+    for plugin in manager.getAllPlugins():
+        data = {}
+        data['name'] = plugin.name
+        (data['html'], data['width']) = plugin.plugin_object.show_widget('front', machines)
+        #output.append(plugin.plugin_object.show_widget('front'))
+        output.append(data)
+    output = utils.orderPluginOutput(output)
 
-        # get the user level - if they're a global admin, show all of the machines. If not, show only the machines they have access to
+    # get the user level - if they're a global admin, show all of the machines. If not, show only the machines they have access to
+    if user_level == 'GA':
         business_units = BusinessUnit.objects.all()
-        config_installed = 'config' in settings.INSTALLED_APPS
+    else:
+        business_units = user.businessunit_set.all()
+    config_installed = 'config' in settings.INSTALLED_APPS
 
-        c = {'user': request.user, 'business_units': business_units, 'output': output, }
-        return render_to_response('server/index.html', c, context_instance=RequestContext(request))
+    c = {'user': request.user, 'business_units': business_units, 'output': output, }
+    return render_to_response('server/index.html', c, context_instance=RequestContext(request))
 
 # Plugin machine list
 @login_required

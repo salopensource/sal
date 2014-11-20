@@ -4,7 +4,7 @@
             {{ title }}
         </div>
         <!-- /.panel-heading -->
-        <div class="panel-body">
+        <div class="panel-body panel-activity">
         <div class="col-md-3">
             <div class="panel-body">
                 <a href="{% url 'machine_list_front' 'Activity' '1-hour' %}">
@@ -13,14 +13,14 @@
                             <div class="row">
                                 <div class="col-md-3">
                                     <i class="fa fa-clock-o fa-5x"></i>
-                                    
+
                                 </div>
                                 <div class="col-md-9 text-right">
                                     <div class="huge">{{ checked_in_this_hour }}</div>
                                     <div>Last hour</div>
                                 </div>
                             </div>
-                        
+
                         </div>
                     </div>
                 </a>

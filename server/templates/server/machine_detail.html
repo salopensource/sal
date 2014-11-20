@@ -11,7 +11,7 @@
 <li><a href="{% url 'bu_dashboard' business_unit.id %}"><i class="fa fa-chevron-left fa-fw"></i> Back</a></li>
 {% if user.userprofile.level == 'GA' or user.userprofile.level == 'RW' %}
         {% if CONFIG_INSTALLED %}
-            <li><a href="{% url 'config_configure_machine' machine.id %}"><i class="fa fa-wrench fa-fw"></i> Configure Machine</a></li>
+            <li><a href="{% url 'config_machine_index' machine.id %}"><i class="fa fa-wrench fa-fw"></i> Configure Computer</a></li>
         {% endif %}
         <li><a href="#myModal" data-toggle="modal"><i class="fa fa-times fa-fw"></i> Computer</a></i>
 
@@ -185,12 +185,14 @@
 
       </div>
   </div>
+</div>
 
 
- <div class="row">
-   <div class="col-md-8">
     {% if report.AppleUpdates|length %}
-       <h3>Apple Updates <span class="badge alert-info">{{ report.AppleUpdates|length }}</span> <a class="btn btn-sm btn-info" data-toggle="collapse" data-target="#collapseTwo">Toggle</a></h3>
+    <div class="row">&nbsp;</div>
+     <div class="row">
+      <div class="col-md-12">
+       <a class="btn btn-lg btn-info btn-block" data-toggle="collapse" data-target="#collapseTwo">Apple Updates</a>
                     <div id="collapseTwo" class="collapse in">
           {% with title='Apple Updates' pkglist=report.AppleUpdates %}
           {% include 'server/pkgtable.html' %}
@@ -198,41 +200,91 @@
       </div>
     {% endif %}
     {% if report.ItemsToInstall|length %}
-       <h3>Active Installs <span class="badge alert-info">{{ report.ItemsToInstall|length }}</span> <a class="btn btn-sm btn-info" data-toggle="collapse" data-target="#collapse3">Toggle</a></h3>
+    <div class="row">
+       <div class="col-md-12">
+       <a class="btn btn-lg btn-info btn-block" data-toggle="collapse" data-target="#collapse3">Active Installs</a>
                     <div id="collapse3" class="collapse in">
  {% with title='Active Installs' pkglist=report.ItemsToInstall %}
    {% include 'server/pkgtable.html' %}
  {% endwith %}
 </div>
+</div>
+</div>
  {% endif %}
  {% if report.ItemsToRemove|length %}
-    <h3>Active Removals <span class="badge alert-info">{{ report.ItemsToRemove|length }}</span> <a class="btn btn-sm btn-info" data-toggle="collapse" data-target="#collapse4">Toggle</a></h3>
+ <div class="row">&nbsp;</div>
+ <div class="row">
+       <div class="col-md-12">
+    <a class="btn btn-lg btn-info btn-block" data-toggle="collapse" data-target="#collapse4">Active Removals</a>
                     <div id="collapse4" class="collapse in">
  {% with title='Active Removals' pkglist=report.ItemsToRemove %}
    {% include 'server/pkgtable.html' %}
  {% endwith %}
 </div>
+</div>
+</div>
  {% endif %}
  {% if report.ProblemInstalls|length %}
-    <h3>Problem Installs <span class="badge badge-danger">{{ report.ProblemInstalls|length }}</span> <a class="btn btn-sm btn-info" data-toggle="collapse" data-target="#collapse5">Toggle</a></h3>
+ <div class="row">&nbsp;</div>
+ <div class="row">
+       <div class="col-md-12">
+    <a class="btn btn-lg btn-info btn-block" data-toggle="collapse" data-target="#collapse5">Problem Installs</a>
                     <div id="collapse5" class="collapse in">
  {% with title='Problem Installs' pkglist=report.ProblemInstalls %}
    {% include 'server/pkgtable.html' %}
  {% endwith %}
 </div>
+</div>
+</div>
  {% endif %}
    </div>
  </div>
+ <div class="row">&nbsp;</div>
  <div class="row">
-   <div class="col-md-8">
-       <h3>Managed Installs <span class="badge alert-info">{{ report.ManagedInstalls|length }}</span> <a class="btn btn-sm btn-info" data-toggle="collapse" data-target="#collapse6">Toggle</a></h3>
+   <div class="col-md-12">
+       <a class="btn btn-lg btn-info btn-block" data-toggle="collapse" data-target="#collapse6">Managed Installs</a>
                     <div id="collapse6" class="collapse">
        {% with title='Managed Installs' pkglist=report.ManagedInstalls %}
          {% include 'server/pkgtable.html' %}
        {% endwith %}
    </div>
+
+       {% if report.managed_uninstalls_list|length %}
+       <div class="row">&nbsp;</div>
+       <div class="row">
+       <div class="col-md-12">
+         <a class="btn btn-lg btn-info btn-block" data-toggle="collapse" data-target="#collapse8">Managed Uninstalls</a>
+                    <div id="collapse8" class="collapse">
+         <table class="client_info table table-striped table-condensed">
+           <thead>
+             <tr>
+               <th>Name</th>
+               <th>Status</th>
+             </tr>
+           </thead>
+           <tbody>
+             {% for item in report.managed_uninstalls_list %}
+             <tr>
+               <td>{{ item }}</td>
+               {% if item in report.RemovedItems %}
+                 <td>not installed</td>
+               {% else %}
+                 <td class='error'>installed</td>
+               {% endif %}
+             </tr>
+             {% endfor %}
+           </tbody>
+         </table>
+         </div>
+         </div>
+     </div>
+       {% endif %}
+   
    {% if facts|length %}
-       <h3>Facter <span class="badge alert-info">{{ facts|length }}</span> <a class="btn btn-sm btn-info btn-info" data-toggle="collapse" data-target="#collapseOne">Toggle</a></h3>
+   <div class="row">&nbsp;</div>
+    <div class="row">
+     <div class="col-md-12">
+       <a class="btn btn-lg btn-info btn-block" data-toggle="collapse" data-target="#collapseOne">Facter</a>
            <div id="collapseOne" class="collapse">
            <table class="client_info table table-striped table-condensed">
                <thead>
@@ -255,10 +307,15 @@
                </tbody>
            </table>
        </div>
+     </div>
+    </div>
    {% endif %}
 
    {% if conditions|length %}
-       <h3>MSC Conditions <span class="badge alert-info">{{ conditions|length }}</span> <a class="btn btn-sm btn-info" data-toggle="collapse" data-target="#collapse7">Toggle</a></h3>
+   <div class="row">&nbsp;</div>
+    <div class="row">
+      <div class="col-md-12">
+       <a class="btn btn-lg btn-info btn-block" data-toggle="collapse" data-target="#collapse7">MSC Conditions</a>
            <div id="collapse7" class="collapse">
            <table class="client_info table table-striped table-condensed">
                <thead>
@@ -281,36 +338,10 @@
                </tbody>
            </table>
        </div>
+      </div>
+    </div>
    {% endif %}
-</div>
-   <div class="col-md-4">
-       {% if report.managed_uninstalls_list|length %}
-         <h3>Managed Uninstalls <span class="badge alert-info">{{ report.managed_uninstalls_list|length }}</span> <a class="btn btn-sm btn-info" data-toggle="collapse" data-target="#collapse8">Toggle</a></h3>
-                    <div id="collapse8" class="collapse">
-         <table class="client_info table table-striped table-condensed">
-           <thead>
-             <tr>
-               <th>Name</th>
-               <th>Status</th>
-             </tr>
-           </thead>
-           <tbody>
-             {% for item in report.managed_uninstalls_list %}
-             <tr>
-               <td>{{ item }}</td>
-               {% if item in report.RemovedItems %}
-                 <td>not installed</td>
-               {% else %}
-                 <td class='error'>installed</td>
-               {% endif %}
-             </tr>
-             {% endfor %}
-           </tbody>
-         </table>
-     </div>
-       {% endif %}
-   </div>
- </div>
+
 {% endblock %}
 {% block modal %}
 {% if user.userprofile.level == 'GA' or user.userprofile.level == 'RW' %}

@@ -157,7 +157,7 @@ except:
 command = ['/usr/sbin/scutil', '--get', 'ComputerName']
 task = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 (stdout, stderr) = task.communicate()
-name = stdout.split(" ")[0]
+name = stdout
 data = {}
 
 # Set the OS family

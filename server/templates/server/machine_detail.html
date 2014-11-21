@@ -198,31 +198,33 @@
           {% include 'server/pkgtable.html' %}
           {% endwith %}
       </div>
+      </div>
+    </div>
     {% endif %}
     {% if report.ItemsToInstall|length %}
     <div class="row">
        <div class="col-md-12">
        <a class="btn btn-lg btn-info btn-block" data-toggle="collapse" data-target="#collapse3">Active Installs</a>
-                    <div id="collapse3" class="collapse in">
- {% with title='Active Installs' pkglist=report.ItemsToInstall %}
-   {% include 'server/pkgtable.html' %}
- {% endwith %}
-</div>
-</div>
-</div>
+        <div id="collapse3" class="collapse in">
+           {% with title='Active Installs' pkglist=report.ItemsToInstall %}
+             {% include 'server/pkgtable.html' %}
+           {% endwith %}
+        </div>
+      </div>
+    </div>
  {% endif %}
  {% if report.ItemsToRemove|length %}
  <div class="row">&nbsp;</div>
  <div class="row">
        <div class="col-md-12">
-    <a class="btn btn-lg btn-info btn-block" data-toggle="collapse" data-target="#collapse4">Active Removals</a>
-                    <div id="collapse4" class="collapse in">
- {% with title='Active Removals' pkglist=report.ItemsToRemove %}
-   {% include 'server/pkgtable.html' %}
- {% endwith %}
-</div>
-</div>
-</div>
+          <a class="btn btn-lg btn-info btn-block" data-toggle="collapse" data-target="#collapse4">Active Removals</a>
+            <div id="collapse4" class="collapse in">
+             {% with title='Active Removals' pkglist=report.ItemsToRemove %}
+               {% include 'server/pkgtable.html' %}
+             {% endwith %}
+            </div>
+      </div>
+    </div>
  {% endif %}
  {% if report.ProblemInstalls|length %}
  <div class="row">&nbsp;</div>
@@ -237,8 +239,7 @@
 </div>
 </div>
  {% endif %}
-   </div>
- </div>
+
  <div class="row">&nbsp;</div>
  <div class="row">
    <div class="col-md-12">
@@ -247,6 +248,8 @@
        {% with title='Managed Installs' pkglist=report.ManagedInstalls %}
          {% include 'server/pkgtable.html' %}
        {% endwith %}
+   </div>
+   </div>
    </div>
 
        {% if report.managed_uninstalls_list|length %}

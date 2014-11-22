@@ -90,6 +90,74 @@ def index(request):
     c = {'user': request.user, 'business_units': business_units, 'output': output, }
     return render_to_response('server/index.html', c, context_instance=RequestContext(request))
 
+# Manage Users
+@login_required
+def manage_users(request):
+    user = request.user
+    user_level = user.userprofile.level
+    if user_level != 'GA':
+        return redirect(index)
+
+    # We require you to be staff to manage users
+    if user.is_staff != True:
+        return redirect(index)
+    users = User.objects.all()
+    c = {'user':request.user, 'users':users}
+    return render_to_response('server/manage_users.html', c, context_instance=RequestContext(request))
+
+# New User
+@login_required
+def new_user(request):
+    user = request.user
+    user_level = user.userprofile.level
+    if user_level != 'GA':
+        return redirect(index)
+    # We require you to be staff to manage users
+    if user.is_staff != True:
+        return redirect(index)
+    c = {}
+    c.update(csrf(request))
+    if request.method == 'POST':
+        form = NewUserForm(request.POST)
+        if form.is_valid():
+            user = form.save()
+            user_profile = UserProfile.objects.get(user=user)
+            user_profile.level=request.POST['user_level']
+            user_profile.save()
+            return redirect('manage_users')
+    else:
+        form = NewUserForm()
+    c = {'form': form}
+
+    return render_to_response('forms/new_user.html', c, context_instance=RequestContext(request))
+
+
+@login_required
+def edit_user(request, user_id):
+    user = request.user
+    user_level = user.userprofile.level
+    if user_level != 'GA':
+        return redirect(index)
+    # We require you to be staff to manage users
+    if user.is_staff != True:
+        return redirect(index)
+    the_user = get_object_or_404(User, pk=int(user_id))
+    c = {}
+    c.update(csrf(request))
+    if request.method == 'POST':
+        form = EditUserForm(request.POST)
+        if form.is_valid():
+            user = form.save()
+            user_profile = UserProfile.objects.get(user=the_user)
+            user_profile.level=request.POST['user_level']
+            user_profile.save()
+            return redirect('manage_users')
+    else:
+        form = EditUserForm({'user_level':the_user.userprofile.level, 'user_id':the_user.id})
+    c = {'form': form, 'the_user':the_user}
+
+    return render_to_response('forms/edit_user.html', c, context_instance=RequestContext(request))
+
 # Plugin machine list
 @login_required
 def machine_list(request, pluginName, data, page='front', theID=None):
@@ -153,7 +221,32 @@ def new_business_unit(request):
     if user_level != 'GA':
         return redirect(index)
     return render_to_response('forms/new_business_unit.html', c, context_instance=RequestContext(request))
+
 # Edit BU
+@login_required
+def edit_business_unit(request, bu_id):
+    user = request.user
+    user_level = user.userprofile.level
+    if user_level != 'GA':
+        return redirect(index)
+    business_unit = get_object_or_404(BusinessUnit, pk=int(bu_id))
+    c = {}
+    c.update(csrf(request))
+    if request.method == 'POST':
+        form = EditBusinessUnitForm(request.POST, instance=business_unit)
+        if form.is_valid():
+            new_business_unit = form.save(commit=False)
+            new_business_unit.save()
+            form.save_m2m()
+            return redirect('bu_dashboard', new_business_unit.id)
+    else:
+        form = EditBusinessUnitForm(instance=business_unit)
+    c = {'form': form, 'business_unit':business_unit}
+    user = request.user
+    user_level = user.userprofile.level
+    if user_level != 'GA':
+        return redirect(index)
+    return render_to_response('forms/edit_business_unit.html', c, context_instance=RequestContext(request))
 
 # BU Dashboard
 @login_required

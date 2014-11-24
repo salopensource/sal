@@ -26,8 +26,24 @@ urlpatterns = patterns('server.views',
     url(r'^checkin', 'checkin', name='checkin'),
     # New Business Unit
     url(r'^new-bu/', 'new_business_unit', name='new_business_unit'),
+    # Edit Business Unit
+    url(r'^business_unit/edit/(?P<bu_id>.+)/', 'edit_business_unit', name='edit_business_unit'),
     # New Machine Group
     url(r'^new-machine-group/(?P<bu_id>.+)/', 'new_machine_group', name='new_machine_group'),
     # Edit Machine Group
     url(r'^edit-machine-group/(?P<group_id>.+)/', 'edit_machine_group', name='edit_machine_group'),
+    # New User
+    url(r'^users/new/', 'new_user', name='new_user'),
+
+    # Edit User
+    url(r'^users/edit/(?P<user_id>.+)/', 'edit_user', name='edit_user'),
+    # Make User Staff
+    url(r'^users/makestaff/(?P<user_id>.+)/', 'user_add_staff', name='user_add_staff'),
+    # Remove User Staff
+    url(r'^users/removestaff/(?P<user_id>.+)/', 'user_remove_staff', name='user_remove_staff'),
+
+    # Delete User Staff
+    url(r'^users/delete/(?P<user_id>.+)/', 'delete_user', name='delete_user'),
+    # Manage Users
+    url(r'^users/', 'manage_users', name='manage_users'),
 )

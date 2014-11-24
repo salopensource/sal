@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% load dashboard_extras %}
+
+{% block script %}
+<script type="text/javascript" charset="utf-8">
+    $(document).ready(function() {
+        $('.groupList').DataTable({
+            "aLengthMenu": [[20, 50, -1], [20, 50, "All"]],
+            'aoColumnDefs': [{
+                'bSortable': false,
+                'aTargets': [-1, -2] /* 1st one, start by the right */
+            }]
+        });
+    } );
+</script>
+{% endblock %}
+
+{% block nav %}
+        <li><a href="{% url 'home' %}"><i class="fa-chevron-left fa fa-fw"></i> Back</a></li>
+        <li><a href="{% url 'new_user' %}"><i class="fa-plus fa fa-fw"></i>  User</i></a></li>
+    
+{% endblock %}
+
+{% block content %}
+<div class="panel panel-default">
+<div class="panel-body">
+    <div class="table-responsive">
+<table class="groupList table table-striped table-condensed">
+        <thead>
+        <tr>
+          <th>Username</th>
+          <th>User Level</th>
+          <th></th>
+          <th></th>
+        </tr>
+    </thead>
+        <tbody>
+        {% for user in users.all %}
+        <tr>
+            <td>{{ user.username}}</td>
+            <td>{{ user.userprofile.get_level_display }}</td>
+            {% if request.user.id != user.id %}
+            <td><a href="{% url 'edit_user' user.id %}" class="btn btn-mini btn-info">Edit</a></td>
+            {% else %}
+            <td><a href="#" class="btn btn-mini btn-info disabled">Edit</a></td>
+            {% endif %}
+            {% if request.user.id != user.id %}
+                {% if user.is_staff and user.userprofile.level == "GA" %}
+                    <td><a href="{% url 'user_remove_staff' user.id %}" class="btn btn-mini btn-danger"><i class="fa fa-fw fa-minus"></i> Manage Users</a></td>
+                {% elif user.userprofile.level == "GA" %}
+                    <td><a href="{% url 'user_add_staff' user.id %}" class="btn btn-mini btn-info"><i class="fa fa-fw fa-plus"></i> Manage Users</a></td>
+                {% else %}
+                <td></td>
+                {% endif %}
+            {% else %}
+            <td><a href="#" class="btn btn-mini btn-info disabled">Edit</a></td>
+            {% endif %}
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+</div>
+</div>
+</div>
+{% endblock %}

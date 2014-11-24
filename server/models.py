@@ -27,6 +27,8 @@ class UserProfile(models.Model):
         ('GA', 'Global Admin'),
     )
     level = models.CharField(max_length=2, choices=LEVEL_CHOICES, default='SO')
+    def __unicode__(self):
+        return self.user.username
 User.userprofile = property(lambda u: UserProfile.objects.get_or_create(user=u)[0])
 
 class BusinessUnit(models.Model):

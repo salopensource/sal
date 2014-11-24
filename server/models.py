@@ -33,7 +33,7 @@ User.userprofile = property(lambda u: UserProfile.objects.get_or_create(user=u)[
 
 class BusinessUnit(models.Model):
     name = models.CharField(max_length=100)
-    users = models.ManyToManyField(User)
+    users = models.ManyToManyField(User, blank=True)
             
     def __unicode__(self):
         return self.name

@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% load dashboard_extras %}
+
+{% block nav %}
+<li><a href="{% url 'edit_business_unit' business_unit.id %}"><i class="fa fa-fw fa-chevron-left"></i> Back</i></a>
+{% endblock %}
+
+{% block script %}
+
+
+{% endblock %}
+
+
+{% block content %}
+
+<div class="row">
+    <div class="col-md-10">
+        <div class="alert alert-danger">You are about to delete {{business_unit}}. Are you sure you want to delete:</div>
+    </div>
+</div>
+
+<div class="row">
+<div class="col-md-10">
+<pre><p>{{ machine_groups.count }} Machine Groups<br />
+{{ machines.count }} Machines</p></pre>
+{% if config_installed %}
+<p>All configuration assiged to the Business Unit, Machine Groups and Machines will also be removed.</p>
+{% endif %}
+</div>
+</div>
+<div class="row">
+    <div class="col-md-10">
+        <a href="{% url 'bu_dashboard' business_unit.id %}" class="btn btn-lg btn-success">I made a mistake, get me out of here!</a>
+        <a href="{% url 'really_delete_business_unit' business_unit.id %}" class="btn btn-lg btn-danger">I know what I'm doing, delete it.</a>
+    </div>
+</div>
+{% endblock %}

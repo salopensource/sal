@@ -28,6 +28,10 @@ urlpatterns = patterns('server.views',
     url(r'^new-bu/', 'new_business_unit', name='new_business_unit'),
     # Edit Business Unit
     url(r'^business_unit/edit/(?P<bu_id>.+)/', 'edit_business_unit', name='edit_business_unit'),
+    # Delete Business Unit
+    url(r'^business_unit/delete/(?P<bu_id>.+)/', 'delete_business_unit', name='delete_business_unit'),
+    # Really Delete Business Unit
+    url(r'^business_unit/really/delete/(?P<bu_id>.+)/', 'really_delete_business_unit', name='really_delete_business_unit'),
     # New Machine Group
     url(r'^new-machine-group/(?P<bu_id>.+)/', 'new_machine_group', name='new_machine_group'),
     # Edit Machine Group

@@ -293,6 +293,36 @@ def edit_business_unit(request, bu_id):
         return redirect(index)
     return render_to_response('forms/edit_business_unit.html', c, context_instance=RequestContext(request))
 
+@login_required
+def delete_business_unit(request, bu_id):
+    user = request.user
+    user_level = user.userprofile.level
+    if user_level != 'GA':
+        return redirect(index)
+    business_unit = get_object_or_404(BusinessUnit, pk=int(bu_id))
+    config_installed = 'config' in settings.INSTALLED_APPS
+
+    machine_groups = business_unit.machinegroup_set.all()
+    machines = []
+    # for machine_group in machine_groups:
+    #     machines.append(machine_group.machine_set.all())
+
+    machines = Machine.objects.filter(machine_group__business_unit=business_unit)
+
+    print machines
+    c = {'user': user, 'business_unit':business_unit, 'config_installed':config_installed, 'machine_groups': machine_groups, 'machines':machines}
+    return render_to_response('server/business_unit_delete_confirm.html', c, context_instance=RequestContext(request))
+
+@login_required
+def really_delete_business_unit(request, bu_id):
+    user = request.user
+    user_level = user.userprofile.level
+    if user_level != 'GA':
+        return redirect(index)
+    business_unit = get_object_or_404(BusinessUnit, pk=int(bu_id))
+    business_unit.delete()
+    return redirect(index)
+
 # BU Dashboard
 @login_required
 def bu_dashboard(request, bu_id):

@@ -18,6 +18,8 @@ pack-yaml: l_usr_local
 l_munki: l_usr_local
 	@sudo mkdir -p ${WORK_D}/usr/local/munki/postflight.d
 	@sudo chown root:wheel ${WORK_D}/usr/local/munki/postflight.d
+	@sudo mkdir -p ${WORK_D}/usr/local/munki/preflight.d
+	@sudo chown root:wheel ${WORK_D}/usr/local/munki/preflight.d
 
 pack-sal-submit: l_munki
 	@sudo ${CP} postflight ${WORK_D}/usr/local/munki/postflight

@@ -102,7 +102,7 @@ def manage_users(request):
     if user.is_staff != True:
         return redirect(index)
     users = User.objects.all()
-    c = {'user':request.user, 'users':users}
+    c = {'user':request.user, 'users':users, 'request':request}
     return render_to_response('server/manage_users.html', c, context_instance=RequestContext(request))
 
 # New User
@@ -151,12 +151,35 @@ def edit_user(request, user_id):
             user_profile = UserProfile.objects.get(user=the_user)
             user_profile.level=request.POST['user_level']
             user_profile.save()
+            if user_profile.level != 'GA':
+                user.is_staff = False
+                user.save()
             return redirect('manage_users')
     else:
         form = EditUserForm({'user_level':the_user.userprofile.level, 'user_id':the_user.id})
     c = {'form': form, 'the_user':the_user}
 
     return render_to_response('forms/edit_user.html', c, context_instance=RequestContext(request))
+
+@login_required
+def user_add_staff(request, user_id):
+    if request.user.id == int(user_id):
+        # You shouldn't have been able to get here anyway
+        return redirect('manage_users')
+    user = get_object_or_404(User, pk=int(user_id))
+    user.is_staff = True
+    user.save()
+    return redirect('manage_users')
+
+@login_required
+def user_remove_staff(request, user_id):
+    if request.user.id == int(user_id):
+        # You shouldn't have been able to get here anyway
+        return redirect('manage_users')
+    user = get_object_or_404(User, pk=int(user_id))
+    user.is_staff = False
+    user.save()
+    return redirect('manage_users')
 
 # Plugin machine list
 @login_required

@@ -1,5 +1,6 @@
 from django import forms
 from models import *
+from django.db.models import Q
 
 LEVEL_CHOICES = (
         ('RO', 'Read Only'),
@@ -14,11 +15,21 @@ class BusinessUnitForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super(BusinessUnitForm, self).__init__(*args, **kwargs)
         self.fields['users'].help_text = ''
+        self.fields['users'].queryset = User.objects.order_by('username').filter(~Q(userprofile__level = 'GA'))
 
 class EditBusinessUnitForm(forms.ModelForm):
     class Meta:
         model = BusinessUnit
         fields = ('name',)
+
+class EditUserBusinessUnitForm(forms.ModelForm):
+    class Meta:
+        model = BusinessUnit
+        widgets = {'users': forms.CheckboxSelectMultiple}
+    def __init__(self, *args, **kwargs):
+        super(EditUserBusinessUnitForm, self).__init__(*args, **kwargs)
+        self.fields['users'].help_text = ''
+        self.fields['users'].queryset = User.objects.order_by('username').filter(~Q(userprofile__level = 'GA'))
         
 class MachineGroupForm(forms.ModelForm):
     class Meta:

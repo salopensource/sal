@@ -41,6 +41,9 @@ urlpatterns = patterns('server.views',
     url(r'^users/makestaff/(?P<user_id>.+)/', 'user_add_staff', name='user_add_staff'),
     # Remove User Staff
     url(r'^users/removestaff/(?P<user_id>.+)/', 'user_remove_staff', name='user_remove_staff'),
+
+    # Delete User Staff
+    url(r'^users/delete/(?P<user_id>.+)/', 'delete_user', name='delete_user'),
     # Manage Users
     url(r'^users/', 'manage_users', name='manage_users'),
 )

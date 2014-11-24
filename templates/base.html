@@ -93,9 +93,13 @@
                     <ul class="dropdown-menu dropdown-user">
                         <li><a href="{% url 'django.contrib.auth.views.password_change' %}"><i class="fa fa-user fa-fw"></i> {% trans "Change password" %}</a>
                         </li>
+                        <li>{{user.userlevel}}</li>
                         {% if user.is_staff %}
-                        <li><a href="{% url 'admin:index' %}"><i class="fa fa-gear fa-fw"></i> Administration</a>
+
+                        
+                        <li><a href="{% url 'manage_users' %}"><i class="fa fa-group fa-fw"></i> Manage Users</a>
                         </li>
+                        
                         {% endif %}
                         {% if CONFIG_INSTALLED %}
                         {% includeifapp config 'config/help.html' %}

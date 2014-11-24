@@ -30,10 +30,7 @@
             {% if CONFIG_INSTALLED %}
                 <li><a href="{% url 'config_business_unit_index' business_unit.id %}"><i class="fa fa-wrench fa-fw"></i>  Configure Business Unit</a></li>
             {% endif %}
-            {% if user.is_staff %}
-            <li><a href="#"><i class="fa fa-fw fa-users"></i> User Access</a></li>
-            {% endif %}
-            <li><a href="{% url 'edit_business_unit' business_unit.id %}"><i class="fa fa-fw fa-pencil"></i> Rename Busines Unit</a></li>
+            <li><a href="{% url 'edit_business_unit' business_unit.id %}"><i class="fa fa-fw fa-pencil"></i> Edit Busines Unit</a></li>
             <li><a href="{% url 'new_machine_group' business_unit.id %}"><i class="fa fa-plus fa-fw"></i> New Machine Group</a></li>
             {% if CONFIG_INSTALLED %}
                 {% if machine_groups.count > 0 %}

@@ -163,6 +163,9 @@ def edit_user(request, user_id):
 
 @login_required
 def user_add_staff(request, user_id):
+    user_level = request.user.userprofile.level
+    if user_level != 'GA':
+        return redirect(index)
     if request.user.id == int(user_id):
         # You shouldn't have been able to get here anyway
         return redirect('manage_users')
@@ -173,6 +176,9 @@ def user_add_staff(request, user_id):
 
 @login_required
 def user_remove_staff(request, user_id):
+    user_level = request.user.userprofile.level
+    if user_level != 'GA':
+        return redirect(index)
     if request.user.id == int(user_id):
         # You shouldn't have been able to get here anyway
         return redirect('manage_users')
@@ -181,6 +187,16 @@ def user_remove_staff(request, user_id):
     user.save()
     return redirect('manage_users')
 
+def delete_user(request, user_id):
+    user_level = request.user.userprofile.level
+    if user_level != 'GA':
+        return redirect(index)
+    if request.user.id == int(user_id):
+        # You shouldn't have been able to get here anyway
+        return redirect('manage_users')
+    user = get_object_or_404(User, pk=int(user_id))
+    user.delete()
+    return redirect('manage_users')
 # Plugin machine list
 @login_required
 def machine_list(request, pluginName, data, page='front', theID=None):
@@ -256,14 +272,20 @@ def edit_business_unit(request, bu_id):
     c = {}
     c.update(csrf(request))
     if request.method == 'POST':
-        form = EditBusinessUnitForm(request.POST, instance=business_unit)
+        if user.is_staff:
+            form = EditUserBusinessUnitForm(request.POST, instance=business_unit)
+        else:
+            form = EditBusinessUnitForm(request.POST, instance=business_unit)
         if form.is_valid():
             new_business_unit = form.save(commit=False)
             new_business_unit.save()
             form.save_m2m()
             return redirect('bu_dashboard', new_business_unit.id)
     else:
-        form = EditBusinessUnitForm(instance=business_unit)
+        if user.is_staff:
+            form = EditUserBusinessUnitForm(instance=business_unit)
+        else:
+            form = EditBusinessUnitForm(instance=business_unit)
     c = {'form': form, 'business_unit':business_unit}
     user = request.user
     user_level = user.userprofile.level

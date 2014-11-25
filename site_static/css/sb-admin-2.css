@@ -344,6 +344,13 @@ a.btn-danger a:hover {
   height: 60px;
   z-index: 1005;
 }
+@media (max-width: 767px) {
+  .navbar-top-links {
+    position: absolute;
+    right: 60px;
+    top: 0;
+  }
+}
 .navbar-top-links li:last-child {
   margin-right: 0;
 }
@@ -450,6 +457,52 @@ a.btn-danger a:hover {
   z-index: 1002;
   position: relative;
 }
+.table-wrapper {
+  height: 300px;
+  display: block;
+  overflow-y: scroll;
+  min-width: 100%;
+  border-top: 1px solid #ddd;
+  border-bottom: 1px solid #ddd;
+}
+.table-wrapper::-webkit-scrollbar {
+  width: 12px;
+  border-right: 1px solid #ddd;
+}
+.table-wrapper::-webkit-scrollbar-track {
+  border-radius: 10px;
+  background: #dde5eb;
+}
+.table-wrapper::-webkit-scrollbar-thumb {
+  border-radius: 10px;
+  background: #7c9ab3;
+}
+.table-wrapper .table-bordered {
+  border: none;
+}
+.table-wrapper .table-bordered tbody tr:first-child td {
+  border-top: none;
+}
+.table-wrapper .table-bordered tbody tr:last-child td {
+  border-bottom: none;
+}
+.table-wrapper .table-bordered tbody tr td a {
+  padding-right: 40px;
+  position: relative;
+  display: block;
+  -ms-word-break: break-all;
+  word-break: break-all;
+  -webkit-hyphens: auto;
+  -moz-hyphens: auto;
+  -ms-hyphens: auto;
+  hyphens: auto;
+}
+.table-wrapper .table-bordered tbody tr td .pull-right {
+  margin-left: 25px;
+  position: absolute;
+  top: 0;
+  right: 0;
+}
 .table {
   background-color: white;
 }
@@ -491,4 +544,31 @@ a.btn-danger a:hover {
 .badge {
   background-color: #53748f;
   color: white;
+}
+@media (max-width: 991px) {
+  .panel-activity > div {
+    margin-bottom: 10px;
+  }
+  .panel-activity > div:last-child {
+    margin-bottom: 0;
+  }
+}
+@media (max-width: 991px) {
+  .panel-activity .panel-body .panel .col-md-3 {
+    float: left;
+  }
+}
+@media (max-width: 991px) {
+  .panel-activity .panel-body .panel .text-right {
+    float: right;
+  }
+}
+.panel-traffic-light .panel-body a {
+  display: block;
+  float: left;
+  width: 32%;
+  margin-right: 2%;
+}
+.panel-traffic-light .panel-body a:last-child {
+  margin-right: 0;
 }

@@ -68,6 +68,14 @@ a:hover {
   right: 0;
   left: auto;
 }
+.navbar-default .navbar-toggle {
+  border-color: #fff;
+  background: #2f79e7;
+  margin-top: 12px;
+}
+.navbar-default .navbar-toggle span.icon-bar {
+  background-color: white;
+}
 .sidebar .sidebar-nav.navbar-collapse {
   padding-left: 0;
   padding-right: 0;

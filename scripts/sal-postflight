@@ -23,7 +23,10 @@ import yaml
 import bz2
 import os
 import sys
+import optparse
+
 BUNDLE_ID = 'com.grahamgilbert.sal'
+default_debug = False
 
 def get_disk_size(path='/'):
     """Returns total disk size in KBytes.
@@ -88,6 +91,16 @@ def pref(pref_name):
         pref_value = str(pref_value)
     return pref_value
 
+usage = "%prog [options]"
+o = optparse.OptionParser(usage=usage)
+
+o.add_option("--debug",
+        default=default_debug, action="store_true",
+        help=("Enable debug output. "))
+
+opts, args = o.parse_args()
+debug = opts.debug
+
 # read in the serverURL
 ServerURL = pref('ServerURL');
 checkinurl = ServerURL+'/checkin'
@@ -96,7 +109,9 @@ bu_key = pref('key')
 
 # read in Munki Report
 report = FoundationPlist.readPlist('/Library/Managed Installs/ManagedInstallReport.plist')
-
+if debug:
+    print 'DEBUG: ManagedInstallReport.plist'
+    print report
 # generate system profiler report
 command = ['system_profiler', '-xml', 'SPNetworkDataType', 'SPHardwareDataType']
 task = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -107,11 +122,17 @@ try:
     f = open('/var/lib/puppet/state/last_run_summary.yaml', 'r')
     puppetreport = yaml.load(f.read())
     report['Puppet'] = puppetreport
+    if debug:
+        print 'DEBUG: Puppet Report'
+        print report['Puppet']
 except:
     pass
 
 # Merge the system profiler report into the Munki report
 report['MachineInfo']['SystemProfile'] = system_profile
+if debug:
+    print 'DEBUG: System Profile'
+    print report['MachineInfo']['SystemProfile']
 
 # Set the FACTERLIB environment variable if it's not already what we want it to be.
 desiredfacter = '/usr/local/sal/facter'
@@ -142,6 +163,9 @@ try:
     if stdout:
         facter = yaml.load(stdout)
         report['Facter'] = facter
+        if debug:
+            print 'DEBUG: Facter Output'
+            print report['Facter']
 except:
     print stderr
 
@@ -164,6 +188,9 @@ report['os_family'] = 'Darwin'
 
 # Compress the report
 plist = FoundationPlist.writePlistToString(report)
+if debug:
+    print 'DEBUG: Final Report'
+    print plist
 zipped = bz2.compress(plist)
 
 data['base64bz2report'] = base64.b64encode(zipped)

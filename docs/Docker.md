@@ -12,12 +12,16 @@ This will get you going with a default Sal installation, with a Postgres databas
 ``` bash
 # This is where the database data will live. Adjust to your taste
 $ mkdir -p /usr/local/sal_data/db
-$ docker pull postgres:9.4
-$ docker run --name="postgres-sal" -d -v /usr/local/sal_data/db:/var/lib/postgresql/data postgres
-$ bash <(curl -s https://raw.githubusercontent.com/macadmins/sal/master/setup_db.sh)
+$ docker run -d --name="postgres-sal" \
+  -v /db:/var/lib/postgresql/data \
+  -e DB_NAME=sal \
+  -e DB_USER=admin \
+  -e DB_PASS=password \
+  --restart="always" \
+  grahamgilbert/postgres
 ```
 
-If you want to change the default database admin username and password, download the ``setup_db.sh`` script and run it manually.
+Set the database details according to your preferences.
 
 ### Running Sal
 

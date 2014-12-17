@@ -64,6 +64,7 @@ def index(request):
         for business_unit in user.businessunit_set.all():
             for group in business_unit.machinegroup_set.all():
                 machines = machines | group.machine_set.all()
+    
     # Build the manager
     manager = PluginManager()
     # Tell it the default place(s) where to find plugins
@@ -76,7 +77,6 @@ def index(request):
         data = {}
         data['name'] = plugin.name
         (data['html'], data['width']) = plugin.plugin_object.show_widget('front', machines)
-        #output.append(plugin.plugin_object.show_widget('front'))
         output.append(data)
     output = utils.orderPluginOutput(output)
 
@@ -211,8 +211,13 @@ def machine_list(request, pluginName, data, page='front', theID=None):
     # get a list of machines (either from the BU or the group)
     if page == 'front':
         # get all machines
-        machines = Machine.objects.all()
-
+        if user.userprofile.level == 'GA':
+            machines = Machine.objects.all()
+        else:
+            machines = Machine.objects.none()
+            for business_unit in user.businessunit_set.all():
+                for group in business_unit.machinegroup_set.all():
+                    machines = machines | group.machine_set.all()
     if page == 'bu_dashboard':
         # only get machines for that BU
         # Need to make sure the user is allowed to see this

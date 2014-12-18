@@ -8,8 +8,7 @@ import base64
 import bz2
 from datetime import datetime
 
-# def id_generator(size=6, chars=string.ascii_uppercase + string.digits):
-# ...    return ''.join(random.choice(chars) for x in range(size))
+
 def GenerateKey():
     key = ''.join(random.choice(string.ascii_lowercase + string.digits) for x in range(128))
     try:
@@ -173,6 +172,10 @@ class Machine(models.Model):
         return self.hostname
     class Meta:
         ordering = ['hostname']
+    def save(self):
+        self.serial = self.serial.replace('/', '')
+        super(Machine, self).save()
+
 class Fact(models.Model):
     machine = models.ForeignKey(Machine)
     fact_name = models.TextField()

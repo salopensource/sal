@@ -45,3 +45,5 @@ sal_env/
 
 # node stuff
 node_modules/
+
+server/management

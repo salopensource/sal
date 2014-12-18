@@ -21,7 +21,7 @@ If it isn't, install it:
 
 Install python setup tools:
 
-	apt-get install python-setuptools
+	apt-get install python-setuptools libffi-dev
 
 Make sure virtualenv is installed
 

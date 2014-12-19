@@ -2,6 +2,7 @@ from django import template
 from django.shortcuts import get_object_or_404
 from server.models import *
 from datetime import datetime
+import time
 import dateutil.parser
 from django.template.defaultfilters import date
 from django.utils.timezone import utc
@@ -45,3 +46,12 @@ def convert_datetime(string):
 #
     #return date(the_date, "Y-m-d H:i")
     return the_date
+
+@register.filter
+def print_timestamp(timestamp):
+    try:
+        #assume, that timestamp is given in seconds with decimal point
+        ts = float(timestamp)
+    except ValueError:
+        return None
+    return time.strftime("%Y-%m-%d", time.gmtime(ts))

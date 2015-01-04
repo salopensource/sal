@@ -25,7 +25,7 @@ import os
 import sys
 import optparse
 
-BUNDLE_ID = 'com.grahamgilbert.sal'
+BUNDLE_ID = 'com.salsoftware.sal'
 default_debug = False
 
 def get_disk_size(path='/'):
@@ -122,6 +122,10 @@ try:
     f = open('/var/lib/puppet/state/last_run_summary.yaml', 'r')
     puppetreport = yaml.load(f.read())
     report['Puppet'] = puppetreport
+
+    if report['Puppet']['version']['config'] == None:
+        report['Puppet']['version']['config'] = 'None'
+    
     if debug:
         print 'DEBUG: Puppet Report'
         print report['Puppet']
@@ -129,6 +133,8 @@ except:
     pass
 
 # Merge the system profiler report into the Munki report
+if not report['MachineInfo']:
+    report['MachineInfo'] = {}
 report['MachineInfo']['SystemProfile'] = system_profile
 if debug:
     print 'DEBUG: System Profile'

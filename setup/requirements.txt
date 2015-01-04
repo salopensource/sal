@@ -3,7 +3,6 @@ South==0.8.2
 Yapsy==1.10.223
 django-bootstrap3==4.11.0
 docutils==0.11
-puppetdb==0.0.1
 requests==2.5.0
 wsgiref==0.1.2
 python-dateutil==2.2
@@ -11,3 +10,4 @@ pytz==2014.3
 pyOpenSSL==0.14
 ndg-httpsclient==0.3.2
 pyasn1==0.1.7
+urllib3==1.10

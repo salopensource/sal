@@ -49,15 +49,15 @@ if [ -f /usr/local/munki/sal-submit ]
 fi
 ```
 
-The configuration of the Server Address, and the Machine Group key is from ``/Library/Preferences/com.grahamgilbert.sal``. Plists, MCX (untested, but should work) and Profiles can be used.
+The configuration of the Server Address, and the Machine Group key is from ``/Library/Preferences/com.salsoftware.sal``. Plists, MCX (untested, but should work) and Profiles can be used.
 
 ### Manual Client Conf. Example
 
 If you wish to set the Server Address and Machine Group Key via defaults you can do so with the following examples (root is needed):
 
-``defaults write /Library/Preferences/com.grahamgilbert.sal ServerURL http://sal.somewhere.com``
+``defaults write /Library/Preferences/com.salsoftware.sal ServerURL http://sal.somewhere.com``
 
-``defaults write /Library/Preferences/com.grahamgilbert.sal key e4up7l5pzaq7w4x12en3c0d5y3neiutlezvd73z9qeac7zwybv3jj5tghhmlseorzy5kb4zkc7rnc2sffgir4uw79esdd60pfzfwszkukruop0mmyn5gnhark9n8lmx9``
+``defaults write /Library/Preferences/com.salsoftware.sal key e4up7l5pzaq7w4x12en3c0d5y3neiutlezvd73z9qeac7zwybv3jj5tghhmlseorzy5kb4zkc7rnc2sffgir4uw79esdd60pfzfwszkukruop0mmyn5gnhark9n8lmx9``
 
 ### Using custom Facts
 

@@ -25,6 +25,9 @@ pack-sal-submit: l_munki
 	@sudo ${CP} postflight ${WORK_D}/usr/local/munki/postflight
 	@sudo chown -R root:wheel ${WORK_D}/usr/local/munki/postflight
 	@sudo chmod -R 755 ${WORK_D}/usr/local/munki/postflight
+	@sudo ${CP} preflight ${WORK_D}/usr/local/munki/preflight
+	@sudo chown -R root:wheel ${WORK_D}/usr/local/munki/preflight
+	@sudo chmod -R 755 ${WORK_D}/usr/local/munki/preflight
 	@sudo ${CP} sal-postflight ${WORK_D}/usr/local/munki/postflight.d/sal-postflight
 	@sudo chown -R root:wheel ${WORK_D}/usr/local/munki/postflight.d/sal-postflight
 	@sudo chmod -R 755 ${WORK_D}/usr/local/munki/postflight.d/sal-postflight

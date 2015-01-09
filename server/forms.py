@@ -54,6 +54,8 @@ class NewUserForm(forms.Form):
     user_level = forms.ChoiceField(choices=LEVEL_CHOICES)
 
     def clean_username(self): # check if username dos not exist before
+        if len(self.cleaned_data['username']) < 30:
+            raise forms.ValidationError("Username must be under 30 characters")
         try:
             User.objects.get(username=self.cleaned_data['username']) #get user from user model
         except User.DoesNotExist :

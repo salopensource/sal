@@ -45,6 +45,7 @@ def index(request):
     week_ago = today - timedelta(days=7)
     month_ago = today - timedelta(days=30)
     three_months_ago = today - timedelta(days=90)
+    config_installed = 'config' in settings.INSTALLED_APPS
     if user_level != 'GA':
         # user has many BU's display them all in a friendly manner
         business_units = user.businessunit_set.all()
@@ -85,7 +86,6 @@ def index(request):
         business_units = BusinessUnit.objects.all()
     else:
         business_units = user.businessunit_set.all()
-    config_installed = 'config' in settings.INSTALLED_APPS
 
     c = {'user': request.user, 'business_units': business_units, 'output': output, }
     return render_to_response('server/index.html', c, context_instance=RequestContext(request))

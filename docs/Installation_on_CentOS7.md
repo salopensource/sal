@@ -20,6 +20,10 @@ Install/update the development tools:
 	yum update
 	yum groupinstall "Development tools"
 
+New for Sal2 we need a few more things (these remove missing ffi.h and openssl/aes.h errors):
+
+	yum install libffi-devel openssl-devel
+
 If you're not comfortable with emacs/vi, lets make sure at least nano (or some other editor you know) is installed:
 
 	yum install nano
@@ -232,3 +236,7 @@ then to monitor the logs while you attempt to connect you can use:
 	tail -f /var/log/httpd/error_log
 
 and hopefully something there points you toward the problem if it's not the firewall and SELinux listed above.
+
+If you are migrating to Sal2 and get errors during ``pip install -r sal/setup/requirements.txt`` about missing ffi.h and/or openssl/aes.h the fix is to install the development packages for libffi and openssl as follows:
+
+	yum install libffi-devel openssl-devel

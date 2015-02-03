@@ -15,7 +15,7 @@ Install the development tools:
 
 	yum update
 	yum groupinstall "Development tools"
-	yum install zlib-devel bzip2-devel openssl-devel ncurses-devel sqlite-devel readline-devel tk-devel gdbm-devel db4-devel libpcap-devel python-devel httpd-devel gcc
+	yum install zlib-devel bzip2-devel openssl-devel ncurses-devel sqlite-devel readline-devel tk-devel gdbm-devel db4-devel libpcap-devel python-devel httpd-devel gcc libffi-devel
 
 Open up ``/etc/ld.so.conf``:
 

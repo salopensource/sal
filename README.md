@@ -1,6 +1,6 @@
 # Sal
 
-Sal is a multi-tenanted reporting dashboard for [Munki](https://code.google.com/p/munki/) with the ability to display information from [Facter](http://puppetlabs.com/facter). It has a plugin system allowing you to easily build widgets to display your custom information from Facter or Munki's [conditional items](https://code.google.com/p/munki/wiki/ConditionalItems) (or both!).
+Sal is a multi-tenanted reporting dashboard for [Munki](https://github.com/munki/munki/) with the ability to display information from [Facter](http://puppetlabs.com/facter). It has a plugin system allowing you to easily build widgets to display your custom information from Facter or Munki's [conditional items](https://github.com/munki/munki/wiki/Conditional-Items) (or both!).
 
 With Sal, you are able to allow access to reports on certain sets of machines to certain people - for example, giving a manager access to the reports on the machines in their department. Sal has a bigger brother, Sal+. Head over to [salsoftware.com](http://salsoftware.com) to get in touch.
 

@@ -125,7 +125,7 @@ try:
 
     if report['Puppet']['version']['config'] == None:
         report['Puppet']['version']['config'] = 'None'
-    
+
     if debug:
         print 'DEBUG: Puppet Report'
         print report['Puppet']
@@ -133,7 +133,7 @@ except:
     pass
 
 # Merge the system profiler report into the Munki report
-if not report['MachineInfo']:
+if not 'MachineInfo' in report:
     report['MachineInfo'] = {}
 report['MachineInfo']['SystemProfile'] = system_profile
 if debug:

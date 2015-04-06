@@ -65,7 +65,7 @@ def index(request):
         for business_unit in user.businessunit_set.all():
             for group in business_unit.machinegroup_set.all():
                 machines = machines | group.machine_set.all()
-    
+
     # Build the manager
     manager = PluginManager()
     # Tell it the default place(s) where to find plugins
@@ -704,7 +704,7 @@ def machine_detail(request, machine_id):
             from config.views import filter_uninstalls
             report['managed_uninstalls_list'] = filter_uninstalls(business_unit.id, report['managed_uninstalls_list'])
 
-    
+
     c = {'user':user, 'machine_group': machine_group, 'business_unit': business_unit, 'report': report, 'install_results': install_results, 'removal_results': removal_results, 'machine': machine, 'facts':facts, 'conditions':conditions, 'ip_address':ip_address, 'config_installed':config_installed }
     return render_to_response('server/machine_detail.html', c, context_instance=RequestContext(request))
 
@@ -795,8 +795,10 @@ def checkin(request):
                     break
         if 'Puppet' in report_data:
             puppet = report_data.get('Puppet')
-            machine.last_puppet_run = datetime.fromtimestamp(float(puppet['time']['last_run']))
-            machine.puppet_errors = puppet['events']['failure']
+            if 'time' in puppet:
+                machine.last_puppet_run = datetime.fromtimestamp(float(puppet['time']['last_run']))
+            if 'events' in puppet:
+                machine.puppet_errors = puppet['events']['failure']
 
         if hwinfo:
             machine.machine_model = hwinfo.get('machine_model')

@@ -795,7 +795,8 @@ def checkin(request):
                     break
         if 'Puppet' in report_data:
             puppet = report_data.get('Puppet')
-            machine.last_puppet_run = datetime.fromtimestamp(float(puppet['time']['last_run']))
+            if 'time' in puppet:
+                machine.last_puppet_run = datetime.fromtimestamp(float(puppet['time']['last_run']))
             if 'events' in puppet:
                 machine.puppet_errors = puppet['events']['failure']
 

@@ -58,6 +58,6 @@ $ docker run -d --name="sal"\
   macadmins/sal
   ```
   
-  ### Other options
+### Other options
   
-  For other options that can be set via environment variables, see the [repo on the Docker Hub](https://registry.hub.docker.com/u/macadmins/sal/).
+For other options that can be set via environment variables, see the [repo on the Docker Hub](https://registry.hub.docker.com/u/macadmins/sal/).

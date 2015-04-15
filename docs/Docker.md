@@ -1,4 +1,4 @@
-huRunning Sal on Docker
+Running Sal on Docker
 ================
 
 This guide assumes you have installed Docker as per the [instructions on their site](https://docs.docker.com/installation/#installation), and that you have a working knowledge of the basics of Docker. The [Docker user guide](https://docs.docker.com/userguide/) is an excellent place to start.
@@ -37,7 +37,7 @@ $ docker run -d --name="sal"\
   -e DB_PASS=password \
   macadmins/sal
   ```
-  
+
 This will allow you to log in with the username ``admin`` and the password ``pass`` (which I suggest you change!).
 
 ### Upgrading
@@ -57,7 +57,7 @@ $ docker run -d --name="sal"\
   -e DB_PASS=password \
   macadmins/sal
   ```
-  
-### Other options
-  
-For other options that can be set via environment variables, see the [repo on the Docker Hub](https://registry.hub.docker.com/u/macadmins/sal/).
+
+### Other options and plugins
+
+For other options that can be set via environment variables, and for how to use advanced options such as plugins, see the [repo on the Docker Hub](https://registry.hub.docker.com/u/macadmins/sal/).

@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% load dashboard_extras %}
+
+{% block nav %}
+
+{% endblock %}
+
+{% block script %}
+
+
+{% endblock %}
+
+
+{% block content %}
+
+<div class="row">
+    <div class="col-md-10">
+        <div class="alert alert-danger">You will not be shown this Private API key again, please take a note:</div>
+    </div>
+</div>
+
+<div class="row">
+<div class="col-md-10">
+    Public Key
+<pre><p>{{ api_key.public_key }}</p></pre>
+</div>
+</div>
+<div class="row">
+<div class="col-md-10">
+    Private Key
+<pre><p>{{ api_key.private_key }}</p></pre>
+</div>
+</div>
+<div class="row">
+    <div class="col-md-10"><a href="{% url 'api_keys' %}" class="btn btn-primary btn-lg">OK, I'll remember it.</a></div>
+{% endblock %}

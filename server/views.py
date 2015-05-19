@@ -724,6 +724,95 @@ def delete_machine(request, machine_id):
     machine.delete()
     return redirect('group_dashboard', machine_group.id)
 
+
+@login_required
+def settings_page(request):
+    user = request.user
+    user_level = user.userprofile.level
+    if user_level != 'GA':
+        return redirect(index)
+
+    c = {'user':request.user, 'request':request}
+    return render_to_response('server/settings.html', c, context_instance=RequestContext(request))
+
+@login_required
+def api_keys(request):
+    user = request.user
+    user_level = user.userprofile.level
+    if user_level != 'GA':
+        return redirect(index)
+
+    api_keys = ApiKey.objects.all()
+    c = {'user':request.user, 'api_keys':api_keys, 'request':request}
+    return render_to_response('server/api_keys.html', c, context_instance=RequestContext(request))
+
+@login_required
+def new_api_key(request):
+    c = {}
+    c.update(csrf(request))
+    if request.method == 'POST':
+        form = ApiKeyForm(request.POST)
+        if form.is_valid():
+            new_api_key = form.save()
+            return redirect('display_api_key', key_id=new_api_key.id)
+    else:
+        form = ApiKeyForm()
+    c = {'form': form}
+    user = request.user
+    user_level = user.userprofile.level
+    if user_level != 'GA':
+        return redirect(index)
+    return render_to_response('forms/new_api_key.html', c, context_instance=RequestContext(request))
+
+@login_required
+def display_api_key(request, key_id):
+    user = request.user
+    user_level = user.userprofile.level
+    if user_level != 'GA':
+        return redirect(index)
+    api_key = get_object_or_404(ApiKey, pk=int(key_id))
+    if api_key.has_been_seen == True:
+        return redirect(index)
+    else:
+        api_key.has_been_seen = True
+        api_key.save()
+        c = {'user':request.user, 'api_key':api_key, 'request':request}
+        return render_to_response('server/api_key_display.html', c, context_instance=RequestContext(request))
+
+@login_required
+def edit_api_key(request, key_id):
+    user = request.user
+    user_level = user.userprofile.level
+    if user_level != 'GA':
+        return redirect(index)
+    api_key = get_object_or_404(ApiKey, pk=int(key_id))
+    c = {}
+    c.update(csrf(request))
+    if request.method == 'POST':
+
+        form = ApiKeyForm(request.POST, instance=api_key)
+        if form.is_valid():
+            api_key = form.save()
+            return redirect(api_keys)
+    else:
+        form = ApiKeyForm(instance=api_key)
+    c = {'form': form, 'api_key':api_key}
+    user = request.user
+    user_level = user.userprofile.level
+    if user_level != 'GA':
+        return redirect(index)
+    return render_to_response('forms/edit_api_key.html', c, context_instance=RequestContext(request))
+
+@login_required
+def delete_api_key(request, key_id):
+    user = request.user
+    user_level = user.userprofile.level
+    if user_level != 'GA':
+        return redirect(index)
+    api_key = get_object_or_404(ApiKey, pk=int(key_id))
+    api_key.delete()
+    return redirect(api_keys)
+
 # checkin
 @csrf_exempt
 def checkin(request):

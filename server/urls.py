@@ -13,7 +13,7 @@ urlpatterns = patterns('server.views',
     #url(r'^overview/(?P<req_type>.+)/(?P<data>.+)/$', 'overview_list_all', name='overview_list_all'),
     # Machine List (front page)
     url(r'^list/(?P<pluginName>.+)/(?P<data>.+)/$', 'machine_list', name='machine_list_front'),
-    
+
     # Machine List (id)
     url(r'^id_list/(?P<pluginName>.+)/(?P<data>.+)/(?P<page>.+)/(?P<theID>.+)/$', 'machine_list', name='machine_list_id'),
     # Group Dashboard
@@ -37,17 +37,31 @@ urlpatterns = patterns('server.views',
     # Edit Machine Group
     url(r'^edit-machine-group/(?P<group_id>.+)/', 'edit_machine_group', name='edit_machine_group'),
     # New User
-    url(r'^users/new/', 'new_user', name='new_user'),
+    url(r'^settings/users/new/', 'new_user', name='new_user'),
 
     # Edit User
-    url(r'^users/edit/(?P<user_id>.+)/', 'edit_user', name='edit_user'),
+    url(r'^settings/users/edit/(?P<user_id>.+)/', 'edit_user', name='edit_user'),
     # Make User Staff
-    url(r'^users/makestaff/(?P<user_id>.+)/', 'user_add_staff', name='user_add_staff'),
+    url(r'^settings/users/makestaff/(?P<user_id>.+)/', 'user_add_staff', name='user_add_staff'),
     # Remove User Staff
-    url(r'^users/removestaff/(?P<user_id>.+)/', 'user_remove_staff', name='user_remove_staff'),
+    url(r'^settings/users/removestaff/(?P<user_id>.+)/', 'user_remove_staff', name='user_remove_staff'),
 
     # Delete User Staff
-    url(r'^users/delete/(?P<user_id>.+)/', 'delete_user', name='delete_user'),
+    url(r'^settings/users/delete/(?P<user_id>.+)/', 'delete_user', name='delete_user'),
     # Manage Users
-    url(r'^users/', 'manage_users', name='manage_users'),
+    url(r'^settings/users/', 'manage_users', name='manage_users'),
+
+    #Edit API Key
+    url(r'^settings/api-keys/edit/(?P<key_id>.+)/', 'edit_api_key', name='edit_api_key'),
+    #Delete API Key
+    url(r'^settings/api-keys/delete/(?P<key_id>.+)/', 'delete_api_key', name='delete_api_key'),
+    #Display API Key
+    url(r'^settings/api-keys/display/(?P<key_id>.+)/', 'display_api_key', name='display_api_key'),
+    # New API Key
+    url(r'^settings/api-keys/new/', 'new_api_key', name='new_api_key'),
+    # Manage API Keys
+    url(r'^settings/api-keys/', 'api_keys', name='api_keys'),
+
+    # Settings
+    url(r'^settings/', 'settings_page', name='settings_page')
 )

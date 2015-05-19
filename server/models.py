@@ -16,6 +16,15 @@ def GenerateKey():
         return GenerateKey()
     except MachineGroup.DoesNotExist:
         return key;
+
+def GenerateAPIKey():
+    key = ''.join(random.choice(string.ascii_lowercase + string.digits) for x in range(24))
+    try:
+        ApiKey.objects.get(public_key=key)
+        return GenerateAPIKey()
+    except ApiKey.DoesNotExist:
+        return key;
+
 class UserProfile(models.Model):
     user = models.OneToOneField(User, unique=True)
 
@@ -33,7 +42,7 @@ User.userprofile = property(lambda u: UserProfile.objects.get_or_create(user=u)[
 class BusinessUnit(models.Model):
     name = models.CharField(max_length=100)
     users = models.ManyToManyField(User, blank=True)
-            
+
     def __unicode__(self):
         return self.name
     class Meta:
@@ -51,7 +60,7 @@ class MachineGroup(models.Model):
         return self.name
     class Meta:
         ordering = ['name']
-    
+
 class Machine(models.Model):
     OS_CHOICES = (
         ('Darwin', 'OS X'),
@@ -82,13 +91,13 @@ class Machine(models.Model):
     puppet_version = models.TextField(null=True, blank=True)
     last_puppet_run = models.DateTimeField(blank=True,null=True)
     puppet_errors = models.IntegerField(default=0)
-        
+
     def encode(self, plist):
         string = plistlib.writePlistToString(plist)
         bz2data = bz2.compress(string)
         b64data = base64.b64encode(bz2data)
         return b64data
-        
+
     def decode(self, data):
         # this has some sucky workarounds for odd handling
         # of UTF-8 data in sqlite3
@@ -104,7 +113,7 @@ class Machine(models.Model):
                     return self.b64bz_decode(data)
                 except:
                     return dict()
-        
+
     def b64bz_decode(self, data):
         try:
             bz2data = base64.b64decode(data)
@@ -113,13 +122,13 @@ class Machine(models.Model):
             return plist
         except Exception:
             return {}
-        
+
     def get_report(self):
         return self.decode(self.report)
-        
+
     def get_activity(self):
         return self.decode(self.activity)
-        
+
     def update_report(self, base64bz2report):
         # Save report.
         try:
@@ -137,7 +146,7 @@ class Machine(models.Model):
             self.warnings = 0
             self.console_user = "<None>"
             return
-        
+
         # Check activity.
         activity = dict()
         for section in ("ItemsToInstall",
@@ -152,18 +161,18 @@ class Machine(models.Model):
             self.activity = plistlib.writePlistToString(activity)
         else:
             self.activity = None
-        
+
         # Check errors and warnings.
         if "Errors" in plist:
             self.errors = len(plist["Errors"])
         else:
             self.errors = 0
-        
+
         if "Warnings" in plist:
             self.warnings = len(plist["Warnings"])
         else:
             self.warnings = 0
-        
+
         # Check console user.
         self.console_user = "unknown"
         if "ConsoleUser" in plist:
@@ -203,7 +212,7 @@ class Condition(models.Model):
         return self.condition_name
     class Meta:
         ordering = ['condition_name']
-        
+
 class PendingUpdate(models.Model):
     machine = models.ForeignKey(Machine)
     update = models.CharField(max_length=256, null=True, blank=True)
@@ -214,7 +223,7 @@ class PendingUpdate(models.Model):
     class Meta:
         ordering = ['display_name']
         unique_together = ("machine", "update")
-    
+
 class PendingAppleUpdate(models.Model):
     machine = models.ForeignKey(Machine)
     update = models.CharField(max_length=256, null=True, blank=True)
@@ -225,3 +234,19 @@ class PendingAppleUpdate(models.Model):
     class Meta:
         ordering = ['display_name']
         unique_together = ("machine", "update")
+
+class ApiKey(models.Model):
+    public_key = models.CharField(max_length=256)
+    private_key = models.CharField(max_length=256)
+    name = models.CharField(max_length=256)
+    has_been_seen = models.BooleanField(default=False)
+    def save(self):
+            if not self.id:
+                self.public_key = GenerateAPIKey()
+                self.private_key = ''.join(random.choice(string.ascii_lowercase + string.digits) for x in range(64))
+            super(ApiKey, self).save()
+    def __unicode__(self):
+        return self.name
+    class Meta:
+        ordering = ['name']
+        unique_together = ("public_key", "private_key")

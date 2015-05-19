@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% load dashboard_extras %}
+
+{% block script %}
+<script type="text/javascript" charset="utf-8">
+    $(document).ready(function() {
+        $('.groupList').DataTable({
+            "aLengthMenu": [[20, 50, -1], [20, 50, "All"]],
+            'aoColumnDefs': [{
+                'bSortable': false,
+                'aTargets': [-1, -2] /* 1st one, start by the right */
+            }]
+        });
+    } );
+</script>
+{% endblock %}
+
+{% block nav %}
+        <li><a href="{% url 'settings_page' %}"><i class="fa-chevron-left fa fa-fw"></i> Back</a></li>
+        <li><a href="{% url 'new_api_key' %}"><i class="fa-plus fa fa-fw"></i> API Key</a></li>
+
+{% endblock %}
+
+{% block content %}
+<div class="panel panel-default">
+<div class="panel-body">
+    <div class="table-responsive">
+        <table class="groupList table table-striped table-condensed">
+                <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Public Key</th>
+                  <th></th>
+                </tr>
+            </thead>
+                <tbody>
+                {% for api_key in api_keys.all %}
+                <tr>
+                    <td>{{ api_key.name}}</td>
+                    <td>{{ api_key.public_key }}</td>
+                    <td><a href="{% url 'edit_api_key' api_key.id %}" class="btn btn-mini btn-info">Edit</a></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+</div>
+{% endblock %}

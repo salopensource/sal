@@ -2,7 +2,7 @@
 import os
 DEBUG = False
 TEMPLATE_DEBUG = DEBUG
-APPEND_SLASH=False
+APPEND_SLASH=True
 PROJECT_DIR = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), os.path.pardir))
 ADMINS = (
     # ('Your Name', 'your_email@example.com'),
@@ -193,6 +193,7 @@ INSTALLED_APPS = (
     'django.contrib.admindocs',
     'sal',
     'server',
+    'api',
     'south',
     'bootstrap3',
 )

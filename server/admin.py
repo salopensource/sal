@@ -1,6 +1,6 @@
 from django.contrib import admin
 from server.models import *
-    
+
 class MachineGroupAdmin(admin.ModelAdmin):
     readonly_fields=('key',)
 
@@ -15,3 +15,4 @@ admin.site.register(HistoricalFact)
 admin.site.register(Condition)
 admin.site.register(PendingUpdate)
 admin.site.register(PendingAppleUpdate)
+admin.site.register(ApiKey)

@@ -610,6 +610,37 @@ def edit_machine_group(request, group_id):
 
 # Delete Group
 
+# New machine
+@login_required
+def new_machine(request, group_id):
+    c = {}
+    c.update(csrf(request))
+    machine_group = get_object_or_404(MachineGroup, pk=group_id)
+    business_unit = machine_group.business_unit
+    if request.method == 'POST':
+        form = NewMachineForm(request.POST)
+        if form.is_valid():
+            new_machine = form.save(commit=False)
+            new_machine.machine_group = machine_group
+            new_machine.save()
+            #form.save_m2m()
+            return redirect('machine_detail', new_machine.id)
+    else:
+        form = NewMachineForm()
+
+    user = request.user
+    user_level = user.userprofile.level
+    if user_level == 'GA' or user_level == 'RW':
+        is_editor = True
+    else:
+        is_editor = False
+
+    if business_unit not in user.businessunit_set.all() or is_editor == False:
+        if user_level != 'GA':
+            return redirect(index)
+    c = {'form': form, 'is_editor': is_editor, 'machine_group': machine_group, }
+    return render_to_response('forms/new_machine.html', c, context_instance=RequestContext(request))
+
 # Machine detail
 @login_required
 def machine_detail(request, machine_id):

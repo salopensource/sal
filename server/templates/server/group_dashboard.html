@@ -23,12 +23,13 @@
         {% if CONFIG_INSTALLED %}
             <li><a href="{% url 'config_machine_group_index' machine_group.id %}"><i class="fa fa-wrench fa-fw"></i> Configure Group</a></li>
         {% endif %}
+        <li><a href="{% url 'new_machine' machine_group.id %}"><i class="fa fa-fw fa-plus"></i> Machine</a></li>
         <li><a href="{% url 'edit_machine_group' machine_group.id %}"><i class="fa fa-fw fa-pencil"></i> Rename Group</a></li>
     {% endif %}
         </ul>
         <!-- /.nav-second-level -->
     </li>
-    
+
 {% endblock %}
 {% block content %}
 <div class="row">

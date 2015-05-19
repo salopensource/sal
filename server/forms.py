@@ -36,6 +36,11 @@ class EditUserBusinessUnitForm(forms.ModelForm):
         self.fields['users'].help_text = ''
         self.fields['users'].queryset = User.objects.order_by('username').filter(~Q(userprofile__level = 'GA'))
 
+class NewMachineForm(forms.ModelForm):
+    class Meta:
+        model = Machine
+        fields = ('serial',)
+
 class MachineGroupForm(forms.ModelForm):
     class Meta:
         model = MachineGroup

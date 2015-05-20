@@ -416,6 +416,11 @@ a.btn-danger a:hover {
   color: white;
   margin: 10px 10px;
   font-size: 24px;
+  font-family: 'Lato', sans-serif;
+}
+
+.navbar-title{
+    padding: 10px;
 }
 .navbar-brand {
   color: white;

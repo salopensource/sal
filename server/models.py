@@ -240,6 +240,7 @@ class ApiKey(models.Model):
     private_key = models.CharField(max_length=256)
     name = models.CharField(max_length=256)
     has_been_seen = models.BooleanField(default=False)
+    read_only = models.BooleanField(default=True)
     def save(self):
             if not self.id:
                 self.public_key = GenerateAPIKey()

@@ -19,6 +19,7 @@ import pprint
 import re
 import os
 from yapsy.PluginManager import PluginManager
+from django.core.exceptions import PermissionDenied
 import utils
 
 # import logging
@@ -855,6 +856,24 @@ def checkin(request):
     key = data.get('key')
     serial = data.get('serial')
     serial = serial.upper()
+
+    # Are we using Sal for some sort of inventory (like, I don't know, Puppet?)
+    try:
+        add_new_machines = settings.ADD_NEW_MACHINES
+    except:
+        add_new_machines = True
+
+    if add_new_machines:
+        # look for serial number - if it doesn't exist, create one
+        if serial:
+            try:
+                machine = Machine.objects.get(serial=serial)
+            except Machine.DoesNotExist:
+                machine = Machine(serial=serial)
+    else:
+
+        get_object_or_404(Machine, serial=serial)
+
     if key is None or key == 'None':
         try:
             key = settings.DEFAULT_MACHINE_GROUP_KEY
@@ -865,12 +884,6 @@ def checkin(request):
 
     business_unit = machine_group.business_unit
 
-    # look for serial number - if it doesn't exist, create one
-    if serial:
-        try:
-            machine = Machine.objects.get(serial=serial)
-        except Machine.DoesNotExist:
-            machine = Machine(serial=serial)
     if machine:
         machine.hostname = data.get('name', '<NO NAME>')
         try:

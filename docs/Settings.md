@@ -77,6 +77,14 @@ EXCLUDED_CONDTIONS = {
 }
 ```
 
+## ADD_NEW_MACHINES
+
+By default, machines that don't exist in Sal, but have a valid Machine Group Key will be created. If you are using Sal for inventory purposes (for example, signing Puppet Certificates), you may wish to disable this.
+
+``` python
+ADD_NEW_MACHINES = False
+```
+
 ## DEFAULT_MACHINE_GROUP_KEY
 
 By default, all machine submissions must include a machine group key otherwise an error will occur. By defining this value to an existing machine group key then machines without a group key already defined in its preferences will be placed into this group. This can be used, for example, to determine which machines have not been setup properly with the correct machine group.

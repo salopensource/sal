@@ -3,6 +3,8 @@ from django.conf.urls import *
 urlpatterns = patterns('server.views',
     #front page
     url(r'^$', 'index', name='home'),
+    # checkin
+    url(r'^checkin/', 'checkin', name='checkin'),
     # BU Dashboard
     url(r'^dashboard/(?P<bu_id>.+)/', 'bu_dashboard', name='bu_dashboard'),
     # Overview List (Group)
@@ -24,8 +26,7 @@ urlpatterns = patterns('server.views',
     url(r'^machine/delete/(?P<machine_id>.+)/', 'delete_machine', name='delete_machine'),
     # New Machine
     url(r'^machine/new/(?P<group_id>.+)/', 'new_machine', name='new_machine'),
-    # checkin
-    url(r'^checkin', 'checkin', name='checkin'),
+
     # New Business Unit
     url(r'^new-bu/', 'new_business_unit', name='new_business_unit'),
     # Edit Business Unit

@@ -103,7 +103,7 @@ debug = opts.debug
 
 # read in the serverURL
 ServerURL = pref('ServerURL');
-checkinurl = ServerURL+'/checkin'
+checkinurl = ServerURL+'/checkin/'
 # read in the BU Key
 bu_key = pref('key')
 

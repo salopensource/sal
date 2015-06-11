@@ -871,7 +871,7 @@ def checkin(request):
             except Machine.DoesNotExist:
                 machine = Machine(serial=serial)
     else:
-        get_object_or_404(Machine, serial=serial)
+        machine = get_object_or_404(Machine, serial=serial)
 
     if key is None or key == 'None':
         try:

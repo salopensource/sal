@@ -16,10 +16,10 @@ $ docker stop sal
 $ docker rm sal
 ```
 
-We're now going to run a temporary container to update the database - if you have any custom mounts (e.g. ``settings.py`` or plugins), you should include them as you normally would:
+We're now going to run a temporary container to update the database - if you have any custom mounts (e.g. ``settings.py`` or plugins), you should include them as you normally would, and replace the DB_* environment variables to match what you have used:
 
 ```
-$ docker run -t -i --rm macadmins/sal /bin/bash
+$ docker run -t -i --rm --link postgres-sal:db -e DB_NAME=sal -e DB_USER=admin -e DB_PASS=password macadmins/sal /bin/bash
 # We're in the container now
 $ cd /home/app/sal
 $ python manage.py migrate --fake-initial

@@ -12,6 +12,7 @@ class BusinessUnitForm(forms.ModelForm):
     class Meta:
         model = BusinessUnit
         widgets = {'users': forms.CheckboxSelectMultiple}
+        fields = '__all__'
     def __init__(self, *args, **kwargs):
         super(BusinessUnitForm, self).__init__(*args, **kwargs)
         self.fields['users'].help_text = ''
@@ -31,6 +32,7 @@ class EditUserBusinessUnitForm(forms.ModelForm):
     class Meta:
         model = BusinessUnit
         widgets = {'users': forms.CheckboxSelectMultiple}
+        fields = '__all__'
     def __init__(self, *args, **kwargs):
         super(EditUserBusinessUnitForm, self).__init__(*args, **kwargs)
         self.fields['users'].help_text = ''
@@ -123,3 +125,4 @@ class UserToBUForm(forms.ModelForm):
     #cats = forms.ModelMultipleChoiceField(widget=forms.CheckboxSelectMultiple(),required=True)
     class Meta:
         model = User
+        fields = '__all__'

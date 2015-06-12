@@ -37,10 +37,15 @@ PLUGIN_ORDER = ['Activity','Status','OperatingSystem', 'MunkiVersion', 'Uptime',
 Under installed apps add 
 
 	'bootstrap3', 
+	'api',
 
 and remove 
 
 	'bootstrap-toolkit'
+	
+and
+
+	'south'
 	
 Your installed apps should look like this:
 
@@ -58,8 +63,8 @@ INSTALLED_APPS = (
     'django.contrib.admindocs',
     'sal',
     'server',
-    'south',
     'bootstrap3',
+    'api',
 )
 ```
 

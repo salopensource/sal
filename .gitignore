@@ -47,3 +47,5 @@ sal_env/
 node_modules/
 
 server/management
+
+*.db copy

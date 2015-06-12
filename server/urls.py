@@ -64,6 +64,16 @@ urlpatterns = patterns('server.views',
     url(r'^settings/api-keys/new/', 'new_api_key', name='new_api_key'),
     # Manage API Keys
     url(r'^settings/api-keys/', 'api_keys', name='api_keys'),
+    # Plus Plugin
+    url(r'^settings/plugins/plus/(?P<plugin_id>.+)/', 'plugin_plus', name='plugin_plus'),
+    # Minus Plugin
+    url(r'^settings/plugins/minus/(?P<plugin_id>.+)/', 'plugin_minus', name='plugin_minus'),
+    # Disable Plugin
+    url(r'^settings/plugins/disable/(?P<plugin_id>.+)/', 'plugin_disable', name='plugin_disable'),
+    # Enable Plugin
+    url(r'^settings/plugins/enable/(?P<plugin_name>.+)/', 'plugin_enable', name='plugin_enable'),
+    # Manage Plugins
+    url(r'^settings/plugins/', 'plugins_page', name='plugins_page'),
 
     # Settings
     url(r'^settings/', 'settings_page', name='settings_page')

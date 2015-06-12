@@ -2,7 +2,7 @@ Django==1.8.2
 Yapsy==1.10.223
 cffi==1.1.2
 cryptography==0.9.1
-django-bootstrap3==4.11.0
+django-bootstrap3==5.4.0
 docutils==0.11
 enum34==1.0.4
 idna==2.0

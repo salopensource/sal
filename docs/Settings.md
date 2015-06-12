@@ -4,7 +4,7 @@ By modifying ``sal/settings.py`` you can customise how plugins and data is displ
 
 ## PLUGIN_ORDER
 
-This is a list of plugin names. They will be displayed in the order they are entered in this list. If they are not in this this, they will be displayed alphabetically after the items in the ``PLUGIN_ORDER`` list.
+This is a list of plugin names. This is now only used for the initial load of plugins into Sal. To re-order plugins, go to the Settings Page (from the top right menu) in Sal.
 
 ``` python
 PLUGIN_ORDER = ['Activity','Status','OperatingSystem', 'MunkiVersion','Uptime', 'Memory']

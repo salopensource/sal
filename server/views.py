@@ -10,7 +10,7 @@ from django.conf import settings
 from django.core.context_processors import csrf
 from django.shortcuts import render_to_response, get_object_or_404, redirect
 from datetime import datetime, timedelta, date
-from django.db.models import Count
+from django.db.models import Count, Sum, Max, Q
 from django.contrib import messages
 import plistlib
 import ast
@@ -74,12 +74,18 @@ def index(request):
     # Load all plugins
     manager.collectPlugins()
     output = []
-    # Loop round the plugins and print their names.
-    for plugin in manager.getAllPlugins():
-        data = {}
-        data['name'] = plugin.name
-        (data['html'], data['width']) = plugin.plugin_object.show_widget('front', machines)
-        output.append(data)
+    # Get all the enabled plugins
+    enabled_plugins = Plugin.objects.all().order_by('order')
+    for enabled_plugin in enabled_plugins:
+        # Loop round the plugins and print their names.
+        for plugin in manager.getAllPlugins():
+            if plugin.name == enabled_plugin.name:
+                data = {}
+                data['name'] = plugin.name
+                (data['html'], data['width']) = plugin.plugin_object.show_widget('front', machines)
+                output.append(data)
+                break
+
     output = utils.orderPluginOutput(output)
 
     # get the user level - if they're a global admin, show all of the machines. If not, show only the machines they have access to
@@ -361,13 +367,18 @@ def bu_dashboard(request, bu_id):
     # Load all plugins
     manager.collectPlugins()
     output = []
+    # Get all the enabled plugins
+    enabled_plugins = Plugin.objects.all().order_by('order')
+    for enabled_plugin in enabled_plugins:
+        # Loop round the plugins and print their names.
+        for plugin in manager.getAllPlugins():
+            if plugin.name == enabled_plugin.name:
+                data = {}
+                data['name'] = plugin.name
+                (data['html'], data['width']) = plugin.plugin_object.show_widget('bu_dashboard', machines, bu.id)
+                output.append(data)
+                break
 
-    # Loop round the plugins and print their names.
-    for plugin in manager.getAllPlugins():
-        data = {}
-        data['name'] = plugin.name
-        (data['html'], data['width']) = plugin.plugin_object.show_widget('bu_dashboard', machines, bu.id)
-        output.append(data)
     output = utils.orderPluginOutput(output, 'bu_dashboard', bu.id)
 
     c = {'user': request.user, 'machine_groups': machine_groups, 'is_editor': is_editor, 'business_unit': business_unit, 'user_level': user_level, 'output':output, 'config_installed':config_installed }
@@ -541,11 +552,18 @@ def group_dashboard(request, group_id):
     # Load all plugins
     manager.collectPlugins()
     output = []
-    for plugin in manager.getAllPlugins():
-        data = {}
-        data['name'] = plugin.name
-        (data['html'], data['width']) = plugin.plugin_object.show_widget('group_dashboard', machines, machine_group.id)
-        output.append(data)
+    # Get all the enabled plugins
+    enabled_plugins = Plugin.objects.all().order_by('order')
+    for enabled_plugin in enabled_plugins:
+        # Loop round the plugins and print their names.
+        for plugin in manager.getAllPlugins():
+            if plugin.name == enabled_plugin.name:
+                data = {}
+                data['name'] = plugin.name
+                (data['html'], data['width']) = plugin.plugin_object.show_widget('group_dashboard', machines, machine_group.id)
+                output.append(data)
+                break
+
     output = utils.orderPluginOutput(output, 'group_dashboard', machine_group.id)
     c = {'user': request.user, 'machine_group': machine_group, 'user_level': user_level,  'is_editor': is_editor, 'business_unit': business_unit, 'output':output, 'config_installed':config_installed, 'request':request}
     return render_to_response('server/group_dashboard.html', c, context_instance=RequestContext(request))
@@ -767,6 +785,81 @@ def settings_page(request):
     c = {'user':request.user, 'request':request}
     return render_to_response('server/settings.html', c, context_instance=RequestContext(request))
 
+@login_required
+def plugins_page(request):
+    user = request.user
+    user_level = user.userprofile.level
+    if user_level != 'GA':
+        return redirect(index)
+    # Load the plugins
+    utils.reloadPluginsModel()
+    enabled_plugins = Plugin.objects.all()
+    disabled_plugins = utils.disabled_plugins()
+    print disabled_plugins
+    c = {'user':request.user, 'request':request, 'enabled_plugins':enabled_plugins, 'disabled_plugins':disabled_plugins}
+    return render_to_response('server/plugins.html', c, context_instance=RequestContext(request))
+
+@login_required
+def plugin_plus(request, plugin_id):
+    user = request.user
+    profile = UserProfile.objects.get(user=user)
+    user_level = profile.level
+    if user_level != 'GA':
+        return redirect('server.views.index')
+
+    # get current plugin order
+    current_plugin = get_object_or_404(Plugin, pk=plugin_id)
+
+    # get 'old' next one
+    old_plugin = get_object_or_404(Plugin, order=(int(current_plugin.order)+1))
+    current_plugin.order = current_plugin.order + 1
+    current_plugin.save()
+
+    old_plugin.order = old_plugin.order - 1
+    old_plugin.save()
+    return redirect('plugins_page')
+
+@login_required
+def plugin_minus(request, plugin_id):
+    user = request.user
+    profile = UserProfile.objects.get(user=user)
+    user_level = profile.level
+    if user_level != 'GA':
+        return redirect('server.views.index')
+
+    # get current plugin order
+    current_plugin = get_object_or_404(Plugin, pk=plugin_id)
+    #print current_plugin
+    # get 'old' previous one
+
+    old_plugin = get_object_or_404(Plugin, order=(int(current_plugin.order)-1))
+    current_plugin.order = current_plugin.order - 1
+    current_plugin.save()
+
+    old_plugin.order = old_plugin.order + 1
+    old_plugin.save()
+    return redirect('plugins_page')
+
+@login_required
+def plugin_disable(request, plugin_id):
+    user = request.user
+    profile = UserProfile.objects.get(user=user)
+    user_level = profile.level
+    if user_level != 'GA':
+        return redirect('server.views.index')
+    plugin = get_object_or_404(Plugin, pk=plugin_id)
+    plugin.delete()
+    return redirect('plugins_page')
+
+@login_required
+def plugin_enable(request, plugin_name):
+    # only do this if there isn't a plugin already with the name
+    try:
+        plugin = Plugin.objects.get(name=plugin_name)
+    except Plugin.DoesNotExist:
+        plugin = Plugin(name=plugin_name, order=utils.UniquePluginOrder())
+        plugin.save()
+    return redirect('plugins_page')
 @login_required
 def api_keys(request):
     user = request.user

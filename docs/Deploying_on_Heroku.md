@@ -14,7 +14,7 @@ Now we need to get a copy of Sal and configure it. Assuming you keep your code i
 
 ``` bash
 $ cd ~/src
-$ git clone https://github.com/salsoftware/sal
+$ git clone https://github.com/salopensource/sal
 $ cd sal
 ```
 
@@ -24,7 +24,7 @@ Now we need to make a copy of sal/example_settings.py
 $ cp sal/example_settings.py sal/settings.py
 ```
 
-And edit sal/settings.py in your favourite editor to your liking (probably time zone at least). [Here is a full list](https://github.com/salsoftware/sal/blob/master/docs/Settings.md) of the various options that can be set in sal/settings.py.
+And edit sal/settings.py in your favourite editor to your liking (probably time zone at least). [Here is a full list](https://github.com/salopensource/sal/blob/master/docs/Settings.md) of the various options that can be set in sal/settings.py.
 
 Heroku uses git for deployment, so we need to commit our changes.
 

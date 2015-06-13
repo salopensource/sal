@@ -1,6 +1,6 @@
 Upgrading on Ubuntu 12.04 LTS and 14.04.1 
 =====================
-This document assumes Ubuntu 12.04 LTS or 14.04.1 and that you have an existing installation of Sal, installed using the [instructions provided](https://github.com/salsoftware/sal/blob/master/docs/Installation_on_Ubuntu_12.md). If you don't have an existing installation, you just need to follow the installation instructions.
+This document assumes Ubuntu 12.04 LTS or 14.04.1 and that you have an existing installation of Sal, installed using the [instructions provided](https://github.com/salopensource/sal/blob/master/docs/Installation_on_Ubuntu_12.md). If you don't have an existing installation, you just need to follow the installation instructions.
 
 **If you are upgrading from Sal 1 to Sal 2, please make the following changes to your ``sal/settings.py`` file:**
 

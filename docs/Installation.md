@@ -6,15 +6,15 @@ Sal is split into Business Units, and then subdivided into Groups. Each customer
 
 ##Server installation/upgrade
 
-The recommended (and easiest) way of getting running on your own hardware is using [Docker](https://github.com/salsoftware/sal/blob/master/docs/Docker.md).
+The recommended (and easiest) way of getting running on your own hardware is using [Docker](https://github.com/salopensource/sal/blob/master/docs/Docker.md). In future versions of Sal, this will be the only supported method of deploying in your own data centre, so it is highly recommended you get to grips with it.
 
-If you aren't comfortable with Linux, it's recommended that your [first installation is on Heroku](https://github.com/salsoftware/sal/blob/master/docs/Deploying_on_Heroku.md) which will handle the server configuration for you.
+If you aren't comfortable with Linux, it's recommended that your [first installation is on Heroku](https://github.com/salopensource/sal/blob/master/docs/Deploying_on_Heroku.md) which will handle the server configuration for you.
 
-If you plan on installing on your own hardware, see [Installation on Ubuntu 12](https://github.com/salsoftware/sal/blob/master/docs/Installation_on_Ubuntu_12.md) (or [CentOS](https://github.com/salsoftware/sal/blob/master/docs/Installation_on_CentOS6.md) or [Ubuntu 14](https://github.com/salsoftware/sal/blob/master/docs/Installation_on_Ubuntu_14.md)) for server installation docs. If you are installing on a different operating system, please ensure you have Python 2.7 installed.
+If you plan on installing on your own hardware, see [Installation on Ubuntu 12](https://github.com/salopensource/sal/blob/master/docs/Installation_on_Ubuntu_12.md) (or [CentOS](https://github.com/salopensource/sal/blob/master/docs/Installation_on_CentOS6.md) or [Ubuntu 14](https://github.com/salopensource/sal/blob/master/docs/Installation_on_Ubuntu_14.md)) for server installation docs. If you are installing on a different operating system, please ensure you have Python 2.7 installed.
 
-See [Upgrading on Ubuntu 12](https://github.com/salsoftware/sal/blob/master/docs/Upgrading_on_Ubuntu_12.md) for upgrade docs.
+See [Upgrading on Ubuntu 12](https://github.com/salopensource/sal/blob/master/docs/Upgrading_on_Ubuntu_12.md) for upgrade docs.
 
-If you are running a manual installation and would like to migrate to Docker, please see the [migration document](https://github.com/salsoftware/sal/blob/master/docs/DockerMigration.md) written by Nick McSpadden.
+If you are running a manual installation and would like to migrate to Docker, please see the [migration document](https://github.com/salopensource/sal/blob/master/docs/DockerMigration.md) written by Nick McSpadden.
 
 ## Getting started
 
@@ -30,7 +30,7 @@ A Global Administrator (GA) has access to everything - they can get into all Bus
 
 **2. Read / Write, Read Only**
 
-These users are limited to the Business Units they are given access to. Read/Write users can create new Machine Groups within their Business Units, Read Only users are only able to view the information.
+These users are limited to the Business Units they are given access to. Read/Write users can create new Machine Groups and Machines within their Business Units, Read Only users are only able to view the information.
 
 **3. Stats Only**
 
@@ -38,16 +38,9 @@ The Stats Only user level is not used at this time, and should *not* be assigned
 
 ## Client configuration
 
-The sal ``postflight`` script needs to be deployed in the ``/usr/local/munki`` directory, and the ``yaml`` directory should be deployed in ``/usr/local/sal/yaml`` (a luggage makefile is included). Alternately, you can use the [published package](https://github.com/salsoftware/sal/releases/latest) to deploy the necessary client files.
+The sal ``postflight`` script needs to be deployed in the ``/usr/local/munki`` directory, and the ``yaml`` directory should be deployed in ``/usr/local/sal/yaml`` (a luggage makefile is included). Alternately, you can use the [published package](https://github.com/salopensource/sal/releases/latest) to deploy the necessary client files. There is also an [AutoPkg recipe](https://github.com/autopkg/grahamgilbert-recipes/tree/master/Sal).
 
-If you have an existing ``postflight`` script (for example, Munki Web Admin), you will need to rename the sal postflight script (for example, ``sal-submit``) and add a reference in your existing postflight like this:
-
-``` bash
-if [ -f /usr/local/munki/sal-submit ]
-  then
-    /usr/local/munki/sal-submit
-fi
-```
+If you have an existing ``postflight`` script (for example, Munki Web Admin), you will need to rename it (for example, ``mwa-submit``) and move it into ``/usr/local/munki/postflight.d``:
 
 The configuration of the Server Address, and the Machine Group key is from ``/Library/Preferences/com.salsoftware.sal``. Plists, MCX (untested, but should work) and Profiles can be used.
 

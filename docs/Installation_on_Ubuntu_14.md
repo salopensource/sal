@@ -79,7 +79,7 @@ Now we can activate the virtualenv:
 ##Copy and configure Sal
 Still inside the sal_env virtualenv, use git to clone the current version of Sal
 
-	git clone https://github.com/salsoftware/sal.git sal
+	git clone https://github.com/salopensource/sal.git sal
 
 Now we need to get the other components for Sal
 
@@ -95,10 +95,10 @@ Edit settings.py:
 * Set ADMINS to an administrative name and email
 * Set TIME_ZONE to the appropriate timezone
 * Modify DISPLAY_NAME to what you want the header to be
-* This is enough to get you going. See [Settings.md](https://github.com/salsoftware/sal/blob/master/docs/Settings.md) for more options in detail.
+* This is enough to get you going. See [Settings.md](https://github.com/salopensource/sal/blob/master/docs/Settings.md) for more options in detail.
 
 ###More Setup
-We need to use Django's manage.py to initialise the app's database and create an admin user. Running the syncdb command will ask you to create an admin user - make sure you do this! If you are running Sal in a large environment, it is recommended you use MySQL rather than the default SQLite database. If this is the case, follow the [guide on setting up MySQL before continuing](https://github.com/salsoftware/sal/blob/master/docs/Using_mysql_on_ubuntu.md).
+We need to use Django's manage.py to initialise the app's database and create an admin user. Running the syncdb command will ask you to create an admin user - make sure you do this! If you are running Sal in a large environment, it is recommended you use MySQL rather than the default SQLite database. If this is the case, follow the [guide on setting up MySQL before continuing](https://github.com/salopensource/sal/blob/master/docs/Using_mysql_on_ubuntu.md).
 
 
 	cd ..

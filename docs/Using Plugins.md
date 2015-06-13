@@ -9,7 +9,7 @@ It's easy to extend Sal with plugins created by others. A plugin could consist o
 3. To hide the plugin from a specific Business Unit or Machine Group, add it to the ``HIDE_PLUGIN_FROM_BUSINESS_UNIT`` or ``HIDE_PLUGIN_FROM_MACHINE_GROUP`` settings in ``sal/settings.py``. You will need the ID number of the Business Unit or Machine Group, which you can get from the URL displayed in your browser when on that BU or Group's page. Hiding a plugin from a business unit will also hide it from it's child groups.
 4. Similarly, to only show or hide the plugin on the front page, the plugin's name should be added to the list in ``sal/settings.py``.
 
-For more details on configuring ``sal/settings.py`` please see it's [documentation](https://github.com/salsoftware/sal/blob/master/docs/Settings.md).
+For more details on configuring ``sal/settings.py`` please see it's [documentation](https://github.com/salopensource/sal/blob/master/docs/Settings.md).
 
 ## Installing plugins for Heroku
 

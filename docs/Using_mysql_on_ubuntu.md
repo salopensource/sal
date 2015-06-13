@@ -53,5 +53,5 @@ DATABASES = {
 }
 ```
 
-Now you can return to the rest of the [installation guide](https://github.com/salsoftware/sal/blob/master/docs/Installation_on_Ubuntu_12.md).
+Now you can return to the rest of the [installation guide](https://github.com/salopensource/sal/blob/master/docs/Installation_on_Ubuntu_12.md).
  

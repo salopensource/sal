@@ -1,7 +1,7 @@
 Installation on CentOS 7
 =====================
 
-Unlike previous CentOS releases, 7 ships with Python 2.7.5 and thus a number of the initial steps from [the install Sal on CentOS6 guide](https://github.com/salsoftware/sal/blob/master/docs/Installation_on_CentOS6.md) can be skipped.
+Unlike previous CentOS releases, 7 ships with Python 2.7.5 and thus a number of the initial steps from [the install Sal on CentOS6 guide](https://github.com/salopensource/sal/blob/master/docs/Installation_on_CentOS6.md) can be skipped.
 
 These instructions were done using CentOS 7 x86 64bit Minimal Installation in a clean VM.
 
@@ -90,7 +90,7 @@ Now we can activate the virtualenv:
 ##Copy and Configure Sal
 Still inside the sal_env virtualenv, use git to clone the current version of Sal:
 
-	git clone https://github.com/salsoftware/sal.git sal
+	git clone https://github.com/salopensource/sal.git sal
 
 Now we need to get the other components for Sal
 
@@ -108,10 +108,10 @@ Edit settings.py:
 * Set ADMINS to an administrative name and email
 * Set TIME_ZONE to the appropriate timezone
 * Modify DISPLAY_NAME to what you want the header to be
-* This is enough to get you going. See [Settings.md](https://github.com/salsoftware/sal/blob/master/docs/Settings.md) for more options in detail.
+* This is enough to get you going. See [Settings.md](https://github.com/salopensource/sal/blob/master/docs/Settings.md) for more options in detail.
 
 ###More Setup
-We need to use Django's manage.py to initialize the app's database and create an admin user. Running the syncdb command will ask you to create an admin user - make sure you do this! If you are running Sal in a large environment, it is recommended you use MySQL rather than the default SQLite database. If this is the case, follow the [guide on setting up MySQL before continuing](https://github.com/salsoftware/sal/blob/master/docs/Using_mysql_on_CentOS6.md).
+We need to use Django's manage.py to initialize the app's database and create an admin user. Running the syncdb command will ask you to create an admin user - make sure you do this! If you are running Sal in a large environment, it is recommended you use MySQL rather than the default SQLite database. If this is the case, follow the [guide on setting up MySQL before continuing](https://github.com/salopensource/sal/blob/master/docs/Using_mysql_on_CentOS6.md).
 
 	cd ..
 	python manage.py syncdb

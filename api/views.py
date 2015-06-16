@@ -15,6 +15,18 @@ from django.core.exceptions import PermissionDenied
 
 import json
 
+def get_machine_facts(machine):
+    output = {}
+    for fact in machine.fact_set.all():
+        output[fact.fact_name] = fact.fact_data
+    return output
+
+def get_machine_conditions(machine):
+    output = {}
+    for condition in machine.condition_set.all():
+        output[condition.condition_name] = condition.condition_data
+    return output
+
 def clean_serialize(data):
     output = []
     temp = json.loads(data)
@@ -27,6 +39,13 @@ def clean_serialize(data):
             item['fields']['machine_group_name'] = machine_group.name
             item['fields']['business_unit_name'] = business_unit.name
             item['fields']['business_unit'] = business_unit.id
+
+            item['fields']['facts'] = get_machine_facts(machine)
+
+            if machine.condition_set.all():
+                item['fields']['conditions'] = get_machine_conditions(machine)
+            else:
+                item['fields']['conditions'] = []
         item['fields']['id'] = item['pk']
         output.append(item['fields'])
     return output
@@ -53,14 +72,14 @@ def validate_request(request, readwrite=False):
 @csrf_exempt
 def v1_machines(request):
     validate_request(request)
-    machines = Machine.objects.all()
-    if 'data' in request.POST:
-        # comma separated serials, trim after splitting
-        data = request.POST['data']
-        data = json.loads(data)
-        print data
-        serials = data['data']['serials']
-        machines = machines.filter(serial__in=serials)
+    machines = Machine.objects.all().prefetch_related()
+    if request.POST:
+        if 'data' in request.POST:
+            # comma separated serials, trim after splitting
+            data = request.POST['data']
+            data = json.loads(data)
+            serials = data['data']['serials']
+            machines = machines.filter(serial__in=serials)
     machines = clean_serialize(serializers.serialize('json', machines))
     return HttpResponse(json.dumps(machines), content_type="application/json")
 

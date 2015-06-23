@@ -101,9 +101,6 @@
                         </li>
 
                         {% endif %}
-                        {% if CONFIG_INSTALLED %}
-                        {% includeifapp config 'config/help.html' %}
-                        {% endif %}
                         <li class="divider"></li>
                         <li><a href="{% url 'django.contrib.auth.views.logout_then_login' %}"><i class="fa fa-sign-out fa-fw"></i> Logout</a>
                         </li>

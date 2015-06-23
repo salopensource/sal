@@ -1,29 +1,84 @@
 API
 =====
 
-Sal has a basic API. You will need to create an API key with appropriate permissions. All API endpoints expect three parameters: ``private_key``, ``public_key`` and ``data``. Data should always be a JSON object.
+Sal has a basic REST API. You will need to create an API key with appropriate permissions. You should send your private key and public key as headers (``publickey`` and ``privatekey``).
 
-## /api/v1/machines/
+## Machines
 
-``` json
-{
-  "data":{
-        "serials": ["abc123","xyz"]
-  }
-}
+``` bash
+$ curl -H "privatekey:YOURPRIVATEKEY" -H "publickey:YOURPUBLICKEY" http://sal/api/machines
 ```
 
-To retrieve all machines, do not send ``data``.
+Will retrieve all machines.
 
-## /api/v1/newmachine/
+To retrieve a single machine:
 
-```json
-{
-  "data":{
-        "serial": "abc123",
-        "machine_group": "1"
-  }
-}
-
-``machine_group`` should be the ID of the Machine Group the computer is to be placed into. The serial is the serial number to be added. An error will be returned if either are missing, if the Machine Group doesn't exist or if the serial already exists in Sal.
+``` bash
+$ curl -H "privatekey:YOURPRIVATEKEY" -H "publickey:YOURPUBLICKEY" http://sal/api/machines/MACHINESERIALNUMBER
 ```
+
+To create a machine, you will need to send a JSON object as the POST data. You can use any key that can be retrieved from the API *except*:
+
+* Facts
+* Conditions
+* Pending Apple Updates
+* Pending 3rd Party Updates
+
+You **must** set machine_group to the ID of the Machine Group the computer is to be placed into.
+
+You can delete a machine by sending a ``DELETE`` command with your request (please see (this guide)[http://blogs.plexibus.com/2009/01/15/rest-esting-with-curl/] on using REST APIs if that doesn't make sense!)
+
+## Facts
+
+You can retrieve all facts for a machine:
+
+
+``` bash
+$ curl -H "privatekey:YOURPRIVATEKEY" -H "publickey:YOURPUBLICKEY" http://sal/api/facts/MACHINESERIALNUMBER
+```
+
+## Munki Conditions
+
+To retrieve all Munki Conditions for a machine:
+
+``` bash
+$ curl -H "privatekey:YOURPRIVATEKEY" -H "publickey:YOURPUBLICKEY" http://sal/api/conditions/MACHINESERIALNUMBER
+```
+
+## Machine Groups
+
+``` bash
+$ curl -H "privatekey:YOURPRIVATEKEY" -H "publickey:YOURPUBLICKEY" http://sal/api/machine_groups
+```
+
+Will retrieve all machine groups.
+
+To retrieve a single machine group:
+
+``` bash
+$ curl -H "privatekey:YOURPRIVATEKEY" -H "publickey:YOURPUBLICKEY" http://sal/api/machine_groups/MACHINEGROUPID
+```
+
+To create a Machine Group, you will need to send a JSON object as the POST data. You can use any key that can be retrieved from the API.
+
+You **must** set business_unit to the ID of the Business Unit the Machine Group is to be placed into.
+
+You can delete a machine group by sending a ``DELETE`` command with your request.
+
+## Business Units
+
+``` bash
+$ curl -H "privatekey:YOURPRIVATEKEY" -H "publickey:YOURPUBLICKEY" http://sal/api/business_units
+```
+
+Will retrieve all Business Units.
+
+To retrieve a single Business Unit:
+
+``` bash
+$ curl -H "privatekey:YOURPRIVATEKEY" -H "publickey:YOURPUBLICKEY" http://sal/api/business_units/MACHINEGROUPID
+```
+
+To create a Business Unit, you will need to send a JSON object as the POST data. You can use any key that can be retrieved from the API.
+
+You can delete a Business Unit by sending a ``DELETE`` command with your request.

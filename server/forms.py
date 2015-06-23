@@ -21,7 +21,7 @@ class BusinessUnitForm(forms.ModelForm):
 class ApiKeyForm(forms.ModelForm):
     class Meta:
         model = ApiKey
-        fields = ('name','read_only',)
+        fields = ('name',)
 
 class EditBusinessUnitForm(forms.ModelForm):
     class Meta:

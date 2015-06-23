@@ -186,16 +186,16 @@ class Machine(models.Model):
         super(Machine, self).save()
 
 class Fact(models.Model):
-    machine = models.ForeignKey(Machine)
+    machine = models.ForeignKey(Machine, related_name='facts')
     fact_name = models.TextField()
     fact_data = models.TextField()
     def __unicode__(self):
-        return self.fact_name
+        return '%s: %s' % (self.fact_name, self.fact_data)
     class Meta:
         ordering = ['fact_name']
 
 class HistoricalFact(models.Model):
-    machine = models.ForeignKey(Machine)
+    machine = models.ForeignKey(Machine, related_name='historical_facts')
     fact_name = models.TextField()
     fact_data = models.TextField()
     fact_recorded = models.DateTimeField(db_index=True)
@@ -205,7 +205,7 @@ class HistoricalFact(models.Model):
         ordering = ['fact_name', 'fact_recorded']
 
 class Condition(models.Model):
-    machine = models.ForeignKey(Machine)
+    machine = models.ForeignKey(Machine, related_name='conditions')
     condition_name = models.TextField()
     condition_data = models.TextField()
     def __unicode__(self):
@@ -214,7 +214,7 @@ class Condition(models.Model):
         ordering = ['condition_name']
 
 class PendingUpdate(models.Model):
-    machine = models.ForeignKey(Machine)
+    machine = models.ForeignKey(Machine, related_name='pending_updates')
     update = models.CharField(max_length=256, null=True, blank=True)
     update_version = models.CharField(max_length=256, null=True, blank=True)
     display_name = models.CharField(max_length=256, null=True, blank=True)
@@ -225,7 +225,7 @@ class PendingUpdate(models.Model):
         unique_together = ("machine", "update")
 
 class PendingAppleUpdate(models.Model):
-    machine = models.ForeignKey(Machine)
+    machine = models.ForeignKey(Machine, related_name='pending_apple_updates')
     update = models.CharField(max_length=256, null=True, blank=True)
     update_version = models.CharField(max_length=256, null=True, blank=True)
     display_name = models.CharField(max_length=256, null=True, blank=True)
@@ -248,7 +248,6 @@ class ApiKey(models.Model):
     private_key = models.CharField(max_length=256)
     name = models.CharField(max_length=256)
     has_been_seen = models.BooleanField(default=False)
-    read_only = models.BooleanField(default=True)
     def save(self):
             if not self.id:
                 self.public_key = GenerateAPIKey()

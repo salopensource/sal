@@ -33,3 +33,17 @@ $ source /usr/local/sal_env/bin/activate
 $ cd /usr/local/sal_env/sal
 $ python manage.py migrate --fake-initial
 ```
+
+# Plugins
+
+If you have used custom plugins, make sure they are compatible with the change. The primary change is any reference to ``fact`` becomes ``facts``.
+
+``` python
+ok = machines.filter(fact__fact_name='uptime_days', fact__fact_data__lte=1).count()
+```
+
+Becomes:
+
+``` python
+ok = machines.filter(facts__fact_name='uptime_days', facts__fact_data__lte=1).count()
+```

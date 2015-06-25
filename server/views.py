@@ -674,8 +674,8 @@ def machine_detail(request, machine_id):
             return redirect(index)
 
     report = machine.get_report()
-    if machine.fact_set.count() != 0:
-        facts = machine.fact_set.all()
+    if machine.facts.count() != 0:
+        facts = machine.facts.all()
         if settings.EXCLUDED_FACTS:
             for excluded in settings.EXCLUDED_FACTS:
                 facts = facts.exclude(fact_name=excluded)
@@ -1070,7 +1070,7 @@ def checkin(request):
 
         # if Facter data is submitted, we need to first remove any existing facts for this machine
         if 'Facter' in report_data:
-            facts = machine.fact_set.all()
+            facts = machine.facts.all()
             facts.delete()
             # Delete old historical facts
             try:

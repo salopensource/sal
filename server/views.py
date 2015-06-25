@@ -682,8 +682,8 @@ def machine_detail(request, machine_id):
     else:
         facts = None
 
-    if machine.condition_set.count() != 0:
-        conditions = machine.condition_set.all()
+    if machine.conditions.count() != 0:
+        conditions = machine.conditions.all()
         # get the IP address(es) from the condition
         try:
             ip_address = conditions.get(machine=machine, condition_name__exact='ipv4_address')
@@ -1097,7 +1097,7 @@ def checkin(request):
                     fact.save()
 
         if 'Conditions' in report_data:
-            conditions = machine.condition_set.all()
+            conditions = machine.conditions.all()
             conditions.delete()
             for condition_name, condition_data in report_data['Conditions'].iteritems():
                 # if it's a list (more than one result), we're going to conacetnate it into one comma separated string

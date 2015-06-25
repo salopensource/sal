@@ -345,7 +345,7 @@ a.btn-danger a:hover {
   background-color: #374d5f;
 }
 .navbar {
-  background: #2f79e7 url(../img/atom-head-white.svg) no-repeat top;
+  background: #2f79e7;
   background-size: 100%;
   color: white;
   border: none;

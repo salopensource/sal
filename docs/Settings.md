@@ -1,6 +1,6 @@
 # Settings.py
 
-By modifying ``sal/settings.py`` you can customise how plugins and data is displayed in Sal. If you are upgrading from a previous version of Sal, refer to this document to see how your ``settings.py`` file should be changed to take advantage of any new features.
+By modifying ``sal/settings.py`` you can customise how plugins and data is displayed in Sal. If you are upgrading from a previous version of Sal, refer to this document to see how your ``settings.py`` file should be changed to take advantage of any new features. There are defaults set in ``sal/system_settings.py``, but they can be overridden if you choose.
 
 ## PLUGIN_ORDER
 

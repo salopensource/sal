@@ -5,7 +5,7 @@ If you have a new installation of Sal, or you started with Sal after the June 20
 
 The June 2015 update contains a significant upgrade to Django (the core framework that runs Sal) - this contains lots of bug fixes and security patches (a 'good thing'). But you do need to perform one extra step after performing your normal update procedure (either following [this guide](https://github.com/salopensource/sal/blob/master/docs/Upgrading_on_Ubuntu_12.md) if you are running using the older method of deploying Sal, or after ``docker pull macadmins/sal`` if you are using Docker).
 
-It is recommended that you start with a fresh ``sal/settings.py`` (copied from ``sal/example_settings.py``), as there have been quite a few changes.
+It is recommended that you start with a fresh ``sal/settings.py`` (copied from ``sal/example_settings.py``), as there have been quite a few changes. Plug in your database information as needed - if you're using Docker and not using your own ``settings.py``, you don't need to do anything.
 
 You only need to perform the following once.
 

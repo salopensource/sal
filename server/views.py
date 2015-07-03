@@ -1047,7 +1047,7 @@ def checkin(request):
         machine.save()
 
         # Remove existing PendingUpdates for the machine
-        updates = machine.pendingupdates.all()
+        updates = machine.pending_updates.all()
         updates.delete()
         if 'ItemsToInstall' in report_data:
             for update in report_data.get('ItemsToInstall'):
@@ -1058,7 +1058,7 @@ def checkin(request):
                 pending_update.save()
 
         # Remove existing PendingAppleUpdates for the machine
-        updates = machine.pendingappleupdates.all()
+        updates = machine.pending_apple_updates.all()
         updates.delete()
         if 'AppleUpdates' in report_data:
             for update in report_data.get('AppleUpdates'):

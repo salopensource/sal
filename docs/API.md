@@ -76,7 +76,7 @@ Will retrieve all Business Units.
 To retrieve a single Business Unit:
 
 ``` bash
-$ curl -H "privatekey:YOURPRIVATEKEY" -H "publickey:YOURPUBLICKEY" http://sal/api/business_units/MACHINEGROUPID
+$ curl -H "privatekey:YOURPRIVATEKEY" -H "publickey:YOURPUBLICKEY" http://sal/api/business_units/BUSINESSUNITID
 ```
 
 To create a Business Unit, you will need to send a JSON object as the POST data. You can use any key that can be retrieved from the API.

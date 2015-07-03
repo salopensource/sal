@@ -49,3 +49,5 @@ Becomes:
 ``` python
 ok = machines.filter(facts__fact_name='uptime_days', facts__fact_data__lte=1).count()
 ```
+
+And any reference to ``condition`` becomes ``conditions``.

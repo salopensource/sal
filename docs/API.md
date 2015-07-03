@@ -26,7 +26,7 @@ To create a machine, you will need to send a JSON object as the POST data. You c
 
 You **must** set machine_group to the ID of the Machine Group the computer is to be placed into.
 
-You can delete a machine by sending a ``DELETE`` command with your request (please see (this guide)[http://blogs.plexibus.com/2009/01/15/rest-esting-with-curl/] on using REST APIs if that doesn't make sense!)
+You can delete a machine by sending a ``DELETE`` command with your request (please see [this guide](http://blogs.plexibus.com/2009/01/15/rest-esting-with-curl/) on using REST APIs if that doesn't make sense!)
 
 ## Facts
 

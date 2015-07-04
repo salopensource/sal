@@ -19,9 +19,9 @@ If it isn't, install it:
 
 	apt-get install git
 
-Install python setup tools:
+Install required setup tools:
 
-	apt-get install python-setuptools libffi-dev
+	apt-get install gcc build-essential python-setuptools python-dev libffi-dev libssl-dev
 
 Make sure virtualenv is installed
 

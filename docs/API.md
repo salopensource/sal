@@ -26,7 +26,7 @@ To create a machine, you will need to send a JSON object as the POST data. You c
 
 You **must** set machine_group to the ID of the Machine Group the computer is to be placed into.
 
-You can delete a machine by sending a ``DELETE`` command with your request (please see (this guide)[http://blogs.plexibus.com/2009/01/15/rest-esting-with-curl/] on using REST APIs if that doesn't make sense!)
+You can delete a machine by sending a ``DELETE`` command with your request (please see [this guide](http://blogs.plexibus.com/2009/01/15/rest-esting-with-curl/) on using REST APIs if that doesn't make sense!)
 
 ## Facts
 
@@ -76,7 +76,7 @@ Will retrieve all Business Units.
 To retrieve a single Business Unit:
 
 ``` bash
-$ curl -H "privatekey:YOURPRIVATEKEY" -H "publickey:YOURPUBLICKEY" http://sal/api/business_units/MACHINEGROUPID
+$ curl -H "privatekey:YOURPRIVATEKEY" -H "publickey:YOURPUBLICKEY" http://sal/api/business_units/BUSINESSUNITID
 ```
 
 To create a Business Unit, you will need to send a JSON object as the POST data. You can use any key that can be retrieved from the API.

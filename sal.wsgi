@@ -10,5 +10,5 @@ site.addsitedir(os.path.join(SAL_ENV_DIR, 'lib/python2.7/site-packages'))
 sys.path.append(SAL_ENV_DIR)
 sys.path.append(os.path.join(SAL_ENV_DIR, 'sal'))
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "sal.settings")
-import django.core.handlers.wsgi
-application = django.core.handlers.wsgi.WSGIHandler()
+from django.core.wsgi import get_wsgi_application
+application = get_wsgi_application()

@@ -236,7 +236,7 @@ class PendingAppleUpdate(models.Model):
         unique_together = ("machine", "update")
 
 class Plugin(models.Model):
-    name = models.CharField(max_length=255, unique=True)
+    name = models.CharField(max_length=512, unique=True)
     order = models.IntegerField()
     def __unicode__(self):
         return self.name

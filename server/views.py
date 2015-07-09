@@ -152,7 +152,10 @@ def edit_user(request, user_id):
     c = {}
     c.update(csrf(request))
     if request.method == 'POST':
-        form = EditUserForm(request.POST)
+        if the_user.has_usable_password:
+            form = EditUserForm(request.POST)
+        else:
+            form = EditLDAPUserForm(request.POST)
         if form.is_valid():
             user = form.save()
             user_profile = UserProfile.objects.get(user=the_user)
@@ -163,7 +166,11 @@ def edit_user(request, user_id):
                 user.save()
             return redirect('manage_users')
     else:
-        form = EditUserForm({'user_level':the_user.userprofile.level, 'user_id':the_user.id})
+        if the_user.has_usable_password:
+            form = EditUserForm({'user_level':the_user.userprofile.level, 'user_id':the_user.id})
+        else:
+            form = EditLDAPUserForm({'user_level':the_user.userprofile.level, 'user_id':the_user.id})
+
     c = {'form': form, 'the_user':the_user}
 
     return render_to_response('forms/edit_user.html', c, context_instance=RequestContext(request))

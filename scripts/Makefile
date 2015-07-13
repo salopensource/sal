@@ -3,7 +3,7 @@ include /usr/local/share/luggage/luggage.make
 PACKAGE_VERSION=0.4.0
 TITLE=sal_scripts
 PACKAGE_NAME=sal_scripts
-REVERSE_DOMAIN=com.salsoftware
+REVERSE_DOMAIN=com.github.salopensource
 PAYLOAD=\
 	pack-yaml \
 	pack-sal-submit

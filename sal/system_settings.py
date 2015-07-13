@@ -12,7 +12,7 @@ DISPLAY_NAME = 'Sal'
 MANAGERS = ADMINS
 
 # The order plugins (if they're able to be shown on that particular page) will be displayed in. If not listed here, will be listed alphabetically after.
-PLUGIN_ORDER = ['Activity','Status','OperatingSystem', 'MunkiVersion', 'Uptime', 'Memory']
+PLUGIN_ORDER = ['Activity','Status','OperatingSystem', 'MunkiVersion', 'Uptime', 'Memory', 'DiskSpace', 'PendingAppleUpdates', 'Pending3rdPartyUpdates', 'PuppetStatus']
 
 # Only show these plugins on the front page - some things only the admins should see.
 LIMIT_PLUGIN_TO_FRONT_PAGE = []
@@ -22,7 +22,7 @@ HIDE_PLUGIN_FROM_FRONT_PAGE = []
 
 # Hide these plugins from the specified business units
 HIDE_PLUGIN_FROM_BUSINESS_UNIT = {
-    'Encryption':['1']
+    # 'Encryption':['1']
 }
 
 # Hide these plugins from the specified machine groups

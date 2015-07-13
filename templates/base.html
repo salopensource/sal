@@ -90,8 +90,10 @@
                         <i class="fa fa-user fa-fw"></i>  <i class="fa fa-caret-down"></i>
                     </a>
                     <ul class="dropdown-menu dropdown-user">
+                        {% if user.has_usable_password %}
                         <li><a href="{% url 'django.contrib.auth.views.password_change' %}"><i class="fa fa-user fa-fw"></i> {% trans "Change password" %}</a>
                         </li>
+                        {% endif %}
                         <li>{{user.userlevel}}</li>
                         {% if user.is_staff %}
 

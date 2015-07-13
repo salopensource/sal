@@ -1,6 +1,14 @@
 from django import forms
 from models import *
 from django.db.models import Q
+from django.contrib.auth.models import User
+
+User.full_name = property(lambda u: u"%s %s" % (u.first_name, u.last_name))
+def user_new_unicode(self):
+    return self.username if self.get_full_name() == "" else self.get_full_name()
+
+# Replace the __unicode__ method in the User class with out new implementation
+User.__unicode__ = user_new_unicode
 
 LEVEL_CHOICES = (
         ('RO', 'Read Only'),
@@ -35,6 +43,7 @@ class EditUserBusinessUnitForm(forms.ModelForm):
         fields = '__all__'
     def __init__(self, *args, **kwargs):
         super(EditUserBusinessUnitForm, self).__init__(*args, **kwargs)
+
         self.fields['users'].help_text = ''
         self.fields['users'].queryset = User.objects.order_by('username').filter(~Q(userprofile__level = 'GA'))
 
@@ -92,12 +101,31 @@ class NewUserForm(forms.Form):
         new_user.userprofile.save()
         return new_user
 
+class EditLDAPUserForm(forms.Form):
+    """
+    Form for editing a LDAP user account.
+    """
+    user_id = forms.CharField(widget=forms.HiddenInput())
+
+
+    user_level = forms.ChoiceField(choices=LEVEL_CHOICES)
+
+
+    def clean(self): # check if password 1 and password2 match each other
+        return self.cleaned_data
+
+
+    def save(self): # create new user
+        the_user = User.objects.get(id=int(self.cleaned_data['user_id']))
+        the_user.save()
+        return the_user
 
 class EditUserForm(forms.Form):
     """
     Form for editing a user account.
     """
     user_id = forms.CharField(widget=forms.HiddenInput())
+
     password1 = forms.CharField(widget=forms.PasswordInput(),
                                 label="Password", required=False)
     password2 = forms.CharField(widget=forms.PasswordInput(),

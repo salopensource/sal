@@ -183,6 +183,7 @@ class Machine(models.Model):
         ordering = ['hostname']
     def save(self, *args, **kwargs):
         self.serial = self.serial.replace('/', '')
+        self.serial = self.serial.replace('+', '')
         super(Machine, self).save()
 
 class Fact(models.Model):

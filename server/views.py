@@ -957,6 +957,10 @@ def checkin(request):
     serial = data.get('serial')
     serial = serial.upper()
 
+    # Take out some of the weird junk VMware puts in. Keep an eye out in case Apple actually uses these:
+    serial = serial.replace('/', '')
+    serial = serial.replace('+', '')
+
     # Are we using Sal for some sort of inventory (like, I don't know, Puppet?)
     try:
         add_new_machines = settings.ADD_NEW_MACHINES

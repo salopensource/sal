@@ -38,7 +38,7 @@ The Stats Only user level is not used at this time, and should *not* be assigned
 
 ## Client configuration
 
-The sal ``postflight`` script needs to be deployed in the ``/usr/local/munki`` directory, and the ``yaml`` directory should be deployed in ``/usr/local/sal/yaml`` (a luggage makefile is included). Alternately, you can use the [published package](https://github.com/salopensource/sal/releases/latest) to deploy the necessary client files. There is also an [AutoPkg recipe](https://github.com/autopkg/grahamgilbert-recipes/tree/master/Sal).
+The sal ``postflight`` script needs to be deployed in the ``/usr/local/munki`` directory, and the ``yaml`` directory should be deployed in ``/usr/local/sal/yaml`` (a luggage makefile is included). Alternately, you can use the [published package](https://github.com/salopensource/sal-scripts/releases/latest) to deploy the necessary client files. There is also an [AutoPkg recipe](https://github.com/autopkg/grahamgilbert-recipes/tree/master/Sal).
 
 If you have an existing ``postflight`` script (for example, Munki Web Admin), you will need to rename it (for example, ``mwa-submit``) and move it into ``/usr/local/munki/postflight.d``:
 

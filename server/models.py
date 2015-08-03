@@ -70,11 +70,11 @@ class Machine(models.Model):
     machine_group = models.ForeignKey(MachineGroup)
     serial = models.CharField(max_length=100, unique=True)
     hostname = models.CharField(max_length=256, null=True, blank=True)
-    operating_system = models.CharField(max_length=256)
+    operating_system = models.CharField(max_length=256, null=True, blank=True)
     memory = models.CharField(max_length=256, null=True, blank=True)
     memory_kb = models.IntegerField(default=0)
     munki_version = models.CharField(max_length=256, null=True, blank=True)
-    manifest = models.CharField(max_length=256)
+    manifest = models.CharField(max_length=256, null=True, blank=True)
     hd_space = models.CharField(max_length=256, null=True, blank=True)
     hd_total = models.CharField(max_length=256, null=True, blank=True)
     hd_percent = models.CharField(max_length=256, null=True, blank=True)
@@ -181,8 +181,9 @@ class Machine(models.Model):
         return self.hostname
     class Meta:
         ordering = ['hostname']
-    def save(self):
+    def save(self, *args, **kwargs):
         self.serial = self.serial.replace('/', '')
+        self.serial = self.serial.replace('+', '')
         super(Machine, self).save()
 
 class Fact(models.Model):

@@ -3,10 +3,7 @@ from os import getenv
 import locale
 
 # Read the DEBUG setting from env var
-if getenv('DOCKER_SAL_DEBUG').lower == 'true':
-    DEBUG = True
-else:
-    DEBUG = False
+DEBUG = False
 
 # Read list of admins from $DOCKER_SAL_ADMINS env var
 admin_list = []

@@ -13,6 +13,7 @@ ENV DOCKER_SAL_ADMINS Docker User, docker@localhost
 ENV DOCKER_SAL_LANG en_GB
 ENV DOCKER_SAL_DISPLAY_NAME Sal
 ENV DOCKER_SAL_PLUGIN_ORDER Activity,Status,OperatingSystem,Uptime,Memory
+ENV DOCKER_SAL_DEBUG false
 
 RUN apt-get update && \
     apt-get install -y software-properties-common && \

@@ -64,9 +64,3 @@ if getenv('DOCKER_SAL_DISPLAY_NAME'):
     DISPLAY_NAME = getenv('DOCKER_SAL_DISPLAY_NAME')
 else:
     DISPLAY_NAME = 'Sal'
-
-# The order plugins (if they're able to be shown on that particular page) will be displayed in. If not listed here, will be listed alphabetically after.
-if getenv('DOCKER_SAL_PLUGIN_ORDER'):
-    PLUGIN_ORDER = getenv('DOCKER_SAL_PLUGIN_ORDER').split(',')
-else:
-    PLUGIN_ORDER = ['Activity','Status', 'MunkiVersion','OperatingSystem','Uptime', 'Memory']

@@ -59,7 +59,7 @@ $ docker run -d --name="sal" \
   -e DB_USER=admin \
   -e DB_PASS=password \
   --restart="always" \
-  macadmins/sal:2.0.0.1
+  macadmins/sal:2.0.1
 ```
 
 

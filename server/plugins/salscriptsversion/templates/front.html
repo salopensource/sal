@@ -1,0 +1,39 @@
+<div class="col-md-4">
+    <div class="panel panel-default">
+        <div class="panel-heading">
+            {{ title }}
+        </div>
+        <!-- /.panel-heading -->
+        <div class="panel-body">
+        <div id="salversiongraph" style="max-height: 250px;"></div>
+    </div>
+    </div>
+</div>
+{% block script %}
+<!-- Morris Charts JavaScript -->
+<script src="/static/js/plugins/morris/raphael.min.js"></script>
+<script src="/static/js/plugins/morris/morris.min.js"></script>
+<script type="text/javascript">
+$(function() {
+Morris.Donut({
+        element: 'salversiongraph',
+        data: [
+{% for item in data|dictsort:'sal_version' %}
+{% if item.munki_version %}
+    {
+            label: "{{ item.sal_version }}",
+            value: {{ item.count }}
+        },
+
+{% endif %}
+{% endfor %}
+],
+        resize: true
+    }).on('click', function(i, row){
+  console.log(row['label']);
+  var url_mask = "{% url 'machine_list_front' 'SalVersion' 'abc123' %}".replace(/abc123/, row['label'].toString());
+  window.location=url_mask;
+});
+});
+</script>
+{% endblock %}

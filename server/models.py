@@ -216,6 +216,25 @@ class Condition(models.Model):
     class Meta:
         ordering = ['condition_name']
 
+class OSQueryResult(models.Model):
+    machine = models.ForeignKey(Machine, related_name='osquery_results')
+    name = models.CharField(max_length=255)
+    hostidentifier = models.CharField(max_length=255, null=True, blank=True)
+    unix_time = models.DateTimeField(null=True, blank=True)
+    def __unicode__(self):
+        return self.name
+    class Meta:
+        ordering = ['name']
+        unique_together = ("unix_time", "name")
+
+class OSQueryColumn(models.Model):
+    osquery_result = models.ForeignKey(OSQueryResult, related_name='osquery_columns')
+    column_name = models.TextField()
+    column_data = models.TextField(null=True, blank=True)
+    action = models.CharField(max_length=255, null=True, blank=True)
+    def __unicode__(self):
+        return self.column_name
+
 class PendingUpdate(models.Model):
     machine = models.ForeignKey(Machine, related_name='pending_updates')
     update = models.CharField(max_length=256, null=True, blank=True)
@@ -229,27 +248,33 @@ class PendingUpdate(models.Model):
 
 class PendingAppleUpdate(models.Model):
     machine = models.ForeignKey(Machine, related_name='pending_apple_updates')
-    update = models.CharField(max_length=256, null=True, blank=True)
+    update = models.CharField(max_length=255, null=True, blank=True)
     update_version = models.CharField(max_length=256, null=True, blank=True)
     display_name = models.CharField(max_length=256, null=True, blank=True)
     def __unicode__(self):
-        return self.update
+        return unicode(self.update) or u''
     class Meta:
         ordering = ['display_name']
         unique_together = ("machine", "update")
 
 class Plugin(models.Model):
+    PLUGIN_TYPES = (
+        ('facter', 'Facter'),
+        ('munkicondition', 'Munki Condition'),
+        ('osquery', 'osquery'),
+    )
     name = models.CharField(max_length=255, unique=True)
     order = models.IntegerField()
+    type = models.CharField(max_length=255, choices=PLUGIN_TYPES, default='facter')
     def __unicode__(self):
         return self.name
     class Meta:
         ordering = ['order']
 
 class ApiKey(models.Model):
-    public_key = models.CharField(max_length=256)
-    private_key = models.CharField(max_length=256)
-    name = models.CharField(max_length=256)
+    public_key = models.CharField(max_length=255)
+    private_key = models.CharField(max_length=255)
+    name = models.CharField(max_length=255)
     has_been_seen = models.BooleanField(default=False)
     def save(self):
             if not self.id:

@@ -1128,5 +1128,26 @@ def checkin(request):
                 condition = Condition(machine=machine, condition_name=condition_name, condition_data=str(condition_data))
                 condition.save()
 
+        if 'osquery' in report_data:
+            for report in report_data['osquery']:
+                unix_time = datetime.fromtimestamp(int(report['unixTime']))
+                try:
+                    osqueryresult = OSQueryResult.objects.get(hostidentifier=report['hostIdentifier'], machine=machine, unix_time=unix_time, name=report['name'])
+                    break
+                except OSQueryResult.DoesNotExist:
+                    osqueryresult = OSQueryResult(hostidentifier=report['hostIdentifier'], machine=machine, unix_time=unix_time, name=report['name'])
+                    osqueryresult.save()
+
+                for items in report['diffResults']['added']:
+                    print items
+                    for column, col_data in items.items():
+                        osquerycolumn = OSQueryColumn(osquery_result=osqueryresult, action='added', column_name=column, column_data=col_data)
+                        osquerycolumn.save()
+
+                for item in report['diffResults']['removed']:
+                    for column, col_data in items.items():
+                        osquerycolumn = OSQueryColumn(osquery_result=osqueryresult, action='removed', column_name=column, column_data=col_data)
+                        osquerycolumn.save()
+
         return HttpResponse("Sal report submmitted for %s.\n"
                             % data.get('name'))

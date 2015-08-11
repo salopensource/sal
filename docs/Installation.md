@@ -44,6 +44,27 @@ If you have an existing ``postflight`` script (for example, Munki Web Admin), yo
 
 The configuration of the Server Address, and the Machine Group key is from ``/Library/Preferences/com.github.salopensource.sal``. Plists, MCX (untested, but should work) and Profiles can be used.
 
+It is recomended that both Facter and osquery are configured on the client machine, although both are optional. Facter will work with no additional configuration, but osquery will need some additional setup. If you aren't currently using osquery (so have no configuration to save), you can use the package at [PACKAGE WILL GO HERE]. If you are integrating Sal with an existing osquery setup, you will need to add ``"log_result_events": "false"`` to the ``options`` section of your configuration file:
+
+``` json /var/osquery/osquery.conf
+{
+  "options": {
+    "host_identifier": "uuid",
+    "log_result_events": "false",
+    "schedule_splay_percent": 10
+  },
+
+  "schedule": {
+    },
+
+
+  "packs": {
+  }
+}
+```
+
+The Sal preflight script will create the needed configuration in ``/var/osquery/osquery.conf.d``. If you wish to manage this manually, you should disable the preflight script (not recommended).
+
 ### Manual Client Conf. Example
 
 If you wish to set the Server Address and Machine Group Key via defaults you can do so with the following examples (root is needed):

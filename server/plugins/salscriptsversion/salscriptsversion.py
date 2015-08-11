@@ -28,7 +28,7 @@ class SalScriptsVersion(IPlugin):
                 machines = Machine.objects.filter(machine_group=machine_group)
         
         if machines:
-            sal_info = machines.values('sal_version').annotate(count=Count('sal_version')).order_by()
+            sal_info = machines.values('sal_version').exclude(sal_version__isnull=True).annotate(count=Count('sal_version')).order_by()
         else:
             sal_info = []
 
@@ -45,6 +45,6 @@ class SalScriptsVersion(IPlugin):
         
         machines = machines.filter(sal_version__exact=data)
         
-        title = 'Machines running version '+data+' of Sa;'
+        title = 'Machines running version '+data+' of Sal'
         return machines, title
         

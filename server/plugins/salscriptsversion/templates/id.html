@@ -19,7 +19,7 @@ Morris.Donut({
         element: 'salversiongraph',
         data: [
 {% for item in data|dictsort:'sal_version' %}
-{% if item.munki_version %}
+{% if item.sal_version %}
     {
             label: "{{ item.sal_version }}",
             value: {{ item.count }}
@@ -31,7 +31,7 @@ Morris.Donut({
         resize: true
     }).on('click', function(i, row){
   console.log(row['label']);
-  var url_mask = "{% url 'machine_list_id' 'MunkiVersion' 'abc123' page theid %}".replace(/abc123/, row['label'].toString());
+  var url_mask = "{% url 'machine_list_id' 'SalScriptsVersion' 'abc123' page theid %}".replace(/abc123/, row['label'].toString());
   window.location=url_mask;
 });
 });

@@ -15,7 +15,7 @@ class Migration(migrations.Migration):
             name='Plugin',
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
-                ('name', models.CharField(max_length=512)),
+                ('name', models.CharField(max_length=255)),
                 ('order', models.IntegerField(max_length=1000)),
             ],
             options={

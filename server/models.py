@@ -84,11 +84,13 @@ class Machine(models.Model):
     cpu_speed = models.CharField(max_length=256, null=True, blank=True)
     os_family = models.CharField(max_length=256, choices=OS_CHOICES, verbose_name="OS Family", default="Darwin")
     last_checkin = models.DateTimeField(blank=True,null=True)
+    first_checkin = models.DateTimeField(blank=True,null=True, auto_now_add=True)
     report = models.TextField(editable=True, null=True)
     errors = models.IntegerField(default=0)
     warnings = models.IntegerField(default=0)
     activity = models.TextField(editable=False, null=True, blank=True)
     puppet_version = models.TextField(null=True, blank=True)
+    sal_version = models.TextField(null=True, blank=True)
     last_puppet_run = models.DateTimeField(blank=True,null=True)
     puppet_errors = models.IntegerField(default=0)
 
@@ -237,7 +239,7 @@ class PendingAppleUpdate(models.Model):
         unique_together = ("machine", "update")
 
 class Plugin(models.Model):
-    name = models.CharField(max_length=512, unique=True)
+    name = models.CharField(max_length=256, unique=True)
     order = models.IntegerField()
     def __unicode__(self):
         return self.name

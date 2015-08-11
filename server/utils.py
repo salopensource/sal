@@ -6,12 +6,24 @@ from yapsy.PluginManager import PluginManager
 from django.db.models import Max
 import os
 
+def loadDefaultPlugins():
+    # Are there any plugin objects? If not, add in the defaults
+    plugin_objects = Plugin.objects.all().count()
+    if plugin_objects == 0:
+        order = 0
+        PLUGIN_ORDER = ['Activity','Status','OperatingSystem', 'MunkiVersion', 'Uptime', 'Memory', 'DiskSpace', 'PendingAppleUpdates', 'Pending3rdPartyUpdates', 'PuppetStatus']
+        for item in PLUGIN_ORDER:
+            order = order + 1
+            plugin = Plugin(name=item, order=order)
+            plugin.save()
+
 def reloadPluginsModel():
     # Are there any plugin objects? If not, add in the defaults
     plugin_objects = Plugin.objects.all().count()
     if plugin_objects == 0:
         order = 0
-        for item in settings.PLUGIN_ORDER:
+        PLUGIN_ORDER = ['Activity','Status','OperatingSystem', 'MunkiVersion', 'Uptime', 'Memory', 'DiskSpace', 'PendingAppleUpdates', 'Pending3rdPartyUpdates', 'PuppetStatus']
+        for item in PLUGIN_ORDER:
             order = order + 1
             plugin = Plugin(name=item, order=order)
             plugin.save()

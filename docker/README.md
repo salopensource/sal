@@ -11,9 +11,9 @@ Several options, such as the timezone and admin password are customizable using 
 * ``DOCKER_SAL_DISPLAY_NAME``: This sets the name that appears in the title bar of the window. Defaults to ``Sal``.
 * ``DOCKER_SAL_TZ``: The desired [timezone](http://en.wikipedia.org/wiki/List_of_tz_database_time_zones). Defaults to ``Europe/London``.
 * ``DOCKER_SAL_ADMINS``: The admin user's details. Defaults to ``Docker User, docker@localhost``.
-* ``DOCKER_SAL_PLUGIN_ORDER``: The order plugins are displayed in. Defaults to ``Activity,Status,OperatingSystem,Uptime,Memory``.
+* ``DOCKER_SAL_DEBUG``: Whether debug mode is enabled or not. Valid values are ``true`` and ``false``. Defaults to ``false``.
 
-If you require more advanced settings, for example if you want to hide certain plugins from certain Business Units or if you have a plugin that needs settings, you can override ``settings.py`` with your own. A good starting place can be found on this image's [Github repository](https://github.com/grahamgilbert/macadmins-sal/blob/master/settings.py).
+If you require more advanced settings, for example if you want to hide certain plugins from certain Business Units or if you have a plugin that needs settings, you can override ``settings.py`` with your own. A good starting place can be found on this image's [Github repository](https://github.com/salopensource/sal/blob/master/docker/settings.py).
 
 ```
   -v /usr/local/sal_data/settings/settings.py:/home/docker/sal/sal/settings.py
@@ -27,7 +27,7 @@ The plugins directory is exposed as a volume to the host, so you can add your ow
   -v /usr/local/sal_data/plugins:/home/docker/sal/plugins
   ```
 
-#Postgres container
+# Postgres container
 
 Out of the box, Sal uses a SQLite database, however if you are running it in a production environment, it is recommended that you use a Postgres Database.
 I have created a Postgres container that is set up ready to use with Sal - just tell it where you want to store your data, and pass it some environment variables for the database name, username and password.
@@ -58,9 +58,27 @@ $ docker run -d --name="sal" \
   -e DB_USER=admin \
   -e DB_PASS=password \
   --restart="always" \
-  macadmins/sal
+  macadmins/sal:2.0.1
 ```
 
-#TODO
+# Advanced usage
 
-* Add support for SQLite and MySQL
+Sal supports the use of memcached for improving performance. It exects a linked memcached container and will use it if there is a container named ``memcached``:
+
+``` bash
+$ docker run -d \
+  --restart="always" \
+  --name="memcached" \
+  memcached:1.4.24
+
+$ docker run -d --name="sal" \
+  -p 80:8000 \
+  --link postgres-sal:db \
+  --link memcached:memcached \
+  -e ADMIN_PASS=pass \
+  -e DB_NAME=sal \
+  -e DB_USER=admin \
+  -e DB_PASS=password \
+  --restart="always" \
+  macadmins/sal:2.0.2
+```

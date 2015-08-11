@@ -67,6 +67,8 @@ def index(request):
             for group in business_unit.machinegroup_set.all():
                 machines = machines | group.machine_set.all()
 
+    # Load in the default plugins if needed
+    utils.loadDefaultPlugins()
     # Build the manager
     manager = PluginManager()
     # Tell it the default place(s) where to find plugins

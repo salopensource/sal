@@ -86,6 +86,12 @@
     <h3>Management Tools</h3>
     <table class="client_info table table-condensed">
       <tbody>
+          {% if machine.sal_version %}
+          <tr>
+            <th>Sal Version:</th>
+            <td>{{ machine.sal_version }}</td>
+          </tr>
+          {% endif %}
           {% if machine.puppet_version %}
           <tr>
             <th>Puppet Version:</th>

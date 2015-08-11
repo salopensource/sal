@@ -2,6 +2,16 @@
 from os import getenv
 import locale
 
+# Read the DEBUG setting from env var
+# DEBUG = False
+try:
+    if getenv('DOCKER_SAL_DEBUG').lower == 'true':
+        DEBUG = True
+    else:
+        DEBUG = False
+except:
+    DEBUG = False
+
 # Read list of admins from $DOCKER_SAL_ADMINS env var
 admin_list = []
 if getenv('DOCKER_SAL_ADMINS'):
@@ -54,9 +64,3 @@ if getenv('DOCKER_SAL_DISPLAY_NAME'):
     DISPLAY_NAME = getenv('DOCKER_SAL_DISPLAY_NAME')
 else:
     DISPLAY_NAME = 'Sal'
-
-# The order plugins (if they're able to be shown on that particular page) will be displayed in. If not listed here, will be listed alphabetically after.
-if getenv('DOCKER_SAL_PLUGIN_ORDER'):
-    PLUGIN_ORDER = getenv('DOCKER_SAL_PLUGIN_ORDER').split(',')
-else:
-    PLUGIN_ORDER = ['Activity','Status', 'MunkiVersion','OperatingSystem','Uptime', 'Memory']

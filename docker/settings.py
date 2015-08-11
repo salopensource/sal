@@ -12,6 +12,17 @@ DATABASES = {
     }
 }
 
+# Memcached
+if os.environ.has_key('MEMCACHED_PORT_11211_TCP_ADDR'):
+    CACHES = {
+        'default': {
+            'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
+            'LOCATION': [
+                '%s:%s' % (os.environ['MEMCACHED_PORT_11211_TCP_ADDR'], os.environ['MEMCACHED_PORT_11211_TCP_PORT']),
+            ]
+        }
+    }
+
 # PG Database
 if os.environ.has_key('DB_PORT_5432_TCP_ADDR'):
     DATABASES = {

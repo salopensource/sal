@@ -62,4 +62,24 @@ $ docker run -d --name="sal" \
   macadmins/sal:2.0.1
 ```
 
+# Advanced usage
 
+Sal supports the use of memcached for improving performance. It exects a linked memcached container and will use it if there is a container named ``memcached``:
+
+``` bash
+$ docker run -d \
+  --restart="always" \
+  --name="memcached" \
+  memcached:1.4.24
+
+$ docker run -d --name="sal" \
+  -p 80:8000 \
+  --link postgres-sal:db \
+  --link memcached:memcached \
+  -e ADMIN_PASS=pass \
+  -e DB_NAME=sal \
+  -e DB_USER=admin \
+  -e DB_PASS=password \
+  --restart="always" \
+  macadmins/sal:2.0.1
+```

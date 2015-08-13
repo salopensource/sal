@@ -46,7 +46,7 @@ The configuration of the Server Address, and the Machine Group key is from ``/Li
 
 It is recomended that both Facter and osquery are configured on the client machine, although both are optional. Facter will work with no additional configuration, but osquery will need some additional setup. If you aren't currently using osquery (so have no configuration to save), you can use the package at [PACKAGE WILL GO HERE]. If you are integrating Sal with an existing osquery setup, you will need to add ``"log_result_events": "false"`` to the ``options`` section of your configuration file:
 
-``` json /var/osquery/osquery.conf
+``` json
 {
   "options": {
     "host_identifier": "uuid",

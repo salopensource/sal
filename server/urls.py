@@ -5,6 +5,8 @@ urlpatterns = patterns('server.views',
     url(r'^$', 'index', name='home'),
     # checkin
     url(r'^checkin/', 'checkin', name='checkin'),
+    # preflight
+    url(r'^preflight/', 'preflight', name='preflight'),
     # BU Dashboard
     url(r'^dashboard/(?P<bu_id>.+)/', 'bu_dashboard', name='bu_dashboard'),
     # Overview List (Group)

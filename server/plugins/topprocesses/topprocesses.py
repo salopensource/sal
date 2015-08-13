@@ -11,7 +11,7 @@ class TopProcesses(IPlugin):
         return 'osquery'
 
     def get_queries(self):
-        output = [{'query':'select * from processes;', 'interval':'3000'}]
+        output = [{'name':'top_processes','query':'select * from processes;', 'interval':'3000'},{'query':'select * from processes;', 'interval':'3000', 'name':'top_processes2'}]
         return output
 
     def show_widget(self, page, machines=None, theid=None):

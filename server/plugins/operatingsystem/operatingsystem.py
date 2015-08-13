@@ -7,6 +7,9 @@ from django.shortcuts import get_object_or_404
 import server.utils as utils
 
 class OperatingSystem(IPlugin):
+    def plugin_type(self):
+        return 'builtin'
+        
     def show_widget(self, page, machines=None, theid=None):
         # The data is data is pulled from the database and passed to a template.
         

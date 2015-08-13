@@ -947,6 +947,34 @@ def delete_api_key(request, key_id):
     api_key.delete()
     return redirect(api_keys)
 
+# preflight
+@csrf_exempt
+def preflight(request):
+    # Build the manager
+    manager = PluginManager()
+    # Tell it the default place(s) where to find plugins
+    manager.setPluginPlaces([settings.PLUGIN_DIR, os.path.join(settings.PROJECT_DIR, 'server/plugins')])
+    # Load all plugins
+    manager.collectPlugins()
+    output = {}
+    output['queries'] = {}
+    for plugin in manager.getAllPlugins():
+        counter = 0
+        print output
+        try:
+            if plugin.plugin_object.plugin_type() == 'osquery':
+                # No other plugins will have info for this
+                for query in plugin.plugin_object.get_queries():
+                    name = query['name']
+                    del query['name']
+                    output['queries'][name] = {}
+                    output['queries'][name] = query
+                
+        except:
+            break
+    return HttpResponse(json.dumps(output))
+
+
 # checkin
 @csrf_exempt
 def checkin(request):

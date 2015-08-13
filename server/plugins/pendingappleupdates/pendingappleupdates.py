@@ -7,6 +7,9 @@ from django.shortcuts import get_object_or_404
 import server.utils as utils
 
 class PendingAppleUpdates(IPlugin):
+    def plugin_type(self):
+        return 'builtin'
+        
     def show_widget(self, page, machines=None, id=None):
 
         if page == 'front':

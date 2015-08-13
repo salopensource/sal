@@ -36,6 +36,10 @@ def reloadPluginsModel():
     manager.collectPlugins()
     found = []
     for plugin in manager.getAllPlugins():
+        try:
+            print plugin.plugin_object.plugin_type()
+        except:
+            print 'No Plugin type'
         found.append(plugin.name)
 
     # Get all of the plugin objects - if it's in here not installed, remove it
@@ -43,6 +47,16 @@ def reloadPluginsModel():
     for plugin in all_plugins:
         if plugin.name not in found:
             plugin.delete()
+
+    # And go over again to update the plugin's type
+    for dbplugin in all_plugins:
+        for plugin in manager.getAllPlugins():
+            if plugin.name == dbplugin.name:
+                try:
+                    dbplugin.type = plugin.plugin_object.plugin_type()
+                except:
+                    dbplugin.type = 'facter'
+                dbplugin.save()
 
 def disabled_plugins():
     enabled_plugins = Plugin.objects.all()

@@ -180,7 +180,10 @@ class Machine(models.Model):
         if "ConsoleUser" in plist:
             self.console_user = unicode(plist["ConsoleUser"])
     def __unicode__(self):
-        return self.hostname
+        if self.hostname:
+            return self.hostname
+        else:
+            return self.serial
     class Meta:
         ordering = ['hostname']
     def save(self, *args, **kwargs):
@@ -224,7 +227,7 @@ class OSQueryResult(models.Model):
     def __unicode__(self):
         return self.name
     class Meta:
-        ordering = ['name']
+        ordering = ['unix_time']
         unique_together = ("unix_time", "name")
 
 class OSQueryColumn(models.Model):

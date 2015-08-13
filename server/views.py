@@ -804,7 +804,6 @@ def plugins_page(request):
     utils.reloadPluginsModel()
     enabled_plugins = Plugin.objects.all()
     disabled_plugins = utils.disabled_plugins()
-    print disabled_plugins
     c = {'user':request.user, 'request':request, 'enabled_plugins':enabled_plugins, 'disabled_plugins':disabled_plugins}
     return render_to_response('server/plugins.html', c, context_instance=RequestContext(request))
 
@@ -869,6 +868,7 @@ def plugin_enable(request, plugin_name):
         plugin = Plugin(name=plugin_name, order=utils.UniquePluginOrder())
         plugin.save()
     return redirect('plugins_page')
+    
 @login_required
 def api_keys(request):
     user = request.user

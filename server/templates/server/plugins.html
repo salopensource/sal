@@ -35,6 +35,7 @@
                         <tr>
                           <th>Order</th>
                           <th>Plugin</th>
+                          <th>Type</th>
                           <th></th>
                           <th></th>
                           <th></th>
@@ -45,6 +46,7 @@
                         <tr>
                             <td>{{ plugin.order}}</td>
                             <td>{{ plugin.name }}</td>
+                            <td>{{ plugin.get_type_display }}</td>
                             <td><a href="{% url 'plugin_disable' plugin.id %}" class="btn btn-mini btn-info pull-right" title="Disable Plugin"><i class="fa fa-minus"></i></a></td>
                             {% if forloop.first %}
                             <td></td>

@@ -265,6 +265,7 @@ class Plugin(models.Model):
         ('facter', 'Facter'),
         ('munkicondition', 'Munki Condition'),
         ('osquery', 'osquery'),
+        ('builtin', 'Built In'),
     )
     name = models.CharField(max_length=255, unique=True)
     order = models.IntegerField()

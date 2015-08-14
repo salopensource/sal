@@ -1034,9 +1034,11 @@ def checkin(request):
         if 'base64bz2report' in data:
             machine.update_report(data.get('base64bz2report'))
 
+        if 'version' in data:
+            machine.version = data.get('version')
+
         # extract machine data from the report
         report_data = machine.get_report()
-        # find the matching group based on manifest
         if 'Puppet_Version' in report_data:
             machine.puppet_version = report_data['Puppet_Version']
         if 'ManifestName' in report_data:

@@ -1034,8 +1034,8 @@ def checkin(request):
         if 'base64bz2report' in data:
             machine.update_report(data.get('base64bz2report'))
 
-        if 'version' in data:
-            machine.sal_version = data.get('version')
+        if 'sal_version' in data:
+            machine.sal_version = data.get('sal_version')
 
         # extract machine data from the report
         report_data = machine.get_report()

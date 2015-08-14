@@ -1,5 +1,7 @@
 [Original post](http://grahamgilbert.com/blog/2014/05/19/deploying-sal-on-heroku/).
 
+# Sal doesn't support Heroku currently. Pull requests for making it work are accepted!
+
 Setting up everything you need for Sal can be difficult, especially if you only have an OS X server available. Thankfully, Sal is built on top of a very common Python framework, Django. And even more thankfully, you can run Django on a whole host of [PaaS](http://en.wikipedia.org/wiki/Platform_as_a_service) providers, including [Heroku](https://www.heroku.com).
 
 Heroku has a very generous [free tier](https://www.heroku.com/pricing) that will easily handle a small Sal installation, so let's get started.

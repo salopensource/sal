@@ -3,7 +3,6 @@ Name = DiskSpace
 Module = diskspace
 
 [Documentation]
-Author = John Smith
+Author = Graham Gilbert
 Version = 0.1
-Website = http://lotsofplugins.com
-Description = My first plugin
+Website = http://grahamgilbert.com

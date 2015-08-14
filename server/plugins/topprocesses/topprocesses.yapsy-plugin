@@ -1,6 +1,6 @@
 [Core]
-Name = OperatingSystem
-Module = operatingsystem
+Name = TopProcesses
+Module = topprocesses
 
 [Documentation]
 Author = Graham Gilbert

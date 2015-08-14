@@ -3,7 +3,6 @@ Name = Pending3rdPartyUpdates
 Module = pending3rdpartyupdates
 
 [Documentation]
-Author = John Smith
+Author = Graham Gilbert
 Version = 0.1
-Website = http://lotsofplugins.com
-Description = My first plugin
+Website = http://grahamgilbert.com

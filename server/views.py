@@ -804,7 +804,6 @@ def plugins_page(request):
     utils.reloadPluginsModel()
     enabled_plugins = Plugin.objects.all()
     disabled_plugins = utils.disabled_plugins()
-    print disabled_plugins
     c = {'user':request.user, 'request':request, 'enabled_plugins':enabled_plugins, 'disabled_plugins':disabled_plugins}
     return render_to_response('server/plugins.html', c, context_instance=RequestContext(request))
 
@@ -869,6 +868,7 @@ def plugin_enable(request, plugin_name):
         plugin = Plugin(name=plugin_name, order=utils.UniquePluginOrder())
         plugin.save()
     return redirect('plugins_page')
+    
 @login_required
 def api_keys(request):
     user = request.user
@@ -946,6 +946,34 @@ def delete_api_key(request, key_id):
     api_key = get_object_or_404(ApiKey, pk=int(key_id))
     api_key.delete()
     return redirect(api_keys)
+
+# preflight
+@csrf_exempt
+def preflight(request):
+    # Build the manager
+    manager = PluginManager()
+    # Tell it the default place(s) where to find plugins
+    manager.setPluginPlaces([settings.PLUGIN_DIR, os.path.join(settings.PROJECT_DIR, 'server/plugins')])
+    # Load all plugins
+    manager.collectPlugins()
+    output = {}
+    output['queries'] = {}
+    for plugin in manager.getAllPlugins():
+        counter = 0
+        print output
+        try:
+            if plugin.plugin_object.plugin_type() == 'osquery':
+                # No other plugins will have info for this
+                for query in plugin.plugin_object.get_queries():
+                    name = query['name']
+                    del query['name']
+                    output['queries'][name] = {}
+                    output['queries'][name] = query
+                
+        except:
+            break
+    return HttpResponse(json.dumps(output))
+
 
 # checkin
 @csrf_exempt
@@ -1127,6 +1155,27 @@ def checkin(request):
                 #print condition_data
                 condition = Condition(machine=machine, condition_name=condition_name, condition_data=str(condition_data))
                 condition.save()
+
+        if 'osquery' in report_data:
+            for report in report_data['osquery']:
+                unix_time = datetime.fromtimestamp(int(report['unixTime']))
+                try:
+                    osqueryresult = OSQueryResult.objects.get(hostidentifier=report['hostIdentifier'], machine=machine, unix_time=unix_time, name=report['name'])
+                    break
+                except OSQueryResult.DoesNotExist:
+                    osqueryresult = OSQueryResult(hostidentifier=report['hostIdentifier'], machine=machine, unix_time=unix_time, name=report['name'])
+                    osqueryresult.save()
+
+                for items in report['diffResults']['added']:
+                    print items
+                    for column, col_data in items.items():
+                        osquerycolumn = OSQueryColumn(osquery_result=osqueryresult, action='added', column_name=column, column_data=col_data)
+                        osquerycolumn.save()
+
+                for item in report['diffResults']['removed']:
+                    for column, col_data in items.items():
+                        osquerycolumn = OSQueryColumn(osquery_result=osqueryresult, action='removed', column_name=column, column_data=col_data)
+                        osquerycolumn.save()
 
         return HttpResponse("Sal report submmitted for %s.\n"
                             % data.get('name'))

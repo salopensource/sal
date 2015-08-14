@@ -44,6 +44,16 @@ def reloadPluginsModel():
         if plugin.name not in found:
             plugin.delete()
 
+    # And go over again to update the plugin's type
+    for dbplugin in all_plugins:
+        for plugin in manager.getAllPlugins():
+            if plugin.name == dbplugin.name:
+                try:
+                    dbplugin.type = plugin.plugin_object.plugin_type()
+                except:
+                    dbplugin.type = 'builtin'
+                dbplugin.save()
+
 def disabled_plugins():
     enabled_plugins = Plugin.objects.all()
     # Build the manager

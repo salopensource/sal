@@ -17,6 +17,9 @@ three_months_ago = today - timedelta(days=90)
 
 
 class PuppetStatus(IPlugin):
+    def plugin_type(self):
+        return 'builtin'
+        
     def show_widget(self, page, machines=None, theid=None):
         if page == 'front':
             t = loader.get_template('puppetstatus/templates/front.html')

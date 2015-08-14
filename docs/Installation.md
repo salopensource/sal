@@ -8,8 +8,6 @@ Sal is split into Business Units, and then subdivided into Groups. Each customer
 
 The recommended (and easiest) way of getting running on your own hardware is using [Docker](https://github.com/salopensource/sal/blob/master/docs/Docker.md). In future versions of Sal, this will be the only supported method of deploying in your own data centre, so it is highly recommended you get to grips with it.
 
-If you aren't comfortable with Linux, it's recommended that your [first installation is on Heroku](https://github.com/salopensource/sal/blob/master/docs/Deploying_on_Heroku.md) which will handle the server configuration for you.
-
 If you plan on installing on your own hardware, see [Installation on Ubuntu 12](https://github.com/salopensource/sal/blob/master/docs/Installation_on_Ubuntu_12.md) (or [CentOS](https://github.com/salopensource/sal/blob/master/docs/Installation_on_CentOS6.md) or [Ubuntu 14](https://github.com/salopensource/sal/blob/master/docs/Installation_on_Ubuntu_14.md)) for server installation docs. If you are installing on a different operating system, please ensure you have Python 2.7 installed.
 
 See [Upgrading on Ubuntu 12](https://github.com/salopensource/sal/blob/master/docs/Upgrading_on_Ubuntu_12.md) for upgrade docs.
@@ -43,6 +41,27 @@ The sal ``postflight`` script needs to be deployed in the ``/usr/local/munki`` d
 If you have an existing ``postflight`` script (for example, Munki Web Admin), you will need to rename it (for example, ``mwa-submit``) and move it into ``/usr/local/munki/postflight.d``:
 
 The configuration of the Server Address, and the Machine Group key is from ``/Library/Preferences/com.github.salopensource.sal``. Plists, MCX (untested, but should work) and Profiles can be used.
+
+It is recomended that both Facter and osquery are configured on the client machine, although both are optional. Facter will work with no additional configuration, but osquery will need some additional setup. If you aren't currently using osquery (so have no configuration to save), you can use the package at [PACKAGE WILL GO HERE]. If you are integrating Sal with an existing osquery setup, you will need to add ``"log_result_events": "false"`` to the ``options`` section of your configuration file:
+
+``` json
+{
+  "options": {
+    "host_identifier": "uuid",
+    "log_result_events": "false",
+    "schedule_splay_percent": 10
+  },
+
+  "schedule": {
+    },
+
+
+  "packs": {
+  }
+}
+```
+
+The Sal preflight script will create the needed configuration in ``/var/osquery/osquery.conf.d``. If you wish to manage this manually, you should disable the preflight script (not recommended).
 
 ### Manual Client Conf. Example
 

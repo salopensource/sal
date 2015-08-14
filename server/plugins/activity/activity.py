@@ -16,6 +16,9 @@ three_months_ago = today - timedelta(days=90)
 machine_data = {}
 
 class Activity(IPlugin):
+    def plugin_type(self):
+        return 'builtin'
+        
     def show_widget(self, page, machines=None, theid=None):
         # The data is data is pulled from the database and passed to a template.
         

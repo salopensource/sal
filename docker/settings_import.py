@@ -5,7 +5,7 @@ import locale
 # Read the DEBUG setting from env var
 # DEBUG = False
 try:
-    if getenv('DOCKER_SAL_DEBUG').lower == 'true':
+    if getenv('DOCKER_SAL_DEBUG').lower() == 'true':
         DEBUG = True
     else:
         DEBUG = False

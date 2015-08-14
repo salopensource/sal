@@ -820,7 +820,6 @@ def settings_historical_data(request):
                 historical_setting = SalSetting(name='historical_retention')
 
             historical_setting.value = form.cleaned_data['days']
-            print historical_setting.value
             historical_setting.save()
             messages.success(request, 'Data retention settings saved.')
             

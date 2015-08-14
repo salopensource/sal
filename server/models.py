@@ -240,9 +240,9 @@ class OSQueryColumn(models.Model):
 
 class PendingUpdate(models.Model):
     machine = models.ForeignKey(Machine, related_name='pending_updates')
-    update = models.CharField(max_length=256, null=True, blank=True)
-    update_version = models.CharField(max_length=256, null=True, blank=True)
-    display_name = models.CharField(max_length=256, null=True, blank=True)
+    update = models.CharField(max_length=255, null=True, blank=True)
+    update_version = models.CharField(max_length=255, null=True, blank=True)
+    display_name = models.CharField(max_length=255, null=True, blank=True)
     def __unicode__(self):
         return self.update
     class Meta:
@@ -274,6 +274,12 @@ class Plugin(models.Model):
         return self.name
     class Meta:
         ordering = ['order']
+
+class SalSetting(models.Model):
+    name = models.TextField()
+    value = models.TextField()
+    def __unicode__(self):
+        return self.name
 
 class ApiKey(models.Model):
     public_key = models.CharField(max_length=255)

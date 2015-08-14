@@ -101,6 +101,9 @@ class NewUserForm(forms.Form):
         new_user.userprofile.save()
         return new_user
 
+class SettingsHistoricalDataForm(forms.Form):
+    days = forms.IntegerField(label='Data retention days', required=True)
+
 class EditLDAPUserForm(forms.Form):
     """
     Form for editing a LDAP user account.

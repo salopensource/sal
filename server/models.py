@@ -276,7 +276,7 @@ class Plugin(models.Model):
         ordering = ['order']
 
 class SalSetting(models.Model):
-    name = models.TextField()
+    name = models.TextField(unique=True)
     value = models.TextField()
     def __unicode__(self):
         return self.name

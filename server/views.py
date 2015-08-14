@@ -788,12 +788,46 @@ def delete_machine(request, machine_id):
 def settings_page(request):
     user = request.user
     user_level = user.userprofile.level
+
+    # Pull the historical_data setting
+    try:
+        historical_setting = SalSetting.objects.get(name='historical_retention')
+        print historical_setting
+    except SalSetting.DoesNotExist:
+        historical_setting = SalSetting(name='historical_retention', value='180')
+        historical_setting.save()
+    historical_setting_form = SettingsHistoricalDataForm(initial={'days': historical_setting.value})
     if user_level != 'GA':
         return redirect(index)
 
-    c = {'user':request.user, 'request':request}
+    c = {'user':request.user, 'request':request, 'historical_setting_form':historical_setting_form}
     return render_to_response('server/settings.html', c, context_instance=RequestContext(request))
 
+@login_required
+def settings_historical_data(request):
+    user = request.user
+    user_level = user.userprofile.level
+    if user_level != 'GA':
+        return redirect(index)
+    if request.method == 'POST':
+        # create a form instance and populate it with data from the request:
+        form = SettingsHistoricalDataForm(request.POST)
+        # check whether it's valid:
+        if form.is_valid():
+            try:
+                historical_setting = SalSetting.objects.get(name='historical_retention')
+            except SalSetting.DoesNotExist:
+                historical_setting = SalSetting(name='historical_retention')
+
+            historical_setting.value = form.cleaned_data['days']
+            print historical_setting.value
+            historical_setting.save()
+            messages.success(request, 'Data retention settings saved.')
+            
+            return redirect('settings_page')
+
+    else:
+        return redirect('settings_page')
 @login_required
 def plugins_page(request):
     user = request.user
@@ -1015,7 +1049,13 @@ def checkin(request):
     machine_group = get_object_or_404(MachineGroup, key=key)
 
     business_unit = machine_group.business_unit
+    try:
+        historical_setting = SalSetting.objects.get(name='historical_retention')
+    except SalSetting.DoesNotExist:
+        historical_setting = SalSetting(name='historical_retention', value='180')
+        historical_setting.save()
 
+    historical_days = historical_setting.value
     if machine:
         machine.hostname = data.get('name', '<NO NAME>')
         try:
@@ -1115,14 +1155,10 @@ def checkin(request):
             facts = machine.facts.all()
             facts.delete()
             # Delete old historical facts
-            try:
-              historical_days = settings.HISTORICAL_DAYS
-            except:
-              historical_days = 180
 
             try:
                 datelimit = datetime.now() - timedelta(days=historical_days)
-                HistoricalFact.objects.filter(machine=machine, fact_recorded__lt=datelimit).delete()
+                HistoricalFact.objects.filter(fact_recorded__lt=datelimit).delete()
             except Exception:
                 pass
             try:
@@ -1158,6 +1194,11 @@ def checkin(request):
                 condition.save()
 
         if 'osquery' in report_data:
+            try:
+                datelimit = datetime.now() - timedelta(days=historical_days)
+                OSQueryResult.objects.filter(unix_time__lt=datelimit).delete()
+            except Exception:
+                pass
             for report in report_data['osquery']:
                 unix_time = datetime.fromtimestamp(int(report['unixTime']))
                 try:

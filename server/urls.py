@@ -76,7 +76,8 @@ urlpatterns = patterns('server.views',
     url(r'^settings/plugins/enable/(?P<plugin_name>.+)/', 'plugin_enable', name='plugin_enable'),
     # Manage Plugins
     url(r'^settings/plugins/', 'plugins_page', name='plugins_page'),
-
+    # Save Historical days
+    url(r'^settings/save_historical_days/', 'settings_historical_data', name='settings_historical_data'),
     # Settings
     url(r'^settings/', 'settings_page', name='settings_page')
 )

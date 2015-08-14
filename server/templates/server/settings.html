@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 {% load i18n %}
 {% load dashboard_extras %}
+{% load bootstrap3 %}
 
 {% block script %}
 <script type="text/javascript" charset="utf-8">
@@ -25,5 +26,32 @@
 {% endblock %}
 
 {% block content %}
-<div class="row"></div>
+{% if messages %}
+<div class="row">
+    <div class="col-md-10">
+            {% for message in messages %}
+            <div class="alert alert-{% if message.tags %}{{ message.tags }}{% endif %} alert-dismissable">
+                <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
+                                {{ message }} 
+                            </div>
+            {% endfor %}
+    </div>
+</div>
+{% endif %}
+<div class="row">
+    <div class="col-md-10">
+        <h1>Settings</h1>
+        <h3>Data Retention</h3>
+        <p>This is the number of days that <code>historical fatcs</code> and <code>osquery</code> data will be kept for.</p>
+    </div>
+</div>
+<div class="row">
+    <div class="col-md-4">
+        <form action="{% url 'settings_historical_data' %}" method="post">
+        {% csrf_token %}
+        {% bootstrap_form historical_setting_form %}
+        <p><button type="submit" class="btn btn-primary">Save</button></p>
+        </form>
+    </div>
+</div>
 {% endblock %}

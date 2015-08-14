@@ -2,20 +2,6 @@
 
 By modifying ``sal/settings.py`` you can customise how plugins and data is displayed in Sal. If you are upgrading from a previous version of Sal, refer to this document to see how your ``settings.py`` file should be changed to take advantage of any new features. There are defaults set in ``sal/system_settings.py``, but they can be overridden if you choose.
 
-## PLUGIN_ORDER
-
-This is a list of plugin names. This is now only used for the initial load of plugins into Sal. To re-order plugins, go to the Settings Page (from the top right menu) in Sal.
-
-``` python
-PLUGIN_ORDER = ['Activity','Status','OperatingSystem', 'MunkiVersion','Uptime', 'Memory']
-```
-
-To have all plugins displaying alphabetically, with none in any particular order:
-
-```python
-PLUGIN_ORDER = []
-```
-
 ## LIMIT_PLUGIN_TO_FRONT_PAGE
 
 These plugins will only be shown on the front page. They will not appear anywhere else.
@@ -101,12 +87,4 @@ Normally only the most recent fact is recorded for a machine. Any facts defined 
 HISTORICAL_FACTS = [
     'memoryfree_mb',
 ]
-```
-
-## HISTORICAL_DAYS
-
-The number of days to keep historical data. Each historical fact can be recorded once per hour, per fact, per machine. If you have a large number of machines that stay on 24/7 you might consider decreasing this number. Defaults to 180.
-
-```python
-HISTORICAL_DAYS = 180
 ```

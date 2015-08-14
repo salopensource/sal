@@ -960,7 +960,6 @@ def preflight(request):
     output['queries'] = {}
     for plugin in manager.getAllPlugins():
         counter = 0
-        print output
         try:
             if plugin.plugin_object.plugin_type() == 'osquery':
                 # No other plugins will have info for this
@@ -1169,7 +1168,6 @@ def checkin(request):
                     osqueryresult.save()
 
                 for items in report['diffResults']['added']:
-                    print items
                     for column, col_data in items.items():
                         osquerycolumn = OSQueryColumn(osquery_result=osqueryresult, action='added', column_name=column, column_data=col_data)
                         osquerycolumn.save()

@@ -25,7 +25,7 @@ class Migration(migrations.Migration):
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
                 ('name', models.CharField(max_length=255, null=True, blank=True)),
                 ('hostidentifier', models.CharField(max_length=255, null=True, blank=True)),
-                ('unix_time', models.CharField(max_length=255, null=True, blank=True)),
+                ('unix_time', models.DateTimeField(null=True, blank=True)),
                 ('action', models.CharField(max_length=255, null=True, blank=True)),
                 ('machine', models.ForeignKey(related_name='osquery_results', to='server.Machine')),
             ],

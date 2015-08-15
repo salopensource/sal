@@ -31,24 +31,23 @@ RUN apt-get update && \
     libffi-dev && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
-
+ADD / $APP_DIR
 RUN easy_install pip && \
-    git clone https://github.com/salopensource/sal.git $APP_DIR && \
     pip install -r $APP_DIR/setup/requirements.txt && \
     pip install psycopg2==2.5.3 && \
     pip install gunicorn && \
     pip install setproctitle
-
-ADD nginx/nginx-env.conf /etc/nginx/main.d/
-ADD nginx/sal.conf /etc/nginx/sites-enabled/sal.conf
-ADD nginx/nginx.conf /etc/nginx/nginx.conf
-ADD settings.py $APP_DIR/sal/
-ADD settings_import.py $APP_DIR/sal/
-ADD wsgi.py $APP_DIR/
-ADD gunicorn_config.py $APP_DIR/
-ADD django/management/ $APP_DIR/sal/management/
-ADD run.sh /run.sh
-ADD supervisord.conf $APP_DIR/supervisord.conf
+#     git clone https://github.com/salopensource/sal.git $APP_DIR && \
+ADD docker/nginx/nginx-env.conf /etc/nginx/main.d/
+ADD docker/nginx/sal.conf /etc/nginx/sites-enabled/sal.conf
+ADD docker/nginx/nginx.conf /etc/nginx/nginx.conf
+ADD docker/settings.py $APP_DIR/sal/
+ADD docker/settings_import.py $APP_DIR/sal/
+ADD docker/wsgi.py $APP_DIR/
+ADD docker/gunicorn_config.py $APP_DIR/
+ADD docker/django/management/ $APP_DIR/sal/management/
+ADD docker/run.sh /run.sh
+ADD docker/supervisord.conf $APP_DIR/supervisord.conf
 
 RUN update-rc.d -f postgresql remove && \
     update-rc.d -f nginx remove && \
@@ -61,4 +60,4 @@ EXPOSE 8000
 
 CMD ["/run.sh"]
 
-#VOLUME ["$APP_DIR/plugins", "$APP_DIR/sal/settings.py"]
+VOLUME ["$APP_DIR/plugins"]

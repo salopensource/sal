@@ -42,7 +42,7 @@ If you have an existing ``postflight`` script (for example, Munki Web Admin), yo
 
 The configuration of the Server Address, and the Machine Group key is from ``/Library/Preferences/com.github.salopensource.sal``. Plists, MCX (untested, but should work) and Profiles can be used.
 
-It is recomended that both Facter and osquery are configured on the client machine, although both are optional. Facter will work with no additional configuration, but osquery will need some additional setup. If you aren't currently using osquery (so have no configuration to save), you can use the package at [PACKAGE WILL GO HERE]. If you are integrating Sal with an existing osquery setup, you will need to add ``"log_result_events": "false"`` to the ``options`` section of your configuration file:
+It is recomended that both Facter and osquery are configured on the client machine, although both are optional. Facter will work with no additional configuration, but osquery will need some additional setup. If you aren't currently using osquery (so have no configuration to save), you can use the package at [salopensource/osquery-conf](https://github.com/salopensource/osquery-conf/releases/latest). If you are integrating Sal with an existing osquery setup, you will need to add ``"log_result_events": "false"`` to the ``options`` section of your configuration file:
 
 ``` json
 {

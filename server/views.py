@@ -1217,5 +1217,5 @@ def checkin(request):
                         osquerycolumn = OSQueryColumn(osquery_result=osqueryresult, action='removed', column_name=column, column_data=col_data)
                         osquerycolumn.save()
 
-        return HttpResponse("Sal report submmitted for %s.\n"
+        return HttpResponse("Sal report submmitted for %s"
                             % data.get('name'))

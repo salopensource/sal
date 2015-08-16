@@ -228,7 +228,6 @@ class OSQueryResult(models.Model):
         return self.name
     class Meta:
         ordering = ['unix_time']
-        unique_together = ("unix_time", "name")
 
 class OSQueryColumn(models.Model):
     osquery_result = models.ForeignKey(OSQueryResult, related_name='osquery_columns')

@@ -6,6 +6,7 @@ import plistlib
 from xml.parsers.expat import ExpatError
 import base64
 import bz2
+import zlib
 from datetime import datetime
 
 
@@ -96,7 +97,7 @@ class Machine(models.Model):
 
     def encode(self, plist):
         string = plistlib.writePlistToString(plist)
-        bz2data = bz2.compress(string)
+        bz2data = zlib.compress(string)
         b64data = base64.b64encode(bz2data)
         return b64data
 
@@ -119,7 +120,7 @@ class Machine(models.Model):
     def b64bz_decode(self, data):
         try:
             bz2data = base64.b64decode(data)
-            string = bz2.decompress(bz2data)
+            string = zlib.decompress(bz2data)
             plist = plistlib.readPlistFromString(string)
             return plist
         except Exception:

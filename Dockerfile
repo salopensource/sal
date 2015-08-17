@@ -14,6 +14,7 @@ ENV DOCKER_SAL_LANG en_GB
 ENV DOCKER_SAL_DISPLAY_NAME Sal
 ENV DOCKER_SAL_DEBUG false
 
+ADD / $APP_DIR
 RUN apt-get update && \
     apt-get install -y software-properties-common && \
     apt-get -y update && \
@@ -31,7 +32,6 @@ RUN apt-get update && \
     libffi-dev && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
-ADD / $APP_DIR
 RUN easy_install pip && \
     pip install -r $APP_DIR/setup/requirements.txt && \
     pip install psycopg2==2.5.3 && \

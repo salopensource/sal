@@ -224,7 +224,7 @@ class OSQueryResult(models.Model):
     machine = models.ForeignKey(Machine, related_name='osquery_results')
     name = models.CharField(max_length=255)
     hostidentifier = models.CharField(max_length=255, null=True, blank=True)
-    unix_time = models.DateTimeField(null=True, blank=True)
+    unix_time = models.IntegerField()
     def __unicode__(self):
         return self.name
     class Meta:

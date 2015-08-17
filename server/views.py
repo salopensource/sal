@@ -1196,13 +1196,12 @@ def checkin(request):
 
         if 'osquery' in report_data:
             try:
-                datelimit = datetime.now() - timedelta(days=historical_days)
+                datelimit = (datetime.now() - timedelta(days=historical_days)).strftime("%s")
                 OSQueryResult.objects.filter(unix_time__lt=datelimit).delete()
             except:
                 pass
             for report in report_data['osquery']:
-                utc = pytz.utc
-                unix_time = utc.localize(datetime.fromtimestamp(int(report['unixTime'])))
+                unix_time = utc.localize(report['unixTime'])
                 # Have we already processed this report?
                 try:
                     osqueryresult = OSQueryResult.objects.get(hostidentifier=report['hostIdentifier'], machine=machine, unix_time=unix_time, name=report['name'])

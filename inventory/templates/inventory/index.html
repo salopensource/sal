@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% load dashboard_extras %}
+
+{% block script %}
+<script type="text/javascript" charset="utf-8">
+    $(document).ready(function() {
+        $(function () {
+          $('[data-toggle="tooltip"]').tooltip()
+        })
+        $('.groupList').dataTable({
+            //"sDom": "<'row'<'span6'l><'span6'f>r>t<'row'<'span6'i><'span6'p>>",
+            // "iDisplayLength": 20,
+            "aLengthMenu": [[20, 50, -1], [20, 50, "All"]],
+            // "sPaginationType": "bootstrap",
+            // "bStateSave": true,
+            // "aaSorting": [[1,'asc']]
+        });
+    } );
+</script>
+<style type="text/css">
+.tooltip-inner {
+    max-width: 1000px;
+    max-width: 1000px;
+}
+</style>
+{% endblock %}
+
+{% block nav %}
+<li><a href="{{ request.META.HTTP_REFERER }}"><i class="fa fa-fw fa-chevron-left"></i> Back</a></li>
+
+    
+{% endblock %}
+{% block content %}
+
+<div class="panel panel-default">
+
+    <div class="panel-heading">
+        Application Inventory
+    </div>
+
+<div class="panel-body">
+    <div class="table-responsive">
+        <table class="groupList table table-striped table-condensed"">
+            <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Version</th>
+                  <th>Bundle ID</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in inventory|dictsort:'name' %}
+                <tr>
+                    <td>
+                        <a href="#" data-toggle="tooltip" data-placement="right" title="{{ item.path }}">
+                        {{ item.name }}
+                        </a>
+                    </td>
+
+                    <td>{{ item.version }}</td>
+                    <td>{{ item.bundleid }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    </div>
+</div>
+{% endblock %}

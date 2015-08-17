@@ -38,7 +38,6 @@ class TopProcesses(IPlugin):
             info = OSQueryColumn.objects.filter(osquery_result__name='pack_sal_top_processes').filter(osquery_result__machine=machines).filter(column_name='name').values('column_data').annotate(data_count=Count('column_data')).order_by('-data_count')[:100:1]
         else:
             info = []
-
         c = Context({
             'title': 'Top Processes',
             'data': info,
@@ -51,6 +50,6 @@ class TopProcesses(IPlugin):
         # You will be passed a QuerySet of machines, you then need to perform some filtering based on the 'data' part of the url from the show_widget output. Just return your filtered list of machines and the page title.
         
         machines = machines.filter(osquery_results__osquery_columns__column_data__exact=data).filter(osquery_results__name__exact='pack_sal_top_processes').distinct()
-        print machines
+        
         return machines, 'Machines running '+data
         

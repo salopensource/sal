@@ -180,6 +180,7 @@ INSTALLED_APPS = (
     'sal',
     'server',
     'api',
+    'inventory',
     'bootstrap3',
 )
 

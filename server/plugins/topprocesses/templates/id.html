@@ -8,14 +8,16 @@
         <div class="table-wrapper">
             <table class="table table-striped table-condensed table-bordered table-update">
         {% for item in data %}
+        {{% if item.column_data %}
             <tr>
                 <td>
-                    <a href="{% url 'machine_list_id' 'TopProcesses' item.column_data %}">
+                    <a href="{% url 'machine_list_id' 'TopProcesses' item.column_data page theid %}">
                     {{ item.column_data }}
                     <span class="badge pull-right">{{ item.data_count }}</span>
                     </a>
                 </td>
             </tr>
+        {% endif %}
         {% endfor %}
         </table>
     </div>

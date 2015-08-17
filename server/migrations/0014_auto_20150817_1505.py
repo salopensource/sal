@@ -2,7 +2,7 @@
 from __future__ import unicode_literals
 
 from django.db import models, migrations
-import datetime
+
 
 class Migration(migrations.Migration):
 
@@ -14,7 +14,6 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='osqueryresult',
             name='unix_time',
-            field=models.DateTimeField(default=datetime.datetime.now()),
-            preserve_default=False,
+            field=models.IntegerField(),
         ),
     ]

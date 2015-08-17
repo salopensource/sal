@@ -1201,7 +1201,8 @@ def checkin(request):
             except:
                 pass
             for report in report_data['osquery']:
-                unix_time = datetime.fromtimestamp(int(report['unixTime']))
+                utc = pytz.utc
+                unix_time = utc.localize(datetime.fromtimestamp(int(report['unixTime'])))
                 # Have we already processed this report?
                 try:
                     osqueryresult = OSQueryResult.objects.get(hostidentifier=report['hostIdentifier'], machine=machine, unix_time=unix_time, name=report['name'])

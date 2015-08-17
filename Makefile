@@ -8,7 +8,7 @@ DB_CONTAINER_NAME:=postgres-sal
 NAME:=sal
 TZ:="Europe/London"
 PLUGIN_DIR=/tmp/plugins
-DOCKER_RUN_COMMON=--name="$(NAME)" -p ${SAL_PORT}:8000 --link $(DB_CONTAINER_NAME):db -e ADMIN_PASS=${ADMIN_PASS} -e DB_NAME=$(DB_NAME) -e DB_USER=$(DB_USER) -e DOCKER_SAL_TZ=$(TZ) -e DB_PASS=$(DB_PASS) -v ${PLUGIN_DIR}:/home/app/sal/plugins -v /tmp/logs:/var/log/nginx ${DOCKER_USER}/sal
+DOCKER_RUN_COMMON=--name="$(NAME)" -p ${SAL_PORT}:8000 --link $(DB_CONTAINER_NAME):db -e ADMIN_PASS=${ADMIN_PASS} -e DB_NAME=$(DB_NAME) -e DB_USER=$(DB_USER) -e DOCKER_SAL_TZ=$(TZ) -e DOCKER_SAL_DEBUG=true -e DB_PASS=$(DB_PASS) -v ${PLUGIN_DIR}:/home/app/sal/plugins -v /tmp/logs:/var/log/nginx ${DOCKER_USER}/sal
 
 
 all: build
@@ -26,7 +26,7 @@ interactive:
 	docker run -i ${DOCKER_RUN_COMMON}
 
 bash:
-	docker run -t -i ${DOCKER_RUN_COMMON} /bin/bash
+	docker exec -ti sal bash
 
 clean:
 	docker stop $(NAME)

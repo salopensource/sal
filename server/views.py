@@ -1200,7 +1200,7 @@ def checkin(request):
             except:
                 pass
             for report in report_data['osquery']:
-                unix_time = datetime.utcfromtimestamp(int(report['unixTime']))
+                unix_time = datetime.fromtimestamp(int(report['unixTime']))
                 try:
                     osqueryresult = OSQueryResult.objects.get(hostidentifier=report['hostIdentifier'], machine=machine, unix_time=unix_time, name=report['name'])
                     break

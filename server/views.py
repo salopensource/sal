@@ -1050,11 +1050,12 @@ def checkin(request):
     business_unit = machine_group.business_unit
     try:
         historical_setting = SalSetting.objects.get(name='historical_retention')
+        historical_days = historical_setting.value
     except SalSetting.DoesNotExist:
         historical_setting = SalSetting(name='historical_retention', value='180')
         historical_setting.save()
-
-    historical_days = historical_setting.value
+        historical_days = '180'
+    
     if machine:
         machine.hostname = data.get('name', '<NO NAME>')
         try:
@@ -1196,7 +1197,7 @@ def checkin(request):
             try:
                 datelimit = datetime.now() - timedelta(days=historical_days)
                 OSQueryResult.objects.filter(unix_time__lt=datelimit).delete()
-            except Exception:
+            except:
                 pass
             for report in report_data['osquery']:
                 unix_time = datetime.utcfromtimestamp(int(report['unixTime']))

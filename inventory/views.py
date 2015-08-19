@@ -125,7 +125,7 @@ def inventory_hash(request, serial):
         except (Machine.DoesNotExist, Inventory.DoesNotExist):
             pass
     else:
-        raise Http404
+        return HttpResponse("MACHINE NOT FOUND")
     return HttpResponse(sha256hash)
 
 

@@ -179,5 +179,24 @@ def machine_group_inventory(request, group_id):
             inventory.append(item)
     
     found = unique_apps(inventory)
-    c = {'user': request.user, 'inventory': found, 'page':'business_unit', 'business_unit':business_unit, 'request': request}
+    c = {'user': request.user, 'inventory': found, 'page':'machine_group', 'business_unit':business_unit, 'request': request}
+    return render_to_response('inventory/index.html', c, context_instance=RequestContext(request))
+
+@login_required
+def machine_inventory(request, machine_id):
+    user = request.user
+    user_level = user.userprofile.level
+    machine = get_object_or_404(Machine, pk=machine_id)
+    machine_group = machine.machine_group
+    business_unit = machine_group.business_unit
+    if business_unit not in user.businessunit_set.all() and user_level != 'GA':
+        print 'not letting you in ' + user_level
+        return redirect(index)
+
+    inventory = []
+    for item in machine.inventoryitem_set.all():
+        inventory.append(item)
+    
+    found = unique_apps(inventory)
+    c = {'user': request.user, 'inventory': found, 'page':'machine', 'business_unit':business_unit, 'request': request}
     return render_to_response('inventory/index.html', c, context_instance=RequestContext(request))

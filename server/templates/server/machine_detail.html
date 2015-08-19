@@ -9,6 +9,7 @@
 
 {% block nav %}
 <li><a href="{% url 'bu_dashboard' business_unit.id %}"><i class="fa fa-chevron-left fa-fw"></i> Back</a></li>
+<li><a href="{% url 'inventory.views.machine_inventory' machine.id %}"><i class="fa fa-list-alt fa-fw"></i> Application Inventory</a></li>
 {% if user.userprofile.level == 'GA' or user.userprofile.level == 'RW' %}
         {% if CONFIG_INSTALLED %}
             <li><a href="{% url 'config_machine_index' machine.id %}"><i class="fa fa-wrench fa-fw"></i> Configure Computer</a></li>

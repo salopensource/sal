@@ -32,7 +32,7 @@ else:
 if getenv('DOCKER_SAL_TZ'):
     if '/' in getenv('DOCKER_SAL_TZ'):
         TIME_ZONE = getenv('DOCKER_SAL_TZ')
-    else: TIME_ZONE = 'Eurpoe/London'
+    else: TIME_ZONE = 'Europe/London'
 # elif getenv('TZ'):
 #     TIME_ZONE = getenv('TZ')
 # else:

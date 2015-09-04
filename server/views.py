@@ -1004,7 +1004,7 @@ def preflight(request):
                     output['queries'][name] = query
                 
         except:
-            break
+            pass
     return HttpResponse(json.dumps(output))
 
 

@@ -15,3 +15,7 @@ DEBUG = True
 ```
 
 This will cause any application error to throw up a detailled error (which will be returned by the preflight and postflight scripts if the error is on the client end). If you don't understand the error, post the full error to the [Google Group](http://groups.google.com/group/sal-discuss).
+
+## Update Sal
+
+You may be running a version with a known bug - install the latest version of both Sal and the Sal Scripts.

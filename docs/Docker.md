@@ -13,7 +13,7 @@ This will get you going with a default Sal installation, with a Postgres databas
 # This is where the database data will live. Adjust to your taste
 $ mkdir -p /usr/local/sal_data/db
 $ docker run -d --name="postgres-sal" \
-  -v /db:/var/lib/postgresql/data \
+  -v /usr/local/sal_data/db:/var/lib/postgresql/data \
   -e DB_NAME=sal \
   -e DB_USER=admin \
   -e DB_PASS=password \

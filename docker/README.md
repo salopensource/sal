@@ -11,6 +11,7 @@ Several options, such as the timezone and admin password are customizable using 
 * ``DOCKER_SAL_DISPLAY_NAME``: This sets the name that appears in the title bar of the window. Defaults to ``Sal``.
 * ``DOCKER_SAL_TZ``: The desired [timezone](http://en.wikipedia.org/wiki/List_of_tz_database_time_zones). Defaults to ``Europe/London``.
 * ``DOCKER_SAL_ADMINS``: The admin user's details. Defaults to ``Docker User, docker@localhost``.
+* ``DOCKER_SAL_DEFAULT_MACHINE_GROUP_KEY``: By default, all machine submissions must include a machine group key otherwise an error will occur. By defining this value to an existing machine group key then machines without a group key already defined in its preferences will be placed into this group.
 * ``DOCKER_SAL_DEBUG``: Whether debug mode is enabled or not. Valid values are ``true`` and ``false``. Defaults to ``false``.
 
 If you require more advanced settings, for example if you want to hide certain plugins from certain Business Units or if you have a plugin that needs settings, you can override ``settings.py`` with your own. A good starting place can be found on this image's [Github repository](https://github.com/salopensource/sal/blob/master/docker/settings.py).

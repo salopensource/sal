@@ -5,6 +5,7 @@ from django.shortcuts import get_object_or_404
 from yapsy.PluginManager import PluginManager
 from django.db.models import Max
 import os
+import logging
 
 def loadDefaultPlugins():
     # Are there any plugin objects? If not, add in the defaults
@@ -18,6 +19,8 @@ def loadDefaultPlugins():
             plugin.save()
 
 def reloadPluginsModel():
+    if settings.DEBUG:
+        logging.getLogger('yapsy').setLevel(logging.WARNING)
     # Are there any plugin objects? If not, add in the defaults
     plugin_objects = Plugin.objects.all().count()
     if plugin_objects == 0:

@@ -35,7 +35,10 @@ class TopProcesses(IPlugin):
                 machines = Machine.objects.filter(machine_group=machine_group)
         
         if machines:
-            info = OSQueryColumn.objects.filter(osquery_result__name='pack_sal_top_processes').filter(osquery_result__machine=machines).filter(column_name='name').values('column_data').annotate(data_count=Count('column_data')).order_by('-data_count')[:100:1]
+            try:
+                info = OSQueryColumn.objects.filter(osquery_result__name='pack_sal_top_processes').filter(osquery_result__machine=machines).filter(column_name='name').values('column_data').annotate(data_count=Count('column_data')).order_by('-data_count')[:100:1]
+            except:
+                info = []
         else:
             info = []
         c = Context({

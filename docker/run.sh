@@ -24,6 +24,7 @@ export DJANGO_SETTINGS_MODULE='sal.settings'
 # chdir /var/www/django/sd_sample_project/sd_sample_project
 if [ "$DOCKER_SAL_DEBUG" = "true" ] || [ "$DOCKER_SAL_DEBUG" = "True" ] || [ "$DOCKER_SAL_DEBUG" = "TRUE" ] ; then
     service nginx stop
+    echo "RUNNING IN DEBUG MODE"
     python manage.py runserver 0.0.0.0:8000
 else
     supervisord --nodaemon -c $APP_DIR/supervisord.conf

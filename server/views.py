@@ -23,8 +23,9 @@ from django.core.exceptions import PermissionDenied
 import utils
 import pytz
 
-# import logging
-# logging.basicConfig(level=logging.DEBUG)
+if settings.DEBUG:
+    import logging
+    logging.basicConfig(level=logging.DEBUG)
 
 @login_required
 def index(request):

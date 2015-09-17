@@ -53,3 +53,5 @@ api.old/
 *.db copy
 
 *.db
+
+*.db-journal

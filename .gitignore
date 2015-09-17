@@ -51,3 +51,5 @@ server/management
 api.old/
 
 *.db copy
+
+*.db

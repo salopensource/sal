@@ -105,6 +105,7 @@ We need to use Django's manage.py to initialise the app's database and create an
 	python manage.py syncdb
 	python manage.py makemigrations
 	python manage.py migrate
+	python manage.py buildwatson
 
 Stage the static files (type yes when prompted)
 

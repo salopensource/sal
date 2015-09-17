@@ -7,7 +7,7 @@ from xml.parsers.expat import ExpatError
 import base64
 import bz2
 from datetime import datetime
-
+import watson
 
 def GenerateKey():
     key = ''.join(random.choice(string.ascii_lowercase + string.digits) for x in range(128))
@@ -295,3 +295,7 @@ class ApiKey(models.Model):
     class Meta:
         ordering = ['name']
         unique_together = ("public_key", "private_key")
+
+watson.register(Machine, exclude=("report", "errors", "warnings",))
+watson.register(Fact)
+watson.register(Condition)

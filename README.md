@@ -14,6 +14,14 @@ Once you've got clients reporting in, you're probably going to want to customise
 
 If you would like a demo of setting up Sal along with some of the features please watch the following presentation Graham made at the 2014 [Penn State MacAdmins Conference](http://youtu.be/BPTJnz27T44?t=21m28s). Slides available from [here](http://grahamgilbert.com/images/posts/2014-07-09/Multi_site_Munki.pdf).
 
+## Search
+
+Sal has full search across machines, Facts and Munki conditions. If you want to search on Machine info, enter your search terms without anything extra. To search for Facts, prefix your search with ``facter:``, and to search your conditions, prefix your search with ``condtion:``.
+
+## Plugins
+
+You can enable, disable and re-order your plugins from the Settings page, under the 'person' menu in the main menu bar. For more information on using and installing your own plugins, visit the [Using Plugins](https://github.com/salopensource/sal/blob/master/docs/Using%20Plugins.md) page.
+
 After re-ordering and hiding plugins from some screens, you might even want to make your own plugins. You can base your plugin off of one of the included ones, or one of mine in the [repository of optional plugins](https://github.com/salopensource/grahamgilbert-plugins). Trust me it's easy if you know python, and completely possible even if you don't. If you want more information on creating your own plugin you can follow a series of posts from my blog [part 1](http://grahamgilbert.com/blog/2014/01/26/writing-plugins-for-sal-part-1/), [part 2](http://grahamgilbert.com/blog/2014/02/07/writing-plugins-for-sal-part-2/), and [part 3](http://grahamgilbert.com/blog/2014/02/17/writing-plugins-for-sal-part-3/).
 
 ## Having problems?

@@ -22,11 +22,44 @@ from yapsy.PluginManager import PluginManager
 from django.core.exceptions import PermissionDenied
 import utils
 import pytz
+import watson
 
 if settings.DEBUG:
     import logging
-    logging.basicConfig(level=logging.DEBUG)
+    logging.basicConfig(level=logging.INFO)
 
+@csrf_exempt
+@login_required
+def search(request):
+    user = request.user
+    user_level = user.userprofile.level
+    if ('q' in request.GET) and request.GET['q'].strip():
+        query_string = request.GET['q']
+    else:
+        raise Http404
+    # Make sure we're searching across Machines the user has access to:
+    machines = Machine.objects.all()
+    if user_level == 'GA':
+        machines = machines
+    else:
+        for business_unit in BusinessUnit.objects.all():
+            print user.businessunit_set.all()
+            if business_unit not in user.businessunit_set.all():
+                machines = machines.exclude(machine_group__business_unit = business_unit)
+    if query_string.lower().startswith('facter:'):
+        query_string = query_string.replace('facter:','').replace('Facter:', '').strip()
+        machines = Fact.objects.filter(machine=machines)
+        template = 'server/search_facter.html'
+    elif query_string.lower().startswith('condition:'):
+        query_string = query_string.replace('condition:','').replace('Condition:', '').strip()
+        machines = Condition.objects.filter(machine=machines)
+        template = 'server/search_condition.html'
+    else:
+        template = 'server/search_machines.html'
+    search_results = watson.filter(machines, query_string)
+    title = "Search results for %s" % query_string
+    c = {'user': request.user, 'search_results': search_results, 'title':title}
+    return render_to_response(template, c, context_instance=RequestContext(request))
 @login_required
 def index(request):
     # Get the current user's Business Units

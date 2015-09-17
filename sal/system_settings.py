@@ -182,6 +182,7 @@ INSTALLED_APPS = (
     'api',
     'inventory',
     'bootstrap3',
+    'watson',
 )
 
 # A sample logging configuration. The only tangible logging

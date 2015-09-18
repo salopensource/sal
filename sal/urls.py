@@ -1,9 +1,6 @@
 from django.conf.urls import patterns, include, url
 from django.conf import settings
 from django.conf.urls.static import static
-import autocomplete_light.shortcuts as al
-# import every app/autocomplete_light_registry.py
-al.autodiscover()
 
 # Uncomment the next two lines to enable the admin:
 from django.contrib import admin

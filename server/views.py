@@ -58,7 +58,7 @@ def search(request):
         template = 'server/search_machines.html'
     search_results = watson.filter(machines, query_string)
     title = "Search results for %s" % query_string
-    c = {'user': request.user, 'search_results': search_results, 'title':title}
+    c = {'user': request.user, 'search_results': search_results, 'title':title, 'request':request}
     return render_to_response(template, c, context_instance=RequestContext(request))
 @login_required
 def index(request):

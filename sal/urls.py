@@ -20,6 +20,7 @@ urlpatterns = patterns('',
     url(r'^admin/', include(admin.site.urls)),
     (r'^api/', include('api.urls')),
     (r'^inventory/', include('inventory.urls')),
+    (r'^licenses/', include('licenses.urls')),
     #url(r'^$', 'namer.views.index', name='home'),
 
 )

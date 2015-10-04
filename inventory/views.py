@@ -200,3 +200,22 @@ def machine_inventory(request, machine_id):
     found = unique_apps(inventory)
     c = {'user': request.user, 'inventory': found, 'page':'machine', 'business_unit':business_unit, 'request': request}
     return render_to_response('inventory/index.html', c, context_instance=RequestContext(request))
+
+@login_required
+def list_machines(request, page, name, version, bundleid, bundlename, path, id=None):
+    user = request.user
+    user_level = user.userprofile.level
+    machines = Machine.objects.all()
+    if page == 'group':
+        group = get_object_or_404(MachineGroup, pk=id)
+        machines = machines.filter(machine_group=group)
+    elif page == 'bu':
+        business_unit = get_object_or_404(BusinessUnit, pk=id)
+        machines = machines.filter(machine_group=machine_group__business_unit)
+    else:
+        if user_level == 'GA':
+            machines = machines
+        else:
+            for business_unit in BusinessUnit.objects.all():
+                if business_unit not in user.businessunit_set.all():
+                    machines = machines.exclude(machine_group__business_unit = business_unit)

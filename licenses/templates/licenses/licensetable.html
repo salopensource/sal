@@ -1,0 +1,35 @@
+{% load url from future %}
+{% if list_title %}
+  <h3>{{ list_title }}</h3>
+{% endif %}
+{% if license_list|length %}
+  <p/>
+<div class="panel panel-default">
+<div class="panel-body">
+    <div class="table-responsive">
+        <table class="groupList table table-striped table-condensed">
+      <thead>
+          <tr>
+            <th>Item           </th>
+            <th>Licensed Seats </th>
+            <th>Installed Seats</th>
+            <th>Available Seats</th>
+            <th></th>
+          </tr>
+          </tr>
+      </thead>
+      <tbody>
+      {% for license in license_list %}
+          <tr>
+              <td{% if license.available < 0 %} class='error'{% endif %}>{{ license.item_name }}</td>
+              <td>{{ license.total }}</td>
+              <td><a href=#>{{ license.used }}</a></td>
+              <td{% if license.available < 0 %} class='text-error'{% endif %}>{{ license.available }}</td>
+              <td><a href="{% url 'edit_license' license.item_name %}" class="btn btn-mini btn-info">Edit</a></td>
+          </tr>
+      {% endfor %}
+      </tbody>
+  </table>
+  </div>
+  </div>
+{% endif %}

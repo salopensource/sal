@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% load dashboard_extras %}
+
+{% block script %}
+<script type="text/javascript" charset="utf-8">
+    $(document).ready(function() {
+        $('.groupList').DataTable({
+            "aLengthMenu": [[20, 50, -1], [20, 50, "All"]],
+            'aoColumnDefs': [{
+                'bSortable': false,
+                'aTargets': [-1, -2] /* 1st one, start by the right */
+            }]
+        });
+    } );
+</script>
+{% endblock %}
+
+{% block nav %}
+        <li><a href="{% url 'settings_page' %}"><i class="fa-chevron-left fa fa-fw"></i> Back</a></li>
+        <li><a href="{% url 'new_license' %}"><i class="fa-plus fa fa-fw"></i> License</a></li>
+
+{% endblock %}
+
+{% block content %}
+  {% with license_list=licenses list_title='Licenses' %}
+    {% include 'licenses/licensetable.html' %}
+  {% endwith %}
+{% endblock %}

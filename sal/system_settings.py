@@ -181,6 +181,7 @@ INSTALLED_APPS = (
     'server',
     'api',
     'inventory',
+    'licenses',
     'bootstrap3',
     'watson',
 )

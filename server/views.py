@@ -23,6 +23,7 @@ from django.core.exceptions import PermissionDenied
 import utils
 import pytz
 import watson
+import csv
 
 if settings.DEBUG:
     import logging
@@ -60,6 +61,7 @@ def search(request):
     title = "Search results for %s" % query_string
     c = {'user': request.user, 'search_results': search_results, 'title':title, 'request':request}
     return render_to_response(template, c, context_instance=RequestContext(request))
+
 @login_required
 def index(request):
     # Get the current user's Business Units
@@ -295,6 +297,18 @@ def machine_list(request, pluginName, data, page='front', theID=None):
     c = {'user':user, 'machines': machines, 'req_type': page, 'title': title, 'bu_id': theID, 'request':request }
 
     return render_to_response('server/overview_list_all.html', c, context_instance=RequestContext(request))
+
+@login_required
+def export_csv(request, pluginName, data, page='front', theID=None):
+    # Create the HttpResponse object with the appropriate CSV header.
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = 'attachment; filename="somefilename.csv"'
+
+    writer = csv.writer(response)
+    writer.writerow(['First row', 'Foo', 'Bar', 'Baz'])
+    writer.writerow(['Second row', 'A', 'B', 'C', '"Testing"', "Here's a quote"])
+
+    return response
 
 # New BU
 @login_required

@@ -8,8 +8,8 @@ admin.autodiscover()
 
 urlpatterns = patterns('',
     # Examples:
-    url(r'^login$', 'django.contrib.auth.views.login'),
     url(r'^login/$', 'django.contrib.auth.views.login'),
+    url(r'^login$', 'django.contrib.auth.views.login'),
     url(r'^logout/$', 'django.contrib.auth.views.logout_then_login'),
     url(r'^changepassword/$', 'django.contrib.auth.views.password_change', name='password_change'),
     url(r'^changepassword/done/$', 'django.contrib.auth.views.password_change_done', name='password_change_done'),

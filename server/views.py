@@ -24,6 +24,11 @@ import utils
 import pytz
 import watson
 import unicodecsv as csv
+# This will only work if BRUTE_PROTECT == True
+try:
+    import axes.utils
+except:
+    pass
 
 if settings.DEBUG:
     import logging
@@ -144,12 +149,37 @@ def manage_users(request):
     if user_level != 'GA':
         return redirect(index)
 
+    try:
+        brute_protect = settings.BRUTE_PROTECT
+    except:
+        brute_protect = False
     # We require you to be staff to manage users
     if user.is_staff != True:
         return redirect(index)
     users = User.objects.all()
-    c = {'user':request.user, 'users':users, 'request':request}
+    c = {'user':request.user, 'users':users, 'request':request, 'brute_protect':brute_protect}
     return render_to_response('server/manage_users.html', c, context_instance=RequestContext(request))
+
+# Unlock account
+@login_required
+def brute_unlock(request):
+    user = request.user
+    user_level = user.userprofile.level
+    if user_level != 'GA':
+        return redirect(index)
+
+    try:
+        brute_protect = settings.BRUTE_PROTECT
+    except:
+        brute_protect = False
+    if brute_protect == False:
+        return redirect(index)
+    # We require you to be staff to manage users
+    if user.is_staff != True:
+        return redirect(index)
+    axes.utils.reset()
+    c = {'user':request.user, 'request':request, 'brute_protect':brute_protect}
+    return render_to_response('server/brute_unlock.html', c, context_instance=RequestContext(request))
 
 # New User
 @login_required

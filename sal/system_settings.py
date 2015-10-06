@@ -151,7 +151,7 @@ MIDDLEWARE_CLASSES = (
     # 'django.middleware.clickjacking.XFrameOptionsMiddleware',
 )
 
-LOGIN_URL='/login/'
+LOGIN_URL='/login'
 LOGIN_REDIRECT_URL='/'
 
 ROOT_URLCONF = 'sal.urls'

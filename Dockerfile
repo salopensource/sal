@@ -43,6 +43,7 @@ ADD docker/nginx/sal.conf /etc/nginx/sites-enabled/sal.conf
 ADD docker/nginx/nginx.conf /etc/nginx/nginx.conf
 ADD docker/settings.py $APP_DIR/sal/
 ADD docker/settings_import.py $APP_DIR/sal/
+ADD docker/brute_settings.py $APP_DIR/sal/
 ADD docker/wsgi.py $APP_DIR/
 ADD docker/gunicorn_config.py $APP_DIR/
 ADD docker/django/management/ $APP_DIR/sal/management/

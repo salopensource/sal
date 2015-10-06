@@ -2,6 +2,9 @@ import os
 DEBUG = False
 TEMPLATE_DEBUG = DEBUG
 APPEND_SLASH=True
+BRUTE_PROTECT = False
+BRUTE_COOLOFF = 3
+BRUTE_LIMIT = 3
 PROJECT_DIR = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), os.path.pardir))
 ADMINS = (
     # ('Your Name', 'your_email@example.com'),

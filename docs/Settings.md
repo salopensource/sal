@@ -2,6 +2,22 @@
 
 By modifying ``sal/settings.py`` you can customise how plugins and data is displayed in Sal. If you are upgrading from a previous version of Sal, refer to this document to see how your ``settings.py`` file should be changed to take advantage of any new features. There are defaults set in ``sal/system_settings.py``, but they can be overridden if you choose.
 
+## Enabling brute force protection
+
+You can add the following to your ``sal/settings.py`` to enable brute force protection. Change ``BRUTE_LIMIT`` to the number of login attempts allowed before the account is locked, ``BRUTE_COOLOFF`` is the time after which any locked accounts will be unlocked. ``BRUTE_PROTECT`` **must** be set to ``True`` to enable the unlocking UI in the user management page.
+
+```python
+BRUTE_PROTECT = True
+BRUTE_COOLOFF = 3
+BRUTE_LIMIT = 3
+###############
+INSTALLED_APPS+= ('axes',)
+MIDDLEWARE_CLASSES+=('axes.middleware.FailedLoginMiddleware',)
+# Max number of login attemts within the ``AXES_COOLOFF_TIME``
+AXES_LOGIN_FAILURE_LIMIT = BRUTE_LIMIT
+AXES_COOLOFF_TIME=BRUTE_COOLOFF
+```
+
 ## LIMIT_PLUGIN_TO_FRONT_PAGE
 
 These plugins will only be shown on the front page. They will not appear anywhere else.

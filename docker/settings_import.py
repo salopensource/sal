@@ -11,6 +11,27 @@ try:
 except:
     DEBUG = False
 
+# Read the Brute force protection setting from env var
+try:
+    if getenv('DOCKER_SAL_BRUTE_PROTECT').lower() == 'true':
+        BRUTE_PROTECT = True
+    else:
+        BRUTE_PROTECT = False
+except:
+    BRUTE_PROTECT = False
+
+# Read the Brute force protection timeout setting from env var
+try:
+    BRUTE_COOLOFF = int(getenv('DOCKER_SAL_BRUTE_COOLOFF'))
+except:
+    BRUTE_COOLOFF = 3
+
+# Read the Brute force protection limit setting from env var
+try:
+    BRUTE_LIMIT = int(getenv('DOCKER_SAL_BRUTE_LIMIT'))
+except:
+    BRUTE_LIMIT = 3
+
 # Read list of admins from $DOCKER_SAL_ADMINS env var
 admin_list = []
 if getenv('DOCKER_SAL_ADMINS'):

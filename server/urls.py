@@ -19,9 +19,12 @@ urlpatterns = patterns('server.views',
     #url(r'^overview/(?P<req_type>.+)/(?P<data>.+)/$', 'overview_list_all', name='overview_list_all'),
     # Machine List (front page)
     url(r'^list/(?P<pluginName>.+)/(?P<data>.+)/$', 'machine_list', name='machine_list_front'),
-
     # Machine List (id)
     url(r'^id_list/(?P<pluginName>.+)/(?P<data>.+)/(?P<page>.+)/(?P<theID>.+)/$', 'machine_list', name='machine_list_id'),
+    # CSV Export (front page)
+    url(r'^csv/(?P<pluginName>.+)/(?P<data>.+)/$', 'export_csv', name='export_csv_front'),
+    # CSS Ecport (id)
+    url(r'^id_csv/(?P<pluginName>.+)/(?P<data>.+)/(?P<page>.+)/(?P<theID>.+)/$', 'export_csv', name='export_csv_id'),
     # Group Dashboard
     url(r'^machinegroup/(?P<group_id>.+)/', 'group_dashboard', name='group_dashboard'),
     # Machine detail

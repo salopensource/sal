@@ -19,6 +19,11 @@
 
 {% block nav %}
 <li><a href="{{ request.META.HTTP_REFERER }}"><i class="fa fa-fw fa-chevron-left"></i> Back</a></li>
+{% if req_type == "front" %}
+<li><a href="{% url 'export_csv_front' plugin_name data %}"><i class="fa fa-file-excel-o"></i> Export CSV</a></li>
+{% else %}
+<li><a href="{% url 'export_csv_id' plugin_name data req_type bu_id %}"><i class="fa fa-file-excel-o"></i> Export CSV</a></li>
+{% endif %}
 {% endblock %}
 {% block content %}
 

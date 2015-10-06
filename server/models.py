@@ -94,6 +94,9 @@ class Machine(models.Model):
     last_puppet_run = models.DateTimeField(blank=True,null=True)
     puppet_errors = models.IntegerField(default=0)
 
+    def get_fields(self):
+        return [(field.name, field.value_to_string(self)) for field in Machine._meta.fields]
+
     def encode(self, plist):
         string = plistlib.writePlistToString(plist)
         bz2data = bz2.compress(string)

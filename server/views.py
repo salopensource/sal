@@ -23,7 +23,7 @@ from django.core.exceptions import PermissionDenied
 import utils
 import pytz
 import watson
-import csv
+import unicodecsv as csv
 
 if settings.DEBUG:
     import logging
@@ -294,19 +294,78 @@ def machine_list(request, pluginName, data, page='front', theID=None):
     for plugin in manager.getAllPlugins():
         if plugin.name == pluginName:
             (machines, title) = plugin.plugin_object.filter_machines(machines, data)
-    c = {'user':user, 'machines': machines, 'req_type': page, 'title': title, 'bu_id': theID, 'request':request }
+    c = {'user':user, 'plugin_name': pluginName, 'machines': machines, 'req_type': page, 'title': title, 'bu_id': theID, 'request':request, 'data':data }
 
     return render_to_response('server/overview_list_all.html', c, context_instance=RequestContext(request))
 
 @login_required
 def export_csv(request, pluginName, data, page='front', theID=None):
+    user = request.user
+    title = None
+    # Build the manager
+    manager = PluginManager()
+    # Tell it the default place(s) where to find plugins
+    manager.setPluginPlaces([settings.PLUGIN_DIR, os.path.join(settings.PROJECT_DIR, 'server/plugins')])
+    # Load all plugins
+    manager.collectPlugins()
+    # get a list of machines (either from the BU or the group)
+    if page == 'front':
+        # get all machines
+        if user.userprofile.level == 'GA':
+            machines = Machine.objects.all()
+        else:
+            machines = Machine.objects.none()
+            for business_unit in user.businessunit_set.all():
+                for group in business_unit.machinegroup_set.all():
+                    machines = machines | group.machine_set.all()
+    if page == 'bu_dashboard':
+        # only get machines for that BU
+        # Need to make sure the user is allowed to see this
+        business_unit = get_object_or_404(BusinessUnit, pk=theID)
+        machine_groups = MachineGroup.objects.filter(business_unit=business_unit).prefetch_related('machine_set').all()
+
+        if machine_groups.count() != 0:
+            machines_unsorted = machine_groups[0].machine_set.all()
+            for machine_group in machine_groups[1:]:
+                machines_unsorted = machines_unsorted | machine_group.machine_set.all()
+        else:
+            machines_unsorted = None
+        machines=machines_unsorted
+
+    if page == 'group_dashboard':
+        # only get machines from that group
+        machine_group = get_object_or_404(MachineGroup, pk=theID)
+        # check that the user has access to this
+        machines = Machine.objects.filter(machine_group=machine_group)
+    # send the machines and the data to the plugin
+    for plugin in manager.getAllPlugins():
+        if plugin.name == pluginName:
+            (machines, title) = plugin.plugin_object.filter_machines(machines, data)
+
     # Create the HttpResponse object with the appropriate CSV header.
     response = HttpResponse(content_type='text/csv')
-    response['Content-Disposition'] = 'attachment; filename="somefilename.csv"'
+    response['Content-Disposition'] = 'attachment; filename="%s.csv"' % title
 
     writer = csv.writer(response)
-    writer.writerow(['First row', 'Foo', 'Bar', 'Baz'])
-    writer.writerow(['Second row', 'A', 'B', 'C', '"Testing"', "Here's a quote"])
+    # Fields
+    header_row = []
+    fields = Machine._meta.get_fields()
+    for field in fields:
+        if not field.is_relation and field.name != 'id' and field.name != 'report' and field.name != 'activity' and field.name != 'os_family':
+            header_row.append(field.name)
+    header_row.append('business_unit')
+    header_row.append('machine_group')
+    writer.writerow(header_row)
+    for machine in machines:
+        row = []
+        for name, value in machine.get_fields():
+            if name != 'id' and name !='machine_group' and name != 'report' and name != 'activity' and name != 'os_family':
+                row.append(value)
+        row.append(machine.machine_group.business_unit.name)
+        row.append(machine.machine_group.name)
+        writer.writerow(row)
+        #writer.writerow([machine.serial, machine.machine_group.business_unit.name, machine.machine_group.name,
+        #machine.hostname, machine.operating_system, machine.memory, machine.memory_kb, machine.munki_version, machine.manifest])
 
     return response
 

@@ -810,10 +810,13 @@ def new_machine(request, group_id):
 # Machine detail
 @login_required
 def machine_detail(request, machine_id):
-    # check the user is in a BU that's allowed to see this Machine
-    machine = get_object_or_404(Machine, pk=machine_id)
+    try:
+        machine = Machine.objects.get(pk=machine_id)
+    except (ValueError, Machine.DoesNotExist):
+        machine = get_object_or_404(Machine, serial=machine_id)
     machine_group = machine.machine_group
     business_unit = machine_group.business_unit
+    # check the user is in a BU that's allowed to see this Machine
     user = request.user
     user_level = user.userprofile.level
     if business_unit not in user.businessunit_set.all():

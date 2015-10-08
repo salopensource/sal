@@ -91,3 +91,11 @@ if getenv('DOCKER_SAL_DEFAULT_MACHINE_GROUP_KEY'):
     DEFAULT_MACHINE_GROUP_KEY = getenv('DOCKER_SAL_DEFAULT_MACHINE_GROUP_KEY')
 else:
     DEFAULT_MACHINE_GROUP_KEY = None
+
+if BRUTE_PROTECT == True:
+    ###############
+    INSTALLED_APPS+= ('axes',)
+    MIDDLEWARE_CLASSES+=('axes.middleware.FailedLoginMiddleware',)
+    # Max number of login attemts within the ``AXES_COOLOFF_TIME``
+    AXES_LOGIN_FAILURE_LIMIT = BRUTE_LIMIT
+    AXES_COOLOFF_TIME=BRUTE_COOLOFF

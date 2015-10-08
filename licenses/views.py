@@ -25,6 +25,7 @@ def index(request):
          'user': request.user,
          'page': 'licenses'}
     return render_to_response('licenses/index.html', c, context_instance=RequestContext(request))
+    
 
 @login_required
 def new_license(request):

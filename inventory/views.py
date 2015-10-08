@@ -13,7 +13,7 @@ from django.db.models import Q
 from django.db.models import Count
 from server import utils
 from django.shortcuts import render_to_response, get_object_or_404, redirect
-
+import unicodecsv as csv
 import plistlib
 import base64
 import bz2
@@ -57,6 +57,53 @@ def unique_apps(inventory):
             found_item['path'] = inventory_item.path
             found.append(found_item)
     return found
+
+@login_required
+def inventory_list(request, page='front', theID=None):
+    user = request.user
+    title=None
+    inventory_name = request.GET.get('name')
+    inventory_version = request.GET.get('version', '0')
+    inventory_bundleid = request.GET.get('bundleid', '')
+    inventory_path = request.GET.get('path')
+    inventory_bundlename = request.GET.get('bundlename','')
+    
+    # get a list of machines (either from the BU or the group)
+    if page == 'front':
+        # get all machines
+        if user.userprofile.level == 'GA':
+            machines = Machine.objects.all()
+        else:
+            machines = Machine.objects.none()
+            for business_unit in user.businessunit_set.all():
+                for group in business_unit.machinegroup_set.all():
+                    machines = machines | group.machine_set.all()
+    if page == 'bu_dashboard':
+        # only get machines for that BU
+        # Need to make sure the user is allowed to see this
+        business_unit = get_object_or_404(BusinessUnit, pk=theID)
+        machine_groups = MachineGroup.objects.filter(business_unit=business_unit).prefetch_related('machine_set').all()
+
+        if machine_groups.count() != 0:
+            machines_unsorted = machine_groups[0].machine_set.all()
+            for machine_group in machine_groups[1:]:
+                machines_unsorted = machines_unsorted | machine_group.machine_set.all()
+        else:
+            machines_unsorted = None
+        machines=machines_unsorted
+
+    if page == 'group_dashboard':
+        # only get machines from that group
+        machine_group = get_object_or_404(MachineGroup, pk=theID)
+        # check that the user has access to this
+        machines = Machine.objects.filter(machine_group=machine_group)
+    
+    # get the InventoryItems limited to the machines we're allowed to look at
+    inventoryitems = InventoryItem.objects.filter(name=inventory_name, version=inventory_version, bundleid=inventory_bundleid, bundlename=inventory_bundlename).filter(machine=machines)
+
+    c = {'user':user, 'inventoryitems': inventoryitems, 'machines': machines, 'req_type': page, 'title': title, 'bu_id': theID, 'request':request, 'inventory_name':inventory_name, 'inventory_version':inventory_version, 'inventory_bundleid':inventory_bundleid, 'inventory_bundlename':inventory_bundlename }
+
+    return render_to_response('inventory/overview_list_all.html', c, context_instance=RequestContext(request))
 
 @csrf_exempt
 def inventory_submit(request):
@@ -200,6 +247,77 @@ def machine_inventory(request, machine_id):
     found = unique_apps(inventory)
     c = {'user': request.user, 'inventory': found, 'page':'machine', 'business_unit':business_unit, 'request': request}
     return render_to_response('inventory/index.html', c, context_instance=RequestContext(request))
+
+@login_required
+def export_csv(request, page='front', theID=None):
+    user = request.user
+    title = 'Inventory Export'
+    inventory_name = request.GET.get('name')
+    inventory_version = request.GET.get('version', '0')
+    inventory_bundleid = request.GET.get('bundleid', '')
+    inventory_path = request.GET.get('path')
+    inventory_bundlename = request.GET.get('bundlename','')
+    # get a list of machines (either from the BU or the group)
+    if page == 'front':
+        # get all machines
+        if user.userprofile.level == 'GA':
+            machines = Machine.objects.all()
+        else:
+            machines = Machine.objects.none()
+            for business_unit in user.businessunit_set.all():
+                for group in business_unit.machinegroup_set.all():
+                    machines = machines | group.machine_set.all()
+    if page == 'bu_dashboard':
+        # only get machines for that BU
+        # Need to make sure the user is allowed to see this
+        business_unit = get_object_or_404(BusinessUnit, pk=theID)
+        machine_groups = MachineGroup.objects.filter(business_unit=business_unit).prefetch_related('machine_set').all()
+
+        if machine_groups.count() != 0:
+            machines_unsorted = machine_groups[0].machine_set.all()
+            for machine_group in machine_groups[1:]:
+                machines_unsorted = machines_unsorted | machine_group.machine_set.all()
+        else:
+            machines_unsorted = None
+        machines=machines_unsorted
+
+    if page == 'group_dashboard':
+        # only get machines from that group
+        machine_group = get_object_or_404(MachineGroup, pk=theID)
+        # check that the user has access to this
+        machines = Machine.objects.filter(machine_group=machine_group)
+    
+    # get the InventoryItems limited to the machines we're allowed to look at
+    inventoryitems = InventoryItem.objects.filter(name=inventory_name, version=inventory_version, bundleid=inventory_bundleid, bundlename=inventory_bundlename).filter(machine=machines)
+
+    machines = machines.filter(inventoryitem__name=inventory_name, inventoryitem__version=inventory_version, inventoryitem__bundleid=inventory_bundleid, inventoryitem__bundlename=inventory_bundlename)
+
+    # Create the HttpResponse object with the appropriate CSV header.
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = 'attachment; filename="%s.csv"' % title
+
+    writer = csv.writer(response)
+    # Fields
+    header_row = []
+    fields = Machine._meta.get_fields()
+    for field in fields:
+        if not field.is_relation and field.name != 'id' and field.name != 'report' and field.name != 'activity' and field.name != 'os_family':
+            header_row.append(field.name)
+    header_row.append('business_unit')
+    header_row.append('machine_group')
+    writer.writerow(header_row)
+    for machine in machines:
+        row = []
+        for name, value in machine.get_fields():
+            if name != 'id' and name !='machine_group' and name != 'report' and name != 'activity' and name != 'os_family':
+                row.append(value)
+        row.append(machine.machine_group.business_unit.name)
+        row.append(machine.machine_group.name)
+        writer.writerow(row)
+        #writer.writerow([machine.serial, machine.machine_group.business_unit.name, machine.machine_group.name,
+        #machine.hostname, machine.operating_system, machine.memory, machine.memory_kb, machine.munki_version, machine.manifest])
+
+    return response
 
 @login_required
 def list_machines(request, page, name, version, bundleid, bundlename, path, id=None):

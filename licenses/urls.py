@@ -2,8 +2,8 @@ from django.conf.urls import patterns, include, url
 
 urlpatterns = patterns('licenses.views',
     url(r'^$', 'index', name='index'),
-    url(r'^available/$', 'available'),
-    url(r'^available/(?P<item_name>[^/]+)$', 'available'),
+    url(r'^available/(?P<key>.+)', 'available'),
+    url(r'^available/(?P<key>.+)(?P<item_name>[^/]+)$', 'available'),
     url(r'^usage/$', 'usage'),
     url(r'^usage/(?P<item_name>[^/]+)$', 'usage'),
     #Edit License

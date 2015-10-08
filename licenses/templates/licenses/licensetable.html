@@ -14,6 +14,7 @@
             <th>Licensed Seats </th>
             <th>Installed Seats</th>
             <th>Available Seats</th>
+            <th>Business Unit</th>
             <th></th>
           </tr>
           </tr>
@@ -25,6 +26,7 @@
               <td>{{ license.total }}</td>
               <td><a href=#>{{ license.used }}</a></td>
               <td{% if license.available < 0 %} class='text-error'{% endif %}>{{ license.available }}</td>
+              <td>{{ license.business_unit }}</td>
               <td><a href="{% url 'edit_license' license.item_name %}" class="btn btn-mini btn-info">Edit</a></td>
           </tr>
       {% endfor %}

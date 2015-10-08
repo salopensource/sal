@@ -1,5 +1,5 @@
 from django.db import models
-
+from server.models import BusinessUnit
 from inventory.models import InventoryItem
 
 from urllib import quote_plus
@@ -13,6 +13,7 @@ class License(models.Model):
     inventory_bundleid = models.CharField(max_length=256, blank=True)
     inventory_bundlename = models.CharField(max_length=256, blank=True)
     inventory_path = models.CharField(max_length=1024, blank=True)
+    business_unit = models.ForeignKey(BusinessUnit)
     notes = models.TextField(blank=True)
     
     def used(self):
@@ -33,6 +34,8 @@ class License(models.Model):
                 bundlename__exact=self.inventory_bundlename)
         if self.inventory_path:
             items = items.filter(path__exact=self.inventory_path)
+        if self.business_unit:
+            items = items.filter(machine__machine_group__business_unit__exact=self.business_unit)
         # return a count of distinct machines 
         # that have the item we are looking for
         return items.values('machine').distinct().count()

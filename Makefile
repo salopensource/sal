@@ -24,6 +24,10 @@ build-nocache:
 run:
 	docker run -d ${DOCKER_RUN_COMMON}
 
+brute:
+	docker run -d -e DOCKER_SAL_BRUTE_PROTECT=true ${DOCKER_RUN_COMMON}
+
+
 interactive:
 	docker run -i ${DOCKER_RUN_COMMON}
 

@@ -1,8 +1,9 @@
 import multiprocessing
 from os import getenv
 bind = '127.0.0.1:8001'
-workers = multiprocessing.cpu_count() * 2 + 1
-threads = multiprocessing.cpu_count() * 2 + 1
+workers = multiprocessing.cpu_count() * 2
+if workers > 5:
+    threads = multiprocessing.cpu_count() * 2
 # Read the DEBUG setting from env var
 try:
     if getenv('DOCKER_SAL_DEBUG').lower() == 'true':

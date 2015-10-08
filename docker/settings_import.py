@@ -1,6 +1,7 @@
 #!/usr/bin/python
 from os import getenv
 import locale
+from system_settings import *
 
 # Read the DEBUG setting from env var
 try:

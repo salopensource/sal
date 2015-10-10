@@ -1,4 +1,4 @@
-Django==1.8.2
+Django==1.8.5
 Yapsy==1.11.223
 cffi==1.1.2
 cryptography==0.9.1

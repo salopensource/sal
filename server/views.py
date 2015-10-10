@@ -102,7 +102,7 @@ def index(request):
                 break
 
     if user_level == 'GA':
-        machines = Machine.objects.all()
+        machines = Machine.objects.all().prefetch_related('facts').prefetch_related('conditions').prefetch_related('pending_updates').prefetch_related('pending_apple_updates')
     else:
         machines = Machine.objects.none()
         for business_unit in user.businessunit_set.all():

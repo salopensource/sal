@@ -27,19 +27,12 @@ class Activity(IPlugin):
         # You will be sent a machines object - if you are only operating on a collection of machines, you should use this object for performance reasons
         if page == 'front':
             t = loader.get_template('activity/templates/front.html')
-            if not machines:
-                machines = Machine.objects.all()
         
         if page == 'bu_dashboard':
             t = loader.get_template('activity/templates/id.html')
-            if not machines:
-                machines = utils.getBUmachines(theid)
         
         if page == 'group_dashboard':
             t = loader.get_template('activity/templates/id.html')
-            if not machines:
-                machine_group = get_object_or_404(MachineGroup, pk=theid)
-                machines = Machine.objects.filter(machine_group=machine_group)
         
         if machines:
             checked_in_this_hour = machines.filter(last_checkin__gte=hour_ago).count()

@@ -23,19 +23,12 @@ class PuppetStatus(IPlugin):
     def show_widget(self, page, machines=None, theid=None):
         if page == 'front':
             t = loader.get_template('puppetstatus/templates/front.html')
-            if not machines:
-                machines = Machine.objects.all()
         
         if page == 'bu_dashboard':
             t = loader.get_template('puppetstatus/templates/id.html')
-            if not machines:
-                machines = utils.getBUmachines(theid)
             
         if page == 'group_dashboard':
             t = loader.get_template('puppetstatus/templates/id.html')
-            if not machines:
-                machine_group = get_object_or_404(MachineGroup, pk=theid)
-                machines = Machine.objects.filter(machine_group=machine_group)
         
         if machines:
             puppet_error = machines.filter(puppet_errors__gt=0).count()

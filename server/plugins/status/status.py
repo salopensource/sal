@@ -16,19 +16,12 @@ class Status(IPlugin):
         # There are three possible views we're going to be rendering to - front, bu_dashbaord and group_dashboard. If page is set to bu_dashboard, or group_dashboard, you will be passed a business_unit or machine_group id to use (mainly for linking to the right search).
         if page == 'front':
             t = loader.get_template('status/templates/front.html')
-            if not machines:
-                machines = Machine.objects.all()
         
         if page == 'bu_dashboard':
             t = loader.get_template('status/templates/id.html')
-            if not machines:
-                machines = utils.getBUmachines(theid)
         
         if page == 'group_dashboard':
             t = loader.get_template('status/templates/id.html')
-            if not machines:
-                machine_group = get_object_or_404(MachineGroup, pk=theid)
-                machines = Machine.objects.filter(machine_group=machine_group)
         
         if machines:
             errors = machines.filter(errors__gt=0).count()

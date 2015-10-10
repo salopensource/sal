@@ -2,6 +2,7 @@ import multiprocessing
 from os import getenv
 bind = '127.0.0.1:8001'
 workers = multiprocessing.cpu_count() * 2
+timeout = 60
 if workers > 5:
     threads = multiprocessing.cpu_count() * 2
 # Read the DEBUG setting from env var

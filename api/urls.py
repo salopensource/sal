@@ -2,6 +2,7 @@ from django.conf.urls import url
 from api import views
 
 urlpatterns = [
+    url(r'^machines/(?P<serial>.+)/inventory/$', views.machine_inventory),
     url(r'^machines/(?P<serial>.+)/$', views.machine_detail),
     url(r'^machines/$', views.machine_list),
     url(r'^facts/(?P<serial>.+)/$', views.facts),

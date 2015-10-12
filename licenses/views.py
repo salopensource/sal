@@ -58,7 +58,7 @@ def edit_license(request, license_id):
     c.update(csrf(request))
     if request.method == 'POST':
 
-        form = LicenseForm(request.POST, instance=license_id)
+        form = LicenseForm(request.POST, instance=license)
         if form.is_valid():
             license = form.save()
             return redirect(index)

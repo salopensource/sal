@@ -310,7 +310,7 @@ def export_csv(request, page='front', theID=None):
         row = []
         for name, value in machine.get_fields():
             if name != 'id' and name !='machine_group' and name != 'report' and name != 'activity' and name != 'os_family':
-                row.append(value)
+                row.append(value.strip())
         row.append(machine.machine_group.business_unit.name)
         row.append(machine.machine_group.name)
         writer.writerow(row)

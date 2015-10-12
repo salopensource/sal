@@ -1,6 +1,12 @@
 from django.forms import widgets
 from rest_framework import serializers
+from inventory.models import InventoryItem
 from server.models import *
+
+class InventoryItemSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = InventoryItem
+        exclude = ('id', 'machine')
 
 class BusinessUnitSerializer(serializers.ModelSerializer):
     class Meta:

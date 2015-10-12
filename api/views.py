@@ -54,6 +54,19 @@ def machine_detail(request, serial):
         return HttpResponse(status=204)
 
 @validate_api_key
+def machine_inventory(request, serial):
+    """
+    Retrieve machine inventory.
+    """
+    try:
+        machine = Machine.objects.get(serial=serial)
+    except Machine.DoesNotExist:
+        return HttpResponse(status=404)
+
+    serializer = InventoryItemSerializer(machine.inventoryitem_set.all(), many=True)
+    return JSONResponse(serializer.data)
+
+@validate_api_key
 @csrf_exempt
 def facts(request, serial):
     """

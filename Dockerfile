@@ -37,7 +37,6 @@ RUN easy_install pip && \
     pip install psycopg2==2.5.3 && \
     pip install gunicorn && \
     pip install setproctitle
-#     git clone https://github.com/salopensource/sal.git $APP_DIR && \
 ADD docker/nginx/nginx-env.conf /etc/nginx/main.d/
 ADD docker/nginx/sal.conf /etc/nginx/sites-enabled/sal.conf
 ADD docker/nginx/nginx.conf /etc/nginx/nginx.conf

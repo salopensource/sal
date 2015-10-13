@@ -102,12 +102,12 @@ def index(request):
                 break
 
     if user_level == 'GA':
-        machines = Machine.objects.all().prefetch_related('facts').prefetch_related('conditions').prefetch_related('pending_updates').prefetch_related('pending_apple_updates')
+        machines = Machine.objects.all().prefetch_related('facts').prefetch_related('conditions').prefetch_related('pending_updates').prefetch_related('pending_apple_updates').prefetch_related('osquery_results')
     else:
         machines = Machine.objects.none()
         for business_unit in user.businessunit_set.all():
             for group in business_unit.machinegroup_set.all():
-                machines = machines | group.machine_set.all()
+                machines = machines | group.machine_set.all().prefetch_related('facts').prefetch_related('conditions').prefetch_related('pending_updates').prefetch_related('pending_apple_updates').prefetch_related('osquery_results')
 
     # Load in the default plugins if needed
     utils.loadDefaultPlugins()
@@ -295,12 +295,12 @@ def machine_list(request, pluginName, data, page='front', theID=None):
     if page == 'front':
         # get all machines
         if user.userprofile.level == 'GA':
-            machines = Machine.objects.all()
+            machines = Machine.objects.all().prefetch_related('facts').prefetch_related('conditions').prefetch_related('pending_updates').prefetch_related('pending_apple_updates').prefetch_related('osquery_results')
         else:
             machines = Machine.objects.none()
             for business_unit in user.businessunit_set.all():
                 for group in business_unit.machinegroup_set.all():
-                    machines = machines | group.machine_set.all()
+                    machines = machines | group.machine_set.all().prefetch_related('facts').prefetch_related('conditions').prefetch_related('pending_updates').prefetch_related('pending_apple_updates').prefetch_related('osquery_results')
     if page == 'bu_dashboard':
         # only get machines for that BU
         # Need to make sure the user is allowed to see this
@@ -319,7 +319,7 @@ def machine_list(request, pluginName, data, page='front', theID=None):
         # only get machines from that group
         machine_group = get_object_or_404(MachineGroup, pk=theID)
         # check that the user has access to this
-        machines = Machine.objects.filter(machine_group=machine_group)
+        machines = Machine.objects.filter(machine_group=machine_group).prefetch_related('facts').prefetch_related('conditions').prefetch_related('pending_updates').prefetch_related('pending_apple_updates').prefetch_related('osquery_results')
     # send the machines and the data to the plugin
     for plugin in manager.getAllPlugins():
         if plugin.name == pluginName:
@@ -342,12 +342,12 @@ def export_csv(request, pluginName, data, page='front', theID=None):
     if page == 'front':
         # get all machines
         if user.userprofile.level == 'GA':
-            machines = Machine.objects.all()
+            machines = Machine.objects.all().prefetch_related('facts').prefetch_related('conditions').prefetch_related('pending_updates').prefetch_related('pending_apple_updates').prefetch_related('osquery_results')
         else:
             machines = Machine.objects.none()
             for business_unit in user.businessunit_set.all():
                 for group in business_unit.machinegroup_set.all():
-                    machines = machines | group.machine_set.all()
+                    machines = machines | group.machine_set.all().prefetch_related('facts').prefetch_related('conditions').prefetch_related('pending_updates').prefetch_related('pending_apple_updates').prefetch_related('osquery_results')
     if page == 'bu_dashboard':
         # only get machines for that BU
         # Need to make sure the user is allowed to see this
@@ -357,7 +357,7 @@ def export_csv(request, pluginName, data, page='front', theID=None):
         if machine_groups.count() != 0:
             machines_unsorted = machine_groups[0].machine_set.all()
             for machine_group in machine_groups[1:]:
-                machines_unsorted = machines_unsorted | machine_group.machine_set.all()
+                machines_unsorted = machines_unsorted | machine_group.machine_set.all().prefetch_related('facts').prefetch_related('conditions').prefetch_related('pending_updates').prefetch_related('pending_apple_updates').prefetch_related('osquery_results')
         else:
             machines_unsorted = None
         machines=machines_unsorted
@@ -366,7 +366,7 @@ def export_csv(request, pluginName, data, page='front', theID=None):
         # only get machines from that group
         machine_group = get_object_or_404(MachineGroup, pk=theID)
         # check that the user has access to this
-        machines = Machine.objects.filter(machine_group=machine_group)
+        machines = Machine.objects.filter(machine_group=machine_group).prefetch_related('facts').prefetch_related('conditions').prefetch_related('pending_updates').prefetch_related('pending_apple_updates').prefetch_related('osquery_results')
     # send the machines and the data to the plugin
     for plugin in manager.getAllPlugins():
         if plugin.name == pluginName:

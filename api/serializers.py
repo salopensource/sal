@@ -6,7 +6,7 @@ from server.models import *
 class InventoryItemSerializer(serializers.ModelSerializer):
     class Meta:
         model = InventoryItem
-        exclude = ('id', 'machine')
+        exclude = ('machine')
 
 class BusinessUnitSerializer(serializers.ModelSerializer):
     class Meta:
@@ -20,23 +20,23 @@ class MachineGroupSerializer(serializers.ModelSerializer):
 class FactSerializer(serializers.ModelSerializer):
     class Meta:
         model = Fact
-        exclude = ('id', 'machine')
+        exclude = ('machine')
 
 class ConditionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Condition
-        exclude = ('id', 'machine')
+        exclude = ('machine')
 
 
 class PendingAppleUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = PendingAppleUpdate
-        exclude = ('id', 'machine')
+        exclude = ('machine')
 
 class PendingUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = PendingUpdate
-        exclude = ('id', 'machine')
+        exclude = ('machine')
 
 class MachineSerializer(serializers.ModelSerializer):
     facts = FactSerializer(many=True, required=False)
@@ -46,4 +46,4 @@ class MachineSerializer(serializers.ModelSerializer):
     #machine_group = MachineGroupSerializer()
     class Meta:
         model = Machine
-        exclude = ('id',)
+        # exclude = ('id',)

@@ -16,7 +16,7 @@ If you would like a demo of setting up Sal along with some of the features pleas
 
 ## Search
 
-Sal has full search across machines, Facts and Munki conditions. If you want to search on Machine info, enter your search terms without anything extra. To search for Facts, prefix your search with ``facter:``, and to search your conditions, prefix your search with ``condtion:``.
+Sal has full search across machines, Facts and Munki conditions. For more information, see [it's documentation]((https://github.com/salopensource/sal/blob/master/docs/Search.md)).
 
 ## Plugins
 

@@ -99,7 +99,7 @@ def inventory_list(request, page='front', theID=None):
         machines = Machine.objects.filter(machine_group=machine_group)
     
     # get the InventoryItems limited to the machines we're allowed to look at
-    inventoryitems = InventoryItem.objects.filter(name=inventory_name, version=inventory_version, bundleid=inventory_bundleid, bundlename=inventory_bundlename).filter(machine=machines)
+    inventoryitems = InventoryItem.objects.filter(name=inventory_name, version=inventory_version, bundleid=inventory_bundleid, bundlename=inventory_bundlename).filter(machine=machines).order_by('name')
 
     c = {'user':user, 'inventoryitems': inventoryitems, 'machines': machines, 'req_type': page, 'title': title, 'bu_id': theID, 'request':request, 'inventory_name':inventory_name, 'inventory_version':inventory_version, 'inventory_bundleid':inventory_bundleid, 'inventory_bundlename':inventory_bundlename }
 
@@ -184,7 +184,7 @@ def index(request):
     user_level = user.userprofile.level
     if user_level != 'GA':
         return redirect(index)
-    inventory = InventoryItem.objects.all()
+    inventory = InventoryItem.objects.all().order_by('name')
     found = unique_apps(inventory)
 
     c = {'user': request.user, 'inventory': found, 'page':'front', 'request': request }
@@ -203,7 +203,7 @@ def bu_inventory(request, bu_id):
 
     inventory = []
     for machine in machines:
-        for item in machine.inventoryitem_set.all():
+        for item in machine.inventoryitem_set.all().order_by('name'):
             inventory.append(item)
     
     found = unique_apps(inventory)
@@ -222,7 +222,7 @@ def machine_group_inventory(request, group_id):
 
     inventory = []
     for machine in machine_group.machine_set.all():
-        for item in machine.inventoryitem_set.all():
+        for item in machine.inventoryitem_set.all().order_by('name'):
             inventory.append(item)
     
     found = unique_apps(inventory)
@@ -241,7 +241,7 @@ def machine_inventory(request, machine_id):
         return redirect(index)
 
     inventory = []
-    for item in machine.inventoryitem_set.all():
+    for item in machine.inventoryitem_set.all().order_by('name'):
         inventory.append(item)
     
     found = unique_apps(inventory)
@@ -288,7 +288,7 @@ def export_csv(request, page='front', theID=None):
         machines = Machine.objects.filter(machine_group=machine_group)
     
     # get the InventoryItems limited to the machines we're allowed to look at
-    inventoryitems = InventoryItem.objects.filter(name=inventory_name, version=inventory_version, bundleid=inventory_bundleid, bundlename=inventory_bundlename).filter(machine=machines)
+    inventoryitems = InventoryItem.objects.filter(name=inventory_name, version=inventory_version, bundleid=inventory_bundleid, bundlename=inventory_bundlename).filter(machine=machines).order_by('name')
 
     machines = machines.filter(inventoryitem__name=inventory_name, inventoryitem__version=inventory_version, inventoryitem__bundleid=inventory_bundleid, inventoryitem__bundlename=inventory_bundlename)
 

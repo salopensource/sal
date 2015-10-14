@@ -44,7 +44,7 @@
                 </tr>
             </thead>
             <tbody>
-                {% for item in inventoryitems.all %}
+                {% for item in inventoryitems %}
                 <tr>
                     <td>
                         <a href="{% url 'server.views.machine_detail' item.machine.id %}">

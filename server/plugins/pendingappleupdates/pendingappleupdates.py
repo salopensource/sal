@@ -26,7 +26,7 @@ class PendingAppleUpdates(IPlugin):
             machine_group = get_object_or_404(MachineGroup, pk=id)
             updates = PendingAppleUpdate.objects.filter(machine__machine_group=machine_group)
 
-        updates = updates.values('update', 'update_version', 'display_name').annotate(count=Count('update'))
+        updates = updates.values('update', 'update_version', 'display_name').annotate(count=Count('update')).order_by('display_name')
         pending_updates = []
         for item in updates:
             # loop over existing items, see if there is a dict with the right value

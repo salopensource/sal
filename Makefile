@@ -9,8 +9,9 @@ SERVER_DIR=/Users/grahamgilbert/src/Mine/sal/server
 DB_CONTAINER_NAME:=postgres-sal
 NAME:=sal
 TZ:="Europe/London"
+CMD=""
 PLUGIN_DIR=/tmp/plugins
-DOCKER_RUN_COMMON=--name="$(NAME)" -p ${SAL_PORT}:8000 --link $(DB_CONTAINER_NAME):db -e ADMIN_PASS=${ADMIN_PASS} -e DB_NAME=$(DB_NAME) -e DB_USER=$(DB_USER) -e DOCKER_SAL_TZ=$(TZ) -e DOCKER_SAL_DEBUG=true -e DB_PASS=$(DB_PASS) -v ${SERVER_DIR}:/home/app/sal/server -v ${PLUGIN_DIR}:/home/app/sal/plugins -v /tmp/logs:/var/log/nginx ${DOCKER_USER}/sal
+DOCKER_RUN_COMMON=--name="$(NAME)" -p ${SAL_PORT}:8000 --link $(DB_CONTAINER_NAME):db -e ADMIN_PASS=${ADMIN_PASS} -e DB_NAME=$(DB_NAME) -e DB_USER=$(DB_USER) -e DOCKER_SAL_TZ=$(TZ) -e DOCKER_SAL_DEBUG=true -e DB_PASS=$(DB_PASS) -v ${PLUGIN_DIR}:/home/app/sal/plugins -v /tmp/logs:/var/log/nginx ${DOCKER_USER}/sal
 
 
 all: build
@@ -23,6 +24,9 @@ build-nocache:
 
 run:
 	docker run -d ${DOCKER_RUN_COMMON}
+
+run-cmd:
+	docker run --rm -p ${SAL_PORT}:8000 --link $(DB_CONTAINER_NAME):db -e ADMIN_PASS=${ADMIN_PASS} -e DB_NAME=$(DB_NAME) -e DB_USER=$(DB_USER) -e DOCKER_SAL_TZ=$(TZ) -e DOCKER_SAL_DEBUG=true -e DB_PASS=$(DB_PASS) -v ${SERVER_DIR}:/home/app/sal/server -v ${PLUGIN_DIR}:/home/app/sal/plugins -v /tmp/logs:/var/log/nginx ${DOCKER_USER}/sal ${CMD}
 
 brute:
 	docker run -d -e DOCKER_SAL_BRUTE_PROTECT=true ${DOCKER_RUN_COMMON}

@@ -24,7 +24,7 @@ class SalScriptsVersion(IPlugin):
             t = loader.get_template('salscriptsversion/templates/id.html')
         
         if machines:
-            sal_info = machines.values('sal_version').exclude(sal_version__isnull=True).annotate(count=Count('sal_version')).order_by()
+            sal_info = machines.values('sal_version').exclude(sal_version__isnull=True).annotate(count=Count('sal_version'))
         else:
             sal_info = []
 

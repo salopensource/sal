@@ -34,7 +34,10 @@ class PuppetStatus(IPlugin):
             puppet_error = machines.filter(puppet_errors__gt=0).count()
             # if there aren't any records with last checkin dates, assume puppet isn't being used
             last_checkin = machines.filter(last_puppet_run__isnull=False).count()
-            checked_in_this_month = machines.filter(last_puppet_run__lte=month_ago).count()
+            if last_checkin != 0:
+                checked_in_this_month = machines.filter(last_puppet_run__lte=month_ago).count()
+            else:
+                checked_in_this_month = 0
         else:
             puppet_error = 0
             last_checkin = 0

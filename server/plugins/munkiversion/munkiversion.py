@@ -24,7 +24,7 @@ class MunkiVersion(IPlugin):
             t = loader.get_template('munkiversion/templates/id.html')
         
         if machines:
-            munki_info = machines.values('munki_version').annotate(count=Count('munki_version')).order_by('munki_version')
+            munki_info = machines.values('munki_version').annotate(count=Count('munki_version'))
         else:
             munki_info = []
 

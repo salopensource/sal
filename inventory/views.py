@@ -36,26 +36,44 @@ def decode_to_string(base64bz2data):
     except Exception:
         return ''
 
-def unique_apps(inventory):
+def unique_apps(inventory, input_type='object'):
     found = []
     for inventory_item in inventory:
         found_flag = False
-        for found_item in found:
-            if (inventory_item.name == found_item['name'] and 
-                inventory_item.version == found_item['version'] and
-                inventory_item.bundleid == found_item['bundleid'] and 
-                inventory_item.bundlename == found_item['bundlename'] and
-                inventory_item.path == found_item['path']):
-                found_flag = True
-                break
-        if found_flag == False:
-            found_item = {}
-            found_item['name'] = inventory_item.name
-            found_item['version'] = inventory_item.version
-            found_item['bundleid'] = inventory_item.bundleid
-            found_item['bundlename'] = inventory_item.bundlename
-            found_item['path'] = inventory_item.path
-            found.append(found_item)
+        if input_type == 'dict':
+            for found_item in found:
+                if (inventory_item['name'] == found_item['name'] and 
+                    inventory_item['version'] == found_item['version'] and
+                    inventory_item['bundleid'] == found_item['bundleid'] and 
+                    inventory_item['bundlename'] == found_item['bundlename'] and
+                    inventory_item['path'] == found_item['path']):
+                    found_flag = True
+                    break
+            if found_flag == False:
+                found_item = {}
+                found_item['name'] = inventory_item['name']
+                found_item['version'] = inventory_item['version']
+                found_item['bundleid'] = inventory_item['bundleid']
+                found_item['bundlename'] = inventory_item['bundlename']
+                found_item['path'] = inventory_item['path']
+                found.append(found_item)
+        else:
+            for found_item in found:
+                if (inventory_item.name == found_item['name'] and 
+                    inventory_item.version == found_item['version'] and
+                    inventory_item.bundleid == found_item['bundleid'] and 
+                    inventory_item.bundlename == found_item['bundlename'] and
+                    inventory_item.path == found_item['path']):
+                    found_flag = True
+                    break
+            if found_flag == False:
+                found_item = {}
+                found_item['name'] = inventory_item.name
+                found_item['version'] = inventory_item.version
+                found_item['bundleid'] = inventory_item.bundleid
+                found_item['bundlename'] = inventory_item.bundlename
+                found_item['path'] = inventory_item.path
+                found.append(found_item)
     return found
 
 @login_required
@@ -184,8 +202,8 @@ def index(request):
     user_level = user.userprofile.level
     if user_level != 'GA':
         return redirect(index)
-    inventory = InventoryItem.objects.all().order_by('name')
-    found = unique_apps(inventory)
+    inventory = InventoryItem.objects.all().values('name', 'version', 'path', 'bundleid', 'bundlename', 'id').order_by('name')
+    found = unique_apps(inventory,'dict')
 
     c = {'user': request.user, 'inventory': found, 'page':'front', 'request': request }
     return render_to_response('inventory/index.html', c, context_instance=RequestContext(request))
@@ -203,10 +221,10 @@ def bu_inventory(request, bu_id):
 
     inventory = []
     for machine in machines:
-        for item in machine.inventoryitem_set.all().order_by('name'):
+        for item in machine.inventoryitem_set.all().values('name', 'version', 'path', 'bundleid', 'bundlename', 'id').order_by('name'):
             inventory.append(item)
     
-    found = unique_apps(inventory)
+    found = unique_apps(inventory, 'dict')
     c = {'user': request.user, 'inventory': found, 'page':'business_unit', 'business_unit':business_unit, 'request': request}
     return render_to_response('inventory/index.html', c, context_instance=RequestContext(request))
 
@@ -222,10 +240,10 @@ def machine_group_inventory(request, group_id):
 
     inventory = []
     for machine in machine_group.machine_set.all():
-        for item in machine.inventoryitem_set.all().order_by('name'):
+        for item in machine.inventoryitem_set.all().values('name', 'version', 'path', 'bundleid', 'bundlename', 'id').order_by('name'):
             inventory.append(item)
     
-    found = unique_apps(inventory)
+    found = unique_apps(inventory, 'dict')
     c = {'user': request.user, 'inventory': found, 'page':'machine_group', 'business_unit':business_unit, 'request': request}
     return render_to_response('inventory/index.html', c, context_instance=RequestContext(request))
 

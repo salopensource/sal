@@ -168,7 +168,7 @@ def getBUmachines(theid):
     if machine_groups.count() != 0:
         machines_unsorted = machine_groups[0].machine_set.all()
         for machine_group in machine_groups[1:]:
-            machines_unsorted = machines_unsorted | machine_group.machine_set.all().prefetch_related('facts').prefetch_related('conditions').prefetch_related('pending_updates').prefetch_related('pending_apple_updates').prefetch_related('osquery_results')
+            machines_unsorted = machines_unsorted | machine_group.machine_set.all()
     else:
         machines_unsorted = None
     machines=machines_unsorted

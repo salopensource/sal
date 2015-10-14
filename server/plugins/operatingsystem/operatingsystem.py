@@ -24,7 +24,7 @@ class OperatingSystem(IPlugin):
             t = loader.get_template('operatingsystem/templates/os_id.html')
         
         if machines:
-            os_info = machines.values('operating_system').annotate(count=Count('operating_system'))
+            os_info = machines.values('operating_system').annotate(count=Count('operating_system')).order_by('operating_system')
         else:
             os_info = []
 

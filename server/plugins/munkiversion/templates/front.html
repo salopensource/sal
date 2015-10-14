@@ -18,7 +18,7 @@ $(function() {
 Morris.Donut({
         element: 'munkiversiongraph',
         data: [
-{% for item in data|dictsort:'munki_version' %}
+{% for item in data %}
 {% if item.munki_version %}
     {
             label: "{{ item.munki_version }}",

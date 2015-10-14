@@ -18,7 +18,7 @@ $(function() {
 Morris.Donut({
         element: 'salversiongraph',
         data: [
-{% for item in data|dictsort:'sal_version' %}
+{% for item in data %}
 {% if item.sal_version %}
     {
             label: "{{ item.sal_version }}",

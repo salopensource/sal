@@ -35,7 +35,7 @@ $ docker run -d --name="sal"\
   -e DB_NAME=sal \
   -e DB_USER=admin \
   -e DB_PASS=password \
-  macadmins/sal:2.2.1
+  macadmins/sal:2.2.2
   ```
 
 This will allow you to log in with the username ``admin`` and the password ``pass`` (which I suggest you change!).
@@ -55,7 +55,7 @@ $ docker run -d --name="sal"\
   -e DB_NAME=sal \
   -e DB_USER=admin \
   -e DB_PASS=password \
-  macadmins/sal:2.2.1
+  macadmins/sal:2.2.2
   ```
 
 ### Other options and plugins

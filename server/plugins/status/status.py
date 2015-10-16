@@ -5,6 +5,12 @@ from django.db.models import Count
 from server.models import *
 from django.shortcuts import get_object_or_404
 import server.utils as utils
+from datetime import datetime, timedelta, date
+
+today = date.today()
+week_ago = today - timedelta(days=7)
+month_ago = today - timedelta(days=30)
+three_months_ago = today - timedelta(days=90)
 
 class Status(IPlugin):
     def plugin_type(self):
@@ -27,18 +33,27 @@ class Status(IPlugin):
             errors = machines.filter(errors__gt=0).count()
             warnings = machines.filter(warnings__gt=0).count()
             activity = machines.filter(activity__isnull=False).count()
+            sevendayactive = machines.filter(last_checkin__gte=week_ago).count()
+            thirtydayactive = machines.filter(last_checkin__gte=month_ago).count()
+            ninetydayactive = machines.filter(last_checkin__gte=three_months_ago).count()
             all_machines = machines.count()
         else:
-            errors = None
-            warnings = None
-            activity = None
-            all_machines = None
+            errors = 0
+            warnings = 0
+            activity = 0
+            sevendayactive = 0
+            thirtydayactive = 0
+            ninetydayactive = 0
+            all_machines = 0
 
         c = Context({
             'title': 'Status',
             'errors': errors,
             'warnings': warnings,
             'activity': activity,
+            '7dayactive': sevendayactive,
+            '30dayactive': thirtydayactive,
+            '90dayactive': ninetydayactive,
             'all_machines': all_machines,
             'theid': theid,
             'page': page
@@ -59,6 +74,18 @@ class Status(IPlugin):
         if data == 'activity':
             machines = machines.filter(activity__isnull=False)
             title = 'Machines with MSU activity'
+
+        if data == '7dayactive':
+            machines = machines.filter(last_checkin__gte=week_ago)
+            title = '7 day active machines'
+
+        if data == '30dayactive':
+            machines = machines.filter(last_checkin__gte=month_ago)
+            title = '30 day active machines'
+
+        if data == '90dayactive':
+            machines = machines.filter(last_checkin__gte=three_months_ago)
+            title = '90 day active machines'
         
         if data == 'all_machines':
             machines = machines

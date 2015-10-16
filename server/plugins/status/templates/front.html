@@ -33,7 +33,33 @@
                 {% if activity %}</a>{% endif %}
             </td>
         </tr>
-        
+        <tr>
+            <td>{% if 7dayactive %}<a href="{% url 'machine_list_front' 'Status' '7dayactive' %}">{% endif %}
+                7 day active
+                <span class="badge badge-info pull-right">
+                    {{ 7dayactive }}
+                </span>
+                {% if 7dayactive %}</a>{% endif %}
+            </td>
+        </tr>
+        <tr>
+            <td>{% if 30dayactive %}<a href="{% url 'machine_list_front' 'Status' '30dayactive' %}">{% endif %}
+                30 day active
+                <span class="badge badge-info pull-right">
+                    {{ 30dayactive }}
+                </span>
+                {% if 30dayactive %}</a>{% endif %}
+            </td>
+        </tr>
+        <tr>
+            <td>{% if 90dayactive %}<a href="{% url 'machine_list_front' 'Status' '90dayactive' %}">{% endif %}
+                90 day active
+                <span class="badge badge-info pull-right">
+                    {{ 90dayactive }}
+                </span>
+                {% if 90dayactive %}</a>{% endif %}
+            </td>
+        </tr>
         <tr>
             <td><a href="{% url 'machine_list_front' 'Status' 'all_machines' %}">
                 All machines

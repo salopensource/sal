@@ -6,8 +6,10 @@ from server.models import *
 from django.shortcuts import get_object_or_404
 import server.utils as utils
 from datetime import datetime, timedelta, date
+import django.utils.timezone
 
-today = date.today()
+now = django.utils.timezone.now()
+today = now - timedelta(hours=24)
 week_ago = today - timedelta(days=7)
 month_ago = today - timedelta(days=30)
 three_months_ago = today - timedelta(days=90)

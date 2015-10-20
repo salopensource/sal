@@ -1,0 +1,24 @@
+<div class="col-md-4">
+    <div class="panel panel-default panel-traffic-light">
+        <div class="panel-heading">
+            {{ title }}
+        </div>
+        <!-- /.panel-heading -->
+        <div class="panel-body">
+          <a href="{% url 'machine_list_front' plugin 'day' %}" class="btn btn-info">
+			<span class="bigger"> {{ today_count }} </span><br />
+			{{ today_label }}
+          </a>
+
+          <a href="{% url 'machine_list_front' plugin 'week' %}" class="btn btn-info">
+			<span class="bigger"> {{ week_count }} </span><br />
+			{{ week_label }}
+          </a>
+
+          <a href="{% url 'machine_list_front' plugin 'month' %}" class="btn btn-info">
+			<span class="bigger"> {{ month_count }} </span><br />
+			{{ month_label }}
+          </a>
+        </div>
+      </div>
+</div>

@@ -24,6 +24,7 @@ import utils
 import pytz
 import watson
 import unicodecsv as csv
+import django.utils.timezone
 # This will only work if BRUTE_PROTECT == True
 try:
     import axes.utils
@@ -82,9 +83,9 @@ def index(request):
         profile.level = 'GA'
         profile.save()
     user_level = user.userprofile.level
-    now = datetime.now()
+    now = django.utils.timezone.now()
     hour_ago = now - timedelta(hours=1)
-    today = date.today()
+    today = now - timedelta(hours=24)
     week_ago = today - timedelta(days=7)
     month_ago = today - timedelta(days=30)
     three_months_ago = today - timedelta(days=90)
@@ -500,9 +501,9 @@ def bu_dashboard(request, bu_id):
     else:
         is_editor = False
     machines = utils.getBUmachines(bu_id)
-    now = datetime.now()
+    now = django.utils.timezone.now()
     hour_ago = now - timedelta(hours=1)
-    today = date.today()
+    today = now - timedelta(hours=24)
     week_ago = today - timedelta(days=7)
     month_ago = today - timedelta(days=30)
     three_months_ago = today - timedelta(days=90)
@@ -541,9 +542,9 @@ def overview_list_all(request, req_type, data, bu_id=None):
     activity = None
     inactivity = None
     disk_space = None
-    now = datetime.now()
+    now = django.utils.timezone.now()
     hour_ago = now - timedelta(hours=1)
-    today = date.today()
+    today = now - timedelta(hours=24)
     week_ago = today - timedelta(days=7)
     month_ago = today - timedelta(days=30)
     three_months_ago = today - timedelta(days=90)

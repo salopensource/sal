@@ -244,7 +244,7 @@ def machine_group_inventory(request, group_id):
             inventory.append(item)
     
     found = unique_apps(inventory, 'dict')
-    c = {'user': request.user, 'inventory': found, 'page':'machine_group', 'business_unit':business_unit, 'request': request}
+    c = {'user': request.user, 'inventory': found, 'page':'machine_group', 'business_unit':business_unit,'machine_group':machine_group, 'request': request}
     return render_to_response('inventory/index.html', c, context_instance=RequestContext(request))
 
 @login_required

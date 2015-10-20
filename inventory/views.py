@@ -115,6 +115,9 @@ def inventory_list(request, page='front', theID=None):
         machine_group = get_object_or_404(MachineGroup, pk=theID)
         # check that the user has access to this
         machines = Machine.objects.filter(machine_group=machine_group)
+
+    if page == 'machine_id':
+        machines = Machine.objects.filter(id=theID)
     
     # get the InventoryItems limited to the machines we're allowed to look at
     inventoryitems = InventoryItem.objects.filter(name=inventory_name, version=inventory_version, bundleid=inventory_bundleid, bundlename=inventory_bundlename).filter(machine=machines).order_by('name')
@@ -263,7 +266,7 @@ def machine_inventory(request, machine_id):
         inventory.append(item)
     
     found = unique_apps(inventory)
-    c = {'user': request.user, 'inventory': found, 'page':'machine', 'business_unit':business_unit, 'request': request}
+    c = {'user': request.user, 'inventory': found, 'page':'machine_id', 'business_unit':business_unit,'machine':machine, 'request': request}
     return render_to_response('inventory/index.html', c, context_instance=RequestContext(request))
 
 @login_required
@@ -304,6 +307,9 @@ def export_csv(request, page='front', theID=None):
         machine_group = get_object_or_404(MachineGroup, pk=theID)
         # check that the user has access to this
         machines = Machine.objects.filter(machine_group=machine_group)
+
+    if page == 'machine_id':
+        machines = Machine.objects.filter(id=theID)
     
     # get the InventoryItems limited to the machines we're allowed to look at
     inventoryitems = InventoryItem.objects.filter(name=inventory_name, version=inventory_version, bundleid=inventory_bundleid, bundlename=inventory_bundlename).filter(machine=machines).order_by('name')

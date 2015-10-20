@@ -110,7 +110,7 @@ def inventory_list(request, page='front', theID=None):
             machines_unsorted = None
         machines=machines_unsorted
 
-    if page == 'group_dashboard':
+    if page == 'group_dashboard' or page == 'machine_group':
         # only get machines from that group
         machine_group = get_object_or_404(MachineGroup, pk=theID)
         # check that the user has access to this

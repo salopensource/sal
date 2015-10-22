@@ -13,6 +13,7 @@ from django.db.models import Q
 from django.db.models import Count
 from server import utils
 from django.shortcuts import render_to_response, get_object_or_404, redirect
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 import unicodecsv as csv
 import plistlib
 import base64
@@ -122,7 +123,19 @@ def inventory_list(request, page='front', theID=None):
     # get the InventoryItems limited to the machines we're allowed to look at
     inventoryitems = InventoryItem.objects.filter(name=inventory_name, version=inventory_version, bundleid=inventory_bundleid, bundlename=inventory_bundlename).filter(machine=machines).order_by('name')
 
-    c = {'user':user, 'inventoryitems': inventoryitems, 'machines': machines, 'req_type': page, 'title': title, 'bu_id': theID, 'request':request, 'inventory_name':inventory_name, 'inventory_version':inventory_version, 'inventory_bundleid':inventory_bundleid, 'inventory_bundlename':inventory_bundlename }
+    paginator = Paginator(inventoryitems, 25)
+
+    page = request.GET.get('page')
+    try:
+        paged_inventory = paginator.page(page)
+    except PageNotAnInteger:
+        # If page is not an integer, deliver first page.
+        paged_inventory = paginator.page(1)
+    except EmptyPage:
+        # If page is out of range (e.g. 9999), deliver last page of results.
+        paged_inventory = paginator.page(paginator.num_pages)
+    print paginator
+    c = {'user':user, 'paged_inventory': paged_inventory, 'machines': machines, 'req_type': page, 'title': title, 'bu_id': theID, 'request':request, 'inventory_name':inventory_name, 'inventory_version':inventory_version, 'inventory_bundleid':inventory_bundleid, 'inventory_bundlename':inventory_bundlename }
 
     return render_to_response('inventory/overview_list_all.html', c, context_instance=RequestContext(request))
 
@@ -208,7 +221,20 @@ def index(request):
     inventory = InventoryItem.objects.all().values('name', 'version', 'path', 'bundleid', 'bundlename', 'id').order_by('name')
     found = unique_apps(inventory,'dict')
 
-    c = {'user': request.user, 'inventory': found, 'page':'front', 'request': request }
+    paginator = Paginator(found, 25)
+
+    page = request.GET.get('page')
+    try:
+        paged_inventory = paginator.page(page)
+    except PageNotAnInteger:
+        # If page is not an integer, deliver first page.
+        paged_inventory = paginator.page(1)
+    except EmptyPage:
+        # If page is out of range (e.g. 9999), deliver last page of results.
+        paged_inventory = paginator.page(paginator.num_pages)
+
+    print paged_inventory
+    c = {'user': request.user, 'inventory': found, 'page':'front', 'request': request, 'paged_inventory':paged_inventory }
     return render_to_response('inventory/index.html', c, context_instance=RequestContext(request))
 
 @login_required

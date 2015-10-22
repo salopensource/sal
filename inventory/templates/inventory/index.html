@@ -41,7 +41,7 @@
 
 <div class="panel-body">
     <div class="table-responsive">
-        <table class="groupList table table-striped table-condensed"">
+        <table class="table table-striped table-condensed"">
             <thead>
                 <tr>
                   <th>Name</th>
@@ -50,7 +50,7 @@
                 </tr>
             </thead>
             <tbody>
-                {% for item in inventory %}
+                {% for item in paged_inventory %}
                 <tr>
                     <td>
                         <a href="{% if page == 'front' %}{% url 'inventory_list_front' %}{% elif page == 'business_unit' %}{% url 'inventory_list_id' 'bu_dashboard' business_unit.id %}{% elif page == 'machine_group' %}{% url 'inventory_list_id' 'machine_group' machine_group.id %}{% elif page == 'machine_id' %}{% url 'inventory_list_id' 'machine_id' machine.id %}{% endif %}?name={{ item.name|urlencode }}&version={{ item.version|urlencode }}&path={{ item.path|urlencode }}&bundleid={{ item.bundleid|urlencode}}&bundlename={{item.bundlename|urlencode}}" data-toggle="tooltip" data-placement="right" title="{{ item.path }}">
@@ -65,6 +65,17 @@
             </tbody>
         </table>
     </div>
+    <ul class="pull-right pagination">
+        {% if paged_inventory.has_previous %}
+        <li><a href="?page={{ paged_inventory.previous_page_number }}">previous</a></li>
+        {% endif %}
+
+            <li class="active"><a href="#">{{ paged_inventory.number }}</a></li>
+
+        {% if paged_inventory.has_next %}
+        <li><a href="?page={{ paged_inventory.next_page_number }}">next</a></li>
+        {% endif %}
+    </ul>
     </div>
 </div>
 {% endblock %}

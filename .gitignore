@@ -55,3 +55,5 @@ api.old/
 *.db
 
 *.db-journal
+
+sal-2015-10-22:00:44:06.dump.json

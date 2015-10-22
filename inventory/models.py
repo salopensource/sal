@@ -1,5 +1,6 @@
 from django.db import models
 from server.models import *
+import watson
 # Create your models here.
 
 class Inventory(models.Model):
@@ -19,3 +20,5 @@ class InventoryItem(models.Model):
     path = models.TextField()
     class Meta:
         ordering = ['name', '-version']
+
+watson.register(InventoryItem)

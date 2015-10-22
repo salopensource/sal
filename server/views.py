@@ -1,5 +1,6 @@
 # Create your views here.
 from models import *
+from inventory.models import *
 from django.contrib.auth.decorators import login_required, permission_required
 from django.template import RequestContext, Template, Context
 import json
@@ -61,9 +62,14 @@ def search(request):
         query_string = query_string.replace('condition:','').replace('Condition:', '').strip()
         machines = Condition.objects.filter(machine=machines)
         template = 'server/search_condition.html'
+    elif query_string.lower().startswith('inventory:'):
+        query_string = query_string.replace('inventory:','').replace('Inventory:', '').strip()
+        machines = InventoryItem.objects.filter(machine=machines)
+        template = 'server/search_inventory.html'
     else:
         template = 'server/search_machines.html'
     search_results = watson.filter(machines, query_string)
+
     title = "Search results for %s" % query_string
     c = {'user': request.user, 'search_results': search_results, 'title':title, 'request':request}
     return render_to_response(template, c, context_instance=RequestContext(request))

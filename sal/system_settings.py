@@ -139,6 +139,8 @@ TEMPLATE_CONTEXT_PROCESSORS = (
     "django.contrib.messages.context_processors.messages",
     "sal.context_processors.display_name",
     "sal.context_processors.config_installed",
+    "django.core.context_processors.request",
+
 )
 
 MIDDLEWARE_CLASSES = (
@@ -187,6 +189,7 @@ INSTALLED_APPS = (
     'licenses',
     'bootstrap3',
     'watson',
+    'endless_pagination',
 )
 
 # A sample logging configuration. The only tangible logging
@@ -220,6 +223,9 @@ LOGGING = {
 BOOTSTRAP3 = {
     'set_placeholder': False,
 }
+
+# Endless pagination config
+ENDLESS_PAGINATION_PER_PAGE = 25
 if 'DYNO' in os.environ:
   # Parse database configuration from $DATABASE_URL
   import dj_database_url

@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 {% load i18n %}
 {% load dashboard_extras %}
+{% load endless %}
 
 {% block script %}
 <script type="text/javascript" charset="utf-8">
@@ -50,7 +51,8 @@
                 </tr>
             </thead>
             <tbody>
-                {% for item in paged_inventory %}
+            {% lazy_paginate inventory %}
+                {% for item in inventory %}
                 <tr>
                     <td>
                         <a href="{% if page == 'front' %}{% url 'inventory_list_front' %}{% elif page == 'business_unit' %}{% url 'inventory_list_id' 'bu_dashboard' business_unit.id %}{% elif page == 'machine_group' %}{% url 'inventory_list_id' 'machine_group' machine_group.id %}{% elif page == 'machine_id' %}{% url 'inventory_list_id' 'machine_id' machine.id %}{% endif %}?name={{ item.name|urlencode }}&version={{ item.version|urlencode }}&path={{ item.path|urlencode }}&bundleid={{ item.bundleid|urlencode}}&bundlename={{item.bundlename|urlencode}}" data-toggle="tooltip" data-placement="right" title="{{ item.path }}">
@@ -66,15 +68,8 @@
         </table>
     </div>
     <ul class="pull-right pagination">
-        {% if paged_inventory.has_previous %}
-        <li><a href="?page={{ paged_inventory.previous_page_number }}">previous</a></li>
-        {% endif %}
-
-            <li class="active"><a href="#">{{ paged_inventory.number }}</a></li>
-
-        {% if paged_inventory.has_next %}
-        <li><a href="?page={{ paged_inventory.next_page_number }}">next</a></li>
-        {% endif %}
+    {% get_pages %}
+    <li>{{ pages.previous }}</li> <li>{{ pages.next }}</li>
     </ul>
     </div>
 </div>

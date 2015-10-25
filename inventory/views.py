@@ -328,7 +328,7 @@ def machine_inventory(request, machine_id):
     next_id = page + 1
     start = (page - 1) * 25
     end = page * 25
-    if is_postgres:
+    if is_postgres():
         inventory = InventoryItem.objects.filter(machine=machine)[start:end].values('name', 'version', 'path', 'bundleid', 'bundlename', 'id').distinct()
     else:
         inventory = InventoryItem.objects.filter(machine=machine).values('name', 'version', 'path', 'bundleid', 'bundlename', 'id')

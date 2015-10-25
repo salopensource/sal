@@ -27,6 +27,12 @@ from xml.etree import ElementTree
 from models import *
 from server.models import *
 
+def is_postgres():
+    if settings.DATABASES['default']['ENGINE'] == 'django.db.backends.postgresql_psycopg2':
+        return True
+    else:
+        return False
+
 def decode_to_string(base64bz2data):
     '''Decodes an inventory submission, which is a plist-encoded
     list, compressed via bz2 and base64 encoded.'''
@@ -223,15 +229,21 @@ def index(request):
     end = page * 25
     #inventory = InventoryItem.objects.all().values('name', 'version', 'path', 'bundleid', 'bundlename', 'id').order_by('name')
 
-    inventory = InventoryItem.objects.all()[start:end].values('name', 'version', 'path', 'bundleid', 'bundlename', 'id')
+    if is_postgres():
+        # Woohoo, you're using postgres. Let's make this fast.
+        print 'postgres'
+        inventory = InventoryItem.objects.all()[start:end].values('name', 'version', 'path', 'bundleid', 'bundlename', 'id').distinct()
+    else:
+        # Sucks to be you, you're on something else
+        inventory = InventoryItem.objects.all().values('name', 'version', 'path', 'bundleid', 'bundlename', 'id').distinct()
 
-    found = unique_apps(inventory,'dict')
+        inventory = unique_apps(inventory,'dict')[start:end]
 
     if len(inventory) != 25:
         # we've not got 25 results, probably the last page
         next_id = 0
 
-    c = {'user': request.user, 'inventory': found, 'page':'front', 'request': request, 'previous_id': previous_id, 'next_id':next_id}
+    c = {'user': request.user, 'inventory': inventory, 'page':'front', 'request': request, 'previous_id': previous_id, 'next_id':next_id}
     return render_to_response('inventory/index.html', c, context_instance=RequestContext(request))
 
 @login_required
@@ -252,13 +264,16 @@ def bu_inventory(request, bu_id):
     start = (page - 1) * 25
     end = page * 25
     
-    inventory = InventoryItem.objects.filter(machine__machine_group__business_unit=business_unit)[start:end].values('name', 'version', 'path', 'bundleid', 'bundlename', 'id')
+    if is_postgres():
+        inventory = InventoryItem.objects.filter(machine__machine_group__business_unit=business_unit)[start:end].values('name', 'version', 'path', 'bundleid', 'bundlename', 'id').distinct()
+    else:
+        inventory = InventoryItem.objects.filter(machine__machine_group__business_unit=business_unit).values('name', 'version', 'path', 'bundleid', 'bundlename', 'id')
 
-    found = unique_apps(inventory, 'dict')
+        inventory = unique_apps(inventory, 'dict')[start:end]
     if len(inventory) != 25:
         # we've not got 25 results, probably the last page
         next_id = 0
-    c = {'user': request.user, 'inventory': found, 'page':'business_unit', 'business_unit':business_unit, 'request': request, 'previous_id': previous_id, 'next_id':next_id}
+    c = {'user': request.user, 'inventory': inventory, 'page':'business_unit', 'business_unit':business_unit, 'request': request, 'previous_id': previous_id, 'next_id':next_id}
     return render_to_response('inventory/index.html', c, context_instance=RequestContext(request))
 
 @login_required
@@ -280,13 +295,17 @@ def machine_group_inventory(request, group_id):
     next_id = page + 1
     start = (page - 1) * 25
     end = page * 25
-    inventory = InventoryItem.objects.filter(machine__machine_group=machine_group)[start:end].values('name', 'version', 'path', 'bundleid', 'bundlename', 'id')
+    if is_postgres():
+        inventory = InventoryItem.objects.filter(machine__machine_group=machine_group)[start:end].values('name', 'version', 'path', 'bundleid', 'bundlename', 'id').distinct()
+    else:
+        inventory = InventoryItem.objects.filter(machine__machine_group=machine_group).values('name', 'version', 'path', 'bundleid', 'bundlename', 'id')
+        inventory = unique_apps(inventory, 'dict')[start:end]
     if len(inventory) != 25:
         # we've not got 25 results, probably the last page
         next_id = 0
     
-    found = unique_apps(inventory, 'dict')
-    c = {'user': request.user, 'inventory': found, 'page':'machine_group', 'business_unit':business_unit,'machine_group':machine_group, 'request': request, 'previous_id': previous_id, 'next_id':next_id}
+    
+    c = {'user': request.user, 'inventory': inventory, 'page':'machine_group', 'business_unit':business_unit,'machine_group':machine_group, 'request': request, 'previous_id': previous_id, 'next_id':next_id}
     return render_to_response('inventory/index.html', c, context_instance=RequestContext(request))
 
 @login_required
@@ -309,14 +328,18 @@ def machine_inventory(request, machine_id):
     next_id = page + 1
     start = (page - 1) * 25
     end = page * 25
-    inventory = InventoryItem.objects.filter(machine=machine)[start:end].values('name', 'version', 'path', 'bundleid', 'bundlename', 'id')
+    if is_postgres:
+        inventory = InventoryItem.objects.filter(machine=machine)[start:end].values('name', 'version', 'path', 'bundleid', 'bundlename', 'id').distinct()
+    else:
+        inventory = InventoryItem.objects.filter(machine=machine).values('name', 'version', 'path', 'bundleid', 'bundlename', 'id')
+        inventory = unique_apps(inventory)[start:end]
 
     if len(inventory) != 25:
         # we've not got 25 results, probably the last page
         next_id = 0
     
-    found = unique_apps(inventory)
-    c = {'user': request.user, 'inventory': found, 'page':'machine_id', 'business_unit':business_unit,'machine':machine, 'request': request, 'previous_id': previous_id, 'next_id':next_id}
+    
+    c = {'user': request.user, 'inventory': inventory, 'page':'machine_id', 'business_unit':business_unit,'machine':machine, 'request': request, 'previous_id': previous_id, 'next_id':next_id}
     return render_to_response('inventory/index.html', c, context_instance=RequestContext(request))
 
 @login_required

@@ -99,16 +99,8 @@ def inventory_list(request, page='front', theID=None):
     if page == 'bu_dashboard':
         # only get machines for that BU
         # Need to make sure the user is allowed to see this
-        business_unit = get_object_or_404(BusinessUnit, pk=theID)
-        machine_groups = MachineGroup.objects.filter(business_unit=business_unit).prefetch_related('machine_set').all()
 
-        if machine_groups.count() != 0:
-            machines_unsorted = machine_groups[0].machine_set.all()
-            for machine_group in machine_groups[1:]:
-                machines_unsorted = machines_unsorted | machine_group.machine_set.all()
-        else:
-            machines_unsorted = None
-        machines=machines_unsorted
+        machines = utils.getBUmachines(theID)
 
     if page == 'group_dashboard' or page == 'machine_group':
         # only get machines from that group
@@ -118,11 +110,25 @@ def inventory_list(request, page='front', theID=None):
 
     if page == 'machine_id':
         machines = Machine.objects.filter(id=theID)
+
+    try:
+        page = int(request.GET.get('page'))
+    except:
+        page = 1
+
+    previous_id = page - 1
+    next_id = page + 1
+    start = (page - 1) * 25
+    end = page * 25
     
     # get the InventoryItems limited to the machines we're allowed to look at
-    inventoryitems = InventoryItem.objects.filter(name=inventory_name, version=inventory_version, bundleid=inventory_bundleid, bundlename=inventory_bundlename).filter(machine=machines).order_by('name')
+    inventory = InventoryItem.objects.filter(name=inventory_name, version=inventory_version, bundleid=inventory_bundleid, bundlename=inventory_bundlename).filter(machine=machines)[start:end]
 
-    c = {'user':user, 'machines': machines, 'req_type': page, 'title': title, 'bu_id': theID, 'request':request, 'inventory_name':inventory_name, 'inventory_version':inventory_version, 'inventory_bundleid':inventory_bundleid, 'inventory_bundlename':inventory_bundlename }
+    if len(inventory) != 25:
+        # we've not got 25 results, probably the last page
+        next_id = 0
+
+    c = {'user':user, 'machines': machines, 'req_type': page, 'title': title, 'bu_id': theID, 'request':request, 'inventory_name':inventory_name, 'inventory_version':inventory_version, 'inventory_bundleid':inventory_bundleid, 'inventory_bundlename':inventory_bundlename, 'previous_id': previous_id, 'next_id':next_id, 'inventory':inventory }
 
     return render_to_response('inventory/overview_list_all.html', c, context_instance=RequestContext(request))
 
@@ -205,10 +211,27 @@ def index(request):
     user_level = user.userprofile.level
     if user_level != 'GA':
         return redirect(index)
-    inventory = InventoryItem.objects.all().values('name', 'version', 'path', 'bundleid', 'bundlename', 'id').order_by('name')
+
+    try:
+        page = int(request.GET.get('page'))
+    except:
+        page = 1
+
+    previous_id = page - 1
+    next_id = page + 1
+    start = (page - 1) * 25
+    end = page * 25
+    #inventory = InventoryItem.objects.all().values('name', 'version', 'path', 'bundleid', 'bundlename', 'id').order_by('name')
+
+    inventory = InventoryItem.objects.all()[start:end].values('name', 'version', 'path', 'bundleid', 'bundlename', 'id')
+
     found = unique_apps(inventory,'dict')
 
-    c = {'user': request.user, 'inventory': found, 'page':'front', 'request': request, }
+    if len(inventory) != 25:
+        # we've not got 25 results, probably the last page
+        next_id = 0
+
+    c = {'user': request.user, 'inventory': found, 'page':'front', 'request': request, 'previous_id': previous_id, 'next_id':next_id}
     return render_to_response('inventory/index.html', c, context_instance=RequestContext(request))
 
 @login_required
@@ -219,16 +242,23 @@ def bu_inventory(request, bu_id):
     if business_unit not in user.businessunit_set.all() and user_level != 'GA':
         print 'not letting you in ' + user_level
         return redirect(index)
-    # Get the groups within the Business Unit
-    machines = utils.getBUmachines(bu_id)
+    try:
+        page = int(request.GET.get('page'))
+    except:
+        page = 1
 
-    inventory = []
-    for machine in machines:
-        for item in machine.inventoryitem_set.all().values('name', 'version', 'path', 'bundleid', 'bundlename', 'id').order_by('name'):
-            inventory.append(item)
+    previous_id = page - 1
+    next_id = page + 1
+    start = (page - 1) * 25
+    end = page * 25
     
+    inventory = InventoryItem.objects.filter(machine__machine_group__business_unit=business_unit)[start:end].values('name', 'version', 'path', 'bundleid', 'bundlename', 'id')
+
     found = unique_apps(inventory, 'dict')
-    c = {'user': request.user, 'inventory': found, 'page':'business_unit', 'business_unit':business_unit, 'request': request}
+    if len(inventory) != 25:
+        # we've not got 25 results, probably the last page
+        next_id = 0
+    c = {'user': request.user, 'inventory': found, 'page':'business_unit', 'business_unit':business_unit, 'request': request, 'previous_id': previous_id, 'next_id':next_id}
     return render_to_response('inventory/index.html', c, context_instance=RequestContext(request))
 
 @login_required
@@ -241,13 +271,22 @@ def machine_group_inventory(request, group_id):
         print 'not letting you in ' + user_level
         return redirect(index)
 
-    inventory = []
-    for machine in machine_group.machine_set.all():
-        for item in machine.inventoryitem_set.all().values('name', 'version', 'path', 'bundleid', 'bundlename', 'id').order_by('name'):
-            inventory.append(item)
+    try:
+        page = int(request.GET.get('page'))
+    except:
+        page = 1
+
+    previous_id = page - 1
+    next_id = page + 1
+    start = (page - 1) * 25
+    end = page * 25
+    inventory = InventoryItem.objects.filter(machine__machine_group=machine_group)[start:end].values('name', 'version', 'path', 'bundleid', 'bundlename', 'id')
+    if len(inventory) != 25:
+        # we've not got 25 results, probably the last page
+        next_id = 0
     
     found = unique_apps(inventory, 'dict')
-    c = {'user': request.user, 'inventory': found, 'page':'machine_group', 'business_unit':business_unit,'machine_group':machine_group, 'request': request}
+    c = {'user': request.user, 'inventory': found, 'page':'machine_group', 'business_unit':business_unit,'machine_group':machine_group, 'request': request, 'previous_id': previous_id, 'next_id':next_id}
     return render_to_response('inventory/index.html', c, context_instance=RequestContext(request))
 
 @login_required
@@ -261,12 +300,23 @@ def machine_inventory(request, machine_id):
         print 'not letting you in ' + user_level
         return redirect(index)
 
-    inventory = []
-    for item in machine.inventoryitem_set.all().order_by('name'):
-        inventory.append(item)
+    try:
+        page = int(request.GET.get('page'))
+    except:
+        page = 1
+
+    previous_id = page - 1
+    next_id = page + 1
+    start = (page - 1) * 25
+    end = page * 25
+    inventory = InventoryItem.objects.filter(machine=machine)[start:end].values('name', 'version', 'path', 'bundleid', 'bundlename', 'id')
+
+    if len(inventory) != 25:
+        # we've not got 25 results, probably the last page
+        next_id = 0
     
     found = unique_apps(inventory)
-    c = {'user': request.user, 'inventory': found, 'page':'machine_id', 'business_unit':business_unit,'machine':machine, 'request': request}
+    c = {'user': request.user, 'inventory': found, 'page':'machine_id', 'business_unit':business_unit,'machine':machine, 'request': request, 'previous_id': previous_id, 'next_id':next_id}
     return render_to_response('inventory/index.html', c, context_instance=RequestContext(request))
 
 @login_required

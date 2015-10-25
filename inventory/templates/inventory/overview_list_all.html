@@ -1,7 +1,6 @@
 {% extends "base.html" %}
 {% load i18n %}
 {% load dashboard_extras %}
-{% load endless %}
 {% block script %}
 <script type="text/javascript" charset="utf-8">
     $(document).ready(function() {
@@ -45,7 +44,6 @@
                 </tr>
             </thead>
             <tbody>
-                {% lazy_paginate inventory %}
                 {% for item in inventory %}
                 <tr>
                     <td>
@@ -66,8 +64,12 @@
         </table>
     </div>
     <ul class="pull-right pagination">
-        {% get_pages %}
-    <li>{{ pages.previous }}</li> <li>{{ pages.next }}</li>
+    {% if previous_id != 0 %}
+    <li><a href="?page={{ previous_id }}">previous</a></li>
+    {% endif %}
+    {% if next_id != 0 %}
+    <li><a href="?page={{ next_id }}">next</a></li>
+    {% endif %}
     </ul>
     </div>
 </div>

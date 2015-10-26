@@ -232,10 +232,10 @@ def index(request):
     if is_postgres():
         # Woohoo, you're using postgres. Let's make this fast.
         print 'postgres'
-        inventory = InventoryItem.objects.all().values('name', 'version', 'path', 'bundleid', 'bundlename', 'id').distinct()[start:end]
+        inventory = InventoryItem.objects.all().values('name', 'version', 'path', 'bundleid', 'bundlename').distinct()[start:end]
     else:
         # Sucks to be you, you're on something else
-        inventory = InventoryItem.objects.all().values('name', 'version', 'path', 'bundleid', 'bundlename', 'id').distinct()
+        inventory = InventoryItem.objects.all().values('name', 'version', 'path', 'bundleid', 'bundlename').distinct()
 
         inventory = unique_apps(inventory,'dict')[start:end]
 
@@ -265,9 +265,9 @@ def bu_inventory(request, bu_id):
     end = page * 25
     
     if is_postgres():
-        inventory = InventoryItem.objects.filter(machine__machine_group__business_unit=business_unit).values('name', 'version', 'path', 'bundleid', 'bundlename', 'id').distinct()[start:end]
+        inventory = InventoryItem.objects.filter(machine__machine_group__business_unit=business_unit).values('name', 'version', 'path', 'bundleid', 'bundlename').distinct()[start:end]
     else:
-        inventory = InventoryItem.objects.filter(machine__machine_group__business_unit=business_unit).values('name', 'version', 'path', 'bundleid', 'bundlename', 'id')
+        inventory = InventoryItem.objects.filter(machine__machine_group__business_unit=business_unit).values('name', 'version', 'path', 'bundleid', 'bundlename')
 
         inventory = unique_apps(inventory, 'dict')[start:end]
     if len(inventory) != 25:
@@ -296,9 +296,9 @@ def machine_group_inventory(request, group_id):
     start = (page - 1) * 25
     end = page * 25
     if is_postgres():
-        inventory = InventoryItem.objects.filter(machine__machine_group=machine_group).values('name', 'version', 'path', 'bundleid', 'bundlename', 'id').distinct()[start:end]
+        inventory = InventoryItem.objects.filter(machine__machine_group=machine_group).values('name', 'version', 'path', 'bundleid', 'bundlename').distinct()[start:end]
     else:
-        inventory = InventoryItem.objects.filter(machine__machine_group=machine_group).values('name', 'version', 'path', 'bundleid', 'bundlename', 'id')
+        inventory = InventoryItem.objects.filter(machine__machine_group=machine_group).values('name', 'version', 'path', 'bundleid', 'bundlename')
         inventory = unique_apps(inventory, 'dict')[start:end]
     if len(inventory) != 25:
         # we've not got 25 results, probably the last page
@@ -329,9 +329,9 @@ def machine_inventory(request, machine_id):
     start = (page - 1) * 25
     end = page * 25
     if is_postgres():
-        inventory = InventoryItem.objects.filter(machine=machine).values('name', 'version', 'path', 'bundleid', 'bundlename', 'id').distinct()[start:end]
+        inventory = InventoryItem.objects.filter(machine=machine).values('name', 'version', 'path', 'bundleid', 'bundlename').distinct()[start:end]
     else:
-        inventory = InventoryItem.objects.filter(machine=machine).values('name', 'version', 'path', 'bundleid', 'bundlename', 'id')
+        inventory = InventoryItem.objects.filter(machine=machine).values('name', 'version', 'path', 'bundleid', 'bundlename')
         inventory = unique_apps(inventory)[start:end]
 
     if len(inventory) != 25:

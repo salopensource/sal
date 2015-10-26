@@ -57,3 +57,7 @@ api.old/
 *.db-journal
 
 sal-2015-10-22:00:44:06.dump.json
+
+postgres
+
+sal.dump

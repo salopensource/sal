@@ -46,8 +46,13 @@ rmi:
 	docker rmi ${DOCKER_USER}/${NAME}
 
 postgres:
-	mkdir -p /tmp/postgres
-	docker run --name="${DB_CONTAINER_NAME}" -d -e DB_NAME=$(DB_NAME) -e DB_USER=$(DB_USER) -e DB_PASS=$(DB_PASS) -v /tmp/postgres:/var/lib/postgresql/data grahamgilbert/postgres
+	docker run --name="${DB_CONTAINER_NAME}" -d -e DB_NAME=$(DB_NAME) -e DB_USER=$(DB_USER) -e DB_PASS=$(DB_PASS) grahamgilbert/postgres
+
+	# sleep 5
+
+	# docker run -it --rm -v /Users/grahamgilbert/src/Mine/sal/sal.dump:/sal.dump.json --link $(DB_CONTAINER_NAME):db -e ADMIN_PASS=${ADMIN_PASS} -e DB_NAME=$(DB_NAME) -e DB_USER=$(DB_USER) -e DOCKER_SAL_TZ=$(TZ) -e DOCKER_SAL_DEBUG=true -e DB_PASS=$(DB_PASS) ${DOCKER_USER}/sal python /home/docker/sal/manage.py migrate
+
+	# docker run -it --rm -v /Users/grahamgilbert/src/Mine/sal/sal.dump:/sal.dump.json --link $(DB_CONTAINER_NAME):db -e ADMIN_PASS=${ADMIN_PASS} -e DB_NAME=$(DB_NAME) -e DB_USER=$(DB_USER) -e DOCKER_SAL_TZ=$(TZ) -e DOCKER_SAL_DEBUG=true -e DB_PASS=$(DB_PASS) ${DOCKER_USER}/sal python /home/docker/sal/manage.py loaddata /sal.dump.json
 
 postgres-clean:
 	docker stop $(DB_CONTAINER_NAME)

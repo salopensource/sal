@@ -13,11 +13,11 @@ class Inventory(models.Model):
 
 class InventoryItem(models.Model):
     machine = models.ForeignKey(Machine)
-    name = models.CharField(max_length=255)
-    version = models.CharField(max_length=32)
-    bundleid = models.CharField(max_length=255)
-    bundlename = models.CharField(max_length=255)
-    path = models.TextField()
+    name = models.CharField(db_index=True, max_length=255)
+    version = models.CharField(db_index=True, max_length=32)
+    bundleid = models.CharField(db_index=True, max_length=255)
+    bundlename = models.CharField(db_index=True, max_length=255)
+    path = models.TextField(db_index=True)
     class Meta:
         ordering = ['name', '-version']
 

@@ -51,7 +51,6 @@ def search(request):
         machines = machines
     else:
         for business_unit in BusinessUnit.objects.all():
-            print user.businessunit_set.all()
             if business_unit not in user.businessunit_set.all():
                 machines = machines.exclude(machine_group__business_unit = business_unit)
     if query_string.lower().startswith('facter:'):
@@ -525,7 +524,6 @@ def delete_business_unit(request, bu_id):
 
     machines = Machine.objects.filter(machine_group__business_unit=business_unit)
 
-    print machines
     c = {'user': user, 'business_unit':business_unit, 'config_installed':config_installed, 'machine_groups': machine_groups, 'machines':machines}
     return render_to_response('server/business_unit_delete_confirm.html', c, context_instance=RequestContext(request))
 
@@ -992,7 +990,6 @@ def settings_page(request):
     # Pull the historical_data setting
     try:
         historical_setting = SalSetting.objects.get(name='historical_retention')
-        print historical_setting
     except SalSetting.DoesNotExist:
         historical_setting = SalSetting(name='historical_retention', value='180')
         historical_setting.save()

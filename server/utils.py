@@ -156,7 +156,6 @@ def orderPluginOutput(pluginOutput, page='front', theID=None):
                 needs_break = False
             else:
                 total_width = int(item['width']) + total_width
-            print total_width
         counter = counter +1
         # print item['name']+' total: '+str(total_width)
     return output

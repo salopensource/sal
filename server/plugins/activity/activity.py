@@ -17,10 +17,13 @@ three_months_ago = today - timedelta(days=90)
 machine_data = {}
 
 class Activity(IPlugin):
+    def widget_width(self):
+        return 12
+
     def plugin_type(self):
         return 'builtin'
         
-    def show_widget(self, page, machines=None, theid=None):
+    def widget_content(self, page, machines=None, theid=None):
         # The data is data is pulled from the database and passed to a template.
         
         # There are three possible views we're going to be rendering to - front, bu_dashbaord and group_dashboard. If page is set to bu_dashboard, or group_dashboard, you will be passed a business_unit or machine_group id to use (mainly for linking to the right search).
@@ -58,7 +61,7 @@ class Activity(IPlugin):
             'theid': theid,
             'page': page
         })
-        return t.render(c), 12
+        return t.render(c)
     
     def filter_machines(self, machines, data):
         # You will be passed a QuerySet of machines, you then need to perform some filtering based on the 'data' part of the url from the show_widget output. Just return your filtered list of machines and the page title.

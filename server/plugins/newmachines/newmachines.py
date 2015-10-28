@@ -16,8 +16,10 @@ month_ago = this_day - timedelta(days=30)
 class NewMachines(IPlugin):
     def plugin_type(self):
         return 'builtin'
+    def widget_width(self):
+        return 4
         
-    def show_widget(self, page, machines=None, theid=None):
+    def widget_content(self, page, machines=None, theid=None):
         # The data is data is pulled from the database and passed to a template.
         
         # There are three possible views we're going to be rendering to - front, bu_dashbaord and group_dashboard. If page is set to bu_dashboard, or group_dashboard, you will be passed a business_unit or machine_group id to use (mainly for linking to the right search).
@@ -52,7 +54,7 @@ class NewMachines(IPlugin):
             'theid': theid,
             'page': page
         })
-        return t.render(c), 4
+        return t.render(c)
     
     def filter_machines(self, machines, data):
         if data == 'day':

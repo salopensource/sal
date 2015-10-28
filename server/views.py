@@ -133,12 +133,12 @@ def index(request):
             if plugin.name == enabled_plugin.name:
                 data = {}
                 data['name'] = plugin.name
-                (data['html'], data['width']) = plugin.plugin_object.show_widget('front', machines)
+                data['width'] = plugin.plugin_object.widget_width()
+                data['html'] = '<div id="plugin-%s" class="col-md-%s"></div>' % (data['name'], str(data['width']))
                 output.append(data)
                 break
 
     output = utils.orderPluginOutput(output)
-
     # get the user level - if they're a global admin, show all of the machines. If not, show only the machines they have access to
     if user_level == 'GA':
         business_units = BusinessUnit.objects.all()
@@ -335,6 +335,56 @@ def machine_list(request, pluginName, data, page='front', theID=None):
 
     return render_to_response('server/overview_list_all.html', c, context_instance=RequestContext(request))
 
+# Plugin machine list
+@login_required
+def plugin_load(request, pluginName, page='front', theID=None):
+    user = request.user
+    title = None
+    # Build the manager
+    manager = PluginManager()
+    # Tell it the default place(s) where to find plugins
+    manager.setPluginPlaces([settings.PLUGIN_DIR, os.path.join(settings.PROJECT_DIR, 'server/plugins')])
+    # Load all plugins
+    manager.collectPlugins()
+    # get a list of machines (either from the BU or the group)
+    if page == 'front':
+        # get all machines
+        if user.userprofile.level == 'GA':
+            machines = Machine.objects.all()
+        else:
+            machines = Machine.objects.none()
+            for business_unit in user.businessunit_set.all():
+                for group in business_unit.machinegroup_set.all():
+                    machines = machines | group.machine_set.all()
+    if page == 'bu_dashboard':
+        # only get machines for that BU
+        # Need to make sure the user is allowed to see this
+        business_unit = get_object_or_404(BusinessUnit, pk=theID)
+        machine_groups = MachineGroup.objects.filter(business_unit=business_unit).prefetch_related('machine_set').all()
+
+        if machine_groups.count() != 0:
+            machines_unsorted = machine_groups[0].machine_set.all()
+            for machine_group in machine_groups[1:]:
+                machines_unsorted = machines_unsorted | machine_group.machine_set.all()
+        else:
+            machines_unsorted = None
+        machines=machines_unsorted
+
+    if page == 'group_dashboard':
+        # only get machines from that group
+        machine_group = get_object_or_404(MachineGroup, pk=theID)
+        # check that the user has access to this
+        machines = Machine.objects.filter(machine_group=machine_group)
+    # send the machines and the data to the plugin
+    for plugin in manager.getAllPlugins():
+        if plugin.name == pluginName:
+            html = plugin.plugin_object.widget_content(page, machines)
+    # c = {'user':user, 'plugin_name': pluginName, 'machines': machines, 'req_type': page, 'title': title, 'bu_id': theID, 'request':request }
+
+    # return render_to_response('server/overview_list_all.html', c, context_instance=RequestContext(request))
+    return HttpResponse(html)
+
+
 @login_required
 def export_csv(request, pluginName, data, page='front', theID=None):
     user = request.user
@@ -529,7 +579,8 @@ def bu_dashboard(request, bu_id):
             if plugin.name == enabled_plugin.name:
                 data = {}
                 data['name'] = plugin.name
-                (data['html'], data['width']) = plugin.plugin_object.show_widget('bu_dashboard', machines, bu.id)
+                data['width'] = plugin.plugin_object.widget_width()
+                data['html'] = '<div id="plugin-%s" class="col-md-%s"></div>' % (data['name'], str(data['width']))
                 output.append(data)
                 break
 
@@ -714,7 +765,8 @@ def group_dashboard(request, group_id):
             if plugin.name == enabled_plugin.name:
                 data = {}
                 data['name'] = plugin.name
-                (data['html'], data['width']) = plugin.plugin_object.show_widget('group_dashboard', machines, machine_group.id)
+                data['width'] = plugin.plugin_object.widget_width()
+                data['html'] = '<div id="plugin-%s" class="col-md-%s"></div>' % (data['name'], str(data['width']))
                 output.append(data)
                 break
 

@@ -11,12 +11,10 @@ urlpatterns = patterns('server.views',
     url(r'^search/', 'search', name='search'),
     # BU Dashboard
     url(r'^dashboard/(?P<bu_id>.+)/', 'bu_dashboard', name='bu_dashboard'),
-    # Overview List (Group)
-    #url(r'^machinegroup/overview/(?P<group_id>.+)/(?P<req_type>.+)/(?P<data>.+)/$', 'overview_list_group', name='overview_list_group'),
-    # Overview List (Group)
-    #url(r'^bu/overview/(?P<req_type>.+)/(?P<data>.+)/(?P<bu_id>.+)/$', 'overview_list_all', name='overview_list_bu'),
-    # Overview List (All)
-    #url(r'^overview/(?P<req_type>.+)/(?P<data>.+)/$', 'overview_list_all', name='overview_list_all'),
+    # pluginload (front page)
+    url(r'^pluginload/(?P<pluginName>.+)/$', 'plugin_load', name='plugin_load_front'),
+    # pluginload (id)
+    url(r'^id_pluginload/(?P<pluginName>.+)/(?P<page>.+)/(?P<theID>.+)/$', 'plugin_load', name='plugin_load_id'),
     # Machine List (front page)
     url(r'^list/(?P<pluginName>.+)/(?P<data>.+)/$', 'machine_list', name='machine_list_front'),
     # Machine List (id)

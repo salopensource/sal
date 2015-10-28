@@ -3,7 +3,17 @@
 {% load dashboard_extras %}
 
 {% block script %}
-
+<script>
+ 
+$( document ).ready(function() {
+ 
+   {% for widget in output %}
+   $( "#plugin-{{ widget.name }}" ).load("{% url 'plugin_load_front' widget.name %}");
+   {% endfor %}
+ 
+});
+ 
+</script>
 
 {% endblock %}
 

@@ -108,13 +108,13 @@ def index(request):
                 return redirect('server.views.bu_dashboard', bu_id=bu.id)
                 break
 
-    if user_level == 'GA':
-        machines = Machine.objects.all()
-    else:
-        machines = Machine.objects.none()
-        for business_unit in user.businessunit_set.all():
-            for group in business_unit.machinegroup_set.all():
-                machines = machines | group.machine_set.all()
+    # if user_level == 'GA':
+    #     machines = Machine.objects.all()
+    # else:
+    #     machines = Machine.objects.none()
+    #     for business_unit in user.businessunit_set.all():
+    #         for group in business_unit.machinegroup_set.all():
+    #             machines = machines | group.machine_set.all()
 
     # Load in the default plugins if needed
     utils.loadDefaultPlugins()

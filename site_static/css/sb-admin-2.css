@@ -582,3 +582,8 @@ a.btn-danger a:hover {
 .panel-traffic-light .panel-body a:last-child {
   margin-right: 0;
 }
+
+.blue-spinner{
+    display:block;
+    padding-top: 100px;
+}

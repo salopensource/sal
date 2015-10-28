@@ -8,7 +8,41 @@
 $( document ).ready(function() {
  
    {% for widget in output %}
-   $( "#plugin-{{ widget.name }}" ).load("{% url 'plugin_load_id' widget.name 'bu_dashboard' business_unit.id %}");
+
+   var attempts{{ widget.name }};
+    function doAjaxRequest{{ widget.name }}() {
+        attempts{{ widget.name }} = 0;
+        doAjaxRequestLoop{{ widget.name }}();
+    }
+
+    function doAjaxRequestLoop{{ widget.name }}() {
+        attempts{{ widget.name }} += 1;
+        if (attempts{{ widget.name }} > 10) {
+            alert('too many attempts.');
+            return;
+        }
+
+        $.ajax({ // do your request
+            // The URL for the request
+            url: "{% url 'plugin_load_id' widget.name 'bu_dashboard' business_unit.id %}",
+         
+            // Whether this is a POST or GET request
+            type: "GET",
+         
+            // The type of data we expect back
+            dataType : "html",
+         
+            // Code to run if the request succeeds;
+            // the response is passed to the function
+            success: function( data ) {
+                $('#plugin-{{ widget.name }}').html(data);
+            },
+            error: function (error) {
+                doAjaxRequestLoop{{ widget.name }}();
+            }
+        });
+    }
+    doAjaxRequest{{ widget.name }}();
    {% endfor %}
  
 });

@@ -13,6 +13,7 @@ from django.shortcuts import render_to_response, get_object_or_404, redirect
 from datetime import datetime, timedelta, date
 from django.db.models import Count, Sum, Max, Q
 from django.contrib import messages
+from django.contrib.staticfiles.templatetags.staticfiles import static
 import plistlib
 import ast
 from forms import *
@@ -133,7 +134,7 @@ def index(request):
                 data = {}
                 data['name'] = plugin.name
                 data['width'] = plugin.plugin_object.widget_width()
-                data['html'] = '<div id="plugin-%s" class="col-md-%s"></div>' % (data['name'], str(data['width']))
+                data['html'] = '<div id="plugin-%s" class="col-md-%s"><img class="center-block blue-spinner" src="%s"/></div>' % (data['name'], str(data['width']), static('img/blue-spinner.gif'))
                 output.append(data)
                 break
 
@@ -377,7 +378,7 @@ def plugin_load(request, pluginName, page='front', theID=None):
     # send the machines and the data to the plugin
     for plugin in manager.getAllPlugins():
         if plugin.name == pluginName:
-            html = plugin.plugin_object.widget_content(page, machines)
+            html = plugin.plugin_object.widget_content(page, machines, theID)
     # c = {'user':user, 'plugin_name': pluginName, 'machines': machines, 'req_type': page, 'title': title, 'bu_id': theID, 'request':request }
 
     # return render_to_response('server/overview_list_all.html', c, context_instance=RequestContext(request))
@@ -578,7 +579,7 @@ def bu_dashboard(request, bu_id):
                 data = {}
                 data['name'] = plugin.name
                 data['width'] = plugin.plugin_object.widget_width()
-                data['html'] = '<div id="plugin-%s" class="col-md-%s"></div>' % (data['name'], str(data['width']))
+                data['html'] = '<div id="plugin-%s" class="col-md-%s"><img class="center-block blue-spinner" src="%s"/></div>' % (data['name'], str(data['width']), static('img/blue-spinner.gif'))
                 output.append(data)
                 break
 
@@ -764,7 +765,7 @@ def group_dashboard(request, group_id):
                 data = {}
                 data['name'] = plugin.name
                 data['width'] = plugin.plugin_object.widget_width()
-                data['html'] = '<div id="plugin-%s" class="col-md-%s"></div>' % (data['name'], str(data['width']))
+                data['html'] = '<div id="plugin-%s" class="col-md-%s"><img class="center-block blue-spinner" src="%s"/></div>' % (data['name'], str(data['width']), static('img/blue-spinner.gif'))
                 output.append(data)
                 break
 

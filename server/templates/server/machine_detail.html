@@ -11,351 +11,283 @@
 <li><a href="{% url 'bu_dashboard' business_unit.id %}"><i class="fa fa-chevron-left fa-fw"></i> Back</a></li>
 <li><a href="{% url 'inventory.views.machine_inventory' machine.id %}"><i class="fa fa-list-alt fa-fw"></i> Application Inventory</a></li>
 {% if user.userprofile.level == 'GA' or user.userprofile.level == 'RW' %}
-        {% if CONFIG_INSTALLED %}
-            <li><a href="{% url 'config_machine_index' machine.id %}"><i class="fa fa-wrench fa-fw"></i> Configure Computer</a></li>
-        {% endif %}
-        <li><a href="#myModal" data-toggle="modal"><i class="fa fa-times fa-fw"></i> Computer</a></i>
+  {% if CONFIG_INSTALLED %}
+    <li><a href="{% url 'config_machine_index' machine.id %}"><i class="fa fa-wrench fa-fw"></i> Configure Computer</a></li>
+  {% endif %}
+  <li><a href="#myModal" data-toggle="modal"><i class="fa fa-times fa-fw"></i> Computer</a></i>
 
-        
+
 {% endif %}
 
 {% endblock %}
 {% block content %}
 <div class="row">
-    <div class="col-md-8">
-
-        <h2>{{ machine.hostname }}</h2>
-        <p>
-          <b>Report</b>
-          <span title="Last report date">
-                  :: {{ machine.last_checkin|date:"Y-m-d H:i" }}
-          </span>
-        </p>
-      </div>
-</div>
-<div class="row">
-  <div class="col-md-6">
-    <h3>Machine</h3>
-    <table class="table table-condensed">
-      <tbody>
-        <tr>
-          <th>Model:</th>
-          <td>
+  <div class="col-md-5">
+    <p style="text-align: center;">
+      <img src='https://km.support.apple.com.edgekey.net/kb/securedImage.jsp?configcode={{machine.serial|slice:"8:" }}&size=120x120'>
+      <br>
+      <h2 style="text-align:center">{{ machine.hostname }}</h2>
+      <span style="display: block; margin: 0px auto; text-align: center;" title="Last report date">
+        <b>Report</b> :: {{ machine.last_checkin|date:"Y-m-d H:i" }}
+      </span>
+    </p>
+    <div class="panel panel-default">
+      <div class="panel-body">
+        <dl class="dl-horizontal" >
+          <legend><h5 class"text-uppercase">Notifications</h5></legend>
+          <div class="row">
+            <div class="col-md-4">
+              <p style="text-align: center;">
+                <!-- Error Modal Trigger -->
+                {% if report.Errors|length %}
+                <a class="fa fa-exclamation-triangle fa-3x color-red" href="#ErrorModal" data-toggle="modal" data-backdrop="true"></a>
+                {% else %}
+                <i class="fa fa-check-circle fa-3x color-green" style="cursor: default;"></i>
+                {% endif %}
+                <br>
+                {{ report.Errors|length }} Errors
+              </p>
+            </div>
+            <div class="col-md-4">
+              <p style="text-align: center;">
+                <!-- Warning Modal Trigger -->
+                {% if report.Warnings|length %}
+                <a class="fa fa-bell fa-3x color-yellow" href="#WarningModal" data-toggle="modal" data-backdrop="true"></a>
+                {% else %}
+                <i class="fa fa-check-circle fa-3x color-green" style="cursor: default;"></i>
+                {% endif %}
+                <br>
+                {{ report.Warnings|length }} Warnings
+              </p>
+            </div>
+            <div class="col-md-4">
+              <p style="text-align: center;">
+                {% if report.AppleUpdates|length %}
+                <i class="fa fa-info-circle fa-3x color-blue" style="cursor: default;"></i>
+                {% else %}
+                <i class="fa fa-check-circle fa-3x color-green" style="cursor: default;"></i>
+                {% endif %}
+                <br>
+                {{ report.AppleUpdates|length }} Pending Installs
+              </p>
+            </div>
+          </div>
+          <legend><h5 class"text-uppercase">Machine Details</h5></legend>
+          <dt>Model:</dt>
+          <dd>
             {{ machine.machine_model }}
             {{ machine.cpu_type }}
             {{ machine.cpu_speed}}
-          </td>
-        </tr>
-        <tr>
-          <th>RAM:</th>
-          <td>{{ machine.memory }}</td>
-        </tr>
-        <tr>
-          <th>Serial:</th>
-          <td>{{ machine.serial }}</td>
-        </tr>
-        <tr>
-          <th>LAN IP Address:</th>
-          <td>{{ ip_address }}</td>
-        </tr>
-        {% if 'MachineInfo' in report %}
-        <tr>
-          <th>Hostname:</th>
-          <td>{{ report.MachineInfo.hostname }}</td>
-        </tr>
-        <tr>
-          <th>OS version:</th>
-          <td>{% if report.os_family == 'Darwin' %}
-              OS X {% endif %}
-              {{ report.MachineInfo.os_vers }}
-              {{ report.MachineInfo.arch }}</td>
-        </tr>
-        {% endif %}
-        <tr>
-          <th>Free disk space:</th>
-          <td>{{ report.AvailableDiskSpace|humanreadablesize  }} ({{ machine.hd_percent }}% used)</td>
-        </tr>
-        <tr>
-          <th>Console user:</th>
-          <td>{{ report.ConsoleUser }}</td>
-        </tr>
-
-      </tbody>
-    </table>
-  </div>
-  <div class='col-md-6'>
-    <h3>Management Tools</h3>
-    <table class="client_info table table-condensed">
-      <tbody>
+          </dd>
+          <dt>RAM:</dt>
+          <dd>{{ machine.memory }}</dd>
+          <dt>Serial:</dt>
+          <dd>{{ machine.serial }}</dd>
+          <dt>LAN IP Address:</dt>
+          <dd>{{ ip_address }}</dd>
+          {% if 'MachineInfo' in report %}
+          <dt>Hostname:</dt>
+          <dd>{{ report.MachineInfo.hostname }}</dd>
+          <dt>OS version:</dt>
+          <dd>{% if report.os_family == 'Darwin' %}
+            OS X {% endif %}
+            {{ report.MachineInfo.os_vers }}
+            {{ report.MachineInfo.arch }}
+          </dd>
+          {% endif %}
+          <dt>Free disk space:</dt>
+          <dd>{{ report.AvailableDiskSpace|humanreadablesize  }} ({{ machine.hd_percent }}% used)</dd>
+          <dt>Console user:</dt>
+          <dd>{{ report.ConsoleUser }}</dd>
+          <br>
+          <legend><h5 class"text-uppercase">Management Tools</h5></legend>
           {% if machine.sal_version %}
-          <tr>
-            <th>Sal Version:</th>
-            <td>{{ machine.sal_version }}</td>
-          </tr>
+          <dt>Sal Version:</dt>
+          <dd>{{ machine.sal_version }}</dd>
           {% endif %}
           {% if machine.puppet_version %}
-          <tr>
-            <th>Puppet Version:</th>
-            <td>{{ machine.puppet_version }}</td>
-          </tr>
+          <dt>Puppet Version:</dt>
+          <dd>{{ machine.puppet_version }}</dd>
           {% endif %}
-        {% if report.ManagedInstallVersion %}
-        <tr>
-          <th>MSC Version:</th>
-          <td>{{ report.ManagedInstallVersion }}</td>
-        </tr>
-        {% endif %}
-        {% if 'ManifestName' in report %}
-        <tr>
-          <th>MSC Manifest:</th>
-          <td>
+          {% if report.ManagedInstallVersion %}
+          <dt>Munki Version:</dt>
+          <dd>{{ report.ManagedInstallVersion }}</dd>
+          {% endif %}
+          {% if 'ManifestName' in report %}
+          <dt>Munki Manifest:</dt>
+          <dd>
             {{ report.ManifestName }}</a>
-          </td>
-        </tr>
-        {% endif %}
-        {% if report.ManagedInstallVersion %}
-        <tr>
-          <th>MSC Run Type:</th>
-          <td>{{ report.RunType }}</td>
-        </tr>
-        <tr>
-          <th>MSC Start:</th>
-          <td>{{ report.StartTime|convert_datetime|date:"Y-m-d H:i" }}</td>
-        </tr>
-        <tr>
-          <th>MSC End:</th>
-          <td>{{ report.EndTime|convert_datetime|date:"Y-m-d H:i" }}</td>
-        </tr>
-        {% endif %}
-        {% if machine.last_puppet_run %}
-        <tr>
-          <th>Puppet Run:</th>
-          <td>{{ machine.last_puppet_run|date:"Y-m-d H:i" }}</td>
-        </tr>
-        {% endif %}
-      </tbody>
-    </table>
- </div>
-</div>
-<div class="row">
-  <div class="col-md-6">
-  <a name="errors">&nbsp;</a>
-    {% if report.Errors|length %}
-    <div class="panel panel-red">
-    {% else %}
-    <div class="panel panel-green">
-    {% endif %}
-        <div class="panel-heading">
-            <div class="row">
-                <div class="col-xs-3">
-                    <i class="fa fa-exclamation-triangle fa-5x"></i>
-                </div>
-                <div class="col-xs-9 text-right">
-                    <div class="huge">{{ report.Errors|length }}</div>
-                    <div>Errors</div>
-                </div>
-            </div>
-        </div>
-          {% if report.Errors|length %}
-          <div class="panel-footer">   
-            <pre class="text-error">{{ report.Errors|join:'<br>' }}</pre>
-          </div>
+          </dd>
           {% endif %}
-
+          {% if report.ManagedInstallVersion %}
+          <dt>Munki Run Type:</dt>
+          <dd>{{ report.RunType }}</dd>
+          <dt>Munki Start:</dt>
+          <dd>{{ report.StartTime|convert_datetime|date:"Y-m-d H:i" }}</dd>
+          <dt>Munki End:</dt>
+          <dd>{{ report.EndTime|convert_datetime|date:"Y-m-d H:i" }}</dd>
+          {% endif %}
+          {% if machine.last_puppet_run %}
+          <dt>Puppet Run:</dt>
+          <dd>{{ machine.last_puppet_run|date:"Y-m-d H:i" }}</dd>
+          {% endif %}
+        </dl>
+      </div>
     </div>
   </div>
 
-    <div class="col-md-6">
-    <a name="errors">&nbsp;</a>
-
-      {% if report.Warnings|length %}
-      <div class="panel panel-yellow">
-      {% else %}
-      <div class="panel panel-green">
-      {% endif %}
-          <div class="panel-heading">
-              <div class="row">
-                  <div class="col-xs-3">
-                      <i class="fa fa-bell fa-5x"></i>
-                  </div>
-                  <div class="col-xs-9 text-right">
-                      <div class="huge">{{ report.Warnings|length }}</div>
-                      <div>Warnings</div>
-                  </div>
-              </div>
-          </div>
-            {% if report.Warnings|length %}
-            <div class="panel-footer">   
-              <pre class="text-warning">{{ report.Warnings|join:'<br>' }}</pre>
-            </div>
-            {% endif %}
-
-      </div>
-  </div>
-</div>
-
-
-    {% if report.AppleUpdates|length %}
+  <div class="col-md-7">
     <div class="row">&nbsp;</div>
-     <div class="row">
-      <div class="col-md-12">
-       <a class="btn btn-lg btn-info btn-block" data-toggle="collapse" data-target="#collapseTwo">Apple Updates</a>
-                    <div id="collapseTwo" class="collapse in">
-          {% with title='Apple Updates' pkglist=report.AppleUpdates %}
-          {% include 'server/pkgtable.html' %}
-          {% endwith %}
-      </div>
-      </div>
-    </div>
-    {% endif %}
-    {% if report.ItemsToInstall|length %}
-    <div class="row">
-       <div class="col-md-12">
-       <a class="btn btn-lg btn-info btn-block" data-toggle="collapse" data-target="#collapse3">Active Installs</a>
-        <div id="collapse3" class="collapse in">
-           {% with title='Active Installs' pkglist=report.ItemsToInstall %}
-             {% include 'server/pkgtable.html' %}
-           {% endwith %}
-        </div>
-      </div>
-    </div>
- {% endif %}
- {% if report.ItemsToRemove|length %}
- <div class="row">&nbsp;</div>
- <div class="row">
-       <div class="col-md-12">
-          <a class="btn btn-lg btn-info btn-block" data-toggle="collapse" data-target="#collapse4">Active Removals</a>
-            <div id="collapse4" class="collapse in">
-             {% with title='Active Removals' pkglist=report.ItemsToRemove %}
-               {% include 'server/pkgtable.html' %}
-             {% endwith %}
+    <div id="accordion" class="panel-group">
+      <div class="panel panel-default">
+        <div class="panel-body">
+          <!-- Nav tabs -->
+          <ul class ="nav nav-pills">
+            {% if report.ManagedInstalls|length %}
+            <li class="active" role="presentation"><a aria-expanded="true" data-toggle="tab" href="#tab2-1">Managed Installs</a></li>
+            {% endif %}
+            <!-- Dropdown Menu -->
+            <li class="dropdown" role="presentation">
+              <a class="dropdown-toggle" data-toggle="dropdown" href="#" role="button" aria-haspopup="true">Pending Installs <span class="caret"></span></a>
+              <ul class="dropdown-menu" role="menu">
+                {% if report.AppleUpdates|length %}
+                <li><a data-toggle="tab" href="#dd1"><i class="fa fa-info-circle color-yellow"></i>   Apple Updates</a></li>
+                {% else %}
+                <li><a href="#"><i class="fa fa-check-circle color-green"></i>   No Apple Updates</a></li>
+                {% endif %}
+                {% if report.ItemsToInstall|length %}
+                <li><a data-toggle="tab" href="#dd2"><i class="fa fa-info-circle color-yellow"></i>   Active Installs</a></li>
+                {% else %}
+                <li><a href="#"><i class="fa fa-check-circle color-green"></i>   No Active Installs</a></li>
+                {% endif %}
+                {% if report.ItemsToRemove|length %}
+                <li><a data-toggle="tab" href="#dd3"><i class="fa fa-info-circle color-yellow"></i>   Active Removals</a></li>
+                {% else %}
+                <li><a href="#"><i class="fa fa-check-circle color-green"></i>   No Active Removals</a></li>
+                {% endif %}
+                {% if report.ProblemInstalls|length %}
+                <li><a data-toggle="tab" href="#dd4"><i class="fa fa-info-circle color-yellow"></i>   Problem Installs</a></li>
+                {% else %}
+                <li><a href="#"><i class="fa fa-check-circle color-green"></i>   No Problem Installs</a></li>
+                {% endif %}
+              </ul>
+            </li>
+            <!-- /.dropdown -->
+            {% if report.managed_uninstalls_list|length %}
+            <li role="presentation"><a data-toggle="tab" href="#tab2-2">Managed Uninstalls</a></li>
+            {% endif %}
+            {% if facts|length %}
+            <li role="presentation"><a data-toggle="tab" href="#tab2-3">Facter</a></li>
+            {% endif %}
+            {% if conditions|length %}
+            <li role="presentation"><a data-toggle="tab" href="#tab2-4">MSC Conditions</a></li>
+            {% endif %}
+          </ul>
+          <!-- Tab panes -->
+          <div class="tab-content">
+            <div class="tab-pane fade" id="dd1">
+            {% with title='Apple Updates' pkglist=report.AppleUpdates %}
+              {% include 'server/pkgtable.html' %}
+            {% endwith %}
             </div>
+            <div class="tab-pane fade" id="dd2">
+              {% with title='Active Installs' pkglist=report.ItemsToInstall %}
+                {% include 'server/pkgtable.html' %}
+              {% endwith %}
+            </div>
+            <div class="tab-pane fade" id="dd3">
+              {% with title='Active Removals' pkglist=report.ItemsToRemove %}
+                {% include 'server/pkgtable.html' %}
+              {% endwith %}
+            </div>
+            <div class="tab-pane fade" id="dd4">
+              {% with title='Problem Installs' pkglist=report.ProblemInstalls %}
+                {% include 'server/pkgtable.html' %}
+              {% endwith %}
+            </div>
+            <div class="tab-pane fade active in" id="tab2-1">
+              {% with title='Managed Installs' pkglist=report.ManagedInstalls %}
+                {% include 'server/pkgtable.html' %}
+              {% endwith %}
+            </div>
+            <div class="tab-pane fade" id="tab2-2">
+              <table class="client_info table table-striped table-condensed">
+                <thead>
+                  <tr>
+                    <th>Name</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for item in report.managed_uninstalls_list %}
+                  <tr>
+                    <td>{{ item }}</td>
+                    {% if item in report.RemovedItems %}
+                    <td>not installed</td>
+                    {% else %}
+                    <td class='error'>installed</td>
+                    {% endif %}
+                  </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+            <div class="tab-pane fade" id="tab2-3">
+              <table class="client_info table table-striped table-condensed">
+                <thead>
+                  <tr>
+                    <th>Fact</th>
+                    <th>Value</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for fact in facts %}
+                  <tr>
+                    <td>
+                      {{ fact.fact_name }}
+                    </td>
+                    <td>
+                      {{ fact.fact_data }}
+                    </td>
+                  </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+            <div class="tab-pane fade" id="tab2-4">
+              <table class="client_info table table-striped table-condensed">
+                <thead>
+                  <tr>
+                    <th>Condition</th>
+                    <th>Value</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for condition in conditions %}
+                  <tr>
+                    <td>
+                      {{ condition.condition_name }}
+                    </td>
+                    <td>
+                      {{ condition.condition_data }}
+                    </td>
+                  </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+        <!-- /.panel-body -->
       </div>
+      <!-- /.panel -->
     </div>
- {% endif %}
- {% if report.ProblemInstalls|length %}
- <div class="row">&nbsp;</div>
- <div class="row">
-       <div class="col-md-12">
-    <a class="btn btn-lg btn-info btn-block" data-toggle="collapse" data-target="#collapse5">Problem Installs</a>
-                    <div id="collapse5" class="collapse in">
- {% with title='Problem Installs' pkglist=report.ProblemInstalls %}
-   {% include 'server/pkgtable.html' %}
- {% endwith %}
-</div>
-</div>
-</div>
- {% endif %}
-
- <div class="row">&nbsp;</div>
- <div class="row">
-   <div class="col-md-12">
-       <a class="btn btn-lg btn-info btn-block" data-toggle="collapse" data-target="#collapse6">Managed Installs</a>
-                    <div id="collapse6" class="collapse">
-       {% with title='Managed Installs' pkglist=report.ManagedInstalls %}
-         {% include 'server/pkgtable.html' %}
-       {% endwith %}
-   </div>
-   </div>
-   </div>
-
-       {% if report.managed_uninstalls_list|length %}
-       <div class="row">&nbsp;</div>
-       <div class="row">
-       <div class="col-md-12">
-         <a class="btn btn-lg btn-info btn-block" data-toggle="collapse" data-target="#collapse8">Managed Uninstalls</a>
-                    <div id="collapse8" class="collapse">
-         <table class="client_info table table-striped table-condensed">
-           <thead>
-             <tr>
-               <th>Name</th>
-               <th>Status</th>
-             </tr>
-           </thead>
-           <tbody>
-             {% for item in report.managed_uninstalls_list %}
-             <tr>
-               <td>{{ item }}</td>
-               {% if item in report.RemovedItems %}
-                 <td>not installed</td>
-               {% else %}
-                 <td class='error'>installed</td>
-               {% endif %}
-             </tr>
-             {% endfor %}
-           </tbody>
-         </table>
-         </div>
-         </div>
-     </div>
-       {% endif %}
-   
-   {% if facts|length %}
-   <div class="row">&nbsp;</div>
-    <div class="row">
-     <div class="col-md-12">
-       <a class="btn btn-lg btn-info btn-block" data-toggle="collapse" data-target="#collapseOne">Facter</a>
-           <div id="collapseOne" class="collapse">
-           <table class="client_info table table-striped table-condensed">
-               <thead>
-                   <tr>
-                       <th>Fact</th>
-                       <th>Value</th>
-                   </tr>
-               </thead>
-               <tbody>
-                   {% for fact in facts %}
-                       <tr>
-                           <td>
-                               {{ fact.fact_name }}
-                           </td>
-                           <td>
-                               {{ fact.fact_data }}
-                           </td>
-                       </tr>
-                   {% endfor %}
-               </tbody>
-           </table>
-       </div>
-     </div>
-    </div>
-   {% endif %}
-
-   {% if conditions|length %}
-   <div class="row">&nbsp;</div>
-    <div class="row">
-      <div class="col-md-12">
-       <a class="btn btn-lg btn-info btn-block" data-toggle="collapse" data-target="#collapse7">MSC Conditions</a>
-           <div id="collapse7" class="collapse">
-           <table class="client_info table table-striped table-condensed">
-               <thead>
-                   <tr>
-                       <th>Condition</th>
-                       <th>Value</th>
-                   </tr>
-               </thead>
-               <tbody>
-                   {% for condition in conditions %}
-                       <tr>
-                           <td>
-                               {{ condition.condition_name }}
-                           </td>
-                           <td>
-                               {{ condition.condition_data }}
-                           </td>
-                       </tr>
-                   {% endfor %}
-               </tbody>
-           </table>
-       </div>
-      </div>
-    </div>
-   {% endif %}
-
-{% endblock %}
-{% block modal %}
-{% if user.userprofile.level == 'GA' or user.userprofile.level == 'RW' %}
-<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+  </div>
+</div>  
+  {% endblock %}
+  {% block modal %}
+  {% if user.userprofile.level == 'GA' or user.userprofile.level == 'RW' %}
+  <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
     <div class="modal-dialog">
       <div class="modal-content">
           <div class="modal-header">
@@ -372,5 +304,47 @@
       </div>
     </div>
   </div>
+  <!-- Error Modal -->
+  <div class="modal fade in" id="ErrorModal" tabindex="-1" role="dialog" aria-labelledby="theErrorModal" aria-hidden="true">
+    <div class="modal-dialog" style="width: 60%">
+      <!-- modal-content -->
+      <div class="modal-content">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+          <h4 class="modal-title" id="theErrorModal">Errors</h4>
+        </div>
+        <div class="modal-body">
+          <pre class="text-error pre-scrollable">{{ report.Errors|join:'<br>' }}</pre>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+        </div>
+      </div>
+      <!-- /.modal-content -->
+    </div>
+    <!-- /.modal-dialog -->
+  </div>
+  <!-- /.modal -->
+  <!-- Warning Modal -->
+  <div class="modal fade in" id="WarningModal" tabindex="-1" role="dialog" aria-labelledby="theWarningModal" aria-hidden="true">
+    <div class="modal-dialog" style="width: 60%">
+      <!-- modal-content -->
+      <div class="modal-content">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+          <h4 class="modal-title" id="theWarningModal">Warnings</h4>
+        </div>
+        <div class="modal-body">
+          <pre class="text-warning pre-scrollable">{{ report.Warnings|join:'<br>' }}</pre>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+        </div>
+      </div>
+      <!-- /.modal-content -->
+    </div>
+    <!-- /.modal-dialog -->
+  </div>
+  <!-- /.modal -->
 {% endif %}
 {% endblock %}

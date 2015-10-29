@@ -582,3 +582,62 @@ a.btn-danger a:hover {
 .panel-traffic-light .panel-body a:last-child {
   margin-right: 0;
 }
+
+.color-green {
+  color: #17c666;
+}
+a.color-green {
+  border-color: #17c666;
+  color: white;
+  background-color: #17c666;
+}
+a.color-green:hover {
+  color: #0f8143;
+}
+.color-red {
+  color: #e5421c;
+}
+a.color-red {
+  border-color: #e5421c;
+  color: white;
+  background-color: #e5421c;
+}
+a.color-red:hover {
+  color: #a22e13;
+}
+.color-yellow {
+  color: #fd9827;
+}
+.color-yellow a {
+  border-color: #fd9827;
+  color: white;
+  background-color: #fd9827;
+}
+a.color-yellow:hover {
+  color: #d67202;
+}
+.color-blue {
+  color: #2f79e7;
+}
+.color-blue a {
+  border-color: #2f79e7;
+  color: white;
+  background-color: #2f79e7;
+}
+a.color-blue:hover {
+  color: #0f8143;
+}
+.nav-pills .open > a,
+.nav-pills .open > a:hover,
+.nav-pills .open > a:focus {
+  background-color: #777;
+  border-color: #337AB7;
+}
+.nav-pills .dropdown-menu {
+  background-color: #FFFFFF;
+}
+.nav-pills .dropdown-menu > li > a:focus, 
+.dropdown-menu > li > a:hover {
+  background-color: #2F79E7;
+  color: #FFF;
+}

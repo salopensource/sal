@@ -585,5 +585,6 @@ a.btn-danger a:hover {
 
 .blue-spinner{
     display:block;
-    padding-top: 100px;
+    padding-top: 50px;
+    padding-bottom: 50px;
 }

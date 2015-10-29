@@ -55,3 +55,10 @@ def print_timestamp(timestamp):
     except ValueError:
         return None
     return time.strftime("%Y-%m-%d", time.gmtime(ts))
+
+@register.filter
+def next(value, arg):
+    try:
+        return value[int(arg)+1]
+    except:
+        return None

@@ -28,7 +28,7 @@ class DiskSpace(IPlugin):
         
         try:
             disk_ok = machines.filter(hd_percent__lt=80).count()
-        except::
+        except:
             disk_ok = 0
 
         try:

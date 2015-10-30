@@ -1260,15 +1260,15 @@ dd {
 @media (min-width: 768px) {
   .dl-horizontal dt {
     float: left;
-    width: 130px;
+    width: 160px;
     overflow: hidden;
     clear: left;
-    text-align: left;
+    text-align: right;
     text-overflow: ellipsis;
     white-space: nowrap;
   }
   .dl-horizontal dd {
-    margin-left: 150px;
+    margin-left: 180px;
   }
 }
 abbr[title],

@@ -153,22 +153,22 @@
                 {% if report.AppleUpdates|length %}
                 <li><a data-toggle="tab" href="#dd1"><i class="fa fa-info-circle color-yellow"></i>   Apple Updates</a></li>
                 {% else %}
-                <li><a href="#"><i class="fa fa-check-circle color-green"></i>   No Apple Updates</a></li>
+                <li class="disabled"><a href="#"><i class="fa fa-check-circle color-green"></i>   No Apple Updates</a></li>
                 {% endif %}
                 {% if report.ItemsToInstall|length %}
                 <li><a data-toggle="tab" href="#dd2"><i class="fa fa-info-circle color-yellow"></i>   Active Installs</a></li>
                 {% else %}
-                <li><a href="#"><i class="fa fa-check-circle color-green"></i>   No Active Installs</a></li>
+                <li class="disabled"><a href="#"><i class="fa fa-check-circle color-green"></i>   No Active Installs</a></li>
                 {% endif %}
                 {% if report.ItemsToRemove|length %}
                 <li><a data-toggle="tab" href="#dd3"><i class="fa fa-info-circle color-yellow"></i>   Active Removals</a></li>
                 {% else %}
-                <li><a href="#"><i class="fa fa-check-circle color-green"></i>   No Active Removals</a></li>
+                <li class="disabled"><a href="#"><i class="fa fa-check-circle color-green"></i>   No Active Removals</a></li>
                 {% endif %}
                 {% if report.ProblemInstalls|length %}
                 <li><a data-toggle="tab" href="#dd4"><i class="fa fa-info-circle color-yellow"></i>   Problem Installs</a></li>
                 {% else %}
-                <li><a href="#"><i class="fa fa-check-circle color-green"></i>   No Problem Installs</a></li>
+                <li class="disabled"><a href="#"><i class="fa fa-check-circle color-green"></i>   No Problem Installs</a></li>
                 {% endif %}
               </ul>
             </li>

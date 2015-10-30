@@ -628,7 +628,7 @@ a.color-blue:hover {
 .nav-pills .open > a,
 .nav-pills .open > a:hover,
 .nav-pills .open > a:focus {
-  background-color: #777;
+  background-color: #E4E4E4;
   border-color: #337AB7;
 }
 .nav-pills .dropdown-menu {

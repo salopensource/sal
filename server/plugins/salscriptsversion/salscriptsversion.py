@@ -26,9 +26,9 @@ class SalScriptsVersion(IPlugin):
         if page == 'group_dashboard':
             t = loader.get_template('salscriptsversion/templates/id.html')
         
-        if machines:
+        try:
             sal_info = machines.values('sal_version').exclude(sal_version__isnull=True).annotate(count=Count('sal_version')).order_by('sal_version')
-        else:
+        except:
             sal_info = []
 
         c = Context({

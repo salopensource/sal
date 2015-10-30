@@ -30,13 +30,11 @@ class TopProcesses(IPlugin):
         if page == 'group_dashboard':
             t = loader.get_template('topprocesses/templates/id.html')
         
-        if machines:
-            try:
-                info = OSQueryColumn.objects.filter(osquery_result__name='pack_sal_top_processes').filter(osquery_result__machine=machines).filter(column_name='name').values('column_data').annotate(data_count=Count('column_data')).order_by('-data_count')[:100:1]
-            except:
-                info = []
-        else:
+        try:
+            info = OSQueryColumn.objects.filter(osquery_result__name='pack_sal_top_processes').filter(osquery_result__machine=machines).filter(column_name='name').values('column_data').annotate(data_count=Count('column_data')).order_by('-data_count')[:100:1]
+        except:
             info = []
+
         c = Context({
             'title': 'Top Processes',
             'data': info,

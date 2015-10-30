@@ -26,9 +26,9 @@ class MunkiVersion(IPlugin):
         if page == 'group_dashboard':
             t = loader.get_template('munkiversion/templates/id.html')
         
-        if machines:
+        try:
             munki_info = machines.values('munki_version').annotate(count=Count('munki_version')).order_by('munki_version')
-        else:
+        except:
             munki_info = []
 
         c = Context({

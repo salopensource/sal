@@ -38,18 +38,31 @@ class Activity(IPlugin):
         if page == 'group_dashboard':
             t = loader.get_template('activity/templates/id.html')
         
-        if machines:
+        try:
             checked_in_this_hour = machines.filter(last_checkin__gte=hour_ago).count()
+        except:
+            checked_in_this_hour = 0
+
+        try:
             checked_in_today = machines.filter(last_checkin__gte=today).count()
+        except:
+            checked_in_today = 0
+
+        try:
             checked_in_this_week = machines.filter(last_checkin__gte=week_ago).count()
+        except:
+            checked_in_this_week = 0
+
+        try:
             inactive_for_a_month = machines.filter(last_checkin__range=(three_months_ago, month_ago)).count()
+        except:
+            inactive_for_a_month = 0
+
+        try:
             inactive_for_three_months = machines.exclude(last_checkin__gte=three_months_ago).count()
-        else:
-            checked_in_this_hour = None
-            checked_in_today = None
-            checked_in_this_week = None
-            inactive_for_a_month = None
-            inactive_for_three_months = None
+        except:
+            inactive_for_three_months = 0
+
 
         c = Context({
             'title': 'Activity',

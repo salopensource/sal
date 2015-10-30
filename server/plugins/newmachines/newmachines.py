@@ -32,14 +32,19 @@ class NewMachines(IPlugin):
         if page == 'group_dashboard':
             t = loader.get_template('newmachines/templates/id.html')
         
-        if machines:
-            print this_day
+        try:
             today = machines.filter(first_checkin__gte=this_day).count()
-            this_week = machines.filter(first_checkin__gte=week_ago).count()
-            this_month = machines.filter(first_checkin__gte=month_ago).count()
-        else:
+        except:
             today = 0
+
+        try:
+            this_week = machines.filter(first_checkin__gte=week_ago).count()
+        except:
             this_week = 0
+
+        try:
+            this_month = machines.filter(first_checkin__gte=month_ago).count()
+        except:
             this_month = 0
 
         c = Context({

@@ -26,9 +26,9 @@ class OperatingSystem(IPlugin):
         if page == 'group_dashboard':
             t = loader.get_template('operatingsystem/templates/os_id.html')
         
-        if machines:
+        try:
             os_info = machines.values('operating_system').annotate(count=Count('operating_system')).order_by('operating_system')
-        else:
+        except:
             os_info = []
 
         c = Context({

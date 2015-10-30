@@ -31,13 +31,18 @@ class Memory(IPlugin):
         if page == 'group_dashboard':
             t = loader.get_template('plugins/traffic_lights_id.html')
             
-        if machines:
+        try:
             mem_ok = machines.filter(memory_kb__gte=mem_8_gb).count()
-            mem_warning = machines.filter(memory_kb__range=[mem_4_gb, mem_775_gb]).count()
-            mem_alert = machines.filter(memory_kb__lt=mem_4_gb).count()
-        else:
+        except:
             mem_ok = 0
+        try:
+            mem_warning = machines.filter(memory_kb__range=[mem_4_gb, mem_775_gb]).count()
+        except:
             mem_warning = 0
+        
+        try:
+            mem_alert = machines.filter(memory_kb__lt=mem_4_gb).count()
+        except:
             mem_alert = 0
         
         c = Context({

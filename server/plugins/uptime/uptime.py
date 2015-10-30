@@ -26,11 +26,11 @@ class Uptime(IPlugin):
         if page == 'group_dashboard':
             t = loader.get_template('plugins/traffic_lights_id.html')
 
-        if machines:
+        try:
             ok = machines.filter(facts__fact_name='uptime_days', facts__fact_data__lte=1).count()
             warning = machines.filter(facts__fact_name='uptime_days', facts__fact_data__range=[1,7]).count()
             alert = machines.filter(facts__fact_name='uptime_days', facts__fact_data__gt=7).count()
-        else:
+        except:
             ok = 0
             warning = 0
             alert = 0

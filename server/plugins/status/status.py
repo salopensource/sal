@@ -34,22 +34,13 @@ class Status(IPlugin):
         if page == 'group_dashboard':
             t = loader.get_template('status/templates/id.html')
         
-        if machines:
-            errors = machines.filter(errors__gt=0).count()
-            warnings = machines.filter(warnings__gt=0).count()
-            activity = machines.filter(activity__isnull=False).count()
-            sevendayactive = machines.filter(last_checkin__gte=week_ago).count()
-            thirtydayactive = machines.filter(last_checkin__gte=month_ago).count()
-            ninetydayactive = machines.filter(last_checkin__gte=three_months_ago).count()
-            all_machines = machines.count()
-        else:
-            errors = 0
-            warnings = 0
-            activity = 0
-            sevendayactive = 0
-            thirtydayactive = 0
-            ninetydayactive = 0
-            all_machines = 0
+        errors = machines.filter(errors__gt=0).count()
+        warnings = machines.filter(warnings__gt=0).count()
+        activity = machines.filter(activity__isnull=False).count()
+        sevendayactive = machines.filter(last_checkin__gte=week_ago).count()
+        thirtydayactive = machines.filter(last_checkin__gte=month_ago).count()
+        ninetydayactive = machines.filter(last_checkin__gte=three_months_ago).count()
+        all_machines = machines.count()
 
         c = Context({
             'title': 'Status',

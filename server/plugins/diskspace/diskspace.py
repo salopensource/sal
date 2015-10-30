@@ -26,13 +26,19 @@ class DiskSpace(IPlugin):
         if page == 'group_dashboard':
             t = loader.get_template('plugins/traffic_lights_id.html')
         
-        if machines:
+        try:
             disk_ok = machines.filter(hd_percent__lt=80).count()
-            disk_warning = machines.filter(hd_percent__range=["80", "89"]).count()
-            disk_alert = machines.filter(hd_percent__gte=90).count()
-        else:
+        except::
             disk_ok = 0
+
+        try:
+            disk_warning = machines.filter(hd_percent__range=["80", "89"]).count()
+        except:
             disk_warning = 0
+        
+        try:
+            disk_alert = machines.filter(hd_percent__gte=90).count()
+        except:
             disk_alert = 0
 
         c = Context({

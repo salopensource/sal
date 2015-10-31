@@ -9,8 +9,11 @@ import server.utils as utils
 class Pending3rdPartyUpdates(IPlugin):
     def plugin_type(self):
         return 'builtin'
+
+    def widget_width(self):
+        return 4
         
-    def show_widget(self, page, machines=None, id=None):
+    def widget_content(self, page, machines=None, id=None):
 
         if page == 'front':
             t = loader.get_template('plugins/pendingupdates/front.html')
@@ -52,7 +55,7 @@ class Pending3rdPartyUpdates(IPlugin):
         else:
             size = 4
 
-        return t.render(c), size
+        return t.render(c)
 
     def filter_machines(self, machines, data):
         # You will be passed a QuerySet of machines, you then need to perform some filtering based on the 'data' part of the url from the show_widget output. Just return your filtered list of machines and the page title.

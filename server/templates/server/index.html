@@ -3,7 +3,34 @@
 {% load dashboard_extras %}
 
 {% block script %}
+<script>
+ 
+$( document ).ready(function() {
+ 
+   {% for widget in output %}
 
+   $.ajaxWithRetries(
+    {
+        url: "{% url 'plugin_load_front' widget.name %}",  
+        error: function(){
+            console.log('{{ widget.name }} Failed');
+        },
+        success: function( data ) {
+                $('#plugin-{{ widget.name }}').html(data);
+            },
+    },
+    {
+        retries: 20,
+        backoff: false
+    }
+);
+
+
+   {% endfor %}
+ 
+});
+ 
+</script>
 
 {% endblock %}
 

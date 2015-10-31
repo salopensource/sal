@@ -581,6 +581,13 @@ a.btn-danger a:hover {
 .panel-traffic-light .panel-body a:last-child {
   margin-right: 0;
 }
+
+.blue-spinner{
+    display:block;
+    padding-top: 50px;
+    padding-bottom: 50px;
+  }
+
 .color-green {
   color: #17c666;
 }

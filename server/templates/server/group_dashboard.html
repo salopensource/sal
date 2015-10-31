@@ -3,6 +3,34 @@
 {% load dashboard_extras %}
 {% block script %}
 
+<script>
+ 
+$( document ).ready(function() {
+ 
+   {% for widget in output %}
+
+       $.ajaxWithRetries(
+    {
+        url: "{% url 'plugin_load_id' widget.name 'group_dashboard' machine_group.id %}",  
+        error: function(){
+            console.log('{{ widget.name }} Failed');
+        },
+        success: function( data ) {
+                $('#plugin-{{ widget.name }}').html(data);
+            },
+    },
+    {
+        retries: 5,
+        backoff: true
+    }
+);
+   {% endfor %}
+ 
+});
+   
+ 
+</script>
+
 {% endblock %}
 
 {% block nav %}

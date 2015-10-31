@@ -20,8 +20,11 @@ three_months_ago = today - timedelta(days=90)
 class PuppetStatus(IPlugin):
     def plugin_type(self):
         return 'builtin'
+
+    def widget_width(self):
+        return 4
         
-    def show_widget(self, page, machines=None, theid=None):
+    def widget_content(self, page, machines=None, theid=None):
         if page == 'front':
             t = loader.get_template('puppetstatus/templates/front.html')
         
@@ -31,7 +34,7 @@ class PuppetStatus(IPlugin):
         if page == 'group_dashboard':
             t = loader.get_template('puppetstatus/templates/id.html')
         
-        if machines:
+        try:
             puppet_error = machines.filter(puppet_errors__gt=0).count()
             # if there aren't any records with last checkin dates, assume puppet isn't being used
             last_checkin = machines.filter(last_puppet_run__isnull=False).count()
@@ -39,7 +42,7 @@ class PuppetStatus(IPlugin):
                 checked_in_this_month = machines.filter(last_puppet_run__lte=month_ago).count()
             else:
                 checked_in_this_month = 0
-        else:
+        except:
             puppet_error = 0
             last_checkin = 0
             checked_in_this_month = 0
@@ -63,7 +66,7 @@ class PuppetStatus(IPlugin):
         })
         
 
-        return t.render(c), size
+        return t.render(c)
     
     def filter_machines(self, machines, data):
         if data == 'puppeterror':

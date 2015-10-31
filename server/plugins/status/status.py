@@ -17,8 +17,11 @@ three_months_ago = today - timedelta(days=90)
 class Status(IPlugin):
     def plugin_type(self):
         return 'builtin'
+
+    def widget_width(self):
+        return 4
         
-    def show_widget(self, page, machines=None, theid=None):
+    def widget_content(self, page, machines=None, theid=None):
         # The data is data is pulled from the database and passed to a template.
         
         # There are three possible views we're going to be rendering to - front, bu_dashbaord and group_dashboard. If page is set to bu_dashboard, or group_dashboard, you will be passed a business_unit or machine_group id to use (mainly for linking to the right search).
@@ -31,22 +34,13 @@ class Status(IPlugin):
         if page == 'group_dashboard':
             t = loader.get_template('status/templates/id.html')
         
-        if machines:
-            errors = machines.filter(errors__gt=0).count()
-            warnings = machines.filter(warnings__gt=0).count()
-            activity = machines.filter(activity__isnull=False).count()
-            sevendayactive = machines.filter(last_checkin__gte=week_ago).count()
-            thirtydayactive = machines.filter(last_checkin__gte=month_ago).count()
-            ninetydayactive = machines.filter(last_checkin__gte=three_months_ago).count()
-            all_machines = machines.count()
-        else:
-            errors = 0
-            warnings = 0
-            activity = 0
-            sevendayactive = 0
-            thirtydayactive = 0
-            ninetydayactive = 0
-            all_machines = 0
+        errors = machines.filter(errors__gt=0).count()
+        warnings = machines.filter(warnings__gt=0).count()
+        activity = machines.filter(activity__isnull=False).count()
+        sevendayactive = machines.filter(last_checkin__gte=week_ago).count()
+        thirtydayactive = machines.filter(last_checkin__gte=month_ago).count()
+        ninetydayactive = machines.filter(last_checkin__gte=three_months_ago).count()
+        all_machines = machines.count()
 
         c = Context({
             'title': 'Status',
@@ -60,7 +54,7 @@ class Status(IPlugin):
             'theid': theid,
             'page': page
         })
-        return t.render(c), 4
+        return t.render(c)
     
     def filter_machines(self, machines, data):
         # You will be passed a QuerySet of machines, you then need to perform some filtering based on the 'data' part of the url from the show_widget output. Just return your filtered list of machines and the page title.

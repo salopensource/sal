@@ -9,8 +9,11 @@ import server.utils as utils
 class Uptime(IPlugin):
     def plugin_type(self):
         return 'facter'
+
+    def widget_width(self):
+        return 4
         
-    def show_widget(self, page, machines=None, theid=None):
+    def widget_content(self, page, machines=None, theid=None):
         # The data is data is pulled from the database and passed to a template.
 
         # There are three possible views we're going to be rendering to - front, bu_dashbaord and group_dashboard. If page is set to bu_dashboard, or group_dashboard, you will be passed a business_unit or machine_group id to use (mainly for linking to the right search).
@@ -23,11 +26,11 @@ class Uptime(IPlugin):
         if page == 'group_dashboard':
             t = loader.get_template('plugins/traffic_lights_id.html')
 
-        if machines:
+        try:
             ok = machines.filter(facts__fact_name='uptime_days', facts__fact_data__lte=1).count()
             warning = machines.filter(facts__fact_name='uptime_days', facts__fact_data__range=[1,7]).count()
             alert = machines.filter(facts__fact_name='uptime_days', facts__fact_data__gt=7).count()
-        else:
+        except:
             ok = 0
             warning = 0
             alert = 0
@@ -44,7 +47,7 @@ class Uptime(IPlugin):
             'page': page,
             'theid': theid
         })
-        return t.render(c), 4
+        return t.render(c)
 
     def filter_machines(self, machines, data):
         if data == 'ok':

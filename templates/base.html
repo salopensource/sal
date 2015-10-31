@@ -13,7 +13,7 @@
 
     <title>{% block title %}{{ DISPLAY_NAME }}{% endblock %}</title>
 
-    <link href='http://fonts.googleapis.com/css?family=Lato' rel='stylesheet' type='text/css'>
+    <link href='//fonts.googleapis.com/css?family=Lato' rel='stylesheet' type='text/css'>
     <!-- LESS Compiler -->
     <script src="{{ STATIC_URL }}js/less-1.4.2.min.js"></script>
 
@@ -61,6 +61,7 @@
     <!-- DataTables JavaScript -->
     <script src="{{ STATIC_URL }}js/plugins/dataTables/jquery.dataTables.js"></script>
     <script src="{{ STATIC_URL }}js/plugins/dataTables/dataTables.bootstrap.js"></script>
+    <script src="{{ STATIC_URL }}js/retryAjax.js"></script>
     {% block script %}
     {% endblock %}
 

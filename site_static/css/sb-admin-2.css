@@ -591,7 +591,7 @@ a.btn-danger a:hover {
 .color-green {
   color: #17c666;
 }
-a.color-green {
+.color-green a {
   border-color: #17c666;
   color: white;
   background-color: #17c666;
@@ -602,7 +602,7 @@ a.color-green:hover {
 .color-red {
   color: #e5421c;
 }
-a.color-red {
+.color-red a {
   border-color: #e5421c;
   color: white;
   background-color: #e5421c;

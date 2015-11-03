@@ -90,7 +90,7 @@ class Machine(models.Model):
     warnings = models.IntegerField(default=0)
     activity = models.TextField(editable=False, null=True, blank=True)
     puppet_version = models.TextField(null=True, blank=True)
-    sal_version = models.TextField(db_index=True, null=True, blank=True)
+    sal_version = models.CharField(db_index=True, null=True, blank=True, max_length=255)
     last_puppet_run = models.DateTimeField(db_index=True, blank=True,null=True)
     puppet_errors = models.IntegerField(db_index=True, default=0)
 
@@ -196,8 +196,8 @@ class Machine(models.Model):
 
 class Fact(models.Model):
     machine = models.ForeignKey(Machine, related_name='facts')
-    fact_name = models.TextField(db_index=True)
-    fact_data = models.TextField(db_index=True)
+    fact_name = models.CharField(db_index=True, max_length=255)
+    fact_data = models.TextField()
     def __unicode__(self):
         return '%s: %s' % (self.fact_name, self.fact_data)
     class Meta:
@@ -205,8 +205,8 @@ class Fact(models.Model):
 
 class HistoricalFact(models.Model):
     machine = models.ForeignKey(Machine, related_name='historical_facts')
-    fact_name = models.TextField(db_index=True)
-    fact_data = models.TextField(db_index=True)
+    fact_name = models.CharField(db_index=True, max_length=255)
+    fact_data = models.TextField()
     fact_recorded = models.DateTimeField(db_index=True)
     def __unicode__(self):
         return self.fact_name
@@ -215,8 +215,8 @@ class HistoricalFact(models.Model):
 
 class Condition(models.Model):
     machine = models.ForeignKey(Machine, related_name='conditions')
-    condition_name = models.TextField(db_index=True)
-    condition_data = models.TextField(db_index=True)
+    condition_name = models.CharField(max_length=255)
+    condition_data = models.TextField()
     def __unicode__(self):
         return self.condition_name
     class Meta:
@@ -234,8 +234,8 @@ class OSQueryResult(models.Model):
 
 class OSQueryColumn(models.Model):
     osquery_result = models.ForeignKey(OSQueryResult, related_name='osquery_columns')
-    column_name = models.TextField(db_index=True)
-    column_data = models.TextField(db_index=True, null=True, blank=True)
+    column_name = models.CharField(db_index=True, max_length=255)
+    column_data = models.TextField(null=True, blank=True)
     action = models.CharField(max_length=255, null=True, blank=True)
     def __unicode__(self):
         return self.column_name

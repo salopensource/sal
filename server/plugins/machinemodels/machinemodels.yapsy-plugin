@@ -1,9 +1,9 @@
 [Core]
-Name = MunkiVersion
-Module = munkiversion
+Name = MachineModels
+Module = machinemodels
 
 [Documentation]
 Author = Graham Gilbert
 Version = 0.1
 Website = http://grahamgilbert.com
-Description = A pie chart of Munki versions
+Description = A pie chart of Machine models

@@ -5,7 +5,7 @@
         </div>
         <!-- /.panel-heading -->
         <div class="panel-body">
-        <div id="munkiversiongraph" style="max-height: 250px;"></div>
+        <div id="machinemodelsgraph" style="max-height: 250px;"></div>
     </div>
     </div>
 {% block script %}
@@ -15,22 +15,20 @@
 <script type="text/javascript">
 $(function() {
 Morris.Donut({
-        element: 'munkiversiongraph',
+        element: 'machinemodelsgraph',
         data: [
 {% for item in data %}
-{% if item.munki_version %}
     {
-            label: "{{ item.munki_version }}",
+            label: "{{ item.machine_model }}",
             value: {{ item.count }}
         },
 
-{% endif %}
 {% endfor %}
 ],
         resize: true
     }).on('click', function(i, row){
   console.log(row['label']);
-  var url_mask = "{% url 'machine_list_id' 'MunkiVersion' 'abc123' page theid %}".replace(/abc123/, row['label'].toString());
+  var url_mask = "{% url 'machine_list_id' 'MachineModel' 'abc123' page theid %}".replace(/abc123/, row['label'].toString());
   window.location=url_mask;
 });
 });

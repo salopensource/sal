@@ -27,7 +27,7 @@ Morris.Donut({
         resize: true
     }).on('click', function(i, row){
   console.log(row['label']);
-  var url_mask = "{% url 'machine_list_front' 'MachineModel' 'abc123' %}".replace(/abc123/, row['label'].toString());
+  var url_mask = "{% url 'machine_list_front' 'MachineModels' 'abc123' %}".replace(/abc123/, row['label'].toString());
   window.location=url_mask;
 });
 });

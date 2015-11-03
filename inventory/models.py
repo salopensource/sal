@@ -17,7 +17,7 @@ class InventoryItem(models.Model):
     version = models.CharField(db_index=True, max_length=32)
     bundleid = models.CharField(db_index=True, max_length=255)
     bundlename = models.CharField(db_index=True, max_length=255)
-    path = models.TextField(db_index=True)
+    path = models.TextField()
     class Meta:
         ordering = ['name', '-version']
 

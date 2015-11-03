@@ -28,11 +28,6 @@ class Migration(migrations.Migration):
         ),
         migrations.AlterField(
             model_name='inventoryitem',
-            name='path',
-            field=models.TextField(db_index=True),
-        ),
-        migrations.AlterField(
-            model_name='inventoryitem',
             name='version',
             field=models.CharField(max_length=32, db_index=True),
         ),

@@ -22,36 +22,6 @@ class Migration(migrations.Migration):
             field=models.CharField(max_length=255, db_index=True),
         ),
         migrations.AlterField(
-            model_name='condition',
-            name='condition_data',
-            field=models.TextField(db_index=True),
-        ),
-        migrations.AlterField(
-            model_name='condition',
-            name='condition_name',
-            field=models.TextField(db_index=True),
-        ),
-        migrations.AlterField(
-            model_name='fact',
-            name='fact_data',
-            field=models.TextField(db_index=True),
-        ),
-        migrations.AlterField(
-            model_name='fact',
-            name='fact_name',
-            field=models.TextField(db_index=True),
-        ),
-        migrations.AlterField(
-            model_name='historicalfact',
-            name='fact_data',
-            field=models.TextField(db_index=True),
-        ),
-        migrations.AlterField(
-            model_name='historicalfact',
-            name='fact_name',
-            field=models.TextField(db_index=True),
-        ),
-        migrations.AlterField(
             model_name='machine',
             name='first_checkin',
             field=models.DateTimeField(db_index=True, auto_now_add=True, null=True),
@@ -108,11 +78,6 @@ class Migration(migrations.Migration):
         ),
         migrations.AlterField(
             model_name='machine',
-            name='sal_version',
-            field=models.TextField(db_index=True, null=True, blank=True),
-        ),
-        migrations.AlterField(
-            model_name='machine',
             name='serial',
             field=models.CharField(unique=True, max_length=100, db_index=True),
         ),
@@ -120,16 +85,6 @@ class Migration(migrations.Migration):
             model_name='machinegroup',
             name='key',
             field=models.CharField(null=True, editable=False, max_length=255, blank=True, unique=True, db_index=True),
-        ),
-        migrations.AlterField(
-            model_name='osquerycolumn',
-            name='column_data',
-            field=models.TextField(db_index=True, null=True, blank=True),
-        ),
-        migrations.AlterField(
-            model_name='osquerycolumn',
-            name='column_name',
-            field=models.TextField(db_index=True),
         ),
         migrations.AlterField(
             model_name='osqueryresult',

@@ -332,7 +332,7 @@ def machine_inventory(request, machine_id):
         inventory = InventoryItem.objects.filter(machine=machine).values('name', 'version', 'path', 'bundleid', 'bundlename').distinct()[start:end]
     else:
         inventory = InventoryItem.objects.filter(machine=machine).values('name', 'version', 'path', 'bundleid', 'bundlename')
-        inventory = unique_apps(inventory)[start:end]
+        inventory = unique_apps(inventory, 'dict')[start:end]
 
     if len(inventory) != 25:
         # we've not got 25 results, probably the last page

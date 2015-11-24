@@ -73,4 +73,4 @@ class Pending3rdPartyUpdates(IPlugin):
             display_name = item['display_name']
             break
 
-        return machines, 'Machines that need to install '+display_name+' '+update_version
+        return machines, 'Machines that need to install ' + display_name + ' ' + update_version

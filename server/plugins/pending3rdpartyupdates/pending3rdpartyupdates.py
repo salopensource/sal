@@ -12,7 +12,7 @@ class Pending3rdPartyUpdates(IPlugin):
 
     def widget_width(self):
         return 4
-        
+
     def widget_content(self, page, machines=None, id=None):
 
         if page == 'front':
@@ -35,7 +35,7 @@ class Pending3rdPartyUpdates(IPlugin):
             # loop over existing items, see if there is a dict with the right value
             found = False
             for update in pending_updates:
-                if update['update'] == item['update']:
+                if update['update'] == item['update'] and update['update_version'] == item['update_version']:
                     update['count'] = update['count'] + item['count']
                     found = True
                     break
@@ -60,14 +60,17 @@ class Pending3rdPartyUpdates(IPlugin):
     def filter_machines(self, machines, data):
         # You will be passed a QuerySet of machines, you then need to perform some filtering based on the 'data' part of the url from the show_widget output. Just return your filtered list of machines and the page title.
 
-        machines = machines.filter(pending_updates__update=data)
+        # updatename--version
+        (update_name, update_version) = data.split("--")
+        machines = machines.filter(pending_updates__update=update_name,
+         pending_updates__update_version=update_version)
 
         # get the display name of the update
 
-        display_name = PendingUpdate.objects.filter(update=data).values('display_name')
+        display_name = PendingUpdate.objects.filter(update=update_name, update_version=update_version).values('display_name')
 
         for item in display_name:
             display_name = item['display_name']
             break
 
-        return machines, 'Machines that need to install '+display_name
+        return machines, 'Machines that need to install '+display_name+' '+update_version

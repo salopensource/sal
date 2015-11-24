@@ -10,7 +10,9 @@
             {% for item in data %}
                 <tr>
                     <td>
-                        <a href="{% url 'machine_list_id' plugin item.update page theid %}">
+                        {% with item.update|add:'--'|add:item.update_version as var %}
+                        <a href="{% url 'machine_list_id' plugin var page theid %}">
+                        {% endwith %}
                         {{ item.display_name }} {{ item.update_version }}
                         <span class="badge pull-right">{{ item.count }}</span>
                         </a>

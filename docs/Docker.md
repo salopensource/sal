@@ -48,7 +48,7 @@ Upgrading using Docker is simple:
 $ docker pull macadmins/sal  
 $ docker stop sal  
 $ docker rm sal  
-$ docker run -d --name="sal"\
+$ docker run -d --name="sal" \
   -p 80:8000 \
   --link postgres-sal:db \
   -e ADMIN_PASS=pass \

@@ -1495,7 +1495,7 @@ def process_update_item(name, version, update_type, action, recorded, machine, e
             update_history_item.extra = extra
             update_history_item.save()
 
-        if action == 'install':
+        if action == 'install' or action == 'removal':
             update_history.pending_recorded = False
             update_history.save()
 

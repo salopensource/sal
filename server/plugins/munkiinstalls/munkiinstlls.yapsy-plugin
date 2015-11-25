@@ -1,0 +1,9 @@
+[Core]
+Name = MunkiInstalls
+Module = munkiinstalls
+
+[Documentation]
+Author = Graham Gilbert
+Version = 0.1
+Website = http://grahamgilbert.com
+Description = A line graph of Munki installs in the last 24 hours

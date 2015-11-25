@@ -110,14 +110,6 @@ def index(request):
                 return redirect('server.views.bu_dashboard', bu_id=bu.id)
                 break
 
-    # if user_level == 'GA':
-    #     machines = Machine.objects.all()
-    # else:
-    #     machines = Machine.objects.none()
-    #     for business_unit in user.businessunit_set.all():
-    #         for group in business_unit.machinegroup_set.all():
-    #             machines = machines | group.machine_set.all()
-
     # Load in the default plugins if needed
     utils.loadDefaultPlugins()
     # Build the manager
@@ -132,7 +124,13 @@ def index(request):
     for enabled_plugin in enabled_plugins:
         # Loop round the plugins and print their names.
         for plugin in manager.getAllPlugins():
-            if plugin.name == enabled_plugin.name:
+            # If plugin_type isn't set, assume its an old style one
+            try:
+                plugin_type = plugin.plugin_object.plugin_type()
+            except:
+                plugin_type = 'old'
+            if plugin.name == enabled_plugin.name and \
+            plugin_type != 'machine_info' and plugin_type != 'front_full':
                 data = {}
                 data['name'] = plugin.name
                 data['width'] = plugin.plugin_object.widget_width()

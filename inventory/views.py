@@ -48,9 +48,9 @@ def unique_apps(inventory, input_type='object'):
         found_flag = False
         if input_type == 'dict':
             for found_item in found:
-                if (inventory_item['name'] == found_item['name'] and 
+                if (inventory_item['name'] == found_item['name'] and
                     inventory_item['version'] == found_item['version'] and
-                    inventory_item['bundleid'] == found_item['bundleid'] and 
+                    inventory_item['bundleid'] == found_item['bundleid'] and
                     inventory_item['bundlename'] == found_item['bundlename'] and
                     inventory_item['path'] == found_item['path']):
                     found_flag = True
@@ -65,9 +65,9 @@ def unique_apps(inventory, input_type='object'):
                 found.append(found_item)
         else:
             for found_item in found:
-                if (inventory_item.name == found_item['name'] and 
+                if (inventory_item.name == found_item['name'] and
                     inventory_item.version == found_item['version'] and
-                    inventory_item.bundleid == found_item['bundleid'] and 
+                    inventory_item.bundleid == found_item['bundleid'] and
                     inventory_item.bundlename == found_item['bundlename'] and
                     inventory_item.path == found_item['path']):
                     found_flag = True
@@ -91,7 +91,7 @@ def inventory_list(request, page='front', theID=None):
     inventory_bundleid = request.GET.get('bundleid', '')
     inventory_path = request.GET.get('path')
     inventory_bundlename = request.GET.get('bundlename','')
-    
+
     # get a list of machines (either from the BU or the group)
     if page == 'front':
         # get all machines
@@ -126,7 +126,7 @@ def inventory_list(request, page='front', theID=None):
     next_id = page + 1
     start = (page - 1) * 25
     end = page * 25
-    
+
     # get the InventoryItems limited to the machines we're allowed to look at
     inventory = InventoryItem.objects.filter(name=inventory_name, version=inventory_version, bundleid=inventory_bundleid, bundlename=inventory_bundlename).filter(machine=machines)[start:end]
 
@@ -142,7 +142,7 @@ def inventory_list(request, page='front', theID=None):
 def inventory_submit(request):
     if request.method != 'POST':
         raise Http404
-    
+
     # list of bundleids to ignore
     bundleid_ignorelist = [
         'com.apple.print.PrinterProxy'
@@ -190,10 +190,10 @@ def inventory_submit(request):
             return HttpResponse(
                 "Inventory submmitted for %s.\n" %
                 submission.get('serial'))
-    
+
     return HttpResponse("No inventory submitted.\n")
 
-
+@csrf_exempt
 def inventory_hash(request, serial):
     sha256hash = ''
     machine = None
@@ -263,7 +263,7 @@ def bu_inventory(request, bu_id):
     next_id = page + 1
     start = (page - 1) * 25
     end = page * 25
-    
+
     if is_postgres():
         inventory = InventoryItem.objects.filter(machine__machine_group__business_unit=business_unit).values('name', 'version', 'path', 'bundleid', 'bundlename').distinct()[start:end]
     else:
@@ -303,8 +303,8 @@ def machine_group_inventory(request, group_id):
     if len(inventory) != 25:
         # we've not got 25 results, probably the last page
         next_id = 0
-    
-    
+
+
     c = {'user': request.user, 'inventory': inventory, 'page':'machine_group', 'business_unit':business_unit,'machine_group':machine_group, 'request': request, 'previous_id': previous_id, 'next_id':next_id}
     return render_to_response('inventory/index.html', c, context_instance=RequestContext(request))
 
@@ -337,8 +337,8 @@ def machine_inventory(request, machine_id):
     if len(inventory) != 25:
         # we've not got 25 results, probably the last page
         next_id = 0
-    
-    
+
+
     c = {'user': request.user, 'inventory': inventory, 'page':'machine_id', 'business_unit':business_unit,'machine':machine, 'request': request, 'previous_id': previous_id, 'next_id':next_id}
     return render_to_response('inventory/index.html', c, context_instance=RequestContext(request))
 
@@ -383,7 +383,7 @@ def export_csv(request, page='front', theID=None):
 
     if page == 'machine_id':
         machines = Machine.objects.filter(id=theID)
-    
+
     # get the InventoryItems limited to the machines we're allowed to look at
     inventoryitems = InventoryItem.objects.filter(name=inventory_name, version=inventory_version, bundleid=inventory_bundleid, bundlename=inventory_bundlename).filter(machine=machines).order_by('name')
 

@@ -162,15 +162,14 @@ def orderPluginOutput(pluginOutput, page='front', theID=None):
 
 def getBUmachines(theid):
     business_unit = get_object_or_404(BusinessUnit, pk=theid)
-    #machine_groups = MachineGroup.objects.filter(business_unit=business_unit).prefetch_related('machine_set').all()
-
-    # if machine_groups.count() != 0:
-    #     machines_unsorted = machine_groups[0].machine_set.all()
-    #     for machine_group in machine_groups[1:]:
-    #         machines_unsorted = machines_unsorted | machine_group.machine_set.all()
-    # else:
-    #     machines_unsorted = None
-    # machines=machines_unsorted
     machines = Machine.objects.filter(machine_group__business_unit=business_unit)
 
     return machines
+
+def decode_to_string(base64bz2data):
+    '''Decodes an string compressed via bz2 and base64 encoded.'''
+    try:
+        bz2data = base64.b64decode(base64bz2data)
+        return bz2.decompress(bz2data)
+    except Exception:
+        return ''

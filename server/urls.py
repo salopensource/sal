@@ -5,6 +5,10 @@ urlpatterns = patterns('server.views',
     url(r'^$', 'index', name='home'),
     # checkin
     url(r'^checkin/', 'checkin', name='checkin'),
+    # Install log hash
+    url(r'^installlog/hash/(?P<serial>.+)/$', 'install_log_hash', name='install_log_hash'),
+    # Install log submit
+    url(r'^installlog/submit/$', 'install_log_submit', name='install_log_submit'),
     # preflight
     url(r'^preflight/', 'preflight', name='preflight'),
     # Search

@@ -93,6 +93,8 @@ class Machine(models.Model):
     sal_version = models.CharField(db_index=True, null=True, blank=True, max_length=255)
     last_puppet_run = models.DateTimeField(db_index=True, blank=True,null=True)
     puppet_errors = models.IntegerField(db_index=True, default=0)
+    install_log_hash = models.CharField(max_length=64, blank=True, null=True)
+    install_log = models.TextField(null=True, blank=True)
 
     def get_fields(self):
         return [(field.name, field.value_to_string(self)) for field in Machine._meta.fields]
@@ -193,6 +195,39 @@ class Machine(models.Model):
         self.serial = self.serial.replace('/', '')
         self.serial = self.serial.replace('+', '')
         super(Machine, self).save()
+
+class UpdateHistory(models.Model):
+    UPDATE_TYPE = (
+        ('third_party', '3rd Party'),
+        ('apple', 'Apple'),
+    )
+    machine = models.ForeignKey(Machine)
+    update_type = models.CharField(max_length=255, choices=UPDATE_TYPE, verbose_name="Update Type")
+    name = models.CharField(max_length=255, db_index=True)
+    version = models.CharField(max_length=255, db_index=True)
+    def __unicode__(self):
+        return "%s %s" % (self.name, self.version)
+    class Meta:
+        ordering = ['name']
+        unique_together = (("machine", "name", "version", "update_type"),)
+
+class UpdateHistoryItem(models.Model):
+    UPDATE_STATUS = (
+        ('pending', 'Pending'),
+        ('error', 'Error'),
+        ('install', 'Install'),
+        ('removal', 'Removal')
+    )
+    update_history = models.ForeignKey(UpdateHistory)
+    recorded = models.DateTimeField()
+    status = models.CharField(max_length=255, choices=UPDATE_STATUS, verbose_name="Status")
+    extra = models.TextField(blank=True, null=True)
+    def __unicode__(self):
+        return "%s %s %s %s" % (self.update_history.name, self.update_history.version, self.status, self.recorded)
+    class Meta:
+        ordering = ['recorded']
+        unique_together = (("update_history", "recorded", "status"),)
+
 
 class Fact(models.Model):
     machine = models.ForeignKey(Machine, related_name='facts')

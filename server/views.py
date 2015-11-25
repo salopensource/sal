@@ -27,6 +27,8 @@ import pytz
 import watson
 import unicodecsv as csv
 import django.utils.timezone
+import dateutil.parser
+import hashlib
 # This will only work if BRUTE_PROTECT == True
 try:
     import axes.utils
@@ -1020,7 +1022,7 @@ def settings_historical_data(request):
             historical_setting.value = form.cleaned_data['days']
             historical_setting.save()
             messages.success(request, 'Data retention settings saved.')
-            
+
             return redirect('settings_page')
 
     else:
@@ -1099,7 +1101,7 @@ def plugin_enable(request, plugin_name):
         plugin = Plugin(name=plugin_name, order=utils.UniquePluginOrder())
         plugin.save()
     return redirect('plugins_page')
-    
+
 @login_required
 def api_keys(request):
     user = request.user
@@ -1199,7 +1201,7 @@ def preflight(request):
                     del query['name']
                     output['queries'][name] = {}
                     output['queries'][name] = query
-                
+
         except:
             pass
     return HttpResponse(json.dumps(output))
@@ -1253,7 +1255,7 @@ def checkin(request):
         historical_setting = SalSetting(name='historical_retention', value='180')
         historical_setting.save()
         historical_days = '180'
-    
+
     if machine:
         machine.hostname = data.get('name', '<NO NAME>')
         try:
@@ -1298,6 +1300,7 @@ def checkin(request):
                 if profile['_dataType'] == 'SPHardwareDataType':
                     hwinfo = profile._items[0]
                     break
+
         if 'Puppet' in report_data:
             puppet = report_data.get('Puppet')
             if 'time' in puppet:
@@ -1326,9 +1329,11 @@ def checkin(request):
 
         machine.save()
 
+
         # Remove existing PendingUpdates for the machine
         updates = machine.pending_updates.all()
         updates.delete()
+        now = datetime.now()
         if 'ItemsToInstall' in report_data:
             for update in report_data.get('ItemsToInstall'):
                 display_name = update.get('display_name', update['name'])
@@ -1336,6 +1341,16 @@ def checkin(request):
                 version = str(update['version_to_install'])
                 pending_update = PendingUpdate(machine=machine, display_name=display_name, update_version=version, update=update_name)
                 pending_update.save()
+                # Let's handle some of those lovely pending installs into the UpdateHistory Model
+                try:
+                    update_history = UpdateHistory.objects.get(name=update_name, version=version, machine=machine, update_type='third_party')
+                except UpdateHistory.DoesNotExist:
+                    update_history = UpdateHistory(name=update_name, version=version, machine=machine, update_type='third_party')
+                    update_history.save()
+
+                update_history_item = UpdateHistoryItem(update_history=update_history, status='pending', recorded=now)
+                update_history_item.save()
+
 
         # Remove existing PendingAppleUpdates for the machine
         updates = machine.pending_apple_updates.all()
@@ -1347,6 +1362,17 @@ def checkin(request):
                 version = str(update['version_to_install'])
                 pending_update = PendingAppleUpdate(machine=machine, display_name=display_name, update_version=version, update=update_name)
                 pending_update.save()
+                # Let's handle some of those lovely pending installs into the UpdateHistory Model
+                try:
+                    update_history = UpdateHistory.objects.get(name=update_name, version=version, machine=machine, update_type='apple')
+                except UpdateHistory.DoesNotExist:
+                    update_history = UpdateHistory(name=update_name, version=version, machine=machine, update_type='apple')
+                    update_history.save()
+
+                update_history_item = UpdateHistoryItem(update_history=update_history, status='pending', recorded=now)
+                update_history_item.save()
+
+
 
         # if Facter data is submitted, we need to first remove any existing facts for this machine
         if 'Facter' in report_data:
@@ -1419,3 +1445,171 @@ def checkin(request):
 
         return HttpResponse("Sal report submmitted for %s"
                             % data.get('name'))
+
+@csrf_exempt
+def install_log_hash(request, serial):
+    sha256hash = ''
+    machine = None
+    if serial:
+        try:
+            machine = Machine.objects.get(serial=serial)
+            sha256hash = machine.install_log_hash
+        except (Machine.DoesNotExist, Inventory.DoesNotExist):
+            pass
+    else:
+        return HttpResponse("MACHINE NOT FOUND")
+    return HttpResponse(sha256hash)
+
+def process_update_item(name, version, update_type, action, recorded, machine, extra=None):
+    # Get a parent update history item, or create one
+    try:
+        update_history = UpdateHistory.objects.get(name=name,
+        version=version,
+        update_type=update_type,
+        machine=machine)
+    except UpdateHistory.DoesNotExist:
+        update_history = UpdateHistory(name=name,
+        version=version,
+        update_type=update_type,
+        machine=machine)
+        update_history.save()
+
+    # Now make sure it's not already in there
+    try:
+        update_history_item = UpdateHistoryItem.objects.get(
+        recorded=recorded,
+        status=action,
+        update_history=update_history)
+    except UpdateHistoryItem.DoesNotExist:
+        # Make one if it doesn't exist
+        update_history_item = UpdateHistoryItem(
+        recorded=recorded,
+        status=action,
+        update_history=update_history)
+        update_history_item.save()
+        if extra:
+            update_history_item.extra = extra
+            update_history_item.save()
+
+@csrf_exempt
+def install_log_submit(request):
+    if request.method != 'POST':
+        raise Http404
+
+
+    submission = request.POST
+    serial = submission.get('serial')
+    key = submission.get('key')
+    machine = None
+    if serial:
+        try:
+            machine = Machine.objects.get(serial=serial)
+        except Machine.DoesNotExist:
+            raise Http404
+
+        # Check the key
+        machine_group = get_object_or_404(MachineGroup, key=key)
+        if machine_group.id != machine.machine_group.id:
+            raise Http404
+
+        compressed_log= submission.get('base64bz2installlog')
+        if compressed_log:
+            compressed_log = compressed_log.replace(" ", "+")
+            log_str = utils.decode_to_string(compressed_log)
+            machine.install_log = log_str
+            machine.save()
+
+            for line in log_str.splitlines():
+                # Third party install successes first
+                m = re.search('(.+) Install of (.+): (.+)$', line)
+                if m:
+                    try:
+                        if m.group(3) == 'SUCCESSFUL':
+                            the_date = dateutil.parser.parse(m.group(1))
+                            (name, version) = m.group(2).rsplit('-',1)
+                            process_update_item(name, version, 'third_party', 'install', the_date,
+                            machine)
+                            # We've processed this line, move on
+                            continue
+
+                    except IndexError:
+                        pass
+                # Third party install failures
+                m = re.search('(.+) Install of (.+): FAILED (.+)$', line)
+                if m:
+                    try:
+                        the_date = dateutil.parser.parse(m.group(1))
+                        (name, version) = m.group(2).rsplit('-',1)
+                        extra = m.group(3)
+                        process_update_item(name, version, 'third_party', 'error', the_date,
+                        machine, extra)
+                        # We've processed this line, move on
+                        continue
+
+                    except IndexError:
+                        pass
+
+                # Third party removals
+                m = re.search('(.+) Removal of (.+): (.+)$', line)
+                if m:
+                    try:
+                        if m.group(3) == 'SUCCESSFUL':
+                            the_date = dateutil.parser.parse(m.group(1))
+                            (name, version) = m.group(2).rsplit('-',1)
+                            process_update_item(name, version, 'third_party', 'removal', the_date,
+                            machine)
+                            # We've processed this line, move on
+                            continue
+
+                    except IndexError:
+                        pass
+                # Third party removal failures
+                m = re.search('(.+) Removal of (.+): FAILED (.+)$', line)
+                if m:
+                    try:
+                        the_date = dateutil.parser.parse(m.group(1))
+                        (name, version) = m.group(2).rsplit('-',1)
+                        extra = m.group(3)
+                        process_update_item(name, version, 'third_party', 'error', the_date,
+                        machine, extra)
+                        # We've processed this line, move on
+                        continue
+
+                    except IndexError:
+                        pass
+
+                # Apple update install successes
+                m = re.search('(.+) Apple Software Update install of (.+): (.+)$', line)
+                if m:
+                    print m.group(3)
+                    try:
+                        if m.group(3) == 'FAILED':
+                            the_date = dateutil.parser.parse(m.group(1))
+                            (name, version) = m.group(2).rsplit('-',1)
+                            process_update_item(name, version, 'apple', 'install', the_date,
+                            machine)
+                            # We've processed this line, move on
+                            continue
+
+                    except IndexError:
+                        pass
+
+                # Apple install failures
+                m = re.search('(.+) Apple Software Update install of (.+): FAILED (.+)$', line)
+                if m:
+                    try:
+                        the_date = dateutil.parser.parse(m.group(1))
+                        (name, version) = m.group(2).rsplit('-',1)
+                        extra = m.group(3)
+                        process_update_item(name, version, 'apple', 'error', the_date,
+                        machine, extra)
+                        # We've processed this line, move on
+                        continue
+
+                    except IndexError:
+                        pass
+            machine.install_log_hash = \
+                hashlib.sha256(log_str).hexdigest()
+            machine.install_log = log_str
+            machine.save()
+        return HttpResponse("Install Log processed for %s" % serial)

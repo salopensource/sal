@@ -205,8 +205,9 @@ class UpdateHistory(models.Model):
     update_type = models.CharField(max_length=255, choices=UPDATE_TYPE, verbose_name="Update Type")
     name = models.CharField(max_length=255, db_index=True)
     version = models.CharField(max_length=255, db_index=True)
+    pending_recorded = models.BooleanField(default=False)
     def __unicode__(self):
-        return "%s %s" % (self.name, self.version)
+        return "%s: %s %s" % (self.machine, self.name, self.version)
     class Meta:
         ordering = ['name']
         unique_together = (("machine", "name", "version", "update_type"),)
@@ -223,7 +224,7 @@ class UpdateHistoryItem(models.Model):
     status = models.CharField(max_length=255, choices=UPDATE_STATUS, verbose_name="Status")
     extra = models.TextField(blank=True, null=True)
     def __unicode__(self):
-        return "%s %s %s %s" % (self.update_history.name, self.update_history.version, self.status, self.recorded)
+        return "%s: %s %s %s %s" % (self.update_history.machine, self.update_history.name, self.update_history.version, self.status, self.recorded)
     class Meta:
         ordering = ['recorded']
         unique_together = (("update_history", "recorded", "status"),)

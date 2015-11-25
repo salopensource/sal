@@ -1346,8 +1346,11 @@ def checkin(request):
                     update_history = UpdateHistory(name=update_name, version=version, machine=machine, update_type='third_party')
                     update_history.save()
 
-                update_history_item = UpdateHistoryItem(update_history=update_history, status='pending', recorded=now)
-                update_history_item.save()
+                if update_history.pending_recorded == False:
+                    update_history_item = UpdateHistoryItem(update_history=update_history, status='pending', recorded=now)
+                    update_history_item.save()
+                    update_history.pending_recorded = True
+                    update_history.save()
 
 
         # Remove existing PendingAppleUpdates for the machine
@@ -1367,8 +1370,11 @@ def checkin(request):
                     update_history = UpdateHistory(name=update_name, version=version, machine=machine, update_type='apple')
                     update_history.save()
 
-                update_history_item = UpdateHistoryItem(update_history=update_history, status='pending', recorded=now)
-                update_history_item.save()
+                if update_history.pending_recorded == False:
+                    update_history_item = UpdateHistoryItem(update_history=update_history, status='pending', recorded=now)
+                    update_history_item.save()
+                    update_history.pending_recorded = True
+                    update_history.save()
 
 
 
@@ -1489,6 +1495,10 @@ def process_update_item(name, version, update_type, action, recorded, machine, e
             update_history_item.extra = extra
             update_history_item.save()
 
+        if action == 'install':
+            update_history.pending_recorded = False
+            update_history.save()
+
 @csrf_exempt
 def install_log_submit(request):
     if request.method != 'POST':
@@ -1579,7 +1589,6 @@ def install_log_submit(request):
                 # Apple update install successes
                 m = re.search('(.+) Apple Software Update install of (.+): (.+)$', line)
                 if m:
-                    print m.group(3)
                     try:
                         if m.group(3) == 'FAILED':
                             the_date = dateutil.parser.parse(m.group(1))

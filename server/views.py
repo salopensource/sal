@@ -128,9 +128,9 @@ def index(request):
             try:
                 plugin_type = plugin.plugin_object.plugin_type()
             except:
-                plugin_type = 'old'
+                plugin_type = 'widget'
             if plugin.name == enabled_plugin.name and \
-            plugin_type != 'machine_info' and plugin_type != 'front_full':
+            plugin_type != 'machine_info' and plugin_type != 'full_page':
                 data = {}
                 data['name'] = plugin.name
                 data['width'] = plugin.plugin_object.widget_width()
@@ -575,7 +575,12 @@ def bu_dashboard(request, bu_id):
     for enabled_plugin in enabled_plugins:
         # Loop round the plugins and print their names.
         for plugin in manager.getAllPlugins():
-            if plugin.name == enabled_plugin.name:
+            try:
+                plugin_type = plugin.plugin_object.plugin_type()
+            except:
+                plugin_type = 'widget'
+            if plugin.name == enabled_plugin.name and \
+            plugin_type != 'machine_info' and plugin_type != 'full_page':
                 data = {}
                 data['name'] = plugin.name
                 data['width'] = plugin.plugin_object.widget_width()
@@ -761,7 +766,12 @@ def group_dashboard(request, group_id):
     for enabled_plugin in enabled_plugins:
         # Loop round the plugins and print their names.
         for plugin in manager.getAllPlugins():
-            if plugin.name == enabled_plugin.name:
+            try:
+                plugin_type = plugin.plugin_object.plugin_type()
+            except:
+                plugin_type = 'widget'
+            if plugin.name == enabled_plugin.name and \
+            plugin_type != 'machine_info' and plugin_type != 'full_page':
                 data = {}
                 data['name'] = plugin.name
                 data['width'] = plugin.plugin_object.widget_width()

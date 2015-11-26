@@ -8,20 +8,21 @@ import server.utils as utils
 from datetime import datetime, timedelta, date, time
 import django.utils.timezone
 
-this_day = django.utils.timezone.now()
-two_days_ago = this_day - timedelta(days=2)
-three_days_ago = this_day - timedelta(days=3)
-four_days_ago = this_day - timedelta(days=4)
-five_days_ago = this_day - timedelta(days=5)
-six_days_ago = this_day - timedelta(days=6)
-seven_days_ago = this_day - timedelta(days=7)
-eight_days_ago = this_day - timedelta(days=8)
-nine_days_ago = this_day - timedelta(days=9)
-ten_days_ago = this_day - timedelta(days=10)
-eleven_days_ago = this_day - timedelta(days=11)
-twelve_days_ago = this_day - timedelta(days=12)
-thirteen_days_ago = this_day - timedelta(days=13)
-fourteen_days_ago = this_day - timedelta(days=14)
+now = django.utils.timezone.now()
+this_day = now -  timedelta(days=1)
+two_days_ago = now - timedelta(days=2)
+three_days_ago = now - timedelta(days=3)
+four_days_ago = now - timedelta(days=4)
+five_days_ago = now - timedelta(days=5)
+six_days_ago = now - timedelta(days=6)
+seven_days_ago = now - timedelta(days=7)
+eight_days_ago = now - timedelta(days=8)
+nine_days_ago = now - timedelta(days=9)
+ten_days_ago = now - timedelta(days=10)
+eleven_days_ago = now - timedelta(days=11)
+twelve_days_ago = now - timedelta(days=12)
+thirteen_days_ago = now - timedelta(days=13)
+fourteen_days_ago = now - timedelta(days=14)
 
 class MunkiInstalls(IPlugin):
     def plugin_type(self):

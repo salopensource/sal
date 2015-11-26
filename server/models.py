@@ -226,7 +226,7 @@ class UpdateHistoryItem(models.Model):
     def __unicode__(self):
         return "%s: %s %s %s %s" % (self.update_history.machine, self.update_history.name, self.update_history.version, self.status, self.recorded)
     class Meta:
-        ordering = ['recorded']
+        ordering = ['-recorded']
         unique_together = (("update_history", "recorded", "status"),)
 
 

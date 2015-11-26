@@ -1,6 +1,6 @@
 {% load dashboard_extras %}
 {% if pkglist|length %}
-  
+
   <table class="client_info table table-striped table-condensed">
     <thead>
       <tr>
@@ -22,9 +22,12 @@
           {{ item.installed_version }}
         </td>
         <td>
-          {{ item.installed_size|humanreadablesize }} 
+          {{ item.installed_size|humanreadablesize }}
        </td>
         <td>
+        {% if type == 'managed_installs' %}
+        <a href="#ManagedInstallsModal{{item.name}}{{item.version|cut:"."}}" class="btn btn-info" data-toggle="modal" data-backdrop="true">
+        {% endif %}
           {% if 'install_result' in item %}
             {{ item.install_result }}
           {% else %}
@@ -33,6 +36,9 @@
             {% else %}
               <span class='error'>not installed</span>
             {% endif %}
+          {% endif %}
+          {% if type == 'managed_installs' %}
+        </a>
           {% endif %}
         </td>
       </tr>

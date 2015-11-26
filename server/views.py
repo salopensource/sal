@@ -921,6 +921,16 @@ def machine_detail(request, machine_id):
             item['install_result'] = install_results.get(
                 nameAndVers, 'pending')
 
+            # Get the update history
+            try:
+                update_history = UpdateHistory.objects.get(machine=machine,
+                version=item['version_to_install'],
+                name=item['name'], update_type='third_party')
+                item['update_history'] = UpdateHistoryItem.objects.filter(update_history=update_history)
+            except IndexError, e:
+                print e
+
+
         for item in report.get('ManagedInstalls', []):
             if 'version_to_install' in item:
                 name = item.get('display_name', item['name'])
@@ -928,6 +938,22 @@ def machine_detail(request, machine_id):
                     % (name, item['version_to_install']))
                 if install_results.get(nameAndVers) == 'installed':
                     item['installed'] = True
+
+            if 'version_to_install' in item or 'installed_version' in item:
+                if 'version_to_install' in item:
+                    version = item['version_to_install']
+                else:
+                    version = item['installed_version']
+                item['version'] = version
+                # Get the update history
+                try:
+                    update_history = UpdateHistory.objects.get(machine=machine,
+                    version=version,
+                    name=item['name'], update_type='third_party')
+                    item['update_history'] = UpdateHistoryItem.objects.filter(update_history=update_history)
+                except Exception, e:
+                    print e
+
 
     # handle items that were removed during the most recent run
     # this is crappy. We should fix it in Munki.

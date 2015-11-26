@@ -190,27 +190,27 @@
           <!-- Tab panes -->
           <div class="tab-content">
             <div class="tab-pane fade" id="dd1">
-            {% with title='Apple Updates' pkglist=report.AppleUpdates %}
+            {% with title='Apple Updates' pkglist=report.AppleUpdates type='apple' %}
               {% include 'server/pkgtable.html' %}
             {% endwith %}
             </div>
             <div class="tab-pane fade" id="dd2">
-              {% with title='Active Installs' pkglist=report.ItemsToInstall %}
+              {% with title='Active Installs' pkglist=report.ItemsToInstall type='active_installs' %}
                 {% include 'server/pkgtable.html' %}
               {% endwith %}
             </div>
             <div class="tab-pane fade" id="dd3">
-              {% with title='Active Removals' pkglist=report.ItemsToRemove %}
+              {% with title='Active Removals' pkglist=report.ItemsToRemove type='active_removals' %}
                 {% include 'server/pkgtable.html' %}
               {% endwith %}
             </div>
             <div class="tab-pane fade" id="dd4">
-              {% with title='Problem Installs' pkglist=report.ProblemInstalls %}
+              {% with title='Problem Installs' pkglist=report.ProblemInstalls type='problem_installs' %}
                 {% include 'server/pkgtable.html' %}
               {% endwith %}
             </div>
             <div class="tab-pane fade active in" id="tab2-1">
-              {% with title='Managed Installs' pkglist=report.ManagedInstalls %}
+              {% with title='Managed Installs' pkglist=report.ManagedInstalls type='managed_installs' %}
                 {% include 'server/pkgtable.html' %}
               {% endwith %}
             </div>
@@ -287,9 +287,44 @@
       <!-- /.panel -->
     </div>
   </div>
-</div>  
+</div>
   {% endblock %}
   {% block modal %}
+  {% for item in report.ManagedInstalls %}
+  <!-- {{item.name}}-{{item.version|cut:"."}} ManagedInstalls Modal -->
+  <div class="modal fade in" id="ManagedInstallsModal{{item.name}}{{item.version|cut:"."}}" tabindex="-1" role="dialog" aria-labelledby="labelManagedInstallsModal{{item.name}}{{item.version|cut:"."}}" aria-hidden="true">
+    <div class="modal-dialog" style="width: 60%">
+      <!-- modal-content -->
+      <div class="modal-content">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+          <h4 class="modal-title" id="labelManagedInstallsModal{{item.name}}{{item.version|cut:"."}}">Update History for {% if item.display_name %}{{item.display_name}}{% else %}{{ item.name }}{% endif %} {{item.version}}</h4>
+        </div>
+        <div class="modal-body">
+         {% if item.update_history %}
+            <table class="table table-striped">
+                <th>Status</th>
+                <th>Date</th>
+              {% for update_history_item in item.update_history %}
+              <tr>
+                  <td>{{update_history_item.get_status_display}}</td>
+                  <td>{{update_history_item.recorded}}</td>
+              </tr>
+              {% endfor %}
+          </table>
+            {% else %}
+            <p>No update history available.</p>
+            {% endif %}
+
+          <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+        </div>
+      </div>
+      <!-- /.modal-content -->
+    </div>
+    <!-- /.modal-dialog -->
+  </div>
+  <!-- /.modal -->
+  {% endfor %}
   {% if user.userprofile.level == 'GA' or user.userprofile.level == 'RW' %}
   <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
     <div class="modal-dialog">
@@ -308,6 +343,8 @@
       </div>
     </div>
   </div>
+  {% endif %}
+
   <!-- Error Modal -->
   <div class="modal fade in" id="ErrorModal" tabindex="-1" role="dialog" aria-labelledby="theErrorModal" aria-hidden="true">
     <div class="modal-dialog" style="width: 60%">
@@ -350,5 +387,4 @@
     <!-- /.modal-dialog -->
   </div>
   <!-- /.modal -->
-{% endif %}
 {% endblock %}

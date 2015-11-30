@@ -185,6 +185,7 @@ INSTALLED_APPS = (
     'sal',
     'server',
     'api',
+    'catalog',
     'inventory',
     'licenses',
     'bootstrap3',

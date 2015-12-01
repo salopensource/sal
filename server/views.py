@@ -1070,7 +1070,7 @@ def plugins_page(request):
     # Load the plugins
     utils.reloadPluginsModel()
     enabled_plugins = Plugin.objects.all()
-    disabled_plugins = utils.disabled_plugins()
+    disabled_plugins = utils.disabled_plugins(plugin_kind='builtin')
     c = {'user':request.user, 'request':request, 'enabled_plugins':enabled_plugins, 'disabled_plugins':disabled_plugins}
     return render_to_response('server/plugins.html', c, context_instance=RequestContext(request))
 

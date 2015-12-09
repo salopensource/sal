@@ -923,46 +923,47 @@ def machine_detail(request, machine_id):
         else:
             install_results[nameAndVers] = 'error'
 
-    if install_results:
-        for item in report.get('ItemsToInstall', []):
+
+    #if install_results:
+    for item in report.get('ItemsToInstall', []):
+        name = item.get('display_name', item['name'])
+        nameAndVers = ('%s-%s'
+            % (name, item['version_to_install']))
+        item['install_result'] = install_results.get(
+            nameAndVers, 'pending')
+
+        # Get the update history
+        try:
+            update_history = UpdateHistory.objects.get(machine=machine,
+            version=item['version_to_install'],
+            name=item['name'], update_type='third_party')
+            item['update_history'] = UpdateHistoryItem.objects.filter(update_history=update_history)
+        except IndexError, e:
+            pass
+
+
+    for item in report.get('ManagedInstalls', []):
+        if 'version_to_install' in item:
             name = item.get('display_name', item['name'])
             nameAndVers = ('%s-%s'
                 % (name, item['version_to_install']))
-            item['install_result'] = install_results.get(
-                nameAndVers, 'pending')
+            if install_results.get(nameAndVers) == 'installed':
+                item['installed'] = True
 
+        if 'version_to_install' in item or 'installed_version' in item:
+            if 'version_to_install' in item:
+                version = item['version_to_install']
+            else:
+                version = item['installed_version']
+            item['version'] = version
             # Get the update history
             try:
                 update_history = UpdateHistory.objects.get(machine=machine,
-                version=item['version_to_install'],
+                version=version,
                 name=item['name'], update_type='third_party')
                 item['update_history'] = UpdateHistoryItem.objects.filter(update_history=update_history)
-            except IndexError, e:
-                print e
-
-
-        for item in report.get('ManagedInstalls', []):
-            if 'version_to_install' in item:
-                name = item.get('display_name', item['name'])
-                nameAndVers = ('%s-%s'
-                    % (name, item['version_to_install']))
-                if install_results.get(nameAndVers) == 'installed':
-                    item['installed'] = True
-
-            if 'version_to_install' in item or 'installed_version' in item:
-                if 'version_to_install' in item:
-                    version = item['version_to_install']
-                else:
-                    version = item['installed_version']
-                item['version'] = version
-                # Get the update history
-                try:
-                    update_history = UpdateHistory.objects.get(machine=machine,
-                    version=version,
-                    name=item['name'], update_type='third_party')
-                    item['update_history'] = UpdateHistoryItem.objects.filter(update_history=update_history)
-                except Exception, e:
-                    print e
+            except Exception, e:
+                pass
 
 
     # handle items that were removed during the most recent run
@@ -1599,7 +1600,9 @@ def install_log_submit(request):
                     try:
                         if m.group(3) == 'SUCCESSFUL':
                             the_date = dateutil.parser.parse(m.group(1))
-                            (name, version) = m.group(2).rsplit('-',1)
+                            #(name, version) = m.group(2).rsplit('-',1)
+                            name = m.group(2)
+                            version = ''
                             process_update_item(name, version, 'third_party', 'removal', the_date,
                             machine)
                             # We've processed this line, move on

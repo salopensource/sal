@@ -5,5 +5,5 @@
 {% block content %}
 <h1>Page not found</h1>
 
-<p>Sorry, but the requested page could not be found.</p>
+<p>Sorry, but {{ request.path }} could not be found.</p>
 {% endblock %}

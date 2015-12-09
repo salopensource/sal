@@ -93,7 +93,7 @@ class Machine(models.Model):
     sal_version = models.CharField(db_index=True, null=True, blank=True, max_length=255)
     last_puppet_run = models.DateTimeField(db_index=True, blank=True,null=True)
     puppet_errors = models.IntegerField(db_index=True, default=0)
-    install_log_hash = models.CharField(max_length=64, blank=True, null=True)
+    install_log_hash = models.CharField(max_length=200, blank=True, null=True)
     install_log = models.TextField(null=True, blank=True)
 
     def get_fields(self):

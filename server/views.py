@@ -5,7 +5,7 @@ from django.contrib.auth.decorators import login_required, permission_required
 from django.template import RequestContext, Template, Context
 import json
 from django.views.decorators.csrf import csrf_exempt, csrf_protect
-from django.http import HttpResponse, Http404
+from django.http import HttpResponse, Http404, HttpResponseNotFound
 from django.contrib.auth.models import Permission, User
 from django.conf import settings
 from django.core.context_processors import csrf
@@ -1246,7 +1246,7 @@ def preflight(request):
 def checkin(request):
     if request.method != 'POST':
         print 'not post data'
-        raise Http404
+        return HttpResponseNotFound('No POST data sent')
 
     data = request.POST
     key = data.get('key')
@@ -1538,7 +1538,7 @@ def process_update_item(name, version, update_type, action, recorded, machine, e
 @csrf_exempt
 def install_log_submit(request):
     if request.method != 'POST':
-        raise Http404
+        return HttpResponseNotFound('No POST data sent')
 
 
     submission = request.POST
@@ -1549,12 +1549,12 @@ def install_log_submit(request):
         try:
             machine = Machine.objects.get(serial=serial)
         except Machine.DoesNotExist:
-            raise Http404
+            return HttpResponseNotFound('Machine not found')
 
         # Check the key
         machine_group = get_object_or_404(MachineGroup, key=key)
         if machine_group.id != machine.machine_group.id:
-            raise Http404
+            return HttpResponseNotFound('No machine group found')
 
         compressed_log= submission.get('base64bz2installlog')
         if compressed_log:

@@ -23,7 +23,6 @@ urlpatterns = patterns('',
     (r'^inventory/', include('inventory.urls')),
     (r'^licenses/', include('licenses.urls')),
     (r'^catalog/', include('catalog.urls')),
-    #url(r'^$', 'namer.views.index', name='home'),
 
 )
 if settings.DEBUG:

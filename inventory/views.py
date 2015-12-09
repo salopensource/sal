@@ -1,4 +1,4 @@
-from django.http import HttpResponse, HttpRequest, HttpResponseRedirect
+from django.http import HttpResponse, HttpRequest, HttpResponseRedirect, HttpResponseNotFound
 from django.template import RequestContext, Template, Context
 from django.shortcuts import render_to_response
 from django.core.context_processors import csrf
@@ -141,7 +141,7 @@ def inventory_list(request, page='front', theID=None):
 @csrf_exempt
 def inventory_submit(request):
     if request.method != 'POST':
-        raise Http404
+        return HttpResponseNotFound('No POST data sent')
 
     # list of bundleids to ignore
     bundleid_ignorelist = [
@@ -154,7 +154,7 @@ def inventory_submit(request):
         try:
             machine = Machine.objects.get(serial=serial)
         except Machine.DoesNotExist:
-            raise Http404
+            return HttpResponseNotFound('Serial Number not found')
 
         compressed_inventory = submission.get('base64bz2inventory')
         if compressed_inventory:

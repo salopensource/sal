@@ -1252,6 +1252,7 @@ def checkin(request):
 
     data = request.POST
     key = data.get('key')
+    uuid = data.get('uuid')
     serial = data.get('serial')
     serial = serial.upper()
 
@@ -1379,13 +1380,14 @@ def checkin(request):
                 pending_update.save()
                 # Let's handle some of those lovely pending installs into the UpdateHistory Model
                 try:
-                    update_history = UpdateHistory.objects.get(name=update_name, version=version, machine=machine, update_type='third_party')
+                    update_history = UpdateHistory.objects.get(name=update_name,
+                    version=version, machine=machine, update_type='third_party')
                 except UpdateHistory.DoesNotExist:
                     update_history = UpdateHistory(name=update_name, version=version, machine=machine, update_type='third_party')
                     update_history.save()
 
                 if update_history.pending_recorded == False:
-                    update_history_item = UpdateHistoryItem(update_history=update_history, status='pending', recorded=now)
+                    update_history_item = UpdateHistoryItem(update_history=update_history, status='pending', recorded=now, uuid=uuid)
                     update_history_item.save()
                     update_history.pending_recorded = True
                     update_history.save()
@@ -1409,7 +1411,7 @@ def checkin(request):
                     update_history.save()
 
                 if update_history.pending_recorded == False:
-                    update_history_item = UpdateHistoryItem(update_history=update_history, status='pending', recorded=now)
+                    update_history_item = UpdateHistoryItem(update_history=update_history, status='pending', recorded=now, uuid=uuid)
                     update_history_item.save()
                     update_history.pending_recorded = True
                     update_history.save()
@@ -1502,7 +1504,7 @@ def install_log_hash(request, serial):
         return HttpResponse("MACHINE NOT FOUND")
     return HttpResponse(sha256hash)
 
-def process_update_item(name, version, update_type, action, recorded, machine, extra=None):
+def process_update_item(name, version, update_type, action, recorded, machine, uuid, extra=None):
     # Get a parent update history item, or create one
     try:
         update_history = UpdateHistory.objects.get(name=name,
@@ -1521,19 +1523,25 @@ def process_update_item(name, version, update_type, action, recorded, machine, e
         update_history_item = UpdateHistoryItem.objects.get(
         recorded=recorded,
         status=action,
-        update_history=update_history)
+        update_history=update_history, uuid=uuid)
     except UpdateHistoryItem.DoesNotExist:
         # Make one if it doesn't exist
         update_history_item = UpdateHistoryItem(
         recorded=recorded,
         status=action,
-        update_history=update_history)
+        update_history=update_history,
+        uuid=uuid)
         update_history_item.save()
         if extra:
             update_history_item.extra = extra
             update_history_item.save()
 
         if action == 'install' or action == 'removal':
+            # Make sure there has't been a pending in the same sal run
+            # Remove them if there are
+            remove_items = UpdateHistoryItem.objects.filter(uuid=uuid,
+            status='pending', update_history=update_history)
+            remove_items.delete()
             update_history.pending_recorded = False
             update_history.save()
 
@@ -1546,6 +1554,7 @@ def install_log_submit(request):
     submission = request.POST
     serial = submission.get('serial')
     key = submission.get('key')
+    uuid = submission.get('run_uuid')
     machine = None
     if serial:
         try:
@@ -1574,7 +1583,7 @@ def install_log_submit(request):
                             the_date = dateutil.parser.parse(m.group(1))
                             (name, version) = m.group(2).rsplit('-',1)
                             process_update_item(name, version, 'third_party', 'install', the_date,
-                            machine)
+                            machine, uuid)
                             # We've processed this line, move on
                             continue
 
@@ -1588,7 +1597,7 @@ def install_log_submit(request):
                         (name, version) = m.group(2).rsplit('-',1)
                         extra = m.group(3)
                         process_update_item(name, version, 'third_party', 'error', the_date,
-                        machine, extra)
+                        machine, uuid, extra)
                         # We've processed this line, move on
                         continue
 
@@ -1605,7 +1614,7 @@ def install_log_submit(request):
                             name = m.group(2)
                             version = ''
                             process_update_item(name, version, 'third_party', 'removal', the_date,
-                            machine)
+                            machine, uuid)
                             # We've processed this line, move on
                             continue
 
@@ -1619,7 +1628,7 @@ def install_log_submit(request):
                         (name, version) = m.group(2).rsplit('-',1)
                         extra = m.group(3)
                         process_update_item(name, version, 'third_party', 'error', the_date,
-                        machine, extra)
+                        machine, uuid, extra)
                         # We've processed this line, move on
                         continue
 
@@ -1634,7 +1643,7 @@ def install_log_submit(request):
                             the_date = dateutil.parser.parse(m.group(1))
                             (name, version) = m.group(2).rsplit('-',1)
                             process_update_item(name, version, 'apple', 'install', the_date,
-                            machine)
+                            machine, uuid)
                             # We've processed this line, move on
                             continue
 
@@ -1649,7 +1658,7 @@ def install_log_submit(request):
                         (name, version) = m.group(2).rsplit('-',1)
                         extra = m.group(3)
                         process_update_item(name, version, 'apple', 'error', the_date,
-                        machine, extra)
+                        machine, uuid, extra)
                         # We've processed this line, move on
                         continue
 

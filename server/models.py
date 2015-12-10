@@ -202,9 +202,9 @@ class UpdateHistory(models.Model):
         ('apple', 'Apple'),
     )
     machine = models.ForeignKey(Machine)
-    update_type = models.CharField(max_length=255, choices=UPDATE_TYPE, verbose_name="Update Type")
+    update_type = models.CharField(max_length=254, choices=UPDATE_TYPE, verbose_name="Update Type")
     name = models.CharField(max_length=255, db_index=True)
-    version = models.CharField(max_length=255, db_index=True)
+    version = models.CharField(max_length=254, db_index=True)
     pending_recorded = models.BooleanField(default=False)
     def __unicode__(self):
         return "%s: %s %s" % (self.machine, self.name, self.version)
@@ -221,7 +221,8 @@ class UpdateHistoryItem(models.Model):
     )
     update_history = models.ForeignKey(UpdateHistory)
     recorded = models.DateTimeField()
-    status = models.CharField(max_length=255, choices=UPDATE_STATUS, verbose_name="Status")
+    uuid = models.CharField(null=True, blank=True, max_length=100)
+    status = models.CharField(max_length=254, choices=UPDATE_STATUS, verbose_name="Status")
     extra = models.TextField(blank=True, null=True)
     def __unicode__(self):
         return "%s: %s %s %s %s" % (self.update_history.machine, self.update_history.name, self.update_history.version, self.status, self.recorded)

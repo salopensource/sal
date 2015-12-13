@@ -25,7 +25,7 @@ If you require more advanced settings, for example if you want to hide certain p
 
 # Plugins
 
-The plugins directory is exposed as a volume to the host, so you can add your own plugins using the ``-v`` option to link to ``/home/docker/sal/plugins`` in the container. 
+The plugins directory is exposed as a volume to the host, so you can add your own plugins using the ``-v`` option to link to ``/home/docker/sal/plugins`` in the container.
 
 ```
   -v /usr/local/sal_data/plugins:/home/docker/sal/plugins
@@ -67,7 +67,7 @@ $ docker run -d --name="sal" \
 
 # Advanced usage
 
-Sal supports the use of memcached for improving performance. It exects a linked memcached container and will use it if there is a container named ``memcached``:
+Sal supports the use of memcached for improving performance. It expects a linked memcached container and will use it if there is a container named ``memcached``:
 
 ``` bash
 $ docker run -d \

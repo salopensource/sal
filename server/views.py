@@ -940,6 +940,8 @@ def machine_detail(request, machine_id):
             name=item['name'], update_type='third_party')
         except IndexError, e:
             pass
+        except UpdateHistory.DoesNotExist:
+            pass
 
         try:
             item['update_history'] = UpdateHistoryItem.objects.filter(update_history=update_history)

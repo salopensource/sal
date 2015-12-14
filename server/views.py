@@ -941,7 +941,7 @@ def machine_detail(request, machine_id):
         except IndexError, e:
             pass
 
-        if update_history:
+        try:
             item['update_history'] = UpdateHistoryItem.objects.filter(update_history=update_history)
         except:
             pass

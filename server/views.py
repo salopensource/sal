@@ -938,10 +938,13 @@ def machine_detail(request, machine_id):
             update_history = UpdateHistory.objects.get(machine=machine,
             version=item['version_to_install'],
             name=item['name'], update_type='third_party')
-            item['update_history'] = UpdateHistoryItem.objects.filter(update_history=update_history)
         except IndexError, e:
             pass
 
+        if update_history:
+            item['update_history'] = UpdateHistoryItem.objects.filter(update_history=update_history)
+        except:
+            pass
 
     for item in report.get('ManagedInstalls', []):
         if 'version_to_install' in item:

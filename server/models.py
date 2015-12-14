@@ -228,7 +228,7 @@ class UpdateHistoryItem(models.Model):
         return "%s: %s %s %s %s" % (self.update_history.machine, self.update_history.name, self.update_history.version, self.status, self.recorded)
     class Meta:
         ordering = ['-recorded']
-        unique_together = (("update_history", "recorded", "status"),)
+        unique_together = (("update_history", "recorded", "status", "uuid"),)
 
 
 class Fact(models.Model):

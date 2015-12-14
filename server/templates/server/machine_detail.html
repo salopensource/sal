@@ -62,13 +62,17 @@
             </div>
             <div class="col-md-4">
               <p style="text-align: center;">
-                {% if report.AppleUpdates|length %}
+                {% if report.AppleUpdates|length or report.ItemsToInstall|length %}
                 <i class="fa fa-info-circle fa-3x color-blue" style="cursor: default;"></i>
                 {% else %}
                 <i class="fa fa-check-circle fa-3x color-green" style="cursor: default;"></i>
                 {% endif %}
                 <br>
-                {{ report.AppleUpdates|length }} Pending Installs
+                {% with PendingAppleUpdates=report.AppleUpdates|length %}
+                  {% with PendingInstalls=report.ItemsToInstall|length %}
+                    {{ PendingAppleUpdates|add:PendingInstalls }} Pending Installs
+                  {% endwith %}
+                {% endwith %}
               </p>
             </div>
           </div>

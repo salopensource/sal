@@ -1528,15 +1528,14 @@ def process_update_item(name, version, update_type, action, recorded, machine, u
         update_history_item = UpdateHistoryItem.objects.get(
         recorded=recorded,
         status=action,
-        update_history=update_history,
-        uuid=uuid)
+        update_history=update_history
+        )
     except UpdateHistoryItem.DoesNotExist:
         # Make one if it doesn't exist
         update_history_item = UpdateHistoryItem(
         recorded=recorded,
         status=action,
-        update_history=update_history,
-        uuid=uuid)
+        update_history=update_history)
         update_history_item.save()
         if extra:
             update_history_item.extra = extra

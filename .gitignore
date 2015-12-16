@@ -48,15 +48,11 @@ node_modules/
 
 server/management
 
-api.old/
-
 *.db copy
 
 *.db
 
 *.db-journal
-
-sal-2015-10-22:00:44:06.dump.json
 
 postgres
 

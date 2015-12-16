@@ -3,6 +3,7 @@
 {% load bootstrap3 %}
 {% block nav %}
 <li><a href="{% url 'group_dashboard' machine_group.id %}"><i class="fa fa-fw fa-chevron-left"></i> Back</i></a>
+<li><a href="#myModal" data-toggle="modal"><span class="glyphicon glyphicon-remove"></span> Machine Group</a></li>
 {% endblock %}
 {% block content %}
 <div class="row">
@@ -11,13 +12,32 @@
     {% if error_message %}<p><strong>{{ error_message }}</strong></p>{% endif %}
 
         <form action="{% url 'edit_machine_group' machine_group.id %}" method="post">{% csrf_token %}
-    	
+
             <table>
-    	
+
                 {% bootstrap_form form %}
             </table>
             <p><button type="submit" class="btn btn-primary">Save</button></p>
         </form>
     </div>
+</div>
+{% endblock %}
+{% block modal %}
+    <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+        <h4 class="modal-title" id="myModalLabel">Are you sure?</h4>
+      </div>
+      <div class="modal-body">
+        <p>This will delete the Machine Group permanently - are you sure you want to do this?</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+        <a class="btn btn-danger" href="{% url 'delete_machine_group' machine_group.id %}">Delete Machine Group</a>
+      </div>
+    </div>
+  </div>
 </div>
 {% endblock %}

@@ -4,14 +4,14 @@
 {% block script %}
 
 <script>
- 
+
 $( document ).ready(function() {
- 
+
    {% for widget in output %}
 
        $.ajaxWithRetries(
     {
-        url: "{% url 'plugin_load_id' widget.name 'group_dashboard' machine_group.id %}",  
+        url: "{% url 'plugin_load_id' widget.name 'group_dashboard' machine_group.id %}",
         error: function(){
             console.log('{{ widget.name }} Failed');
         },
@@ -25,10 +25,10 @@ $( document ).ready(function() {
     }
 );
    {% endfor %}
- 
+
 });
-   
- 
+
+
 </script>
 
 {% endblock %}
@@ -52,7 +52,7 @@ $( document ).ready(function() {
             <li><a href="{% url 'config_machine_group_index' machine_group.id %}"><i class="fa fa-wrench fa-fw"></i> Configure Group</a></li>
         {% endif %}
         <li><a href="{% url 'new_machine' machine_group.id %}"><i class="fa fa-fw fa-plus"></i> Machine</a></li>
-        <li><a href="{% url 'edit_machine_group' machine_group.id %}"><i class="fa fa-fw fa-pencil"></i> Rename Group</a></li>
+        <li><a href="{% url 'edit_machine_group' machine_group.id %}"><i class="fa fa-fw fa-pencil"></i> Edit Group</a></li>
     {% endif %}
         </ul>
         <!-- /.nav-second-level -->

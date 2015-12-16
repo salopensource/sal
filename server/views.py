@@ -738,6 +738,34 @@ def overview_list_all(request, req_type, data, bu_id=None):
 
     return render_to_response('server/overview_list_all.html', c, context_instance=RequestContext(request))
 
+@login_required
+def delete_machine_group(request, group_id):
+    user = request.user
+    user_level = user.userprofile.level
+    if user_level != 'GA':
+        return redirect(index)
+    machine_group = get_object_or_404(MachineGroup, pk=int(group_id))
+
+    machines = []
+    # for machine_group in machine_groups:
+    #     machines.append(machine_group.machine_set.all())
+
+    machines = Machine.objects.filter(machine_group=machine_group)
+
+    c = {'user': user, 'machine_group': machine_group, 'machines':machines}
+    return render_to_response('server/machine_group_delete_confirm.html', c, context_instance=RequestContext(request))
+
+@login_required
+def really_delete_machine_group(request, group_id):
+    user = request.user
+    user_level = user.userprofile.level
+    if user_level != 'GA':
+        return redirect(index)
+    machine_group = get_object_or_404(MachineGroup, pk=int(group_id))
+    business_unit = machine_group.business_unit
+    machine_group.delete()
+    return redirect('bu_dashboard', business_unit.id)
+
 # Machine Group Dashboard
 @login_required
 def group_dashboard(request, group_id):

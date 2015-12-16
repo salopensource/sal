@@ -4,14 +4,14 @@
 {% block script %}
 
 <script>
- 
+
 $( document ).ready(function() {
- 
+
    {% for widget in output %}
 
     $.ajaxWithRetries(
     {
-        url: "{% url 'plugin_load_id' widget.name 'bu_dashboard' business_unit.id %}",  
+        url: "{% url 'plugin_load_id' widget.name 'bu_dashboard' business_unit.id %}",
         error: function(){
             console.log('{{ widget.name }} Failed');
         },
@@ -25,9 +25,9 @@ $( document ).ready(function() {
     }
 );
    {% endfor %}
- 
+
 });
- 
+
 </script>
 
 {% endblock %}
@@ -55,18 +55,10 @@ $( document ).ready(function() {
         <a href="#"><i class="fa fa-wrench fa-fw"></i> Tools<span class="fa arrow"></span></a>
         <ul class="nav nav-second-level">
             {% if is_editor %}
-            {% if CONFIG_INSTALLED %}
-                <li><a href="{% url 'config_business_unit_index' business_unit.id %}"><i class="fa fa-wrench fa-fw"></i>  Configure Business Unit</a></li>
-            {% endif %}
             <li><a href="{% url 'edit_business_unit' business_unit.id %}"><i class="fa fa-fw fa-pencil"></i> Edit Business Unit</a></li>
             <li><a href="{% url 'new_machine_group' business_unit.id %}"><i class="fa fa-plus fa-fw"></i> New Machine Group</a></li>
-            {% if CONFIG_INSTALLED %}
-                {% if machine_groups.count > 0 %}
-                <li><a href="{% url 'config_new_machine' business_unit.id %}"><i class="fa fa-plus fa-fw"></i> New Machine</a></li>
-                {% endif %}
-            {% endif %}
-             
-            
+
+
             {% endif %}
         </ul>
         <!-- /.nav-second-level -->
@@ -105,7 +97,7 @@ $( document ).ready(function() {
             </table>
     </div>
     {% endif %}
-    
+
     {% if pending_apple_updates|length %}
     <div class="col-md-4">
         <legend>Pending Apple Updates</legend>

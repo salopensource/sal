@@ -44,6 +44,10 @@ urlpatterns = patterns('server.views',
     url(r'^business_unit/delete/(?P<bu_id>.+)/', 'delete_business_unit', name='delete_business_unit'),
     # Really Delete Business Unit
     url(r'^business_unit/really/delete/(?P<bu_id>.+)/', 'really_delete_business_unit', name='really_delete_business_unit'),
+    # Delete Machine Group
+    url(r'^machine_group/delete/(?P<group_id>.+)/', 'delete_machine_group', name='delete_machine_group'),
+    # Really Delete Machine Group
+    url(r'^machine_group/really/delete/(?P<group_id>.+)/', 'really_delete_machine_group', name='really_delete_machine_group'),
     # New Machine Group
     url(r'^new-machine-group/(?P<bu_id>.+)/', 'new_machine_group', name='new_machine_group'),
     # Edit Machine Group

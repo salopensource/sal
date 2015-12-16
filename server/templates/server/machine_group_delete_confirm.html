@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% load dashboard_extras %}
+
+{% block nav %}
+<li><a href="{% url 'edit_machine_group' machine_group.id %}"><i class="fa fa-fw fa-chevron-left"></i> Back</i></a>
+{% endblock %}
+
+{% block script %}
+
+
+{% endblock %}
+
+
+{% block content %}
+
+<div class="row">
+    <div class="col-md-10">
+        <div class="alert alert-danger">You are about to delete {{machine_group}}. Are you sure you want to delete:</div>
+    </div>
+</div>
+
+<div class="row">
+<div class="col-md-10">
+<pre><p>{{ machines.count }} Machines</p></pre>
+
+</div>
+</div>
+<div class="row">
+    <div class="col-md-10">
+        <a href="{% url 'group_dashboard' machine_group.id %}" class="btn btn-lg btn-success">I made a mistake, get me out of here!</a>
+        <a href="{% url 'really_delete_machine_group' machine_group.id %}" class="btn btn-lg btn-danger">I know what I'm doing, delete it.</a>
+    </div>
+</div>
+{% endblock %}

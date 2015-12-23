@@ -54,7 +54,10 @@ urlpatterns = patterns('server.views',
     url(r'^edit-machine-group/(?P<group_id>.+)/', 'edit_machine_group', name='edit_machine_group'),
     # New User
     url(r'^settings/users/new/', 'new_user', name='new_user'),
-
+    # Enable sending data
+    url(r'^settings/senddata/enable/', 'senddata_enable', name='senddata_enable'),
+    # disable sending data
+    url(r'^settings/senddata/disable/', 'senddata_disable', name='senddata_disable'),
     # Edit User
     url(r'^settings/users/edit/(?P<user_id>.+)/', 'edit_user', name='edit_user'),
     # Make User Staff

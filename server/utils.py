@@ -4,9 +4,76 @@ from server.models import *
 from django.shortcuts import get_object_or_404
 from yapsy.PluginManager import PluginManager
 from django.db.models import Max
+import time
 import os
 import logging
+import requests
+import plistlib
 
+def get_version_number():
+    # See if we're sending data
+    try:
+        senddata_setting = SalSetting.objects.get(name='send_data')
+    except SalSetting.DoesNotExist:
+        #it's not been set up yet, just return true
+        return True
+
+    try:
+        last_sent = SalSetting.objects.get(name='last_sent_data')
+    except SalSetting.DoesNotExist:
+        last_sent = SalSetting(name='last_sent_data', value='0')
+        last_sent.save()
+
+    current_time = time.time()
+    if (current_time - 86400) < last_sent.value:
+        try:
+            current_version = SalSetting.objects.get(name='current_version')
+        except SalSetting.DoesNotExist:
+            current_version = SalSetting(name='current_version', value='0')
+            current_version.save()
+        if senddata_setting.value == 'yes':
+            version = send_report()
+            current_version.value = version
+            print version
+            current_version.save()
+            last_sent.value = current_time
+            last_sent.save()
+        else:
+            r = requests.get('http://version.salopensource.com')
+            if r.status_code == '200':
+                current_version.value = r.text
+                current_version.save()
+                last_sent.value = current_time
+                last_sent.save()
+
+def get_install_type():
+    if os.path.exists('/home/docker'):
+        return 'docker'
+    else:
+        return 'bare'
+
+def send_report():
+    output = {}
+    # get total number of machines
+    output['machines'] = Machine.objects.all().count()
+    # get list of plugins
+    plugins = []
+    for plugin in Plugin.objects.all():
+        plugins.append(plugin.name)
+    output['plugins'] = plugins
+    # get install type
+    output['install_type'] = get_install_type()
+    # get database type
+    output['database'] = settings.DATABASES['default']['ENGINE']
+
+    # plist encode output
+    post_data = plistlib.writePlistToString(output)
+    r = requests.put("http://version.salopensource.com", data = {"data":post_data})
+    print r.status_code
+    if r.status_code == '200':
+        return r.text
+    else:
+        return 'Error'
 def loadDefaultPlugins():
     # Are there any plugin objects? If not, add in the defaults
     plugin_objects = Plugin.objects.all().count()

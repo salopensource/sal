@@ -33,7 +33,7 @@
             {% for message in messages %}
             <div class="alert alert-{% if message.tags %}{{ message.tags }}{% endif %} alert-dismissable">
                 <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
-                                {{ message }} 
+                                {{ message }}
                             </div>
             {% endfor %}
     </div>
@@ -53,6 +53,19 @@
         {% bootstrap_form historical_setting_form %}
         <p><button type="submit" class="btn btn-primary">Save</button></p>
         </form>
+    </div>
+</div>
+<div class="row">
+    <div class="col-md-10">
+        <h3>Send Usage Data</h3>
+        <p>Sending anonymous information about your usage helps shape the future of Sal. For example, if it turns out many people are using one particular plugin, that plugin will get more development dedicated to it. </p>
+
+    {% if senddata_setting == 'yes' %}<p>Thank you for helping with the development of Sal. If you wish to opt out of sending usage data, you can do so below:</p>
+    <p><a href="{% url 'senddata_disable' %}" class="btn btn-danger">I don't want to help open source development anymore</a></p>{% endif %}
+
+    {% if senddata_setting == 'no' %}<p>Sending your usage data would help get the features you care about developed faster. If you have changed your mind and would like to help the effort by sending usage data, you can do so below:</p>
+    <p><a href="{% url 'senddata_enable' %}" class="btn btn-success">Send usage data</a></p>{% endif %}
+
     </div>
 </div>
 {% endblock %}

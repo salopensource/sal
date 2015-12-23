@@ -4,14 +4,14 @@
 
 {% block script %}
 <script>
- 
+
 $( document ).ready(function() {
- 
+
    {% for widget in output %}
 
    $.ajaxWithRetries(
     {
-        url: "{% url 'plugin_load_front' widget.name %}",  
+        url: "{% url 'plugin_load_front' widget.name %}",
         error: function(){
             console.log('{{ widget.name }} Failed');
         },
@@ -27,11 +27,17 @@ $( document ).ready(function() {
 
 
    {% endfor %}
- 
-});
- 
-</script>
 
+});
+
+</script>
+{% if data_setting_decided == False %}
+<script type="text/javascript">
+    $(window).load(function(){
+        $('#myModal').modal('show');
+    });
+</script>
+{% endif %}
 {% endblock %}
 
 {% block nav %}
@@ -63,7 +69,7 @@ $( document ).ready(function() {
         </ul>
         <!-- /.nav-second-level -->
     </li>
-    
+
 {% endblock %}
 {% block content %}
 
@@ -73,4 +79,22 @@ $( document ).ready(function() {
     {% endfor %}
 </div>
 
+{% endblock %}
+{% block modal %}
+    <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" data-keyboard="false" data-backdrop="static">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h4 class="modal-title" id="myModalLabel">Send usage data?</h4>
+      </div>
+      <div class="modal-body">
+        <p>Sending anonymous usage data helps shape the development of Sal. It will only send usage data once every 24 hours. For more information on what data is sent, please see the <a href="https://github.com/salopensource/sal/wiki/Usage-reporting">wiki</a>.  You can change this at any time in the Settings section.</p>
+      </div>
+      <div class="modal-footer">
+        <a href="{% url 'senddata_enable' %}" class="btn btn-success">Send usage data (and be awesome!)</a>
+        <a href="{% url 'senddata_disable' %}" class="btn btn-danger" href="#">Do not send usage data</a>
+      </div>
+    </div>
+  </div>
+</div>
 {% endblock %}

@@ -5,7 +5,7 @@ from django.contrib.auth.decorators import login_required, permission_required
 from django.template import RequestContext, Template, Context
 import json
 from django.views.decorators.csrf import csrf_exempt, csrf_protect
-from django.http import HttpResponse, Http404, HttpResponseNotFound
+from django.http import HttpResponse, Http404, HttpResponseNotFound, HttpResponseRedirect
 from django.contrib.auth.models import Permission, User
 from django.conf import settings
 from django.core.context_processors import csrf
@@ -98,6 +98,7 @@ def index(request):
     month_ago = today - timedelta(days=30)
     three_months_ago = today - timedelta(days=90)
     config_installed = 'config' in settings.INSTALLED_APPS
+
     if user_level != 'GA':
         # user has many BU's display them all in a friendly manner
         business_units = user.businessunit_set.all()
@@ -140,12 +141,17 @@ def index(request):
 
     output = utils.orderPluginOutput(output)
     # get the user level - if they're a global admin, show all of the machines. If not, show only the machines they have access to
+    data_setting_decided = True
     if user_level == 'GA':
         business_units = BusinessUnit.objects.all()
+        try:
+            senddata_setting = SalSetting.objects.get(name='send_data')
+        except SalSetting.DoesNotExist:
+            data_setting_decided = False
     else:
         business_units = user.businessunit_set.all()
 
-    c = {'user': request.user, 'business_units': business_units, 'output': output, }
+    c = {'user': request.user, 'business_units': business_units, 'output': output, 'data_setting_decided':data_setting_decided}
     return render_to_response('server/index.html', c, context_instance=RequestContext(request))
 
 # Manage Users
@@ -1069,8 +1075,42 @@ def settings_page(request):
     if user_level != 'GA':
         return redirect(index)
 
-    c = {'user':request.user, 'request':request, 'historical_setting_form':historical_setting_form}
+    try:
+        senddata_setting = SalSetting.objects.get(name='send_data')
+    except SalSetting.DoesNotExist:
+        senddata_setting = SalSetting(name='send_data', value='yes')
+        senddata_setting.save()
+
+    c = {'user':request.user, 'request':request, 'historical_setting_form':historical_setting_form,'senddata_setting':senddata_setting.value}
     return render_to_response('server/settings.html', c, context_instance=RequestContext(request))
+
+@login_required
+def senddata_enable(request):
+    user = request.user
+    user_level = user.userprofile.level
+    if user_level != 'GA':
+        return redirect(index)
+    try:
+        senddata_setting = SalSetting.objects.get(name='send_data')
+    except SalSetting.DoesNotExist:
+        senddata_setting = SalSetting(name='send_data', value='yes')
+    senddata_setting.value = 'yes'
+    senddata_setting.save()
+    return HttpResponseRedirect(request.META.get('HTTP_REFERER'))
+
+@login_required
+def senddata_disable(request):
+    user = request.user
+    user_level = user.userprofile.level
+    if user_level != 'GA':
+        return redirect(index)
+    try:
+        senddata_setting = SalSetting.objects.get(name='send_data')
+    except SalSetting.DoesNotExist:
+        senddata_setting = SalSetting(name='send_data', value='no')
+    senddata_setting.value = 'no'
+    senddata_setting.save()
+    return HttpResponseRedirect(request.META.get('HTTP_REFERER'))
 
 @login_required
 def settings_historical_data(request):
@@ -1519,7 +1559,7 @@ def checkin(request):
                     for column, col_data in items.items():
                         osquerycolumn = OSQueryColumn(osquery_result=osqueryresult, action='removed', column_name=column, column_data=col_data)
                         osquerycolumn.save()
-
+        utils.get_version_number()
         return HttpResponse("Sal report submmitted for %s"
                             % data.get('name'))
 

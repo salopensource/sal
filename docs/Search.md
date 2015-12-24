@@ -1,6 +1,6 @@
 ## Search
 
-Sal has full search across machines, Facts and Munki conditions. If you want to search on Machine info, enter your search terms without anything extra. To search for Facts, prefix your search with ``facter:``, and to search your conditions, prefix your search with ``condition:``.
+Sal has full search across machines, Facts and Munki conditions. If you want to search on Machine info, enter your search terms without anything extra. To search for Facts, prefix your search with `facter:`. To search your conditions, prefix your search with `condition:`. Finally, to search the application inventory, prefix your search with `inventory:`.
 
 ## Indexing
 

@@ -1,7 +1,7 @@
 API
 =====
 
-Sal has a basic REST API. You will need to create an API key with appropriate permissions. You should send your private key and public key as headers (``publickey`` and ``privatekey``).
+Sal has a basic REST API. You will need to create an API key before using it. You should send your private key and public key as headers (``publickey`` and ``privatekey``).
 
 ## Machines
 

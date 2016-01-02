@@ -39,8 +39,8 @@ def get_version_number():
             last_sent.value = current_time
             last_sent.save()
         else:
-            r = requests.get('http://version.salopensource.com')
-            if r.status_code == '200':
+            r = requests.get('https://version.salopensource.com')
+            if r.status_code == 200:
                 current_version.value = r.text
                 current_version.save()
                 last_sent.value = current_time
@@ -68,9 +68,9 @@ def send_report():
 
     # plist encode output
     post_data = plistlib.writePlistToString(output)
-    r = requests.put("http://version.salopensource.com", data = {"data":post_data})
+    r = requests.put('https://version.salopensource.com', data = {"data":post_data})
     print r.status_code
-    if r.status_code == '200':
+    if r.status_code == 200:
         return r.text
     else:
         return 'Error'

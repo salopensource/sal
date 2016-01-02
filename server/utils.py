@@ -68,7 +68,7 @@ def send_report():
 
     # version
     current_dir = os.path.dirname(os.path.realpath(__file__))
-    version = plistlib.readPlist(os.path.join(current_dir, 'version.plist'))
+    version = plistlib.readPlist(os.path.join(os.path.dirname(current_dir), 'sal', 'version.plist'))
     output['version'] = version['version']
     # plist encode output
     post_data = plistlib.writePlistToString(output)

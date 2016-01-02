@@ -72,7 +72,7 @@ def send_report():
     output['version'] = version['version']
     # plist encode output
     post_data = plistlib.writePlistToString(output)
-    r = requests.put('https://version.salopensource.com', data = {"data":post_data})
+    r = requests.post('https://version.salopensource.com', data = {"data":post_data})
     print r.status_code
     if r.status_code == 200:
         return r.text

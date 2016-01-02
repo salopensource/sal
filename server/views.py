@@ -1555,7 +1555,7 @@ def checkin(request):
                         osquerycolumn = OSQueryColumn(osquery_result=osqueryresult, action='added', column_name=column, column_data=col_data)
                         osquerycolumn.save()
 
-                for item in report['diffResults']['removed']:
+                for items in report['diffResults']['removed']:
                     for column, col_data in items.items():
                         osquerycolumn = OSQueryColumn(osquery_result=osqueryresult, action='removed', column_name=column, column_data=col_data)
                         osquerycolumn.save()

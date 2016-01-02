@@ -66,6 +66,10 @@ def send_report():
     # get database type
     output['database'] = settings.DATABASES['default']['ENGINE']
 
+    # version
+    current_dir = os.path.dirname(os.path.realpath(__file__))
+    version = plistlib.readPlist(os.path.join(current_dir, 'version.plist'))
+    output['version'] = version['version']
     # plist encode output
     post_data = plistlib.writePlistToString(output)
     r = requests.put('https://version.salopensource.com', data = {"data":post_data})

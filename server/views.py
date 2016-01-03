@@ -1550,15 +1550,17 @@ def checkin(request):
                     osqueryresult = OSQueryResult(hostidentifier=report['hostIdentifier'], machine=machine, unix_time=unix_time, name=report['name'])
                     osqueryresult.save()
 
-                for items in report['diffResults']['added']:
-                    for column, col_data in items.items():
-                        osquerycolumn = OSQueryColumn(osquery_result=osqueryresult, action='added', column_name=column, column_data=col_data)
-                        osquerycolumn.save()
+                if 'added' in report['diffResults']:
+                    for items in report['diffResults']['added']:
+                        for column, col_data in items.items():
+                            osquerycolumn = OSQueryColumn(osquery_result=osqueryresult, action='added', column_name=column, column_data=col_data)
+                            osquerycolumn.save()
 
-                for items in report['diffResults']['removed']:
-                    for column, col_data in items.items():
-                        osquerycolumn = OSQueryColumn(osquery_result=osqueryresult, action='removed', column_name=column, column_data=col_data)
-                        osquerycolumn.save()
+                if 'removed' in report['diffResults']:
+                    for items in report['diffResults']['removed']:
+                        for column, col_data in items.items():
+                            osquerycolumn = OSQueryColumn(osquery_result=osqueryresult, action='removed', column_name=column, column_data=col_data)
+                            osquerycolumn.save()
         utils.get_version_number()
         return HttpResponse("Sal report submmitted for %s"
                             % data.get('name'))

@@ -31,20 +31,17 @@ def get_version_number():
         except SalSetting.DoesNotExist:
             current_version = SalSetting(name='current_version', value='0')
             current_version.save()
+        last_sent.value = current_time
+        last_sent.save()
         if senddata_setting.value == 'yes':
             version = send_report()
             current_version.value = version
-            print version
             current_version.save()
-            last_sent.value = current_time
-            last_sent.save()
         else:
             r = requests.get('https://version.salopensource.com')
             if r.status_code == 200:
                 current_version.value = r.text
                 current_version.save()
-                last_sent.value = current_time
-                last_sent.save()
 
 def get_install_type():
     if os.path.exists('/home/docker'):

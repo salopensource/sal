@@ -26,6 +26,8 @@ def get_version_number():
 
     current_time = time.time()
     if int(float(current_time - 86400)) < int(float(last_sent.value)) or int(last_sent.value) == 0:
+        print int(float(last_sent.value))
+        print int(float(current_time - 86400))
         try:
             current_version = SalSetting.objects.get(name='current_version')
         except SalSetting.DoesNotExist:

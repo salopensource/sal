@@ -412,6 +412,12 @@ a.btn-danger a:hover {
   background-color: #1555b5;
   color: rgba(255, 255, 255, 0.8);
 }
+.dropdown-menu li.new_version {
+  background-color: white;
+}
+.dropdown-menu.new_version_dropdown {
+  background-color: white;
+}
 .navbar-title {
   padding: 10px;
 }
@@ -581,13 +587,11 @@ a.btn-danger a:hover {
 .panel-traffic-light .panel-body a:last-child {
   margin-right: 0;
 }
-
-.blue-spinner{
-    display:block;
-    padding-top: 50px;
-    padding-bottom: 50px;
-  }
-
+.blue-spinner {
+  display: block;
+  padding-top: 50px;
+  padding-bottom: 50px;
+}
 .color-green {
   color: #17c666;
 }

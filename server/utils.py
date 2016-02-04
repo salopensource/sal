@@ -125,7 +125,7 @@ def reloadPluginsModel():
                     dbplugin.type = 'builtin'
                 dbplugin.save()
 
-def disabled_plugins(plugin_kind='builtin'):
+def disabled_plugins(plugin_kind='main'):
     enabled_plugins = Plugin.objects.all()
     # Build the manager
     manager = PluginManager()
@@ -135,13 +135,13 @@ def disabled_plugins(plugin_kind='builtin'):
     manager.collectPlugins()
     output = []
 
-    if plugin_kind == 'builtin':
+    if plugin_kind == 'main':
         for plugin in manager.getAllPlugins():
             try:
                 plugin_type = plugin.plugin_object.plugin_type()
             except:
                 plugin_type = 'builtin'
-            if plugin_type == 'builtin':
+            if plugin_type != 'full_page':
                 try:
                     item = Plugin.objects.get(name=plugin.name)
                 except Plugin.DoesNotExist:

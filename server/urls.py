@@ -95,5 +95,7 @@ urlpatterns = patterns('server.views',
     # Save Historical days
     url(r'^settings/save_historical_days/', 'settings_historical_data', name='settings_historical_data'),
     # Settings
-    url(r'^settings/', 'settings_page', name='settings_page')
+    url(r'^settings/', 'settings_page', name='settings_page'),
+    # never remind about new version
+    url(r'^new_version/never/', 'new_version_never', name='new_version_never')
 )

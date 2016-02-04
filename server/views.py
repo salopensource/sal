@@ -20,6 +20,7 @@ from forms import *
 import pprint
 import re
 import os
+from distutils.version import LooseVersion
 from yapsy.PluginManager import PluginManager
 from django.core.exceptions import PermissionDenied
 import utils
@@ -29,6 +30,7 @@ import unicodecsv as csv
 import django.utils.timezone
 import dateutil.parser
 import hashlib
+import time
 # This will only work if BRUTE_PROTECT == True
 try:
     import axes.utils
@@ -151,8 +153,91 @@ def index(request):
     else:
         business_units = user.businessunit_set.all()
 
-    c = {'user': request.user, 'business_units': business_units, 'output': output, 'data_setting_decided':data_setting_decided}
+    # Get current version
+    new_version_available = False
+    new_version = None
+    current_dir = os.path.dirname(os.path.realpath(__file__))
+    version = plistlib.readPlist(os.path.join(os.path.dirname(current_dir), 'sal', 'version.plist'))
+    current_version = version['version']
+    try:
+        # Get version from the server
+        current_version_lookup = SalSetting.objects.get(name='current_version')
+        server_version = current_version_lookup.value
+    except SalSetting.DoesNotExist:
+        server_version = None
+
+    # if we've looked for the server version, check to see what we're running
+    if server_version:
+        should_notify = False
+        if LooseVersion(server_version) > LooseVersion(current_version):
+            # Have we notified about this version before?
+            try:
+                last_version_notified_lookup = SalSetting.objects.get(name='last_notified_version')
+                last_notified_version = last_version_notified_lookup.value
+            except SalSetting.DoesNotExist:
+                last_version_notified_lookup = SalSetting(name='last_notified_version', value=server_version)
+                last_version_notified_date_lookup = SalSetting(name='last_version_notified_date',
+                value=int(time.time()))
+                last_notified_version = None
+            # if last version notified version is equal to the server version
+            if last_notified_version == server_version:
+                try:
+                    next_notify_date_lookup = SalSetting.objects.get(name='next_notify_date')
+                    next_notify_date = next_notify_date_lookup.value
+                except:
+                    # They've not chosen yet, show it
+                    should_notify = True
+                    next_notify_date = None
+            else:
+                should_notify = True
+                next_notify_date = None
+            # Try and get the last notified date - if it's never, no new version avaialble
+            if next_notify_date:
+                if next_notify_date != 'never':
+                    current_time = time.time()
+                    if current_time > next_notify_date:
+                        should_notify = True
+
+            if should_notify:
+                new_version_available = True
+                new_version = server_version
+        else:
+            try:
+                next_notify_date_lookup = SalSetting.objects.get(name='next_notify_date')
+                next_notify_date_lookup.delete()
+            except SalSetting.DoesNotExist:
+                pass
+        print new_version
+    c = {'user': request.user, 'business_units': business_units, 'output': output, 'data_setting_decided':data_setting_decided, 'new_version_available':new_version_available, 'new_version':new_version, 'current_version': current_version}
     return render_to_response('server/index.html', c, context_instance=RequestContext(request))
+
+@login_required
+def new_version_never(request):
+    if request.user.userprofile.level != 'GA':
+        return redirect(index)
+    # Don't notify about a new version until there is a new one
+    current_version_lookup = SalSetting.objects.get(name='current_version')
+    server_version = current_version_lookup.value
+    try:
+        last_version_notified= SalSetting.objects.get(name='last_notified_version')
+    except SalSetting.DoesNotExist:
+        last_version_notified = SalSetting(name='last_notified_version')
+    last_version_notified.value = server_version
+    last_version_notified.save()
+
+    try:
+        next_notify_date = SalSetting.objects.get(name='next_notify_date')
+    except SalSetting.DoesNotExist:
+        next_notify_date = SalSetting(name='next_notify_date')
+
+    next_notify_date.value = 'never'
+    next_notify_date.save()
+    return redirect(index)
+
+@login_required
+def new_version_week(request):
+    # Notify again in a week
+    pass
 
 # Manage Users
 @login_required
@@ -445,7 +530,7 @@ def export_csv(request, pluginName, data, page='front', theID=None):
     header_row = []
     fields = Machine._meta.get_fields()
     for field in fields:
-        if not field.is_relation and field.name != 'id' and field.name != 'report' and field.name != 'activity' and field.name != 'os_family':
+        if not field.is_relation and field.name != 'id' and field.name != 'report' and field.name != 'activity' and field.name != 'os_family' and field.name != 'install_log' and field.name != 'install_log_hash':
             header_row.append(field.name)
     header_row.append('business_unit')
     header_row.append('machine_group')
@@ -453,7 +538,7 @@ def export_csv(request, pluginName, data, page='front', theID=None):
     for machine in machines:
         row = []
         for name, value in machine.get_fields():
-            if name != 'id' and name !='machine_group' and name != 'report' and name != 'activity' and name != 'os_family':
+            if name != 'id' and name !='machine_group' and name != 'report' and name != 'activity' and name != 'os_family' and name != 'install_log' and name != 'install_log_hash':
                 row.append(value.strip())
         row.append(machine.machine_group.business_unit.name)
         row.append(machine.machine_group.name)
@@ -1145,10 +1230,14 @@ def plugins_page(request):
     # Load the plugins
     utils.reloadPluginsModel()
     enabled_plugins = Plugin.objects.all()
-    disabled_plugins = utils.disabled_plugins(plugin_kind='builtin')
+    disabled_plugins = utils.disabled_plugins(plugin_kind='main')
     c = {'user':request.user, 'request':request, 'enabled_plugins':enabled_plugins, 'disabled_plugins':disabled_plugins}
     return render_to_response('server/plugins.html', c, context_instance=RequestContext(request))
 
+@login_required
+def settings_full_page_plugins(request):
+    # get enabled and disabled plugins here
+    pass
 @login_required
 def plugin_plus(request, plugin_id):
     user = request.user
@@ -1300,19 +1389,23 @@ def preflight(request):
     manager.collectPlugins()
     output = {}
     output['queries'] = {}
-    for plugin in manager.getAllPlugins():
-        counter = 0
-        try:
-            if plugin.plugin_object.plugin_type() == 'osquery':
-                # No other plugins will have info for this
-                for query in plugin.plugin_object.get_queries():
-                    name = query['name']
-                    del query['name']
-                    output['queries'][name] = {}
-                    output['queries'][name] = query
+    for enabled_plugin in Plugin.objects.all():
 
-        except:
-            pass
+        counter = 0
+        for plugin in manager.getAllPlugins():
+
+            if enabled_plugin.name == plugin.name:
+                try:
+                    if plugin.plugin_object.plugin_type() == 'osquery':
+                        # No other plugins will have info for this
+                        for query in plugin.plugin_object.get_queries():
+                            name = query['name']
+                            del query['name']
+                            output['queries'][name] = {}
+                            output['queries'][name] = query
+
+                except:
+                    pass
     return HttpResponse(json.dumps(output))
 
 

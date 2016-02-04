@@ -445,7 +445,7 @@ def export_csv(request, pluginName, data, page='front', theID=None):
     header_row = []
     fields = Machine._meta.get_fields()
     for field in fields:
-        if not field.is_relation and field.name != 'id' and field.name != 'report' and field.name != 'activity' and field.name != 'os_family':
+        if not field.is_relation and field.name != 'id' and field.name != 'report' and field.name != 'activity' and field.name != 'os_family' and field.name != 'install_log' and field.name != 'install_log_hash':
             header_row.append(field.name)
     header_row.append('business_unit')
     header_row.append('machine_group')
@@ -453,7 +453,7 @@ def export_csv(request, pluginName, data, page='front', theID=None):
     for machine in machines:
         row = []
         for name, value in machine.get_fields():
-            if name != 'id' and name !='machine_group' and name != 'report' and name != 'activity' and name != 'os_family':
+            if name != 'id' and name !='machine_group' and name != 'report' and name != 'activity' and name != 'os_family' and name != 'install_log' and name != 'install_log_hash':
                 row.append(value.strip())
         row.append(machine.machine_group.business_unit.name)
         row.append(machine.machine_group.name)

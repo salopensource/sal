@@ -160,8 +160,6 @@ def disabled_plugins(plugin_kind='main'):
                 except FullPagePlugin.DoesNotExist:
                     output.append(plugin.name)
 
-
-
     return output
 
 def UniquePluginOrder():

@@ -153,6 +153,15 @@ def index(request):
     else:
         business_units = user.businessunit_set.all()
 
+    # This isn't ready. These can just be false / none for now
+    # (new_version_available, new_version, current_version) = check_version()
+    new_version_available = False
+    new_version = False
+    current_version = False
+    c = {'user': request.user, 'business_units': business_units, 'output': output, 'data_setting_decided':data_setting_decided, 'new_version_available':new_version_available, 'new_version':new_version, 'current_version': current_version}
+    return render_to_response('server/index.html', c, context_instance=RequestContext(request))
+
+def check_version():
     # Get current version
     new_version_available = False
     new_version = None
@@ -207,9 +216,8 @@ def index(request):
                 next_notify_date_lookup.delete()
             except SalSetting.DoesNotExist:
                 pass
-        print new_version
-    c = {'user': request.user, 'business_units': business_units, 'output': output, 'data_setting_decided':data_setting_decided, 'new_version_available':new_version_available, 'new_version':new_version, 'current_version': current_version}
-    return render_to_response('server/index.html', c, context_instance=RequestContext(request))
+
+    return new_version_available, new_version, current_version
 
 @login_required
 def new_version_never(request):
@@ -1381,33 +1389,12 @@ def delete_api_key(request, key_id):
 # preflight
 @csrf_exempt
 def preflight(request):
-    # Build the manager
-    manager = PluginManager()
-    # Tell it the default place(s) where to find plugins
-    manager.setPluginPlaces([settings.PLUGIN_DIR, os.path.join(settings.PROJECT_DIR, 'server/plugins')])
-    # Load all plugins
-    manager.collectPlugins()
+    # osquery plugins aren't a thing anymore.
+    # This is just to stop old clients from barfing.
     output = {}
     output['queries'] = {}
-    for enabled_plugin in Plugin.objects.all():
 
-        counter = 0
-        for plugin in manager.getAllPlugins():
-
-            if enabled_plugin.name == plugin.name:
-                try:
-                    if plugin.plugin_object.plugin_type() == 'osquery':
-                        # No other plugins will have info for this
-                        for query in plugin.plugin_object.get_queries():
-                            name = query['name']
-                            del query['name']
-                            output['queries'][name] = {}
-                            output['queries'][name] = query
-
-                except:
-                    pass
     return HttpResponse(json.dumps(output))
-
 
 # checkin
 @csrf_exempt

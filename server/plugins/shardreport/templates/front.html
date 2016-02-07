@@ -1,0 +1,25 @@
+<div class="row">
+    <div class="col-md-4">
+        <div class="panel panel-default panel-traffic-light">
+            <div class="panel-heading">
+                <h4>Shard 1</h4>
+            </div>
+            <div class="panel-body">
+                <table class="col-md-12 table-striped table-condensed">
+
+                    {% for item in shard1 %}
+                    <tr><td><a href="#">{{ item.name }}</a></td>
+                        <td><span class="pull-right badge">{{item.version}}</span></td></tr>
+                    {% endfor %}
+                </table>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-8">
+        <div class="panel panel-default">
+                        <div class="panel-body">
+
+                        </div>
+                    </div>
+    </div>
+</div>

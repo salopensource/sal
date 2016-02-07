@@ -307,12 +307,21 @@ class Plugin(models.Model):
         ('builtin', 'Built In'),
     )
     name = models.CharField(max_length=255, unique=True)
+    description = models.TextField(blank=True, null=True)
     order = models.IntegerField()
     type = models.CharField(max_length=255, choices=PLUGIN_TYPES, default='facter')
     def __unicode__(self):
         return self.name
     class Meta:
         ordering = ['order']
+
+class Report(models.Model):
+    name = models.CharField(max_length=255, unique=True)
+    description = models.TextField(blank=True, null=True)
+    def __unicode__(self):
+        return self.name
+    class Meta:
+        ordering = ['name']
 
 class SalSetting(models.Model):
     name = models.CharField(max_length=255, unique=True)

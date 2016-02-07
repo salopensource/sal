@@ -376,6 +376,10 @@ a.btn-danger a:hover {
   font-size: 30px;
   vertical-align: middle;
 }
+.navbar-top-links li.dropdown .fa-th-large {
+  font-size: 30px;
+  vertical-align: middle;
+}
 .navbar-top-links li.dropdown .fa-caret-down {
   font-size: 20px;
   color: rgba(255, 255, 255, 0.5);

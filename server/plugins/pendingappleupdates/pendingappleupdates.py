@@ -15,6 +15,9 @@ class PendingAppleUpdates(IPlugin):
     def widget_width(self):
         return 4
 
+    def get_description(self):
+        return 'List of pending Apple updates'
+
     def widget_content(self, page, machines=None, id=None):
 
         if page == 'front':

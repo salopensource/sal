@@ -22,22 +22,25 @@ class Activity(IPlugin):
 
     def plugin_type(self):
         return 'builtin'
-        
+
+    def get_description(self):
+        return 'Current Munki activity'
+
     def widget_content(self, page, machines=None, theid=None):
         # The data is data is pulled from the database and passed to a template.
-        
+
         # There are three possible views we're going to be rendering to - front, bu_dashbaord and group_dashboard. If page is set to bu_dashboard, or group_dashboard, you will be passed a business_unit or machine_group id to use (mainly for linking to the right search).
-        
+
         # You will be sent a machines object - if you are only operating on a collection of machines, you should use this object for performance reasons
         if page == 'front':
             t = loader.get_template('activity/templates/front.html')
-        
+
         if page == 'bu_dashboard':
             t = loader.get_template('activity/templates/id.html')
-        
+
         if page == 'group_dashboard':
             t = loader.get_template('activity/templates/id.html')
-        
+
         try:
             checked_in_this_hour = machines.filter(last_checkin__gte=hour_ago).count()
         except:
@@ -75,29 +78,28 @@ class Activity(IPlugin):
             'page': page
         })
         return t.render(c)
-    
+
     def filter_machines(self, machines, data):
         # You will be passed a QuerySet of machines, you then need to perform some filtering based on the 'data' part of the url from the show_widget output. Just return your filtered list of machines and the page title.
-        
+
         if data == '1-hour':
             machines = machines.filter(last_checkin__gte=hour_ago)
             title = 'Machines seen in the last hour'
-        
+
         if data == 'today':
             machines = machines.filter(last_checkin__gte=today)
             title = 'Machines seen today'
-        
+
         if data == '1-week':
             machines = machines.filter(last_checkin__gte=week_ago)
             title = 'Machines seen in the last week'
-        
+
         if data == '1-month':
             machines = machines.filter(last_checkin__range=(three_months_ago, month_ago))
             title = 'Machines inactive for a month'
-            
+
         if data == '3-months':
             machines = machines.exclude(last_checkin__gte=three_months_ago)
             title = 'Machines inactive for over 3 months'
-        
+
         return machines, title
-        

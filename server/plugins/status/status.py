@@ -20,20 +20,23 @@ class Status(IPlugin):
 
     def widget_width(self):
         return 4
-        
+
+    def get_description(self):
+        return 'General status'
+
     def widget_content(self, page, machines=None, theid=None):
         # The data is data is pulled from the database and passed to a template.
-        
+
         # There are three possible views we're going to be rendering to - front, bu_dashbaord and group_dashboard. If page is set to bu_dashboard, or group_dashboard, you will be passed a business_unit or machine_group id to use (mainly for linking to the right search).
         if page == 'front':
             t = loader.get_template('status/templates/front.html')
-        
+
         if page == 'bu_dashboard':
             t = loader.get_template('status/templates/id.html')
-        
+
         if page == 'group_dashboard':
             t = loader.get_template('status/templates/id.html')
-        
+
         errors = machines.filter(errors__gt=0).count()
         warnings = machines.filter(warnings__gt=0).count()
         activity = machines.filter(activity__isnull=False).count()
@@ -55,18 +58,18 @@ class Status(IPlugin):
             'page': page
         })
         return t.render(c)
-    
+
     def filter_machines(self, machines, data):
         # You will be passed a QuerySet of machines, you then need to perform some filtering based on the 'data' part of the url from the show_widget output. Just return your filtered list of machines and the page title.
-        
+
         if data == 'errors':
             machines = machines.filter(errors__gt=0)
             title = 'Machines with MSU errors'
-        
+
         if data == 'warnings':
             machines = machines.filter(warnings__gt=0)
             title = 'Machines with MSU warnings'
-        
+
         if data == 'activity':
             machines = machines.filter(activity__isnull=False)
             title = 'Machines with MSU activity'
@@ -82,9 +85,9 @@ class Status(IPlugin):
         if data == '90dayactive':
             machines = machines.filter(last_checkin__gte=three_months_ago)
             title = '90 day active machines'
-        
+
         if data == 'all_machines':
             machines = machines
             title = 'All Machines'
-        
-        return machines, title    
+
+        return machines, title

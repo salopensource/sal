@@ -122,6 +122,22 @@ def index(request):
     # Load all plugins
     manager.collectPlugins()
     output = []
+    reports = []
+    enabled_reports = Report.objects.all()
+    for enabled_report in enabled_reports:
+        for plugin in manager.getAllPlugins():
+            # If plugin_type isn't set, it can't be a report
+            try:
+                plugin_type = plugin.plugin_object.plugin_type()
+            except:
+                plugin_type = 'widget'
+            if plugin_type == 'report':
+                data = {}
+                data['name'] = plugin.name
+                data['title'] = plugin.plugin_object.get_title()
+                reports.append(data)
+
+                break
     # Get all the enabled plugins
     enabled_plugins = Plugin.objects.all().order_by('order')
     for enabled_plugin in enabled_plugins:
@@ -133,7 +149,7 @@ def index(request):
             except:
                 plugin_type = 'widget'
             if plugin.name == enabled_plugin.name and \
-            plugin_type != 'machine_info' and plugin_type != 'full_page':
+            plugin_type != 'machine_info' and plugin_type != 'report':
                 data = {}
                 data['name'] = plugin.name
                 data['width'] = plugin.plugin_object.widget_width()
@@ -158,7 +174,7 @@ def index(request):
     new_version_available = False
     new_version = False
     current_version = False
-    c = {'user': request.user, 'business_units': business_units, 'output': output, 'data_setting_decided':data_setting_decided, 'new_version_available':new_version_available, 'new_version':new_version, 'current_version': current_version}
+    c = {'user': request.user, 'business_units': business_units, 'output': output, 'data_setting_decided':data_setting_decided, 'new_version_available':new_version_available, 'new_version':new_version, 'reports':reports, 'current_version': current_version}
     return render_to_response('server/index.html', c, context_instance=RequestContext(request))
 
 def check_version():
@@ -462,13 +478,6 @@ def plugin_load(request, pluginName, page='front', theID=None):
         machine_groups = MachineGroup.objects.filter(business_unit=business_unit).prefetch_related('machine_set').all()
 
         machines = Machine.objects.filter(machine_group=machine_groups)
-        # if machine_groups.count() != 0:
-        #     machines_unsorted = machine_groups[0].machine_set.all()
-        #     for machine_group in machine_groups[1:]:
-        #         machines_unsorted = machines_unsorted | machine_group.machine_set.all()
-        # else:
-        #     machines_unsorted = None
-        # machines=machines_unsorted
 
     if page == 'group_dashboard':
         # only get machines from that group
@@ -479,11 +488,68 @@ def plugin_load(request, pluginName, page='front', theID=None):
     for plugin in manager.getAllPlugins():
         if plugin.name == pluginName:
             html = plugin.plugin_object.widget_content(page, machines, theID)
-    # c = {'user':user, 'plugin_name': pluginName, 'machines': machines, 'req_type': page, 'title': title, 'bu_id': theID, 'request':request }
 
-    # return render_to_response('server/overview_list_all.html', c, context_instance=RequestContext(request))
     return HttpResponse(html)
 
+@login_required
+def report_load(request, pluginName, page='front', theID=None):
+    user = request.user
+    title = None
+    business_unit = None
+    machine_group = None
+    # Build the manager
+    manager = PluginManager()
+    # Tell it the default place(s) where to find plugins
+    manager.setPluginPlaces([settings.PLUGIN_DIR, os.path.join(settings.PROJECT_DIR, 'server/plugins')])
+    # Load all plugins
+    manager.collectPlugins()
+    # get a list of machines (either from the BU or the group)
+    if page == 'front':
+        # get all machines
+        if user.userprofile.level == 'GA':
+            machines = Machine.objects.all()
+        else:
+            machines = Machine.objects.none()
+            for business_unit in user.businessunit_set.all():
+                for group in business_unit.machinegroup_set.all():
+                    machines = machines | group.machine_set.all()
+    if page == 'bu_dashboard':
+        # only get machines for that BU
+        # Need to make sure the user is allowed to see this
+        business_unit = get_object_or_404(BusinessUnit, pk=theID)
+        machine_groups = MachineGroup.objects.filter(business_unit=business_unit).prefetch_related('machine_set').all()
+
+        machines = Machine.objects.filter(machine_group=machine_groups)
+
+    if page == 'group_dashboard':
+        # only get machines from that group
+        machine_group = get_object_or_404(MachineGroup, pk=theID)
+        # check that the user has access to this
+        machines = Machine.objects.filter(machine_group=machine_group)
+    # send the machines and the data to the plugin
+    for plugin in manager.getAllPlugins():
+        if plugin.name == pluginName:
+            output = plugin.plugin_object.widget_content(page, machines, theID)
+
+    reports = []
+    enabled_reports = Report.objects.all()
+    for enabled_report in enabled_reports:
+        for plugin in manager.getAllPlugins():
+            # If plugin_type isn't set, it can't be a report
+            try:
+                plugin_type = plugin.plugin_object.plugin_type()
+            except:
+                plugin_type = 'widget'
+            if plugin_type == 'report':
+                data = {}
+                data['name'] = plugin.name
+                data['title'] = plugin.plugin_object.get_title()
+                reports.append(data)
+
+                break
+    
+    c = {'user': request.user, 'output': output, 'page':page, 'business_unit': business_unit, 'machine_group': machine_group, 'reports': reports}
+    return render_to_response('server/display_report.html', c, context_instance=RequestContext(request))
 
 @login_required
 def export_csv(request, pluginName, data, page='front', theID=None):
@@ -1243,9 +1309,18 @@ def plugins_page(request):
     return render_to_response('server/plugins.html', c, context_instance=RequestContext(request))
 
 @login_required
-def settings_full_page_plugins(request):
-    # get enabled and disabled plugins here
-    pass
+def settings_reports(request):
+        user = request.user
+        user_level = user.userprofile.level
+        if user_level != 'GA':
+            return redirect(index)
+        # Load the plugins
+        utils.reloadPluginsModel()
+        enabled_plugins = Report.objects.all()
+        disabled_plugins = utils.disabled_plugins(plugin_kind='report')
+        c = {'user':request.user, 'request':request, 'enabled_plugins':enabled_plugins, 'disabled_plugins':disabled_plugins}
+        return render_to_response('server/reports.html', c, context_instance=RequestContext(request))
+
 @login_required
 def plugin_plus(request, plugin_id):
     user = request.user
@@ -1307,6 +1382,27 @@ def plugin_enable(request, plugin_name):
         plugin = Plugin(name=plugin_name, order=utils.UniquePluginOrder())
         plugin.save()
     return redirect('plugins_page')
+
+@login_required
+def settings_report_disable(request, plugin_id):
+    user = request.user
+    profile = UserProfile.objects.get(user=user)
+    user_level = profile.level
+    if user_level != 'GA':
+        return redirect('server.views.index')
+    plugin = get_object_or_404(Report, pk=plugin_id)
+    plugin.delete()
+    return redirect('settings_reports')
+
+@login_required
+def settings_report_enable(request, plugin_name):
+    # only do this if there isn't a plugin already with the name
+    try:
+        plugin = Report.objects.get(name=plugin_name)
+    except Report.DoesNotExist:
+        plugin = Report(name=plugin_name)
+        plugin.save()
+    return redirect('settings_reports')
 
 @login_required
 def api_keys(request):

@@ -25,22 +25,32 @@ class ShardReport(IPlugin):
 
         return s.encode('utf-8', errors='replace')
 
+    def replace_dots(self,item):
+        item['dotVersion'] = item['version'].replace('.','DOT')
+        return item
+
     def widget_content(self, page, machines=None, theid=None):
 
         if page == 'front':
             t = loader.get_template('shardreport/templates/front.html')
+            catalog_objects = Catalog.objects.all()
 
         if page == 'bu_dashboard':
-            t = loader.get_template('plugins/traffic_lights_id.html')
+            t = loader.get_template('shardreport/templates/front.html')
+            business_unit = get_object_or_404(BusinessUnit, pk=theid)
+            machine_groups = business_unit.machinegroup_set.all()
+            catalog_objects = Catalog.objects.filter(machine_group=machine_groups)
 
         if page == 'group_dashboard':
-            t = loader.get_template('plugins/traffic_lights_id.html')
+            t = loader.get_template('shardreport/templates/front.html')
+            machine_group = get_object_or_404(MachineGroup, pk=theid)
+            catalog_objects = Catalog.objects.filter(machine_group=machine_group)
 
         shard1 = []
         shard2 = []
         shard3 = []
 
-        for catalog in Catalog.objects.all():
+        for catalog in catalog_objects:
             plist = plistlib.readPlistFromString(self.safe_unicode(catalog.content))
             for item in plist:
                 found = False
@@ -50,17 +60,29 @@ class ShardReport(IPlugin):
                             if shard1_item['name'] == item['name'] and shard1_item['version'] == item['version']:
                                 found = True
                         if not found:
+                            item = self.replace_dots(item)
                             shard1.append(item)
                     elif item['installable_condition'] == 'shard <= 50':
-                        shard2.append(item)
+                        for shard2_item in shard2:
+                            if shard2_item['name'] == item['name'] and shard2_item['version'] == item['version']:
+                                found = True
+                        if not found:
+                            item = self.replace_dots(item)
+                            shard2.append(item)
                     elif item['installable_condition'] == 'shard <= 75':
-                        shard3.append(item)
+                        for shard3_item in shard3:
+                            if shard3_item['name'] == item['name'] and shard3_item['version'] == item['version']:
+                                found = True
+                        if not found:
+                            item = self.replace_dots(item)
+                            shard3.append(item)
 
         c = Context({
             'title': 'Shard',
             'shard1': shard1,
             'shard2': shard2,
             'shard3': shard3,
+            'all_items': shard1+shard2+shard3,
             'plugin': 'ShardReport',
             'page': page,
             'theid': theid

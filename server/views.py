@@ -547,7 +547,7 @@ def report_load(request, pluginName, page='front', theID=None):
                 reports.append(data)
 
                 break
-    
+
     c = {'user': request.user, 'output': output, 'page':page, 'business_unit': business_unit, 'machine_group': machine_group, 'reports': reports}
     return render_to_response('server/display_report.html', c, context_instance=RequestContext(request))
 
@@ -736,6 +736,22 @@ def bu_dashboard(request, bu_id):
     # Load all plugins
     manager.collectPlugins()
     output = []
+    reports = []
+    enabled_reports = Report.objects.all()
+    for enabled_report in enabled_reports:
+        for plugin in manager.getAllPlugins():
+            # If plugin_type isn't set, it can't be a report
+            try:
+                plugin_type = plugin.plugin_object.plugin_type()
+            except:
+                plugin_type = 'widget'
+            if plugin_type == 'report':
+                data = {}
+                data['name'] = plugin.name
+                data['title'] = plugin.plugin_object.get_title()
+                reports.append(data)
+
+                break
     # Get all the enabled plugins
     enabled_plugins = Plugin.objects.all().order_by('order')
     for enabled_plugin in enabled_plugins:
@@ -756,7 +772,7 @@ def bu_dashboard(request, bu_id):
 
     output = utils.orderPluginOutput(output, 'bu_dashboard', bu.id)
 
-    c = {'user': request.user, 'machine_groups': machine_groups, 'is_editor': is_editor, 'business_unit': business_unit, 'user_level': user_level, 'output':output, 'config_installed':config_installed }
+    c = {'user': request.user, 'machine_groups': machine_groups, 'is_editor': is_editor, 'business_unit': business_unit, 'user_level': user_level, 'output':output, 'config_installed':config_installed, 'reports':reports }
     return render_to_response('server/bu_dashboard.html', c, context_instance=RequestContext(request))
 
 # Overview list (all)
@@ -955,6 +971,22 @@ def group_dashboard(request, group_id):
     # Load all plugins
     manager.collectPlugins()
     output = []
+    reports = []
+    enabled_reports = Report.objects.all()
+    for enabled_report in enabled_reports:
+        for plugin in manager.getAllPlugins():
+            # If plugin_type isn't set, it can't be a report
+            try:
+                plugin_type = plugin.plugin_object.plugin_type()
+            except:
+                plugin_type = 'widget'
+            if plugin_type == 'report':
+                data = {}
+                data['name'] = plugin.name
+                data['title'] = plugin.plugin_object.get_title()
+                reports.append(data)
+
+                break
     # Get all the enabled plugins
     enabled_plugins = Plugin.objects.all().order_by('order')
     for enabled_plugin in enabled_plugins:
@@ -974,7 +1006,7 @@ def group_dashboard(request, group_id):
                 break
 
     output = utils.orderPluginOutput(output, 'group_dashboard', machine_group.id)
-    c = {'user': request.user, 'machine_group': machine_group, 'user_level': user_level,  'is_editor': is_editor, 'business_unit': business_unit, 'output':output, 'config_installed':config_installed, 'request':request}
+    c = {'user': request.user, 'machine_group': machine_group, 'user_level': user_level,  'is_editor': is_editor, 'business_unit': business_unit, 'output':output, 'config_installed':config_installed, 'request':request, 'reports':reports}
     return render_to_response('server/group_dashboard.html', c, context_instance=RequestContext(request))
 
 # New Group

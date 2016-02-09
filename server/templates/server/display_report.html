@@ -17,7 +17,7 @@
         <li><a href="{% url 'report_load_id' report.name 'bu_dashboard' business_unit.id %}">{{report.title}}</a></li>
         {% endif %}
         {% if page == 'group_dashboard' %}
-        <li><a href="{% url 'report_load_id' report.name 'bu_dashboard' business_unit.id %}">{{report.title}}</a></li>
+        <li><a href="{% url 'report_load_id' report.name 'group_dashboard' machine_group.id %}">{{report.title}}</a></li>
         {% endif %}
         {% endfor %}
     </ul>
@@ -39,7 +39,7 @@
             <li><a href="{% url 'report_load_id' report.name 'bu_dashboard' business_unit.id %}">{{report.title}}</a></li>
             {% endif %}
             {% if page == 'group_dashboard' %}
-            <li><a href="{% url 'report_load_id' report.name 'bu_dashboard' business_unit.id %}">{{report.title}}</a></li>
+            <li><a href="{% url 'report_load_id' report.name 'group_dashboard' machine_group.id %}">{{report.title}}</a></li>
             {% endif %}
             {% endfor %}
 

@@ -1524,6 +1524,14 @@ def preflight(request):
 
     return HttpResponse(json.dumps(output))
 
+# It's the new preflight (woo)
+@csrf_exempt
+def preflight_v2(request):
+    # find plugins that have embedded preflight scripts
+    # hash the contents
+    # send the hash and the name of the plugin back to the clients
+    return 'yay'
+
 # checkin
 @csrf_exempt
 def checkin(request):

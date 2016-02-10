@@ -11,6 +11,8 @@ urlpatterns = patterns('server.views',
     url(r'^installlog/submit/$', 'install_log_submit', name='install_log_submit'),
     # preflight
     url(r'^preflight/', 'preflight', name='preflight'),
+    # preflight v2
+    url(r'^preflight-v2/', 'preflight_v2', name='preflight_v2'),
     # Search
     url(r'^search/', 'search', name='search'),
     # BU Dashboard

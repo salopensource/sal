@@ -14,7 +14,7 @@ class DiskSpace(IPlugin):
         return 'builtin'
 
     def get_description(self):
-        return 'Avaialable disk space'
+        return 'Available disk space'
 
     def widget_content(self, page, machines=None, theid=None):
         # The data is data is pulled from the database and passed to a template.

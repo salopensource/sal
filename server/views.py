@@ -1584,15 +1584,6 @@ def checkin(request):
 
     if machine:
         machine.hostname = data.get('name', '<NO NAME>')
-        try:
-            use_enc = settings.USE_ENC
-            # If we're using Sal's Puppet ENC, don't change the machine group,
-            # as we're setting it in the GUI
-        except:
-            use_enc = False
-
-        if use_enc == False:
-            machine.machine_group = machine_group
         machine.last_checkin = datetime.now()
         if 'username' in data:
             machine.username = data.get('username')
@@ -1681,6 +1672,17 @@ def checkin(request):
                     update_history.pending_recorded = True
                     update_history.save()
 
+        updates = machine.installed_updates.all()
+        updates.delete()
+        if 'ManagedInstalls' in report_data:
+            for update in report_data.get('ManagedInstalls'):
+                display_name = update.get('display_name', update['name'])
+                update_name = update.get('name')
+                version = str(update.get('installed_version', 'UNKNOWN'))
+                installed = update.get('installed')
+                if version != 'UNKNOWN':
+                    installed_update = InstalledUpdate(machine=machine, display_name=display_name, update_version=version, update=update_name, installed=installed)
+                    installed_update.save()
 
         # Remove existing PendingAppleUpdates for the machine
         updates = machine.pending_apple_updates.all()

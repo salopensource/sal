@@ -23,7 +23,10 @@ class InstallReport(IPlugin):
         return 'Install Report'
 
     def safe_unicode(self, s):
-        return s.encode('utf-8', errors='replace')
+        if isinstance(s, unicode):
+            return s.encode('utf-8', errors='replace')
+        else:
+            return s
 
     def replace_dots(self,item):
         # item['name'] = item['pkginfo']['name']
@@ -53,6 +56,8 @@ class InstallReport(IPlugin):
         output = []
         # Get the install reports for the machines we're looking for
         installed_updates = InstalledUpdate.objects.filter(machine=machines).values('update', 'display_name', 'update_version').distinct()
+        for catalog in catalog_objects:
+            catalog.content = plistlib.readPlistFromString(self.safe_unicode(catalog.content))
         for installed_update in installed_updates:
             found = False
             for item in output:
@@ -64,20 +69,17 @@ class InstallReport(IPlugin):
             if found == False:
                 item = {}
                 for catalog in catalog_objects:
-                    try:
 
-                        for pkginfo in plistlib.readPlistFromString(catalog.content):
-                            if pkginfo['name'] == installed_update['update'] and pkginfo['version'] == installed_update['update_version']:
-                                #print pkginfo
-                                if 'description' in pkginfo:
-                                    item['description'] = pkginfo['description']
-                                else:
-                                    item['description'] = ''
-                                break
-                        if 'description' in item:
+                    for pkginfo in catalog.content:
+                        if pkginfo['name'] == installed_update['update'] and pkginfo['version'] == installed_update['update_version']:
+                            #print pkginfo
+                            if 'description' in pkginfo:
+                                item['description'] = pkginfo['description']
+                            else:
+                                item['description'] = ''
                             break
-                    except:
-                        pass
+                    if 'description' in item:
+                        break
 
                 item['version'] = installed_update['update_version']
                 item['name'] = installed_update['update']

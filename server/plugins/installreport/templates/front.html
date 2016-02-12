@@ -37,10 +37,12 @@
                             <th>Name</th>
                             <td>{{ item.name }}</td>
                         </tr>
+                        {% if item.description|length != 0 %}
                         <tr>
                             <th>Description</th>
                             <td>{{ item.description }}</td>
                         </tr>
+                        {% endif %}
                         <tr>
                             <th>Version</th>
                             <td>{{ item.version }}</td>
@@ -67,7 +69,7 @@
                             </a>
                         </div>
                     </div>
-                    
+                </div>
                 {% endfor %}
             </div>
         </div>

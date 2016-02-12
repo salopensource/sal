@@ -31,10 +31,10 @@ from server.models import *
 
 
 def is_postgres():
-    if settings.DATABASES['default']['ENGINE'] == 'django.db.backends.postgresql_psycopg2':
-        return True
-    else:
-        return False
+    postgres_backend = 'django.db.backends.postgresql_psycopg2'
+    db_setting = settings.DATABASES['default']['ENGINE']
+    return db_setting == postgres_backend
+
 
 def decode_to_string(base64bz2data):
     '''Decodes an inventory submission, which is a plist-encoded
@@ -44,6 +44,7 @@ def decode_to_string(base64bz2data):
         return bz2.decompress(bz2data)
     except Exception:
         return ''
+
 
 def unique_apps(inventory, input_type='object'):
     found = []
@@ -84,6 +85,7 @@ def unique_apps(inventory, input_type='object'):
                 found_item['path'] = inventory_item.path
                 found.append(found_item)
     return found
+
 
 @login_required
 def inventory_list(request, page='front', theID=None):
@@ -141,6 +143,7 @@ def inventory_list(request, page='front', theID=None):
 
     return render_to_response('inventory/overview_list_all.html', c, context_instance=RequestContext(request))
 
+
 @csrf_exempt
 def inventory_submit(request):
     if request.method != 'POST':
@@ -196,6 +199,7 @@ def inventory_submit(request):
 
     return HttpResponse("No inventory submitted.\n")
 
+
 @csrf_exempt
 def inventory_hash(request, serial):
     sha256hash = ''
@@ -249,6 +253,7 @@ def index(request):
     c = {'user': request.user, 'inventory': inventory, 'page':'front', 'request': request, 'previous_id': previous_id, 'next_id':next_id}
     return render_to_response('inventory/index.html', c, context_instance=RequestContext(request))
 
+
 @login_required
 def bu_inventory(request, bu_id):
     user = request.user
@@ -278,6 +283,7 @@ def bu_inventory(request, bu_id):
         next_id = 0
     c = {'user': request.user, 'inventory': inventory, 'page':'business_unit', 'business_unit':business_unit, 'request': request, 'previous_id': previous_id, 'next_id':next_id}
     return render_to_response('inventory/index.html', c, context_instance=RequestContext(request))
+
 
 @login_required
 def machine_group_inventory(request, group_id):
@@ -310,6 +316,7 @@ def machine_group_inventory(request, group_id):
 
     c = {'user': request.user, 'inventory': inventory, 'page':'machine_group', 'business_unit':business_unit,'machine_group':machine_group, 'request': request, 'previous_id': previous_id, 'next_id':next_id}
     return render_to_response('inventory/index.html', c, context_instance=RequestContext(request))
+
 
 @login_required
 def machine_inventory(request, machine_id):
@@ -344,6 +351,7 @@ def machine_inventory(request, machine_id):
 
     c = {'user': request.user, 'inventory': inventory, 'page':'machine_id', 'business_unit':business_unit,'machine':machine, 'request': request, 'previous_id': previous_id, 'next_id':next_id}
     return render_to_response('inventory/index.html', c, context_instance=RequestContext(request))
+
 
 @login_required
 def export_csv(request, page='front', theID=None):
@@ -418,6 +426,7 @@ def export_csv(request, page='front', theID=None):
         #machine.hostname, machine.operating_system, machine.memory, machine.memory_kb, machine.munki_version, machine.manifest])
 
     return response
+
 
 @login_required
 def list_machines(request, page, name, version, bundleid, bundlename, path, id=None):

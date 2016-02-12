@@ -4,46 +4,46 @@ from server.models import *
 from django.db import models, migrations
 import plistlib
 
-def populate_installed_items(apps, schema_editor):
-
-    Machine = apps.get_model("server", "Machine")
-
-    InstalledUpdate = apps.get_model("server", "InstalledUpdate")
-
-    Report = apps.get_model("server", "Report")
-
-    shard_report = Report(name='ShardReport')
-    shard_report.save()
-
-    install_report = Report(name='InstallReport')
-    install_report.save()
-
-    for machine in Machine.objects.all():
-        report = machine.report
-        updates = machine.installed_updates.all()
-        updates.delete()
-
-        try:
-            report_data = plistlib.readPlistFromString(report)
-        except:
-            try:
-                report_data = plistlib.readPlistFromString(
-                                        report.encode('UTF-8'))
-            except:
-                report_data = {}
-
-        if 'ManagedInstalls' in report_data:
-            for update in report_data.get('ManagedInstalls'):
-                display_name = update.get('display_name', update['name'])
-                update_name = update.get('name')
-                version = str(update.get('installed_version', 'UNKNOWN'))
-                installed = update.get('installed', False)
-
-                if version != 'UNKNOWN':
-                    installed_update = InstalledUpdate(machine=machine,
-                    display_name=display_name, update_version=version,
-                    update=update_name, installed=installed)
-                    installed_update.save()
+# def populate_installed_items(apps, schema_editor):
+#
+#     Machine = apps.get_model("server", "Machine")
+#
+#     InstalledUpdate = apps.get_model("server", "InstalledUpdate")
+#
+#     Report = apps.get_model("server", "Report")
+#
+#     shard_report = Report(name='ShardReport')
+#     shard_report.save()
+#
+#     install_report = Report(name='InstallReport')
+#     install_report.save()
+#
+#     for machine in Machine.objects.all():
+#         report = machine.report
+#         updates = machine.installed_updates.all()
+#         updates.delete()
+#
+#         try:
+#             report_data = plistlib.readPlistFromString(report)
+#         except:
+#             try:
+#                 report_data = plistlib.readPlistFromString(
+#                                         report.encode('UTF-8'))
+#             except:
+#                 report_data = {}
+#
+#         if 'ManagedInstalls' in report_data:
+#             for update in report_data.get('ManagedInstalls'):
+#                 display_name = update.get('display_name', update['name'])
+#                 update_name = update.get('name')
+#                 version = str(update.get('installed_version', 'UNKNOWN'))
+#                 installed = update.get('installed', False)
+#
+#                 if version != 'UNKNOWN':
+#                     installed_update = InstalledUpdate(machine=machine,
+#                     display_name=display_name, update_version=version,
+#                     update=update_name, installed=installed)
+#                     installed_update.save()
 
 class Migration(migrations.Migration):
 
@@ -70,5 +70,5 @@ class Migration(migrations.Migration):
             name='installedupdate',
             unique_together=set([('machine', 'update', 'update_version',)]),
         ),
-        migrations.RunPython(populate_installed_items),
+        # migrations.RunPython(populate_installed_items),
     ]

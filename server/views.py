@@ -1682,7 +1682,7 @@ def checkin(request):
             for update in report_data.get('ManagedInstalls'):
                 display_name = update.get('display_name', update['name'])
                 update_name = update.get('name')
-                version = str(update.get('installed_version', 'UNKNOWN'))
+                version = str(update.get('installed_version'))
                 installed = update.get('installed')
                 if version != 'UNKNOWN':
                     installed_update = InstalledUpdate(machine=machine, display_name=display_name, update_version=version, update=update_name, installed=installed)

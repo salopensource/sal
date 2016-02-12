@@ -59,6 +59,7 @@ class InstallReport(IPlugin):
                     filtered_updates = installed_updates.filter(update=pkginfo['name'], update_version=pkginfo['version'])
                     item = {}
                     item['pkginfo'] = pkginfo
+                    item['catalog'] = catalog_object.name
                     item['install_reports'] = filtered_updates
                     item['install_count'] = filtered_updates.filter(installed=True).count()
                     item['not_installed_count'] = filtered_updates.filter(installed=False).count()

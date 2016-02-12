@@ -27,7 +27,7 @@ class InstallReport(IPlugin):
 
     def replace_dots(self,item):
         item['name'] = item['pkginfo']['name']
-        item['dotVersion'] = item['pkginfo']['version'].replace('.','DOT')
+        item['dotVersion'] = item['pkginfo']['version'].replace('.','DOT').replace(' ','')
 
         return item
 

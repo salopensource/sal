@@ -1,27 +1,32 @@
+# standard library
+import base64
+import bz2
+import hashlib
+import json
+import plistlib
+import urllib2
+from datetime import datetime
+from xml.etree import ElementTree
+
+# third-party
+import unicodecsv as csv
+
+# Django
 from django import forms
 from django.conf import settings
 from django.contrib.auth.decorators import login_required, permission_required
 from django.core.context_processors import csrf
 from django.core.urlresolvers import reverse
-from django.db.models import Count, Q
-from django.http import (HttpResponse, HttpRequest, HttpResponseRedirect,
-                         HttpResponseNotFound, Http404)
-from django.shortcuts import render_to_response, get_object_or_404, redirect
-from django.template import RequestContext, Template, Context
+from django.db.models import Q, Count
+from django.http import (Http404, HttpRequest, HttpResponse,
+                         HttpResponseNotFound, HttpResponseRedirect)
+from django.shortcuts import get_object_or_404, redirect, render_to_response
+from django.template import Context, RequestContext, Template
 from django.views.decorators.csrf import csrf_exempt
-from server import utils
-import unicodecsv as csv
-import plistlib
-import base64
-import bz2
-import hashlib
-import json
 
-from datetime import datetime
-import urllib2
-from xml.etree import ElementTree
-
+# local Django
 from models import *
+from server import utils
 from server.models import *
 
 

@@ -1,18 +1,15 @@
-from django.http import HttpResponse, HttpRequest, HttpResponseRedirect, HttpResponseNotFound
-from django.template import RequestContext, Template, Context
-from django.shortcuts import render_to_response
-from django.core.context_processors import csrf
-from django.views.decorators.csrf import csrf_exempt
-from django.core.urlresolvers import reverse
-from django.http import Http404
-#from django.contrib.auth import authenticate, login, logout
-from django.contrib.auth.decorators import login_required, permission_required
-from django.conf import settings
 from django import forms
-from django.db.models import Q
-from django.db.models import Count
-from server import utils
+from django.conf import settings
+from django.contrib.auth.decorators import login_required, permission_required
+from django.core.context_processors import csrf
+from django.core.urlresolvers import reverse
+from django.db.models import Count, Q
+from django.http import (HttpResponse, HttpRequest, HttpResponseRedirect,
+                         HttpResponseNotFound, Http404)
 from django.shortcuts import render_to_response, get_object_or_404, redirect
+from django.template import RequestContext, Template, Context
+from django.views.decorators.csrf import csrf_exempt
+from server import utils
 import unicodecsv as csv
 import plistlib
 import base64
@@ -26,6 +23,7 @@ from xml.etree import ElementTree
 
 from models import *
 from server.models import *
+
 
 def is_postgres():
     if settings.DATABASES['default']['ENGINE'] == 'django.db.backends.postgresql_psycopg2':

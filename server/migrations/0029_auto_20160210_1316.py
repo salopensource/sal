@@ -10,6 +10,14 @@ def populate_installed_items(apps, schema_editor):
 
     InstalledUpdate = apps.get_model("server", "InstalledUpdate")
 
+    Report = apps.get_model("server", "Report")
+
+    shard_report = Report(name='ShardReport')
+    shard_report.save()
+
+    install_report = Report(name='InstallReport')
+    install_report.save()
+
     for machine in Machine.objects.all():
         report = machine.report
         updates = machine.installed_updates.all()
@@ -30,7 +38,7 @@ def populate_installed_items(apps, schema_editor):
                 update_name = update.get('name')
                 version = str(update.get('installed_version', 'UNKNOWN'))
                 installed = update.get('installed', False)
-                
+
                 if version != 'UNKNOWN':
                     installed_update = InstalledUpdate(machine=machine,
                     display_name=display_name, update_version=version,

@@ -22,7 +22,6 @@ class ShardReport(IPlugin):
         return 'Shard'
 
     def safe_unicode(self, s):
-
         return s.encode('utf-8', errors='replace')
 
     def replace_dots(self,item):

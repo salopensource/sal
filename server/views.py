@@ -126,18 +126,19 @@ def index(request):
     enabled_reports = Report.objects.all()
     for enabled_report in enabled_reports:
         for plugin in manager.getAllPlugins():
-            # If plugin_type isn't set, it can't be a report
-            try:
-                plugin_type = plugin.plugin_object.plugin_type()
-            except:
-                plugin_type = 'widget'
-            if plugin_type == 'report':
-                data = {}
-                data['name'] = plugin.name
-                data['title'] = plugin.plugin_object.get_title()
-                reports.append(data)
+            if enabled_report.name == plugin.name:
+                # If plugin_type isn't set, it can't be a report
+                try:
+                    plugin_type = plugin.plugin_object.plugin_type()
+                except:
+                    plugin_type = 'widget'
+                if plugin_type == 'report':
+                    data = {}
+                    data['name'] = plugin.name
+                    data['title'] = plugin.plugin_object.get_title()
+                    reports.append(data)
 
-                break
+                    break
     # Get all the enabled plugins
     enabled_plugins = Plugin.objects.all().order_by('order')
     for enabled_plugin in enabled_plugins:
@@ -535,18 +536,19 @@ def report_load(request, pluginName, page='front', theID=None):
     enabled_reports = Report.objects.all()
     for enabled_report in enabled_reports:
         for plugin in manager.getAllPlugins():
-            # If plugin_type isn't set, it can't be a report
-            try:
-                plugin_type = plugin.plugin_object.plugin_type()
-            except:
-                plugin_type = 'widget'
-            if plugin_type == 'report':
-                data = {}
-                data['name'] = plugin.name
-                data['title'] = plugin.plugin_object.get_title()
-                reports.append(data)
+            if enabled_report.name == plugin.name:
+                # If plugin_type isn't set, it can't be a report
+                try:
+                    plugin_type = plugin.plugin_object.plugin_type()
+                except:
+                    plugin_type = 'widget'
+                if plugin_type == 'report':
+                    data = {}
+                    data['name'] = plugin.name
+                    data['title'] = plugin.plugin_object.get_title()
+                    reports.append(data)
 
-                break
+                    break
 
     c = {'user': request.user, 'output': output, 'page':page, 'business_unit': business_unit, 'machine_group': machine_group, 'reports': reports}
     return render_to_response('server/display_report.html', c, context_instance=RequestContext(request))
@@ -740,18 +742,19 @@ def bu_dashboard(request, bu_id):
     enabled_reports = Report.objects.all()
     for enabled_report in enabled_reports:
         for plugin in manager.getAllPlugins():
-            # If plugin_type isn't set, it can't be a report
-            try:
-                plugin_type = plugin.plugin_object.plugin_type()
-            except:
-                plugin_type = 'widget'
-            if plugin_type == 'report':
-                data = {}
-                data['name'] = plugin.name
-                data['title'] = plugin.plugin_object.get_title()
-                reports.append(data)
+            if plugin.name == enabled_report.name:
+                # If plugin_type isn't set, it can't be a report
+                try:
+                    plugin_type = plugin.plugin_object.plugin_type()
+                except:
+                    plugin_type = 'widget'
+                if plugin_type == 'report':
+                    data = {}
+                    data['name'] = plugin.name
+                    data['title'] = plugin.plugin_object.get_title()
+                    reports.append(data)
 
-                break
+                    break
     # Get all the enabled plugins
     enabled_plugins = Plugin.objects.all().order_by('order')
     for enabled_plugin in enabled_plugins:
@@ -975,18 +978,19 @@ def group_dashboard(request, group_id):
     enabled_reports = Report.objects.all()
     for enabled_report in enabled_reports:
         for plugin in manager.getAllPlugins():
-            # If plugin_type isn't set, it can't be a report
-            try:
-                plugin_type = plugin.plugin_object.plugin_type()
-            except:
-                plugin_type = 'widget'
-            if plugin_type == 'report':
-                data = {}
-                data['name'] = plugin.name
-                data['title'] = plugin.plugin_object.get_title()
-                reports.append(data)
+            if plugin.name == enabled_report.name:
+                # If plugin_type isn't set, it can't be a report
+                try:
+                    plugin_type = plugin.plugin_object.plugin_type()
+                except:
+                    plugin_type = 'widget'
+                if plugin_type == 'report':
+                    data = {}
+                    data['name'] = plugin.name
+                    data['title'] = plugin.plugin_object.get_title()
+                    reports.append(data)
 
-                break
+                    break
     # Get all the enabled plugins
     enabled_plugins = Plugin.objects.all().order_by('order')
     for enabled_plugin in enabled_plugins:

@@ -26,9 +26,11 @@ class InstallReport(IPlugin):
         return s.encode('utf-8', errors='replace')
 
     def replace_dots(self,item):
-        item['name'] = item['pkginfo']['name']
-        item['dotVersion'] = item['pkginfo']['version'].replace('.','DOT').replace(' ','')
-
+        # item['name'] = item['pkginfo']['name']
+        item['dotVersion'] = item['version'].replace('.','DOT')
+        item['dotVersion'] = re.sub(r'\W+', '', item['dotVersion'])
+        item['dotName'] = item['name'].replace('.','DOT')
+        item['dotName'] = re.sub(r'\W+', '', item['dotName'])
         return item
 
     def widget_content(self, page, machines=None, theid=None):
@@ -50,26 +52,63 @@ class InstallReport(IPlugin):
 
         output = []
         # Get the install reports for the machines we're looking for
-        installed_updates = InstalledUpdate.objects.filter(machine=machines)
-        for catalog_object in catalog_objects:
-            for pkginfo in plistlib.readPlistFromString(self.safe_unicode(catalog_object.content)):
-                if 'installer_type' in pkginfo and pkginfo['installer_type'] == 'apple_update_metadata':
+        installed_updates = InstalledUpdate.objects.filter(machine=machines).values('update', 'display_name', 'update_version').distinct()
+        for installed_update in installed_updates:
+            found = False
+            for item in output:
+                #print item
+                if installed_update['update'] == item['name'] and installed_update['update_version'] == item['version']:
+                    found = True
                     break
-                else:
-                    filtered_updates = installed_updates.filter(update=pkginfo['name'], update_version=pkginfo['version'])
-                    item = {}
-                    item['pkginfo'] = pkginfo
-                    item['catalog'] = catalog_object.name
-                    item['install_reports'] = filtered_updates
-                    item['install_count'] = filtered_updates.filter(installed=True).count()
-                    item['not_installed_count'] = filtered_updates.filter(installed=False).count()
-                    item['installed_url'] = 'Installed?VERSION=%s&&NAME=%s' % (item['pkginfo']['version'], item['pkginfo']['name'])
-                    item['pending_url'] = 'Pending?VERSION=%s&&NAME=%s' % (item['pkginfo']['version'], item['pkginfo']['name'])
-                    item = self.replace_dots(item)
-                    output.append(item)
+
+            if found == False:
+                item = {}
+                for catalog in catalog_objects:
+                    try:
+
+                        for pkginfo in plistlib.readPlistFromString(catalog.content):
+                            if pkginfo['name'] == installed_update['update'] and pkginfo['version'] == installed_update['update_version']:
+                                #print pkginfo
+                                if 'description' in pkginfo:
+                                    item['description'] = pkginfo['description']
+                                else:
+                                    item['description'] = ''
+                                break
+                        if 'description' in item:
+                            break
+                    except:
+                        pass
+
+                item['version'] = installed_update['update_version']
+                item['name'] = installed_update['update']
+                item['install_count'] = InstalledUpdate.objects.filter(machine=machines, update=installed_update['update'], update_version=installed_update['update_version'], installed=True).count()
+                item['not_installed_count'] = InstalledUpdate.objects.filter(machine=machines, update=installed_update['update'], update_version=installed_update['update_version'], installed=False).count()
+                item['installed_url'] = 'Installed?VERSION=%s&&NAME=%s' % (item['version'], item['name'])
+                item['pending_url'] = 'Pending?VERSION=%s&&NAME=%s' % (item['version'], item['name'])
+                item = self.replace_dots(item)
+                #print item
+                output.append(item)
+
+        # for catalog_object in catalog_objects:
+        #     print catalog_object.name
+        #     for pkginfo in plistlib.readPlistFromString(self.safe_unicode(catalog_object.content)):
+        #         if 'installer_type' in pkginfo and pkginfo['installer_type'] == 'apple_update_metadata':
+        #             continue
+        #         else:
+        #             filtered_updates = installed_updates.filter(update=pkginfo['name'], update_version=pkginfo['version'])
+        #             item = {}
+        #             item['pkginfo'] = pkginfo
+        #             item['catalog'] = catalog_object.name
+        #             item['install_reports'] = filtered_updates
+        #             item['install_count'] = filtered_updates.filter(installed=True).count()
+        #             item['not_installed_count'] = filtered_updates.filter(installed=False).count()
+        #             item['installed_url'] = 'Installed?VERSION=%s&&NAME=%s' % (item['pkginfo']['version'], item['pkginfo']['name'])
+        #             item['pending_url'] = 'Pending?VERSION=%s&&NAME=%s' % (item['pkginfo']['version'], item['pkginfo']['name'])
+        #             item = self.replace_dots(item)
+        #             output.append(item)
 
         # Sort the output
-        output = sorted(output, key = lambda k: (k['name'], k['pkginfo']['version']))
+        output = sorted(output, key = lambda k: (k['name'], k['version']))
         c = Context({
             'title': 'Install Reports',
             'output': output,

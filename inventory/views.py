@@ -181,15 +181,16 @@ def inventory_submit(request):
                 machine.inventoryitem_set.all().delete()
                 # insert current inventory items
                 for item in inventory_list:
+                    app, _ = Application.objects.get_or_create(
+                        bundleid=item.get("bundleid", ""),
+                        name=item.get("name", ""),
+                        bundlename=item.get("CFBundleName", ""))
+                    print app.name
                     # skip items in bundleid_ignorelist.
                     if not item.get('bundleid') in bundleid_ignorelist:
                         i_item = machine.inventoryitem_set.create(
-                            name=item.get('name', ''),
-                            version=item.get('version', ''),
-                            bundleid=item.get('bundleid', ''),
-                            bundlename=item.get('CFBundleName', ''),
-                            path=item.get('path', '')
-                            )
+                            application=app, version=item.get("version", ""),
+                            path=item.get('path', ''))
                 machine.last_inventory_update = datetime.now()
                 inventory_meta.save()
             machine.save()

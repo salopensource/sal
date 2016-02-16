@@ -1,5 +1,5 @@
 from django.contrib import admin
-from inventory.models import Inventory, InventoryItem
+from inventory.models import Application, Inventory, InventoryItem
 
 
 class ApplicationAdmin(admin.ModelAdmin):
@@ -17,5 +17,6 @@ class InventoryItemAdmin(admin.ModelAdmin):
         return item.application.name
 
 
+admin.site.register(Application, ApplicationAdmin)
 admin.site.register(Inventory, InventoryAdmin)
 admin.site.register(InventoryItem, InventoryItemAdmin)

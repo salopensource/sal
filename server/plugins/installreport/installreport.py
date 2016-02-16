@@ -84,7 +84,8 @@ class InstallReport(IPlugin):
                 item['version'] = installed_update['update_version']
                 item['name'] = installed_update['update']
                 item['install_count'] = InstalledUpdate.objects.filter(machine=machines, update=installed_update['update'], update_version=installed_update['update_version'], installed=True).count()
-                item['not_installed_count'] = InstalledUpdate.objects.filter(machine=machines, update=installed_update['update'], update_version=installed_update['update_version'], installed=False).count()
+                # item['not_installed_count'] = InstalledUpdate.objects.filter(machine=machines, update=installed_update['update'], update_version=installed_update['update_version'], installed=False).count()
+                item['pending_count'] = PendingUpdate.objects.filter(machine=machines, update=installed_update['update'], update_version=installed_update['update_version']).count()
                 item['installed_url'] = 'Installed?VERSION=%s&&NAME=%s' % (item['version'], item['name'])
                 item['pending_url'] = 'Pending?VERSION=%s&&NAME=%s' % (item['version'], item['name'])
                 item = self.replace_dots(item)
@@ -137,9 +138,9 @@ class InstallReport(IPlugin):
             version = version_re.group(1)
             name_re = re.search('&&NAME=(.*)', data)
             name = name_re.group(1)
-
-            machines = machines.filter(installed_updates__update=name, installed_updates__update_version=version, installed_updates__installed=False)
-            title = 'Machines with %s %s installed' % (name, version)
+            
+            machines = machines.filter(pending_updates__update=name, pending_updates__update_version=version)
+            title = 'Machines with %s %s pending' % (name, version)
 
 
         return machines, title

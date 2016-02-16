@@ -48,25 +48,50 @@
                             <td>{{ item.version }}</td>
                         </tr>
                     </table>
-                    <div class="col-md-6">
-                        <div class="panel-body">
-                            <a href="{% url 'machine_list_front' 'InstallReport' item.installed_url %}">
-                                <div class="panel panel-green">
-                                    <div class="panel-heading">
-                                        <div class="row">
-                                            <div class="col-md-3">
-                                                <i class="fa fa-check-circle-o fa-5x"></i>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="panel-body">
+                                <a href="{% url 'machine_list_front' 'InstallReport' item.installed_url %}">
+                                    <div class="panel panel-green">
+                                        <div class="panel-heading">
+                                            <div class="row">
+                                                <div class="col-md-3">
+                                                    <i class="fa fa-check-circle-o fa-5x"></i>
 
+                                                </div>
+                                                <div class="col-md-9 text-right">
+                                                    <div class="huge">{{ item.install_count }}</div>
+                                                    <div>Installed Count</div>
+                                                </div>
                                             </div>
-                                            <div class="col-md-9 text-right">
-                                                <div class="huge">{{ item.install_count }}</div>
-                                                <div>Installed Count</div>
-                                            </div>
+
                                         </div>
-
                                     </div>
-                                </div>
-                            </a>
+                                </a>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="panel-body">
+                                <a href="{% url 'machine_list_front' 'InstallReport' item.pending_url %}">
+                                    {% if item.pending_count == 0 %}<div class="panel panel-green">
+                                        {% else %}<div class="panel panel-yellow">{% endif %}
+
+                                        <div class="panel-heading">
+                                            <div class="row">
+                                                <div class="col-md-3">
+                                                    <i class="fa fa-clock-o fa-5x"></i>
+
+                                                </div>
+                                                <div class="col-md-9 text-right">
+                                                    <div class="huge">{{ item.pending_count }}</div>
+                                                    <div>Pending Count</div>
+                                                </div>
+                                            </div>
+
+                                        </div>
+                                    </div>
+                                </a>
+                            </div>
                         </div>
                     </div>
                 </div>

@@ -15,8 +15,8 @@ def enable_plugins(apps, schema_editor):
     report_count = Report.objects.all().count()
     if report_count == 0:
 
-        shard_report = Report(name='ShardReport')
-        shard_report.save()
+        # shard_report = Report(name='ShardReport')
+        # shard_report.save()
 
         install_report = Report(name='InstallReport')
         install_report.save()

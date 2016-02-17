@@ -11,9 +11,9 @@ sys.path.append(SAL_ENV_DIR)
 sys.path.append(os.path.join(SAL_ENV_DIR, 'sal'))
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "sal.settings")
 try:
-    if getenv('NEW_RELIC_INI'):
-        import newrelic.agent
-        newrelic.agent.initialize(getenv('NEW_RELIC_INI'))
+    import newrelic.agent
+    if os.path.isfile(os.getenv('NEW_RELIC_INI'))
+        newrelic.agent.initialize(os.getenv('NEW_RELIC_INI'))
 except:
     pass
 import django.core.handlers.wsgi

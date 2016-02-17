@@ -28,7 +28,6 @@ RUN apt-get update && \
     libpq-dev \
     python-dev \
     supervisor \
-    nano \
     libffi-dev && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*

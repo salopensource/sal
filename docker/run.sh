@@ -14,7 +14,7 @@ else
   python manage.py update_admin_user --username=admin --password=password
 fi
 
-if [ ! -z "$NEW_RELIC" ] ; then
+if [ ! -z "$NEW_RELIC_INI" ] ; then
     pip install newrelic
 fi
 

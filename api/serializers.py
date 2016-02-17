@@ -43,6 +43,6 @@ class MachineSerializer(serializers.ModelSerializer):
     conditions = ConditionSerializer(many=True, required=False)
     pending_apple_updates = PendingAppleUpdateSerializer(many=True, required=False)
     pending_updates = PendingUpdateSerializer(many=True, required=False)
-    
+
     class Meta:
         model = Machine

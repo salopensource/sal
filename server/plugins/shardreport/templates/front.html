@@ -1,0 +1,119 @@
+<div class="row">
+    <div class="col-md-4">
+        <div class="row">
+            {% if shard1|length != 0 %}
+            <div class="col-md-12">
+                <div class="panel panel-default panel-traffic-light">
+                    <div class="panel-heading">
+                        <h4>Shard 1</h4>
+                    </div>
+                    <div class="panel-body">
+                        <table class="col-md-12 table-striped table-condensed">
+
+                            {% for item in shard1 %}
+                            <tr><td><a id="{{ item.name }}-{{ item.dotVersion }}-link" href="#">{{ item.name }}</a></td>
+                                <td><span class="pull-right badge">{{item.version}}</span></td></tr>
+                            {% endfor %}
+                        </table>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+            {% if shard2|length != 0 %}
+            <div class="col-md-12">
+                <div class="panel panel-default panel-traffic-light">
+                    <div class="panel-heading">
+                        <h4>Shard 2</h4>
+                    </div>
+                    <div class="panel-body">
+                        <table class="col-md-12 table-striped table-condensed">
+
+                            {% for item in shard2 %}
+                            <tr><td><a id="{{ item.name }}-{{ item.dotVersion }}-link" href="#">{{ item.name }}</a></td>
+                                <td><span class="pull-right badge">{{item.version}}</span></td></tr>
+                            {% endfor %}
+                        </table>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+            {% if shard3|length != 0 %}
+            <div class="col-md-12">
+                <div class="panel panel-default panel-traffic-light">
+                    <div class="panel-heading">
+                        <h4>Shard 3</h4>
+                    </div>
+                    <div class="panel-body">
+                        <table class="col-md-12 table-striped table-condensed">
+
+                            {% for item in shard3 %}
+                            <tr><td><a id="{{ item.name }}-{{ item.dotVersion }}-link" href="#">{{ item.name }}</a></td>
+                                <td><span class="pull-right badge">{{item.version}}</span></td></tr>
+                            {% endfor %}
+                        </table>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    <div class="col-md-8">
+        <div class="panel panel-default">
+            <div class="panel-body" id="display-body">
+                {% for item in all_items %}
+                <div class="hidden" id="{{ item.name }}-{{ item.dotVersion }}">
+                    <table class="col-md-12 table-striped table-condensed">
+                        <tr>
+                            <th>Name</th>
+                            <td>{{ item.name }}</td>
+                        </tr>
+                        <tr>
+                            <th>Description</th>
+                            <td>{{ item.description }}</td>
+                        </tr>
+                        <tr>
+                            <th>Version</th>
+                            <td>{{ item.version }}</td>
+                        </tr>
+                    </table>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+<script type="text/javascript">
+// A $( document ).ready() block.
+$( document ).ready(function() {
+    // Hide all items, then show the first one
+
+    //$('#display-body').children().hide();
+    {% with shard1|first as first_shard1 %}
+    $('#{{ first_shard1.name }}-{{ first_shard1.dotVersion }}').removeClass('hidden');
+    {% endwith %}
+
+    function displayDiv(name) {
+        //$('#display-body').children().hide();
+        $('#display-body').children().not(name).addClass('hidden');
+        $(name).removeClass('hidden');
+    };
+    {% for item in shard1 %}
+    $("#{{ item.name }}-{{ item.dotVersion }}-link").click(function(e) {
+        e.preventDefault();
+        displayDiv("#{{ item.name }}-{{ item.dotVersion }}");
+    });
+    {% endfor %}
+    {% for item in shard2 %}
+    $("#{{ item.name }}-{{ item.dotVersion }}-link").click(function(e) {
+        e.preventDefault();
+        displayDiv("#{{ item.name }}-{{ item.dotVersion }}");
+    });
+    {% endfor %}
+    {% for item in shard3 %}
+    $("#{{ item.name }}-{{ item.dotVersion }}-link").click(function(e) {
+        e.preventDefault();
+        displayDiv("#{{ item.name }}-{{ item.dotVersion }}");
+    });
+    {% endfor %}
+});
+</script>

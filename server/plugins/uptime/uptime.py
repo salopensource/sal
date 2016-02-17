@@ -12,7 +12,10 @@ class Uptime(IPlugin):
 
     def widget_width(self):
         return 4
-        
+
+    def get_description(self):
+        return 'Current uptime'
+
     def widget_content(self, page, machines=None, theid=None):
         # The data is data is pulled from the database and passed to a template.
 

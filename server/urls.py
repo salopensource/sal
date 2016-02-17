@@ -11,6 +11,8 @@ urlpatterns = patterns('server.views',
     url(r'^installlog/submit/$', 'install_log_submit', name='install_log_submit'),
     # preflight
     url(r'^preflight/', 'preflight', name='preflight'),
+    # preflight v2
+    url(r'^preflight-v2/', 'preflight_v2', name='preflight_v2'),
     # Search
     url(r'^search/', 'search', name='search'),
     # BU Dashboard
@@ -19,6 +21,10 @@ urlpatterns = patterns('server.views',
     url(r'^pluginload/(?P<pluginName>.+)/$', 'plugin_load', name='plugin_load_front'),
     # pluginload (id)
     url(r'^id_pluginload/(?P<pluginName>.+)/(?P<page>.+)/(?P<theID>.+)/$', 'plugin_load', name='plugin_load_id'),
+    # reporload (front page)
+    url(r'^report/(?P<pluginName>.+)/$', 'report_load', name='report_load_front'),
+    # report (id)
+    url(r'^id_report/(?P<pluginName>.+)/(?P<page>.+)/(?P<theID>.+)/$', 'report_load', name='report_load_id'),
     # Machine List (front page)
     url(r'^list/(?P<pluginName>.+)/(?P<data>.+)/$', 'machine_list', name='machine_list_front'),
     # Machine List (id)
@@ -82,6 +88,13 @@ urlpatterns = patterns('server.views',
     url(r'^settings/api-keys/new/', 'new_api_key', name='new_api_key'),
     # Manage API Keys
     url(r'^settings/api-keys/', 'api_keys', name='api_keys'),
+    # Disable Report
+    url(r'^settings/plugins/reports/disable/(?P<plugin_id>.+)/', 'settings_report_disable', name='settings_report_disable'),
+    # Enable Report
+    url(r'^settings/plugins/reports/enable/(?P<plugin_name>.+)/', 'settings_report_enable', name='settings_report_enable'),
+    # Manage Reports
+    url(r'^settings/plugins/reports/', 'settings_reports', name='settings_reports'),
+
     # Plus Plugin
     url(r'^settings/plugins/plus/(?P<plugin_id>.+)/', 'plugin_plus', name='plugin_plus'),
     # Minus Plugin
@@ -95,5 +108,7 @@ urlpatterns = patterns('server.views',
     # Save Historical days
     url(r'^settings/save_historical_days/', 'settings_historical_data', name='settings_historical_data'),
     # Settings
-    url(r'^settings/', 'settings_page', name='settings_page')
+    url(r'^settings/', 'settings_page', name='settings_page'),
+    # never remind about new version
+    url(r'^new_version/never/', 'new_version_never', name='new_version_never')
 )

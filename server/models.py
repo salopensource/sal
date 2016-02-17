@@ -288,6 +288,18 @@ class PendingUpdate(models.Model):
         ordering = ['display_name']
         unique_together = ("machine", "update")
 
+class InstalledUpdate(models.Model):
+    machine = models.ForeignKey(Machine, related_name='installed_updates')
+    update = models.CharField(db_index=True, max_length=255, null=True, blank=True)
+    update_version = models.CharField(db_index=True, max_length=255, null=True, blank=True)
+    display_name = models.CharField(max_length=255, null=True, blank=True)
+    installed = models.BooleanField()
+    def __unicode__(self):
+        return self.update
+    class Meta:
+        ordering = ['display_name']
+        unique_together = ("machine", "update", "update_version")
+
 class PendingAppleUpdate(models.Model):
     machine = models.ForeignKey(Machine, related_name='pending_apple_updates')
     update = models.CharField(db_index=True, max_length=255, null=True, blank=True)
@@ -307,12 +319,21 @@ class Plugin(models.Model):
         ('builtin', 'Built In'),
     )
     name = models.CharField(max_length=255, unique=True)
+    description = models.TextField(blank=True, null=True)
     order = models.IntegerField()
     type = models.CharField(max_length=255, choices=PLUGIN_TYPES, default='facter')
     def __unicode__(self):
         return self.name
     class Meta:
         ordering = ['order']
+
+class Report(models.Model):
+    name = models.CharField(max_length=255, unique=True)
+    description = models.TextField(blank=True, null=True)
+    def __unicode__(self):
+        return self.name
+    class Meta:
+        ordering = ['name']
 
 class SalSetting(models.Model):
     name = models.CharField(max_length=255, unique=True)

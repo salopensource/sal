@@ -1,23 +1,22 @@
-
-    <div class="panel panel-default">
-        <div class="panel-heading">
-            {{ title }}
-        </div>
-        <!-- /.panel-heading -->
-        <div class="panel-body">
-          <a href="{% url 'machine_list_id' plugin 'ok' page theid %}" class="btn btn-success">
-			<span class="bigger"> {{ ok_count }} </span><br />
-			{{ ok_label }}
-          </a>
-      
-          <a href="{% url 'machine_list_id' plugin 'warning' page theid %}" class="btn btn-warning">
-			<span class="bigger"> {{ warning_count }} </span><br />
-			{{ warning_label }}
-          </a>
-      
-          <a href="{% url 'machine_list_id' plugin 'alert' page theid %}" class="btn btn-danger">
-			<span class="bigger"> {{ alert_count }} </span><br />
-			{{ alert_label }}
-          </a>
-      </div>
+<div class="panel panel-default">
+    <div class="panel-heading">
+        {{ title }}
     </div>
+    <!-- /.panel-heading -->
+    <div class="panel-body">
+        <a href="{% url 'machine_list_id' plugin 'ok' page theid %}" class="btn btn-success">
+            <span class="bigger"> {{ ok_count }} </span>
+            <br /> {{ ok_label }}
+        </a>
+
+        <a href="{% url 'machine_list_id' plugin 'warning' page theid %}" class="btn btn-warning">
+            <span class="bigger"> {{ warning_count }} </span>
+            <br /> {{ warning_label }}
+        </a>
+
+        <a href="{% url 'machine_list_id' plugin 'alert' page theid %}" class="btn btn-danger">
+            <span class="bigger"> {{ alert_count }} </span>
+            <br /> {{ alert_label }}
+        </a>
+    </div>
+</div>

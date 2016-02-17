@@ -219,7 +219,7 @@ LOGGING = {
             'propagate': True,
             'level':'ERROR',
         },
-        'MYAPP': {
+        'sal': {
             'handlers': ['file'],
             'level': 'ERROR',
         },

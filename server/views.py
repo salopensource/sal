@@ -5,7 +5,7 @@ from django.contrib.auth.decorators import login_required, permission_required
 from django.template import RequestContext, Template, Context
 import json
 from django.views.decorators.csrf import csrf_exempt, csrf_protect
-from django.http import HttpResponse, Http404, HttpResponseNotFound, HttpResponseRedirect
+from django.http import HttpResponse, Http404, HttpResponseNotFound, HttpResponseRedirect, JsonResponse
 from django.contrib.auth.models import Permission, User
 from django.conf import settings
 from django.core.context_processors import csrf
@@ -403,6 +403,18 @@ def delete_user(request, user_id):
     user = get_object_or_404(User, pk=int(user_id))
     user.delete()
     return redirect('manage_users')
+
+# Table ajax for dataTables
+@login_required
+def tableajax(request, pluginName, data, page='front', theID=None):
+    print request.GET
+    return_data = {}
+    return_data['draw'] = 0
+    return_data['recordsTotal'] = 100
+    return_data['recordsFiltered'] = 50
+    return_data['data'] = [['poo', 'wee', '234']]
+    return JsonResponse(return_data)
+
 # Plugin machine list
 @login_required
 def machine_list(request, pluginName, data, page='front', theID=None):

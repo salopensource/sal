@@ -20,14 +20,30 @@ from django.core.urlresolvers import reverse
 from django.db.models import Q, Count
 from django.http import (Http404, HttpRequest, HttpResponse,
                          HttpResponseNotFound, HttpResponseRedirect)
-from django.shortcuts import get_object_or_404, redirect, render_to_response
+from django.shortcuts import (get_object_or_404, redirect, render_to_response,
+                              render)
 from django.template import Context, RequestContext, Template
 from django.views.decorators.csrf import csrf_exempt
+import django_tables2 as tables
 
 # local Django
 from models import *
 from server import utils
 from server.models import *
+
+
+class InventoryTable(tables.Table):
+    name = tables.Column(verbose_name="Name")
+    bundleid = tables.Column(verbose_name="Bundle ID")
+    bundlename = tables.Column(verbose_name="Bundle Name")
+    inventoryitem__count = tables.TemplateColumn(
+        template_code="<span class='badge'>{{ value }}</span>",
+        verbose_name="Install Count")
+
+    class Meta:
+        model = Application
+        exclude = ("id",)
+        attrs = {"class": "table table-striped table-condensed"}
 
 
 def is_postgres():
@@ -226,33 +242,10 @@ def index(request):
     if user_level != 'GA':
         return redirect(index)
 
-    try:
-        page = int(request.GET.get('page'))
-    except:
-        page = 1
-
-    previous_id = page - 1
-    next_id = page + 1
-    start = (page - 1) * 25
-    end = page * 25
-    #inventory = InventoryItem.objects.all().values('name', 'version', 'path', 'bundleid', 'bundlename', 'id').order_by('name')
-
-    if is_postgres():
-        # Woohoo, you're using postgres. Let's make this fast.
-        print 'postgres'
-        inventory = InventoryItem.objects.all().values('name', 'version', 'path', 'bundleid', 'bundlename').distinct()[start:end]
-    else:
-        # Sucks to be you, you're on something else
-        inventory = InventoryItem.objects.all().values('name', 'version', 'path', 'bundleid', 'bundlename').distinct()
-
-        inventory = unique_apps(inventory,'dict')[start:end]
-
-    if len(inventory) != 25:
-        # we've not got 25 results, probably the last page
-        next_id = 0
-
-    c = {'user': request.user, 'inventory': inventory, 'page':'front', 'request': request, 'previous_id': previous_id, 'next_id':next_id}
-    return render_to_response('inventory/index.html', c, context_instance=RequestContext(request))
+    table = InventoryTable(Application.objects.annotate(Count("inventoryitem")))
+    tables.RequestConfig(request, paginate=True).configure(table)
+    c = {'table': table}
+    return render(request, 'inventory/index.html', c)
 
 
 @login_required

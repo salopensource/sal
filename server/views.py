@@ -1590,7 +1590,8 @@ def checkin(request):
         machine.hostname = data.get('name', '<NO NAME>')
         machine.last_checkin = datetime.now()
         if 'username' in data:
-            machine.username = data.get('username')
+            if data.get('username') != '_mbsetupuser':
+                machine.username = data.get('username')
         if 'base64bz2report' in data:
             machine.update_report(data.get('base64bz2report'))
 

@@ -8,10 +8,11 @@ max_requests = 600
 pidfile = '/var/run/gunicorn.pid'
 max_requests_jitter = 50
 errorlog = '/var/log/gunicorn/gunicorn-error.log'
-accesslog = '/var/log/gunicorn/gunicorn-access.log'
+loglevel = 'error'
 # Read the DEBUG setting from env var
 try:
     if getenv('DOCKER_SAL_DEBUG').lower() == 'true':
+        accesslog = '/var/log/gunicorn/gunicorn-access.log'
         loglevel = 'info'
 except:
     pass

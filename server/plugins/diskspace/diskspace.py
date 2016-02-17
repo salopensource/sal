@@ -12,20 +12,23 @@ class DiskSpace(IPlugin):
 
     def plugin_type(self):
         return 'builtin'
-        
+
+    def get_description(self):
+        return 'Available disk space'
+
     def widget_content(self, page, machines=None, theid=None):
         # The data is data is pulled from the database and passed to a template.
-        
+
         # There are three possible views we're going to be rendering to - front, bu_dashbaord and group_dashboard. If page is set to bu_dashboard, or group_dashboard, you will be passed a business_unit or machine_group id to use (mainly for linking to the right search).
         if page == 'front':
             t = loader.get_template('plugins/traffic_lights_front.html')
-        
+
         if page == 'bu_dashboard':
             t = loader.get_template('plugins/traffic_lights_id.html')
-            
+
         if page == 'group_dashboard':
             t = loader.get_template('plugins/traffic_lights_id.html')
-        
+
         try:
             disk_ok = machines.filter(hd_percent__lt=80).count()
         except:
@@ -35,7 +38,7 @@ class DiskSpace(IPlugin):
             disk_warning = machines.filter(hd_percent__range=["80", "89"]).count()
         except:
             disk_warning = 0
-        
+
         try:
             disk_alert = machines.filter(hd_percent__gte=90).count()
         except:
@@ -54,21 +57,21 @@ class DiskSpace(IPlugin):
             'page': page
         })
         return t.render(c)
-    
+
     def filter_machines(self, machines, data):
         if data == 'ok':
             machines = machines.filter(hd_percent__lt=80)
             title = 'Machines with less than 80% disk utilization'
-        
+
         elif data == 'warning':
             machines = machines.filter(hd_percent__range=["80", "89"])
             title = 'Machines with 80%-90% disk utilization'
-        
+
         elif data == 'alert':
             machines = machines.filter(hd_percent__gte=90)
             title = 'Machines with more than 90% disk utilization'
-        
+
         else:
             machines = None
-        
+
         return machines, title

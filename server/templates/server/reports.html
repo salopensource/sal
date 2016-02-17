@@ -9,7 +9,7 @@
             "aLengthMenu": [[20, 50, -1], [20, 50, "All"]],
             'aoColumnDefs': [{
                 'bSortable': false,
-                'aTargets': [-1, -2, -3]
+                'aTargets': [-1],
             }]
         });
     } );
@@ -28,38 +28,24 @@
     <div class="col-md-12">
         <div class="panel panel-default">
         <div class="panel-header">
-                    <h3>&nbsp; Enabled Widgets</h3>
+                    <h3>&nbsp; Enabled Reports</h3>
         </div>
         <div class="panel-body">
             <div class="table-responsive">
                 <table class="groupList table table-striped table-condensed">
                         <thead>
                         <tr>
-                          <th>Order</th>
                           <th>Plugin</th>
                           <th>Description</th>
-                          <th></th>
-                          <th></th>
                           <th></th>
                         </tr>
                     </thead>
                         <tbody>
                         {% for plugin in enabled_plugins.all %}
                         <tr>
-                            <td>{{ plugin.order}}</td>
                             <td>{{ plugin.name }}</td>
-                            <td>{{ plugin.description }}</td>
-                            <td><a href="{% url 'plugin_disable' plugin.id %}" class="btn btn-mini btn-info pull-right" title="Disable Plugin"><i class="fa fa-minus"></i></a></td>
-                            {% if forloop.first %}
-                            <td></td>
-                            {% else %}
-                            <td><a href="{% url 'plugin_minus' plugin.id %}" class="btn btn-mini btn-info pull-right" title="Move Up"><i class="fa fa-chevron-up"></i></a></td>
-                            {% endif %}
-                            {% if forloop.last %}
-                            <td></td>
-                            {% else %}
-                            <td><a href="{% url 'plugin_plus' plugin.id %}" class="btn btn-mini btn-info pull-right" title="Move Down"><i class="fa fa-chevron-down"></i></a></td>
-                            {% endif %}
+                            <td>{{ plugin.description }}
+                            <td><a href="{% url 'settings_report_disable' plugin.id %}" class="btn btn-mini btn-info pull-right" title="Disable Report"><i class="fa fa-minus"></i></a></td>
                         </tr>
                         {% endfor %}
                     </tbody>
@@ -75,14 +61,14 @@
     <div class="col-md-12">
         <div class="panel panel-default">
         <div class="panel-header">
-                    <h3>&nbsp; Disabled Widgets</h3>
+                    <h3>&nbsp; Disabled Reports</h3>
         </div>
         <div class="panel-body">
             <div class="table-responsive">
                 <table class="groupList table table-striped table-condensed">
                         <thead>
                         <tr>
-                          <th>Plugin</th>
+                          <th>Report</th>
                           <th></th>
                         </tr>
                     </thead>
@@ -91,7 +77,7 @@
                         {% for plugin in disabled_plugins %}
                         <tr>
                             <td>{{ plugin }}</td>
-                            <td><a href="{% url 'plugin_enable' plugin %}" title="Enable Plugin" class="btn btn-mini btn-info pull-right"><i class="fa fa-check"></i></a></td>
+                            <td><a href="{% url 'settings_report_enable' plugin %}" title="Enable Report" class="btn btn-mini btn-info pull-right"><i class="fa fa-check"></i></a></td>
                         </tr>
                         {% endfor %}
                     </tbody>

@@ -45,9 +45,7 @@ if getenv('DOCKER_SAL_ADMINS'):
         admin_list.append(tuple(admins_var.split(',')))
         ADMINS = tuple(admin_list)
 else:
-    ADMINS = (
-                ('Admin User', 'admin@test.com')
-             )
+    ADMINS = []
 
 # Read the preferred time zone from $DOCKER_SAL_TZ, use system locale or
 # set to 'America/New_York' if neither are set

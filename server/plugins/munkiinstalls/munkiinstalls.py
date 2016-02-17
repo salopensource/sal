@@ -31,6 +31,9 @@ class MunkiInstalls(IPlugin):
     def widget_width(self):
         return 8
 
+    def get_description(self):
+        return 'Chart of Munki install activity'
+
     def widget_content(self, page, machines=None, theid=None):
         # The data is data is pulled from the database and passed to a template.
 

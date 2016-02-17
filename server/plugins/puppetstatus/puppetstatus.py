@@ -23,36 +23,39 @@ class PuppetStatus(IPlugin):
 
     def widget_width(self):
         return 4
-        
+
+    def get_description(self):
+        return 'Current status of Puppet'
+
     def widget_content(self, page, machines=None, theid=None):
         if page == 'front':
             t = loader.get_template('puppetstatus/templates/front.html')
-        
+
         if page == 'bu_dashboard':
             t = loader.get_template('puppetstatus/templates/id.html')
-            
+
         if page == 'group_dashboard':
             t = loader.get_template('puppetstatus/templates/id.html')
-        
+
         try:
             puppet_error = machines.filter(puppet_errors__gt=0).count()
             # if there aren't any records with last checkin dates, assume puppet isn't being used
             last_checkin = machines.filter(last_puppet_run__isnull=False).count()
             if last_checkin != 0:
-                checked_in_this_month = machines.filter(last_puppet_run__lte=month_ago).count()
+                checked_in_this_month = machines.filter(last_puppet_run__lte=month_ago, last_checkin__gte=month_ago).count()
             else:
                 checked_in_this_month = 0
         except:
             puppet_error = 0
             last_checkin = 0
             checked_in_this_month = 0
-        
-        
+
+
         if last_checkin > 0:
             size = 4
         else:
             size = 0
-        
+
         c = Context({
             'title': 'Puppet Status',
             'error_label': 'Errors',
@@ -64,10 +67,10 @@ class PuppetStatus(IPlugin):
             'theid': theid,
             'page': page
         })
-        
+
 
         return t.render(c)
-    
+
     def filter_machines(self, machines, data):
         if data == 'puppeterror':
             machines = machines.filter(puppet_errors__gt=0)
@@ -75,9 +78,9 @@ class PuppetStatus(IPlugin):
         elif data =='1month':
             machines = machines.filter(last_puppet_run__lte=month_ago)
             title = 'Machines that haven\'t run Puppet for more than 1 Month'
-        
+
         else:
             machines = None
             title = None
-        
+
         return machines, title

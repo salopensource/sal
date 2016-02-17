@@ -1,5 +1,6 @@
 # Django settings for sal project.
 from system_settings import *
+import os
 
 DATABASES = {
     'default': {

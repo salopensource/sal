@@ -123,9 +123,34 @@ def reloadPluginsModel():
                     dbplugin.type = plugin.plugin_object.plugin_type()
                 except:
                     dbplugin.type = 'builtin'
+
+                try:
+                    dbplugin.description = plugin.plugin_object.get_description()
+                except:
+                    pass
                 dbplugin.save()
 
-def disabled_plugins(plugin_kind='builtin'):
+    all_plugins = Report.objects.all()
+    for plugin in all_plugins:
+        if plugin.name not in found:
+            plugin.delete()
+
+    # And go over again to update the plugin's type
+    for dbplugin in all_plugins:
+        for plugin in manager.getAllPlugins():
+            if plugin.name == dbplugin.name:
+                try:
+                    dbplugin.type = plugin.plugin_object.plugin_type()
+                except:
+                    dbplugin.type = 'builtin'
+
+                try:
+                    dbplugin.description = plugin.plugin_object.get_description()
+                except:
+                    pass
+                dbplugin.save()
+
+def disabled_plugins(plugin_kind='main'):
     enabled_plugins = Plugin.objects.all()
     # Build the manager
     manager = PluginManager()
@@ -135,32 +160,30 @@ def disabled_plugins(plugin_kind='builtin'):
     manager.collectPlugins()
     output = []
 
-    if plugin_kind == 'builtin':
+    if plugin_kind == 'main':
         for plugin in manager.getAllPlugins():
             try:
                 plugin_type = plugin.plugin_object.plugin_type()
             except:
                 plugin_type = 'builtin'
-            if plugin_type == 'builtin':
+            if plugin_type != 'report':
                 try:
                     item = Plugin.objects.get(name=plugin.name)
                 except Plugin.DoesNotExist:
                     output.append(plugin.name)
 
-    if plugin_kind == 'full_page':
+    if plugin_kind == 'report':
         for plugin in manager.getAllPlugins():
             try:
                 plugin_type = plugin.plugin_object.plugin_type()
             except:
                 plugin_type = 'builtin'
 
-            if plugin_type == 'full_page':
+            if plugin_type == 'report':
                 try:
-                    item = FullPagePlugin.objects.get(name=plugin.name)
-                except FullPagePlugin.DoesNotExist:
+                    item = Report.objects.get(name=plugin.name)
+                except Report.DoesNotExist:
                     output.append(plugin.name)
-
-
 
     return output
 

@@ -183,6 +183,7 @@ INSTALLED_APPS = (
     'django.contrib.admin',
     # Uncomment the next line to enable admin documentation:
     'django.contrib.admindocs',
+    'django_tables2',
     'sal',
     'server',
     'api',

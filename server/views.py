@@ -404,20 +404,7 @@ def delete_user(request, user_id):
     user.delete()
     return redirect('manage_users')
 
-# Table ajax for dataTables
-@login_required
-def tableajax(request, pluginName, data, page='front', theID=None):
-    print request.GET
-    return_data = {}
-    return_data['draw'] = 0
-    return_data['recordsTotal'] = 100
-    return_data['recordsFiltered'] = 50
-    return_data['data'] = [['poo', 'wee', '234']]
-    return JsonResponse(return_data)
-
-# Plugin machine list
-@login_required
-def machine_list(request, pluginName, data, page='front', theID=None):
+def plugin_machines(request, pluginName, data, page='front', theID=None):
     user = request.user
     title = None
     # Build the manager
@@ -459,6 +446,27 @@ def machine_list(request, pluginName, data, page='front', theID=None):
     for plugin in manager.getAllPlugins():
         if plugin.name == pluginName:
             (machines, title) = plugin.plugin_object.filter_machines(machines, data)
+
+    return machines, title
+
+# Table ajax for dataTables
+@login_required
+def tableajax(request, pluginName, data, page='front', theID=None):
+
+    draw = request.GET['draw']
+    return_data = {}
+    return_data['draw'] = int(draw)
+    return_data['recordsTotal'] = 100
+    return_data['recordsFiltered'] = 100
+    return_data['data'] = [['poo', 'wee', '234']]
+    print return_data
+    return JsonResponse(return_data)
+
+# Plugin machine list
+@login_required
+def machine_list(request, pluginName, data, page='front', theID=None):
+    (machines, title) = plugin_machines(request, pluginName, data, page, theID)
+    user = request.user
     c = {'user':user, 'plugin_name': pluginName, 'machines': machines, 'req_type': page, 'title': title, 'bu_id': theID, 'request':request, 'data':data }
 
     return render_to_response('server/overview_list_all.html', c, context_instance=RequestContext(request))
@@ -1709,8 +1717,11 @@ def checkin(request):
                 display_name = update.get('display_name', update['name'])
                 update_name = update.get('name')
                 version = str(update['version_to_install'])
-                pending_update = PendingAppleUpdate(machine=machine, display_name=display_name, update_version=version, update=update_name)
-                pending_update.save()
+                try:
+                    pending_update = PendingAppleUpdate.objects.gete(machine=machine, display_name=display_name, update_version=version, update=update_name)
+                except PendingAppleUpdate.DoesNotExist:
+                    pending_update = PendingAppleUpdate(machine=machine, display_name=display_name, update_version=version, update=update_name)
+                    pending_update.save()
                 # Let's handle some of those lovely pending installs into the UpdateHistory Model
                 try:
                     update_history = UpdateHistory.objects.get(name=update_name, version=version, machine=machine, update_type='apple')

@@ -10,11 +10,11 @@ SAL_ENV_DIR = '/home/docker/sal'
 sys.path.append(SAL_ENV_DIR)
 sys.path.append(os.path.join(SAL_ENV_DIR, 'sal'))
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "sal.settings")
-try:
-    import newrelic.agent
-    if os.path.isfile(os.getenv('NEW_RELIC_INI'))
-        newrelic.agent.initialize(os.getenv('NEW_RELIC_INI'))
-except:
-    pass
+# try:
+#     import newrelic.agent
+#     if os.path.isfile(os.getenv('NEW_RELIC_INI'))
+#         newrelic.agent.initialize(os.getenv('NEW_RELIC_INI'))
+# except:
+#     pass
 import django.core.handlers.wsgi
 application = django.core.handlers.wsgi.WSGIHandler()

@@ -14,6 +14,7 @@ from datetime import datetime, timedelta, date
 from django.db.models import Count, Sum, Max, Q
 from django.contrib import messages
 from django.contrib.staticfiles.templatetags.staticfiles import static
+from django.core.urlresolvers import reverse
 import plistlib
 import ast
 from forms import *
@@ -452,13 +453,35 @@ def plugin_machines(request, pluginName, data, page='front', theID=None):
 # Table ajax for dataTables
 @login_required
 def tableajax(request, pluginName, data, page='front', theID=None):
+    # Pull our variables out of the GET request
+    draw = request.GET.get('draw', 0)
+    start = int(request.GET.get('start', 0))
+    length = int(request.GET.get('length', 0))
+    search_value = request.GET.get('search[value]', '')
+    order = request.GET.get('order')
 
-    draw = request.GET['draw']
+    (machines, title) = plugin_machines(request, pluginName, data, page, theID)
+
+    if len(search_value) != 0:
+        searched_machines = machines.filter(Q(hostname__icontains=search_value) | Q(console_user__icontains=search_value) | Q(last_checkin__icontains=search_value))
+    else:
+        searched_machines = machines
+
+    limited_machines = searched_machines[start:(start+length)]
+
     return_data = {}
     return_data['draw'] = int(draw)
-    return_data['recordsTotal'] = 100
-    return_data['recordsFiltered'] = 100
-    return_data['data'] = [['poo', 'wee', '234']]
+    return_data['recordsTotal'] = machines.count()
+    return_data['recordsFiltered'] = machines.count()
+
+    return_data['data'] = []
+
+    for machine in limited_machines:
+        formatted_date = machine.last_checkin.strftime("%Y-%m-%d %H:%M")
+        hostname_link = "<a href=\"%s\">%s</a>" % (reverse('machine_detail', args=[machine.id]), machine.hostname)
+        list_data = [hostname_link, machine.console_user, formatted_date]
+        return_data['data'].append(list_data)
+
     print return_data
     return JsonResponse(return_data)
 
@@ -1718,7 +1741,7 @@ def checkin(request):
                 update_name = update.get('name')
                 version = str(update['version_to_install'])
                 try:
-                    pending_update = PendingAppleUpdate.objects.gete(machine=machine, display_name=display_name, update_version=version, update=update_name)
+                    pending_update = PendingAppleUpdate.objects.get(machine=machine, display_name=display_name, update_version=version, update=update_name)
                 except PendingAppleUpdate.DoesNotExist:
                     pending_update = PendingAppleUpdate(machine=machine, display_name=display_name, update_version=version, update=update_name)
                     pending_update.save()

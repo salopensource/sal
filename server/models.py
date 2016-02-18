@@ -194,6 +194,8 @@ class Machine(models.Model):
     def save(self, *args, **kwargs):
         self.serial = self.serial.replace('/', '')
         self.serial = self.serial.replace('+', '')
+        if not self.hostname:
+            self.hostname = self.serial
         super(Machine, self).save()
 
 class UpdateHistory(models.Model):
@@ -286,7 +288,7 @@ class PendingUpdate(models.Model):
         return self.update
     class Meta:
         ordering = ['display_name']
-        unique_together = ("machine", "update")
+        unique_together = ("machine", "update", "update_version",)
 
 class InstalledUpdate(models.Model):
     machine = models.ForeignKey(Machine, related_name='installed_updates')
@@ -309,7 +311,7 @@ class PendingAppleUpdate(models.Model):
         return unicode(self.update) or u''
     class Meta:
         ordering = ['display_name']
-        unique_together = ("machine", "update")
+        unique_together = ("machine", "update", "update_version")
 
 class Plugin(models.Model):
     PLUGIN_TYPES = (

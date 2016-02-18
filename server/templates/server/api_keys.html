@@ -7,9 +7,9 @@
     $(document).ready(function() {
         $('.groupList').DataTable({
             "lengthMenu": [[20, 50, -1], [20, 50, "All"]],
-            'aoColumnDefs': [{
-                'bSortable': false,
-                'aTargets': [-1, -2] /* 1st one, start by the right */
+            'columnDefs': [{
+                'orderable': false,
+                'targets': [-1, -2] /* 1st one, start by the right */
             }]
         });
     } );

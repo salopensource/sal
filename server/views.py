@@ -405,7 +405,7 @@ def delete_user(request, user_id):
     user.delete()
     return redirect('manage_users')
 
-def plugin_machines(request, pluginName, data, page='front', theID=None):
+def plugin_machines(request, pluginName, data, page='front', theID=None, get_machines=True):
     user = request.user
     title = None
     # Build the manager
@@ -415,34 +415,37 @@ def plugin_machines(request, pluginName, data, page='front', theID=None):
     # Load all plugins
     manager.collectPlugins()
     # get a list of machines (either from the BU or the group)
-    if page == 'front':
-        # get all machines
-        if user.userprofile.level == 'GA':
-            machines = Machine.objects.all()
-        else:
-            machines = Machine.objects.none()
-            for business_unit in user.businessunit_set.all():
-                for group in business_unit.machinegroup_set.all():
-                    machines = machines | group.machine_set.all()
-    if page == 'bu_dashboard':
-        # only get machines for that BU
-        # Need to make sure the user is allowed to see this
-        business_unit = get_object_or_404(BusinessUnit, pk=theID)
-        machine_groups = MachineGroup.objects.filter(business_unit=business_unit).prefetch_related('machine_set').all()
+    if get_machines:
+        if page == 'front':
+            # get all machines
+            if user.userprofile.level == 'GA':
+                machines = Machine.objects.all()
+            else:
+                machines = Machine.objects.none()
+                for business_unit in user.businessunit_set.all():
+                    for group in business_unit.machinegroup_set.all():
+                        machines = machines | group.machine_set.all()
+        if page == 'bu_dashboard':
+            # only get machines for that BU
+            # Need to make sure the user is allowed to see this
+            business_unit = get_object_or_404(BusinessUnit, pk=theID)
+            machine_groups = MachineGroup.objects.filter(business_unit=business_unit).prefetch_related('machine_set').all()
 
-        if machine_groups.count() != 0:
-            machines_unsorted = machine_groups[0].machine_set.all()
-            for machine_group in machine_groups[1:]:
-                machines_unsorted = machines_unsorted | machine_group.machine_set.all()
-        else:
-            machines_unsorted = None
-        machines=machines_unsorted
+            if machine_groups.count() != 0:
+                machines_unsorted = machine_groups[0].machine_set.all()
+                for machine_group in machine_groups[1:]:
+                    machines_unsorted = machines_unsorted | machine_group.machine_set.all()
+            else:
+                machines_unsorted = None
+            machines=machines_unsorted
 
-    if page == 'group_dashboard':
-        # only get machines from that group
-        machine_group = get_object_or_404(MachineGroup, pk=theID)
-        # check that the user has access to this
-        machines = Machine.objects.filter(machine_group=machine_group)
+        if page == 'group_dashboard':
+            # only get machines from that group
+            machine_group = get_object_or_404(MachineGroup, pk=theID)
+            # check that the user has access to this
+            machines = Machine.objects.filter(machine_group=machine_group)
+    else:
+        machines = Machine.objects.none()
     # send the machines and the data to the plugin
     for plugin in manager.getAllPlugins():
         if plugin.name == pluginName:
@@ -504,6 +507,7 @@ def tableajax(request, pluginName, data, page='front', theID=None):
         else:
             formatted_date = ""
         hostname_link = "<a href=\"%s\">%s</a>" % (reverse('machine_detail', args=[machine.id]), machine.hostname)
+
         list_data = [hostname_link, machine.console_user, formatted_date]
         return_data['data'].append(list_data)
 
@@ -512,7 +516,7 @@ def tableajax(request, pluginName, data, page='front', theID=None):
 # Plugin machine list
 @login_required
 def machine_list(request, pluginName, data, page='front', theID=None):
-    (machines, title) = plugin_machines(request, pluginName, data, page, theID)
+    (machines, title) = plugin_machines(request, pluginName, data, page, theID, get_machines=False)
     user = request.user
     c = {'user':user, 'plugin_name': pluginName, 'machines': machines, 'req_type': page, 'title': title, 'bu_id': theID, 'request':request, 'data':data }
 

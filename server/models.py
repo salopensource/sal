@@ -288,7 +288,6 @@ class PendingUpdate(models.Model):
         return self.update
     class Meta:
         ordering = ['display_name']
-        unique_together = ("machine", "update", "update_version",)
 
 class InstalledUpdate(models.Model):
     machine = models.ForeignKey(Machine, related_name='installed_updates')
@@ -311,7 +310,6 @@ class PendingAppleUpdate(models.Model):
         return unicode(self.update) or u''
     class Meta:
         ordering = ['display_name']
-        unique_together = ("machine", "update", "update_version")
 
 class Plugin(models.Model):
     PLUGIN_TYPES = (

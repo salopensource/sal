@@ -24,7 +24,7 @@ urlpatterns = patterns('server.views',
     # tableajax (front page)
     url(r'^tableajax/(?P<pluginName>.+)/(?P<data>.+)/$', 'tableajax', name='tableajax_front'),
     # tableajax (id)
-    url(r'^id_tableajax/(?P<pluginName>.+)/(?P<data>.+)/(?P<page>.+)/(?P<theID>.+)/$', 'plugin_load', name='plugin_load_id'),
+    url(r'^id_tableajax/(?P<pluginName>.+)/(?P<data>.+)/(?P<page>.+)/(?P<theID>.+)/$', 'tableajax', name='tableajax_id'),
     # reporload (front page)
     url(r'^report/(?P<pluginName>.+)/$', 'report_load', name='report_load_front'),
     # report (id)

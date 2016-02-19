@@ -5,9 +5,27 @@
 <script type="text/javascript" charset="utf-8">
     $(document).ready(function() {
         $('.groupList').dataTable({
+            "serverSide": true,
+            "ajax": {
+                "contentType": "application/json",
+                {% if req_type == "front" %}
+                "url": "{% url 'tableajax_front' plugin_name data %}",
+                {% else %}
+                "url": "{% url 'tableajax_id' plugin_name data req_type bu_id %}",
+                {% endif %}
+                "data": function ( args ) {
+                    return { "args": JSON.stringify( args ) };
+                }
+            },
             "lengthMenu": [[20, 50, -1], [20, 50, "All"]],
             stateSave: true,
-            "order": [2,'desc']
+            "order": [2,'desc'],
+            "orderMulti": false,
+            "columns": [
+                { "name": "hostname" },
+                { "name": "console_user" },
+                { "name": "last_checkin" },
+            ],
         });
     } );
 </script>
@@ -45,11 +63,7 @@
                 <tr>
                     <td>
                         <a href="{% url 'machine_detail' item.id %}">
-                        {% if item.hostname %}
-                            {{ item.hostname }}
-                        {% else %}
-                            {{ item.serial }}
-                        {% endif %}
+                        {{ item.hostname }}
                         </a>
                     </td>
 

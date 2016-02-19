@@ -454,21 +454,43 @@ def plugin_machines(request, pluginName, data, page='front', theID=None):
 @login_required
 def tableajax(request, pluginName, data, page='front', theID=None):
     # Pull our variables out of the GET request
-    draw = request.GET.get('draw', 0)
-    start = int(request.GET.get('start', 0))
-    length = int(request.GET.get('length', 0))
-    search_value = request.GET.get('search[value]', '')
-    order = request.GET.get('order')
+    get_data = request.GET['args']
+    get_data = json.loads(get_data.decode('string_escape'))
+    draw = get_data.get('draw', 0)
+    start = int(get_data.get('start', 0))
+    length = int(get_data.get('length', 0))
+    search_value = ''
+    if 'search' in get_data:
+        if 'value' in get_data['search']:
+            search_value = get_data['search']['value']
 
+    # default ordering
+    order_column = 2
+    order_direction = 'desc'
+    order_name = ''
+    if 'order' in get_data:
+        order_column = get_data['order'][0]['column']
+        order_direction = get_data['order'][0]['dir']
+    for column in get_data.get('columns', None):
+        if column['data'] == order_column:
+            order_name = column['name']
+            break
+
+    print order_name
     (machines, title) = plugin_machines(request, pluginName, data, page, theID)
-
+    if len(order_name) != 0:
+        if order_direction == 'desc':
+            order_string = "-%s" % order_name
+        else:
+            order_string = "%s" % order_name
+        print order_string
     if len(search_value) != 0:
-        searched_machines = machines.filter(Q(hostname__icontains=search_value) | Q(console_user__icontains=search_value) | Q(last_checkin__icontains=search_value))
+        searched_machines = machines.filter(Q(hostname__icontains=search_value) | Q(console_user__icontains=search_value) | Q(last_checkin__icontains=search_value)).order_by(order_string)
     else:
-        searched_machines = machines
+        searched_machines = machines.order_by(order_string)
 
     limited_machines = searched_machines[start:(start+length)]
-
+    print limited_machines.query
     return_data = {}
     return_data['draw'] = int(draw)
     return_data['recordsTotal'] = machines.count()
@@ -477,12 +499,14 @@ def tableajax(request, pluginName, data, page='front', theID=None):
     return_data['data'] = []
 
     for machine in limited_machines:
-        formatted_date = machine.last_checkin.strftime("%Y-%m-%d %H:%M")
+        if machine.last_checkin:
+            formatted_date = machine.last_checkin.strftime("%Y-%m-%d %H:%M")
+        else:
+            formatted_date = ""
         hostname_link = "<a href=\"%s\">%s</a>" % (reverse('machine_detail', args=[machine.id]), machine.hostname)
         list_data = [hostname_link, machine.console_user, formatted_date]
         return_data['data'].append(list_data)
 
-    print return_data
     return JsonResponse(return_data)
 
 # Plugin machine list

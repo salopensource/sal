@@ -1832,33 +1832,33 @@ def checkin(request):
                 condition = Condition(machine=machine, condition_name=condition_name, condition_data=str(condition_data))
                 condition.save()
 
-        if 'osquery' in report_data:
-            try:
-                datelimit = (datetime.now() - timedelta(days=historical_days)).strftime("%s")
-                OSQueryResult.objects.filter(unix_time__lt=datelimit).delete()
-            except:
-                pass
-            for report in report_data['osquery']:
-                unix_time = int(report['unixTime'])
-                # Have we already processed this report?
-                try:
-                    osqueryresult = OSQueryResult.objects.get(hostidentifier=report['hostIdentifier'], machine=machine, unix_time=unix_time, name=report['name'])
-                    continue
-                except OSQueryResult.DoesNotExist:
-                    osqueryresult = OSQueryResult(hostidentifier=report['hostIdentifier'], machine=machine, unix_time=unix_time, name=report['name'])
-                    osqueryresult.save()
-
-                if 'added' in report['diffResults']:
-                    for items in report['diffResults']['added']:
-                        for column, col_data in items.items():
-                            osquerycolumn = OSQueryColumn(osquery_result=osqueryresult, action='added', column_name=column, column_data=col_data)
-                            osquerycolumn.save()
-
-                if 'removed' in report['diffResults']:
-                    for items in report['diffResults']['removed']:
-                        for column, col_data in items.items():
-                            osquerycolumn = OSQueryColumn(osquery_result=osqueryresult, action='removed', column_name=column, column_data=col_data)
-                            osquerycolumn.save()
+        # if 'osquery' in report_data:
+        #     try:
+        #         datelimit = (datetime.now() - timedelta(days=historical_days)).strftime("%s")
+        #         OSQueryResult.objects.filter(unix_time__lt=datelimit).delete()
+        #     except:
+        #         pass
+        #     for report in report_data['osquery']:
+        #         unix_time = int(report['unixTime'])
+        #         # Have we already processed this report?
+        #         try:
+        #             osqueryresult = OSQueryResult.objects.get(hostidentifier=report['hostIdentifier'], machine=machine, unix_time=unix_time, name=report['name'])
+        #             continue
+        #         except OSQueryResult.DoesNotExist:
+        #             osqueryresult = OSQueryResult(hostidentifier=report['hostIdentifier'], machine=machine, unix_time=unix_time, name=report['name'])
+        #             osqueryresult.save()
+        #
+        #         if 'added' in report['diffResults']:
+        #             for items in report['diffResults']['added']:
+        #                 for column, col_data in items.items():
+        #                     osquerycolumn = OSQueryColumn(osquery_result=osqueryresult, action='added', column_name=column, column_data=col_data)
+        #                     osquerycolumn.save()
+        #
+        #         if 'removed' in report['diffResults']:
+        #             for items in report['diffResults']['removed']:
+        #                 for column, col_data in items.items():
+        #                     osquerycolumn = OSQueryColumn(osquery_result=osqueryresult, action='removed', column_name=column, column_data=col_data)
+        #                     osquerycolumn.save()
         utils.get_version_number()
         return HttpResponse("Sal report submmitted for %s"
                             % data.get('name'))

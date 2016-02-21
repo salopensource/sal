@@ -1732,21 +1732,22 @@ def checkin(request):
                 display_name = update.get('display_name', update['name'])
                 update_name = update.get('name')
                 version = str(update['version_to_install'])
-                pending_update = PendingUpdate(machine=machine, display_name=display_name, update_version=version, update=update_name)
-                pending_update.save()
-                # Let's handle some of those lovely pending installs into the UpdateHistory Model
-                try:
-                    update_history = UpdateHistory.objects.get(name=update_name,
-                    version=version, machine=machine, update_type='third_party')
-                except UpdateHistory.DoesNotExist:
-                    update_history = UpdateHistory(name=update_name, version=version, machine=machine, update_type='third_party')
-                    update_history.save()
+                if version:
+                    pending_update = PendingUpdate(machine=machine, display_name=display_name, update_version=version, update=update_name)
+                    pending_update.save()
+                    # Let's handle some of those lovely pending installs into the UpdateHistory Model
+                    try:
+                        update_history = UpdateHistory.objects.get(name=update_name,
+                        version=version, machine=machine, update_type='third_party')
+                    except UpdateHistory.DoesNotExist:
+                        update_history = UpdateHistory(name=update_name, version=version, machine=machine, update_type='third_party')
+                        update_history.save()
 
-                if update_history.pending_recorded == False:
-                    update_history_item = UpdateHistoryItem(update_history=update_history, status='pending', recorded=now, uuid=uuid)
-                    update_history_item.save()
-                    update_history.pending_recorded = True
-                    update_history.save()
+                    if update_history.pending_recorded == False:
+                        update_history_item = UpdateHistoryItem(update_history=update_history, status='pending', recorded=now, uuid=uuid)
+                        update_history_item.save()
+                        update_history.pending_recorded = True
+                        update_history.save()
 
         updates = machine.installed_updates.all()
         updates.delete()
@@ -1756,7 +1757,7 @@ def checkin(request):
                 update_name = update.get('name')
                 version = str(update.get('installed_version'))
                 installed = update.get('installed')
-                if version != 'UNKNOWN':
+                if version != 'UNKNOWN' and version != None:
                     installed_update = InstalledUpdate(machine=machine, display_name=display_name, update_version=version, update=update_name, installed=installed)
                     installed_update.save()
 

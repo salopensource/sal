@@ -1757,7 +1757,7 @@ def checkin(request):
                 update_name = update.get('name')
                 version = str(update.get('installed_version'))
                 installed = update.get('installed')
-                if version != 'UNKNOWN' and version != None:
+                if version != 'UNKNOWN' and version != None and len(version) != 0:
                     installed_update = InstalledUpdate(machine=machine, display_name=display_name, update_version=version, update=update_name, installed=installed)
                     installed_update.save()
 

@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% load dashboard_extras %}
+
+{% block script %}
+<script type="text/javascript" charset="utf-8">
+    $(document).ready(function() {
+        $(function () {
+          $('[data-toggle="tooltip"]').tooltip()
+        })
+        $('.groupList').dataTable({
+            //"sDom": "<'row'<'span6'l><'span6'f>r>t<'row'<'span6'i><'span6'p>>",
+            // "iDisplayLength": 20,
+            "lengthMenu": [[20, 50, -1], [20, 50, "All"]],
+            stateSave: true,
+        });
+    } );
+</script>
+{# datatables.js #}
+<script type="text/javascript" charset="utf8" src="http://cdn.datatables.net/1.10.9/js/jquery.dataTables.min.js"></script>
+<script type="text/javascript" charset="utf8" src="{{ STATIC_URL }}js/datatableview.js"></script>
+<style type="text/css">
+.tooltip-inner {
+    max-width: 1000px;
+    max-width: 1000px;
+}
+</style>
+<style type="text/css">
+.datatable th[data-name="install-count"] {
+    width: 5%;
+}
+</style>
+{% endblock %}
+
+{% block nav %}
+<li><a href="{{ request.META.HTTP_REFERER }}"><i class="fa fa-fw fa-chevron-left"></i> Back</a></li>
+{% endblock %}
+
+<div class="panel panel-default">
+
+    <div class="panel-heading">
+			{{ object.name }}
+    </div>
+</div>
+{% block content %}
+<div class="row">
+  <div class="col-md-12">
+    <p style="text-align: center;">
+      <h2 style="text-align:center">{{ object.name }}</h2>
+    </p>
+    <div class="panel panel-default">
+      <div class="panel-body">
+        <dl class="dl-horizontal" >
+          <legend><h5 class"text-uppercase">Application Details</h5></legend>
+          <dt>Name:</dt>
+					<dd>{{ object.name }} </dd>
+          <dt>Bundle ID:</dt>
+					<dd>{{ object.bundleid }} </dd>
+          <dt>Bundle Name:</dt>
+          <dd>{{ object.bundlename }}</dd>
+          <dt>Total Install Count:</dt>
+					<dd><span class="badge">{{ install_count }}</span></dd>
+          <br>
+          <legend><h5 class"text-uppercase">Installed Versions</h5></legend>
+					{% for version in versions %}
+					<dt>{{ version.version }}:</dt>
+					<dd><span class="badge">{{ version.count }}</span></dd>
+					{% endfor %}
+					</ul>
+          <br>
+          <legend><h5 class"text-uppercase">Installed Paths</h5></legend>
+					{% for path in paths %}
+					<dt>Path:</dt>
+					<dd><span class="badge">{{ path.count }}</span> {{ path.path }}</dd>
+					{% endfor %}
+        </dl>
+      </div>
+    </div>
+  </div>
+{% endblock %}

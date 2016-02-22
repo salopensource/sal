@@ -17,10 +17,23 @@
         });
     } );
 </script>
+{# datatables.js #}
+<script type="text/javascript" charset="utf8" src="http://cdn.datatables.net/1.10.9/js/jquery.dataTables.min.js"></script>
+<!-- <link rel="stylesheet" type="text/css" href="http://cdn.datatables.net/1.10.9/css/jquery.dataTables.css"> -->
+{# django-datatable-view #}
+<script type="text/javascript" charset="utf8" src="{{ STATIC_URL }}js/datatableview.js"></script>
+<!-- <script type="text/javascript" charset="utf8"> -->
+<!-- 		datatableview.auto_initialize = true; -->
+<!-- </script> -->
 <style type="text/css">
 .tooltip-inner {
     max-width: 1000px;
     max-width: 1000px;
+}
+</style>
+<style type="text/css">
+.datatable th[data-name="install-count"] {
+    width: 5%;
 }
 </style>
 {% endblock %}
@@ -40,7 +53,7 @@
 
 <div class="panel-body">
     <div class="table-responsive">
-			{% render_table table %}
+			{{ datatable }}
     </div>
 </div>
 {% endblock %}

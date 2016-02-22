@@ -24,7 +24,10 @@ from django.shortcuts import (get_object_or_404, redirect, render_to_response,
                               render)
 from django.template import Context, RequestContext, Template
 from django.views.decorators.csrf import csrf_exempt
+from django.views.generic import DetailView
 import django_tables2 as tables
+import datatableview
+from datatableview.views import DatatableView
 
 # local Django
 from models import *
@@ -32,18 +35,51 @@ from server import utils
 from server.models import *
 
 
-class InventoryTable(tables.Table):
-    name = tables.Column(verbose_name="Name")
-    bundleid = tables.Column(verbose_name="Bundle ID")
-    bundlename = tables.Column(verbose_name="Bundle Name")
-    inventoryitem__count = tables.TemplateColumn(
-        template_code="<span class='badge'>{{ value }}</span>",
-        verbose_name="Install Count")
+class ApplicationView(DatatableView):
+    model = Application
+    template_name = "inventory/application_list.html"
+    # TODO: These can be done in the model mostly.
+    datatable_options = {
+        'structure_template': 'datatableview/bootstrap_structure.html',
+        'columns': [('Name', 'name', "get_name_link"),
+                    ("Bundle ID", 'bundleid'),
+                    ("Bundle Name", 'bundlename'),
+                    ("Install Count", None, "get_install_count")]}
 
-    class Meta:
-        model = Application
-        exclude = ("id",)
-        attrs = {"class": "table table-striped table-condensed"}
+    def get_name_link(self, instance, *args, **kwargs):
+        return '<a href="application/%s">%s</a>' % (instance.pk, instance.name)
+
+    def get_install_count(self, instance, *args, **kwargs):
+        return ('<span class="badge">%s</span>' %
+                instance.inventoryitem_set.count())
+
+
+class ApplicationDetailView(DetailView):
+    # TODO: There should be some BU access logic here.
+    model = Application
+    template_name = "inventory/application_detail.html"
+
+    def get_context_data(self, **kwargs):
+        context = super(ApplicationDetailView, self).get_context_data(**kwargs)
+        if is_postgres():
+            versions = self.object.inventoryitem_set.distinct("version")
+            paths = self.object.inventoryitem_set.distinct("path")
+        else:
+            details = self.object.inventoryitem_set.values("version", "path")
+            versions = {item["version"] for item in details}
+            paths = {item["path"] for item in details}
+
+        # context["versions"] = [{"version": version, "count": len([i for i in details if i["version"] == version])} for version in versions]
+        # TODO: Not set up for postgres yet.
+        context["versions"] = [
+            {"version": version, "count": details.filter(
+                version=version).count()}
+            for version in versions]
+        context["paths"] = [
+            {"path": path, "count": details.filter(path=path).count()}
+            for path in paths]
+        context["install_count"] = self.object.inventoryitem_set.count()
+        return context
 
 
 def is_postgres():
@@ -231,21 +267,6 @@ def inventory_hash(request, serial):
     else:
         return HttpResponse("MACHINE NOT FOUND")
     return HttpResponse(sha256hash)
-
-
-@login_required
-def index(request):
-    # This really should just select on the BU's the user has access to like the
-    # Main page, but this will do for now
-    user = request.user
-    user_level = user.userprofile.level
-    if user_level != 'GA':
-        return redirect(index)
-
-    table = InventoryTable(Application.objects.annotate(Count("inventoryitem")))
-    tables.RequestConfig(request, paginate=True).configure(table)
-    c = {'table': table}
-    return render(request, 'inventory/index.html', c)
 
 
 @login_required

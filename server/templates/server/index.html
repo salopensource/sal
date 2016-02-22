@@ -73,7 +73,7 @@ $( document ).ready(function() {
         {% endif %}
     {% endif %}
     {% if user.userprofile.level == 'GA' %}
-    <li><a href="{% url 'inventory.views.index' %}"><i class="fa fa-list-alt fa-fw"></i> Application Inventory</a></li>
+    <li><a href="{% url 'application-list' %}"><i class="fa fa-list-alt fa-fw"></i> Application Inventory</a></li>
     {% endif %}
     <li class="active">
         <a href="#"><i class="fa fa-building fa-fw"></i> Business Units<span class="fa arrow"></span></a>

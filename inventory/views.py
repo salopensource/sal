@@ -23,6 +23,7 @@ from django.http import (Http404, HttpRequest, HttpResponse,
 from django.shortcuts import (get_object_or_404, redirect, render_to_response,
                               render)
 from django.template import Context, RequestContext, Template
+from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import DetailView
 import django_tables2 as tables
@@ -52,6 +53,11 @@ class ApplicationView(DatatableView):
         return ('<span class="badge">%s</span>' %
                 instance.inventoryitem_set.count())
 
+    @method_decorator(login_required)
+    def dispatch(self, *args, **kwargs):
+        return super(ApplicationView, self).dispatch(*args, **kwargs)
+
+
 
 class ApplicationDetailView(DetailView):
     # TODO: There should be some access logic here, as presumably only
@@ -80,6 +86,10 @@ class ApplicationDetailView(DetailView):
             for path in paths]
         context["install_count"] = self.object.inventoryitem_set.count()
         return context
+
+    @method_decorator(login_required)
+    def dispatch(self, *args, **kwargs):
+        return super(ApplicationDetailView, self).dispatch(*args, **kwargs)
 
 
 @csrf_exempt

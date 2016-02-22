@@ -18,9 +18,9 @@ urlpatterns = [
     # CSV Export (id)
     url(r'^id_csv/(?P<page>.+)/(?P<theID>.+)/$', views.export_csv,
         name='inventory_export_csv_id'),
-    url(r'^$', login_required(views.ApplicationView.as_view()),
+    url(r'^$', views.ApplicationView.as_view(),
         name="application-list"),
     url(r'^application/(?P<pk>[0-9]+)/$',
-        login_required(views.ApplicationDetailView.as_view()),
+        views.ApplicationDetailView.as_view(),
         name="application-detail"),
 ]

@@ -11,10 +11,7 @@ class InventoryAdmin(admin.ModelAdmin):
 
 
 class InventoryItemAdmin(admin.ModelAdmin):
-    list_display = ('get_name', 'version', 'path')
-
-    def get_name(self, item):
-        return item.application.name
+    list_display = ('application', 'version', 'path')
 
 
 admin.site.register(Application, ApplicationAdmin)

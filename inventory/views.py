@@ -38,7 +38,6 @@ from server.models import *
 class ApplicationView(DatatableView):
     model = Application
     template_name = "inventory/application_list.html"
-    # TODO: These can be done in the model mostly.
     datatable_options = {
         'structure_template': 'datatableview/bootstrap_structure.html',
         'columns': [('Name', 'name', "get_name_link"),
@@ -55,22 +54,23 @@ class ApplicationView(DatatableView):
 
 
 class ApplicationDetailView(DetailView):
-    # TODO: There should be some BU access logic here.
+    # TODO: There should be some access logic here, as presumably only
+    # GA level should be able to see everything.
     model = Application
     template_name = "inventory/application_detail.html"
 
     def get_context_data(self, **kwargs):
         context = super(ApplicationDetailView, self).get_context_data(**kwargs)
+        details = self.object.inventoryitem_set.values("version", "path")
+
+        # TODO: Need to profile to see if this is necessary.
         if is_postgres():
             versions = self.object.inventoryitem_set.distinct("version")
             paths = self.object.inventoryitem_set.distinct("path")
         else:
-            details = self.object.inventoryitem_set.values("version", "path")
             versions = {item["version"] for item in details}
             paths = {item["path"] for item in details}
 
-        # context["versions"] = [{"version": version, "count": len([i for i in details if i["version"] == version])} for version in versions]
-        # TODO: Not set up for postgres yet.
         context["versions"] = [
             {"version": version, "count": details.filter(
                 version=version).count()}
@@ -82,22 +82,70 @@ class ApplicationDetailView(DetailView):
         return context
 
 
+@csrf_exempt
+def inventory_submit(request):
+    if request.method != 'POST':
+        return HttpResponseNotFound('No POST data sent')
+
+    # list of bundleids to ignore
+    bundleid_ignorelist = [
+        'com.apple.print.PrinterProxy'
+    ]
+    submission = request.POST
+    serial = submission.get('serial')
+    machine = None
+    if serial:
+        try:
+            machine = Machine.objects.get(serial=serial)
+        except Machine.DoesNotExist:
+            return HttpResponseNotFound('Serial Number not found')
+
+        compressed_inventory = submission.get('base64bz2inventory')
+        if compressed_inventory:
+            compressed_inventory = compressed_inventory.replace(" ", "+")
+            inventory_str = decode_to_string(compressed_inventory)
+            try:
+                inventory_list = plistlib.readPlistFromString(inventory_str)
+            except Exception:
+                inventory_list = None
+            if inventory_list:
+                try:
+                    inventory_meta = Inventory.objects.get(machine=machine)
+                except Inventory.DoesNotExist:
+                    inventory_meta = Inventory(machine=machine)
+                inventory_meta.sha256hash = \
+                    hashlib.sha256(inventory_str).hexdigest()
+                # clear existing inventoryitems
+                machine.inventoryitem_set.all().delete()
+                # insert current inventory items
+                for item in inventory_list:
+                    app, _ = Application.objects.get_or_create(
+                        bundleid=item.get("bundleid", ""),
+                        name=item.get("name", ""),
+                        bundlename=item.get("CFBundleName", ""))
+                    print app.name
+                    # skip items in bundleid_ignorelist.
+                    if not item.get('bundleid') in bundleid_ignorelist:
+                        i_item = machine.inventoryitem_set.create(
+                            application=app, version=item.get("version", ""),
+                            path=item.get('path', ''))
+                machine.last_inventory_update = datetime.now()
+                inventory_meta.save()
+            machine.save()
+            return HttpResponse(
+                "Inventory submmitted for %s.\n" %
+                submission.get('serial'))
+
+    return HttpResponse("No inventory submitted.\n")
+
+
 def is_postgres():
     postgres_backend = 'django.db.backends.postgresql_psycopg2'
     db_setting = settings.DATABASES['default']['ENGINE']
     return db_setting == postgres_backend
 
 
-def decode_to_string(base64bz2data):
-    '''Decodes an inventory submission, which is a plist-encoded
-    list, compressed via bz2 and base64 encoded.'''
-    try:
-        bz2data = base64.b64decode(base64bz2data)
-        return bz2.decompress(bz2data)
-    except Exception:
-        return ''
-
-
+# TODO: Unrefactored below!
 def unique_apps(inventory, input_type='object'):
     found = []
     for inventory_item in inventory:
@@ -196,61 +244,14 @@ def inventory_list(request, page='front', theID=None):
     return render_to_response('inventory/overview_list_all.html', c, context_instance=RequestContext(request))
 
 
-@csrf_exempt
-def inventory_submit(request):
-    if request.method != 'POST':
-        return HttpResponseNotFound('No POST data sent')
-
-    # list of bundleids to ignore
-    bundleid_ignorelist = [
-        'com.apple.print.PrinterProxy'
-    ]
-    submission = request.POST
-    serial = submission.get('serial')
-    machine = None
-    if serial:
-        try:
-            machine = Machine.objects.get(serial=serial)
-        except Machine.DoesNotExist:
-            return HttpResponseNotFound('Serial Number not found')
-
-        compressed_inventory = submission.get('base64bz2inventory')
-        if compressed_inventory:
-            compressed_inventory = compressed_inventory.replace(" ", "+")
-            inventory_str = decode_to_string(compressed_inventory)
-            try:
-                inventory_list = plistlib.readPlistFromString(inventory_str)
-            except Exception:
-                inventory_list = None
-            if inventory_list:
-                try:
-                    inventory_meta = Inventory.objects.get(machine=machine)
-                except Inventory.DoesNotExist:
-                    inventory_meta = Inventory(machine=machine)
-                inventory_meta.sha256hash = \
-                    hashlib.sha256(inventory_str).hexdigest()
-                # clear existing inventoryitems
-                machine.inventoryitem_set.all().delete()
-                # insert current inventory items
-                for item in inventory_list:
-                    app, _ = Application.objects.get_or_create(
-                        bundleid=item.get("bundleid", ""),
-                        name=item.get("name", ""),
-                        bundlename=item.get("CFBundleName", ""))
-                    print app.name
-                    # skip items in bundleid_ignorelist.
-                    if not item.get('bundleid') in bundleid_ignorelist:
-                        i_item = machine.inventoryitem_set.create(
-                            application=app, version=item.get("version", ""),
-                            path=item.get('path', ''))
-                machine.last_inventory_update = datetime.now()
-                inventory_meta.save()
-            machine.save()
-            return HttpResponse(
-                "Inventory submmitted for %s.\n" %
-                submission.get('serial'))
-
-    return HttpResponse("No inventory submitted.\n")
+def decode_to_string(base64bz2data):
+    '''Decodes an inventory submission, which is a plist-encoded
+    list, compressed via bz2 and base64 encoded.'''
+    try:
+        bz2data = base64.b64decode(base64bz2data)
+        return bz2.decompress(bz2data)
+    except Exception:
+        return ''
 
 
 @csrf_exempt
@@ -443,6 +444,7 @@ def export_csv(request, page='front', theID=None):
     return response
 
 
+# TODO: This isn't used.
 @login_required
 def list_machines(request, page, name, version, bundleid, bundlename, path, id=None):
     user = request.user

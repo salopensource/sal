@@ -1,8 +1,0 @@
-[Core]
-Name = ShardReport
-Module = shardreport
-
-[Documentation]
-Author = Graham Gilbert
-Version = 0.1
-Website = http://grahamgilbert.com

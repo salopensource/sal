@@ -27,7 +27,7 @@
     <link href="{{ STATIC_URL }}css/plugins/timeline.css" rel="stylesheet">
 
     <!-- DataTables CSS -->
-    <link href="{{ STATIC_URL }}css/plugins/dataTables.bootstrap.css" rel="stylesheet">
+    <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}DataTables-1.10.11/css/dataTables.bootstrap.min.css"/>
 
     <!-- Custom CSS -->
     <link href="{{ STATIC_URL }}css/sb-admin-2.css" rel="stylesheet">
@@ -59,8 +59,9 @@
     <script src="{{ STATIC_URL }}js/sb-admin-2.js"></script>
 
     <!-- DataTables JavaScript -->
-    <script src="{{ STATIC_URL }}js/plugins/dataTables/jquery.dataTables.js"></script>
-    <script src="{{ STATIC_URL }}js/plugins/dataTables/dataTables.bootstrap.js"></script>
+    <script type="text/javascript" src="{{ STATIC_URL }}DataTables-1.10.11/js/jquery.dataTables.min.js"></script>
+    <script type="text/javascript" src="{{ STATIC_URL }}DataTables-1.10.11/js/dataTables.bootstrap.min.js"></script>
+
     <script src="{{ STATIC_URL }}js/retryAjax.js"></script>
     {% block script %}
     {% endblock %}

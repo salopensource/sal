@@ -5,7 +5,7 @@ from django.contrib.auth.decorators import login_required, permission_required
 from django.template import RequestContext, Template, Context
 import json
 from django.views.decorators.csrf import csrf_exempt, csrf_protect
-from django.http import HttpResponse, Http404, HttpResponseNotFound, HttpResponseRedirect
+from django.http import HttpResponse, Http404, HttpResponseNotFound, HttpResponseRedirect, JsonResponse
 from django.contrib.auth.models import Permission, User
 from django.conf import settings
 from django.core.context_processors import csrf
@@ -14,6 +14,7 @@ from datetime import datetime, timedelta, date
 from django.db.models import Count, Sum, Max, Q
 from django.contrib import messages
 from django.contrib.staticfiles.templatetags.staticfiles import static
+from django.core.urlresolvers import reverse
 import plistlib
 import ast
 from forms import *
@@ -403,9 +404,8 @@ def delete_user(request, user_id):
     user = get_object_or_404(User, pk=int(user_id))
     user.delete()
     return redirect('manage_users')
-# Plugin machine list
-@login_required
-def machine_list(request, pluginName, data, page='front', theID=None):
+
+def plugin_machines(request, pluginName, data, page='front', theID=None, get_machines=True):
     user = request.user
     title = None
     # Build the manager
@@ -415,38 +415,109 @@ def machine_list(request, pluginName, data, page='front', theID=None):
     # Load all plugins
     manager.collectPlugins()
     # get a list of machines (either from the BU or the group)
-    if page == 'front':
-        # get all machines
-        if user.userprofile.level == 'GA':
-            machines = Machine.objects.all()
-        else:
-            machines = Machine.objects.none()
-            for business_unit in user.businessunit_set.all():
-                for group in business_unit.machinegroup_set.all():
-                    machines = machines | group.machine_set.all()
-    if page == 'bu_dashboard':
-        # only get machines for that BU
-        # Need to make sure the user is allowed to see this
-        business_unit = get_object_or_404(BusinessUnit, pk=theID)
-        machine_groups = MachineGroup.objects.filter(business_unit=business_unit).prefetch_related('machine_set').all()
+    if get_machines:
+        if page == 'front':
+            # get all machines
+            if user.userprofile.level == 'GA':
+                machines = Machine.objects.all()
+            else:
+                machines = Machine.objects.none()
+                for business_unit in user.businessunit_set.all():
+                    for group in business_unit.machinegroup_set.all():
+                        machines = machines | group.machine_set.all()
+        if page == 'bu_dashboard':
+            # only get machines for that BU
+            # Need to make sure the user is allowed to see this
+            business_unit = get_object_or_404(BusinessUnit, pk=theID)
+            machine_groups = MachineGroup.objects.filter(business_unit=business_unit).prefetch_related('machine_set').all()
 
-        if machine_groups.count() != 0:
-            machines_unsorted = machine_groups[0].machine_set.all()
-            for machine_group in machine_groups[1:]:
-                machines_unsorted = machines_unsorted | machine_group.machine_set.all()
-        else:
-            machines_unsorted = None
-        machines=machines_unsorted
+            if machine_groups.count() != 0:
+                machines_unsorted = machine_groups[0].machine_set.all()
+                for machine_group in machine_groups[1:]:
+                    machines_unsorted = machines_unsorted | machine_group.machine_set.all()
+            else:
+                machines_unsorted = None
+            machines=machines_unsorted
 
-    if page == 'group_dashboard':
-        # only get machines from that group
-        machine_group = get_object_or_404(MachineGroup, pk=theID)
-        # check that the user has access to this
-        machines = Machine.objects.filter(machine_group=machine_group)
+        if page == 'group_dashboard':
+            # only get machines from that group
+            machine_group = get_object_or_404(MachineGroup, pk=theID)
+            # check that the user has access to this
+            machines = Machine.objects.filter(machine_group=machine_group)
+    else:
+        machines = Machine.objects.none()
     # send the machines and the data to the plugin
     for plugin in manager.getAllPlugins():
         if plugin.name == pluginName:
             (machines, title) = plugin.plugin_object.filter_machines(machines, data)
+
+    return machines, title
+
+# Table ajax for dataTables
+@login_required
+def tableajax(request, pluginName, data, page='front', theID=None):
+    # Pull our variables out of the GET request
+    get_data = request.GET['args']
+    get_data = json.loads(get_data.decode('string_escape'))
+    draw = get_data.get('draw', 0)
+    start = int(get_data.get('start', 0))
+    length = int(get_data.get('length', 0))
+    search_value = ''
+    if 'search' in get_data:
+        if 'value' in get_data['search']:
+            search_value = get_data['search']['value']
+
+    # default ordering
+    order_column = 2
+    order_direction = 'desc'
+    order_name = ''
+    if 'order' in get_data:
+        order_column = get_data['order'][0]['column']
+        order_direction = get_data['order'][0]['dir']
+    for column in get_data.get('columns', None):
+        if column['data'] == order_column:
+            order_name = column['name']
+            break
+
+    print order_name
+    (machines, title) = plugin_machines(request, pluginName, data, page, theID)
+    if len(order_name) != 0:
+        if order_direction == 'desc':
+            order_string = "-%s" % order_name
+        else:
+            order_string = "%s" % order_name
+        print order_string
+    if len(search_value) != 0:
+        searched_machines = machines.filter(Q(hostname__icontains=search_value) | Q(console_user__icontains=search_value) | Q(last_checkin__icontains=search_value)).order_by(order_string)
+    else:
+        searched_machines = machines.order_by(order_string)
+
+    limited_machines = searched_machines[start:(start+length)]
+    print limited_machines.query
+    return_data = {}
+    return_data['draw'] = int(draw)
+    return_data['recordsTotal'] = machines.count()
+    return_data['recordsFiltered'] = machines.count()
+
+    return_data['data'] = []
+
+    for machine in limited_machines:
+        if machine.last_checkin:
+            formatted_date = machine.last_checkin.strftime("%Y-%m-%d %H:%M")
+        else:
+            formatted_date = ""
+        hostname_link = "<a href=\"%s\">%s</a>" % (reverse('machine_detail', args=[machine.id]), machine.hostname)
+
+        list_data = [hostname_link, machine.console_user, formatted_date]
+        return_data['data'].append(list_data)
+
+    return JsonResponse(return_data)
+
+# Plugin machine list
+@login_required
+def machine_list(request, pluginName, data, page='front', theID=None):
+    (machines, title) = plugin_machines(request, pluginName, data, page, theID, get_machines=False)
+    user = request.user
     c = {'user':user, 'plugin_name': pluginName, 'machines': machines, 'req_type': page, 'title': title, 'bu_id': theID, 'request':request, 'data':data }
 
     return render_to_response('server/overview_list_all.html', c, context_instance=RequestContext(request))
@@ -1661,21 +1732,22 @@ def checkin(request):
                 display_name = update.get('display_name', update['name'])
                 update_name = update.get('name')
                 version = str(update['version_to_install'])
-                pending_update = PendingUpdate(machine=machine, display_name=display_name, update_version=version, update=update_name)
-                pending_update.save()
-                # Let's handle some of those lovely pending installs into the UpdateHistory Model
-                try:
-                    update_history = UpdateHistory.objects.get(name=update_name,
-                    version=version, machine=machine, update_type='third_party')
-                except UpdateHistory.DoesNotExist:
-                    update_history = UpdateHistory(name=update_name, version=version, machine=machine, update_type='third_party')
-                    update_history.save()
+                if version:
+                    pending_update = PendingUpdate(machine=machine, display_name=display_name, update_version=version, update=update_name)
+                    pending_update.save()
+                    # Let's handle some of those lovely pending installs into the UpdateHistory Model
+                    try:
+                        update_history = UpdateHistory.objects.get(name=update_name,
+                        version=version, machine=machine, update_type='third_party')
+                    except UpdateHistory.DoesNotExist:
+                        update_history = UpdateHistory(name=update_name, version=version, machine=machine, update_type='third_party')
+                        update_history.save()
 
-                if update_history.pending_recorded == False:
-                    update_history_item = UpdateHistoryItem(update_history=update_history, status='pending', recorded=now, uuid=uuid)
-                    update_history_item.save()
-                    update_history.pending_recorded = True
-                    update_history.save()
+                    if update_history.pending_recorded == False:
+                        update_history_item = UpdateHistoryItem(update_history=update_history, status='pending', recorded=now, uuid=uuid)
+                        update_history_item.save()
+                        update_history.pending_recorded = True
+                        update_history.save()
 
         updates = machine.installed_updates.all()
         updates.delete()
@@ -1683,9 +1755,9 @@ def checkin(request):
             for update in report_data.get('ManagedInstalls'):
                 display_name = update.get('display_name', update['name'])
                 update_name = update.get('name')
-                version = str(update.get('installed_version'))
+                version = str(update.get('installed_version', 'UNKNOWN'))
                 installed = update.get('installed')
-                if version != 'UNKNOWN':
+                if version != 'UNKNOWN' and version != None and len(version) != 0:
                     installed_update = InstalledUpdate(machine=machine, display_name=display_name, update_version=version, update=update_name, installed=installed)
                     installed_update.save()
 
@@ -1697,8 +1769,11 @@ def checkin(request):
                 display_name = update.get('display_name', update['name'])
                 update_name = update.get('name')
                 version = str(update['version_to_install'])
-                pending_update = PendingAppleUpdate(machine=machine, display_name=display_name, update_version=version, update=update_name)
-                pending_update.save()
+                try:
+                    pending_update = PendingAppleUpdate.objects.get(machine=machine, display_name=display_name, update_version=version, update=update_name)
+                except PendingAppleUpdate.DoesNotExist:
+                    pending_update = PendingAppleUpdate(machine=machine, display_name=display_name, update_version=version, update=update_name)
+                    pending_update.save()
                 # Let's handle some of those lovely pending installs into the UpdateHistory Model
                 try:
                     update_history = UpdateHistory.objects.get(name=update_name, version=version, machine=machine, update_type='apple')
@@ -1757,33 +1832,33 @@ def checkin(request):
                 condition = Condition(machine=machine, condition_name=condition_name, condition_data=str(condition_data))
                 condition.save()
 
-        if 'osquery' in report_data:
-            try:
-                datelimit = (datetime.now() - timedelta(days=historical_days)).strftime("%s")
-                OSQueryResult.objects.filter(unix_time__lt=datelimit).delete()
-            except:
-                pass
-            for report in report_data['osquery']:
-                unix_time = int(report['unixTime'])
-                # Have we already processed this report?
-                try:
-                    osqueryresult = OSQueryResult.objects.get(hostidentifier=report['hostIdentifier'], machine=machine, unix_time=unix_time, name=report['name'])
-                    continue
-                except OSQueryResult.DoesNotExist:
-                    osqueryresult = OSQueryResult(hostidentifier=report['hostIdentifier'], machine=machine, unix_time=unix_time, name=report['name'])
-                    osqueryresult.save()
-
-                if 'added' in report['diffResults']:
-                    for items in report['diffResults']['added']:
-                        for column, col_data in items.items():
-                            osquerycolumn = OSQueryColumn(osquery_result=osqueryresult, action='added', column_name=column, column_data=col_data)
-                            osquerycolumn.save()
-
-                if 'removed' in report['diffResults']:
-                    for items in report['diffResults']['removed']:
-                        for column, col_data in items.items():
-                            osquerycolumn = OSQueryColumn(osquery_result=osqueryresult, action='removed', column_name=column, column_data=col_data)
-                            osquerycolumn.save()
+        # if 'osquery' in report_data:
+        #     try:
+        #         datelimit = (datetime.now() - timedelta(days=historical_days)).strftime("%s")
+        #         OSQueryResult.objects.filter(unix_time__lt=datelimit).delete()
+        #     except:
+        #         pass
+        #     for report in report_data['osquery']:
+        #         unix_time = int(report['unixTime'])
+        #         # Have we already processed this report?
+        #         try:
+        #             osqueryresult = OSQueryResult.objects.get(hostidentifier=report['hostIdentifier'], machine=machine, unix_time=unix_time, name=report['name'])
+        #             continue
+        #         except OSQueryResult.DoesNotExist:
+        #             osqueryresult = OSQueryResult(hostidentifier=report['hostIdentifier'], machine=machine, unix_time=unix_time, name=report['name'])
+        #             osqueryresult.save()
+        #
+        #         if 'added' in report['diffResults']:
+        #             for items in report['diffResults']['added']:
+        #                 for column, col_data in items.items():
+        #                     osquerycolumn = OSQueryColumn(osquery_result=osqueryresult, action='added', column_name=column, column_data=col_data)
+        #                     osquerycolumn.save()
+        #
+        #         if 'removed' in report['diffResults']:
+        #             for items in report['diffResults']['removed']:
+        #                 for column, col_data in items.items():
+        #                     osquerycolumn = OSQueryColumn(osquery_result=osqueryresult, action='removed', column_name=column, column_data=col_data)
+        #                     osquerycolumn.save()
         utils.get_version_number()
         return HttpResponse("Sal report submmitted for %s"
                             % data.get('name'))

@@ -1767,14 +1767,14 @@ def checkin(request):
         machine.save()
 
         # If Plugin_Results are in the report, handle them
-        if Plugin_Results in report_data:
-            for plugin_result in report_data.get('Plugin_Results'):
-                if 'plugin' not in plugin_result or 'result' not in plugin_result:
-                    # Make sure what we need has been sent to the server
-                    break
-                plugin = plugin_result.get('plugin')
-                historical = plugin_result.get('historical', False)
-                data =
+        # if Plugin_Results in report_data:
+        #     for plugin_result in report_data.get('Plugin_Results'):
+        #         if 'plugin' not in plugin_result or 'result' not in plugin_result:
+        #             # Make sure what we need has been sent to the server
+        #             break
+        #         plugin = plugin_result.get('plugin')
+        #         historical = plugin_result.get('historical', False)
+        #         data =
         # Remove existing PendingUpdates for the machine
         updates = machine.pending_updates.all()
         updates.delete()

@@ -1691,7 +1691,7 @@ def checkin(request):
             pass
 
     machine_group = get_object_or_404(MachineGroup, key=key)
-
+    machine.machine_group = machine_group
     business_unit = machine_group.business_unit
     try:
         historical_setting = SalSetting.objects.get(name='historical_retention')
@@ -1991,7 +1991,7 @@ def install_log_submit(request):
         machine_group = get_object_or_404(MachineGroup, key=key)
         if machine_group.id != machine.machine_group.id:
             return HttpResponseNotFound('No machine group found')
-        machine.machine_group = machine_group
+
         compressed_log= submission.get('base64bz2installlog')
         if compressed_log:
             compressed_log = compressed_log.replace(" ", "+")

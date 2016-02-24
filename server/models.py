@@ -279,24 +279,24 @@ class OSQueryColumn(models.Model):
     def __unicode__(self):
         return self.column_name
 
-class PluginScriptSubmission(models.Model):
-    machine = models.ForeignKey(Machine)
-    plugin = models.CharField(max_length=255)
-    historical = models.BooleanField(default=False)
-    recorded = models.DateTimeField(auto_now_add=True)
-    def __unicode__(self):
-        return '%s: %s' % (self.machine, self.plugin)
-    class Meta:
-        ordering = ['recorded', 'plugin']
-
-class PluginScriptRow(models.Model):
-    submission = models.ForeignKey(PluginDataSubmission)
-    pluginscript_name = models.TextField()
-    pluginscript_data = models.TextField()
-    def __unicode__(self):
-        return '%s: %s' % (self.pluginscript_name, self.pluginscript_data)
-    class Meta:
-        ordering = ['pluginscript_name']
+# class PluginScriptSubmission(models.Model):
+#     machine = models.ForeignKey(Machine)
+#     plugin = models.CharField(max_length=255)
+#     historical = models.BooleanField(default=False)
+#     recorded = models.DateTimeField(auto_now_add=True)
+#     def __unicode__(self):
+#         return '%s: %s' % (self.machine, self.plugin)
+#     class Meta:
+#         ordering = ['recorded', 'plugin']
+#
+# class PluginScriptRow(models.Model):
+#     submission = models.ForeignKey(PluginScriptSubmission)
+#     pluginscript_name = models.TextField()
+#     pluginscript_data = models.TextField()
+#     def __unicode__(self):
+#         return '%s: %s' % (self.pluginscript_name, self.pluginscript_data)
+#     class Meta:
+#         ordering = ['pluginscript_name']
 
 class HistoricalFact(models.Model):
     machine = models.ForeignKey(Machine, related_name='historical_facts')

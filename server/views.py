@@ -1603,10 +1603,54 @@ def preflight(request):
 @csrf_exempt
 def preflight_v2(request):
     # find plugins that have embedded preflight scripts
-    # hash the contents
-    # send the hash and the name of the plugin back to the clients
-    return 'yay'
+    # Load in the default plugins if needed
+    utils.loadDefaultPlugins()
+    # Build the manager
+    manager = PluginManager()
+    # Tell it the default place(s) where to find plugins
+    manager.setPluginPlaces([settings.PLUGIN_DIR, os.path.join(settings.PROJECT_DIR, 'server/plugins')])
+    # Load all plugins
+    manager.collectPlugins()
+    output = []
+    enabled_reports = Report.objects.all()
+    for enabled_report in enabled_reports:
+        for plugin in manager.getAllPlugins():
+            if enabled_report.name == plugin.name:
+                content = utils.get_plugin_scripts(plugin, hash_only=True)
+                if content:
+                    output.append(content)
 
+                break
+    # Get all the enabled plugins
+    enabled_plugins = Plugin.objects.all()
+    for enabled_plugin in enabled_plugins:
+        # Loop round the plugins and print their names.
+        for plugin in manager.getAllPlugins():
+            if plugin.name == enabled_plugin.name:
+                content = utils.get_plugin_scripts(plugin, hash_only=True)
+                if content:
+                    output.append(content)
+                break
+
+    return HttpResponse(json.dumps(output))
+
+# Get script for plugin
+@csrf_exempt
+def preflight_v2_get_script(request, pluginName, scriptName):
+    # Build the manager
+    manager = PluginManager()
+    # Tell it the default place(s) where to find plugins
+    manager.setPluginPlaces([settings.PLUGIN_DIR, os.path.join(settings.PROJECT_DIR, 'server/plugins')])
+    # Load all plugins
+    manager.collectPlugins()
+    output = []
+    for plugin in manager.getAllPlugins():
+        if plugin.name == pluginName:
+            content = utils.get_plugin_scripts(plugin, hash_only=False, script_name=scriptName)
+            if content:
+                output.append(content)
+            break
+    return HttpResponse(json.dumps(output))
 # checkin
 @csrf_exempt
 def checkin(request):
@@ -1722,7 +1766,15 @@ def checkin(request):
 
         machine.save()
 
-
+        # If Plugin_Results are in the report, handle them
+        if Plugin_Results in report_data:
+            for plugin_result in report_data.get('Plugin_Results'):
+                if 'plugin' not in plugin_result or 'result' not in plugin_result:
+                    # Make sure what we need has been sent to the server
+                    break
+                plugin = plugin_result.get('plugin')
+                historical = plugin_result.get('historical', False)
+                data =
         # Remove existing PendingUpdates for the machine
         updates = machine.pending_updates.all()
         updates.delete()
@@ -1939,7 +1991,7 @@ def install_log_submit(request):
         machine_group = get_object_or_404(MachineGroup, key=key)
         if machine_group.id != machine.machine_group.id:
             return HttpResponseNotFound('No machine group found')
-
+        machine.machine_group = machine_group
         compressed_log= submission.get('base64bz2installlog')
         if compressed_log:
             compressed_log = compressed_log.replace(" ", "+")

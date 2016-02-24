@@ -10,9 +10,11 @@ urlpatterns = patterns('server.views',
     # Install log submit
     url(r'^installlog/submit/$', 'install_log_submit', name='install_log_submit'),
     # preflight
-    url(r'^preflight/', 'preflight', name='preflight'),
+    url(r'^preflight/$', 'preflight', name='preflight'),
+    # preflight get script v2
+    url(r'^preflight-v2/get-script/(?P<pluginName>.+)/(?P<scriptName>.+)/$', 'preflight_v2_get_script', name='preflight_v2_get_script'),
     # preflight v2
-    url(r'^preflight-v2/', 'preflight_v2', name='preflight_v2'),
+    url(r'^preflight-v2/$', 'preflight_v2', name='preflight_v2'),
     # Search
     url(r'^search/', 'search', name='search'),
     # BU Dashboard

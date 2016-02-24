@@ -9,6 +9,7 @@ import os
 import logging
 import requests
 import plistlib
+import hashlib
 
 def get_version_number():
     # See if we're sending data
@@ -48,6 +49,32 @@ def get_install_type():
         return 'docker'
     else:
         return 'bare'
+
+def get_plugin_scripts(plugin, hash_only=False, script_name=None):
+    # Try to get all files in the plugins 'scripts' dir
+
+    script_output = None
+    if os.path.exists(os.path.join(plugin.path, 'scripts')):
+        scripts_dir = os.path.join(plugin.path, 'scripts')
+    elif os.path.exists(os.path.abspath(os.path.join(os.path.join(plugin.path), '..', 'scripts'))):
+        scripts_dir = os.path.abspath(os.path.join(
+        os.path.join(plugin.path), '..', 'scripts'))
+    else:
+        return None
+    
+    for script in os.listdir(scripts_dir):
+        if script_name:
+            if script_name != script:
+                break
+        script_content = open(os.path.join(scripts_dir, script), "r").read()
+        script_output = {}
+        if hash_only == False:
+            script_output['content'] = script_content
+        script_output['plugin'] = plugin.name
+        script_output['filename'] = script
+        script_output['hash'] = hashlib.sha256(script_content).hexdigest()
+        return script_output
+
 
 def send_report():
     output = {}

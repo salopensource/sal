@@ -298,16 +298,6 @@ class OSQueryColumn(models.Model):
 #     class Meta:
 #         ordering = ['pluginscript_name']
 
-class HistoricalFact(models.Model):
-    machine = models.ForeignKey(Machine, related_name='historical_facts')
-    fact_name = models.CharField(db_index=True, max_length=255)
-    fact_data = models.TextField()
-    fact_recorded = models.DateTimeField(db_index=True)
-    def __unicode__(self):
-        return self.fact_name
-    class Meta:
-        ordering = ['fact_name', 'fact_recorded']
-
 class PendingUpdate(models.Model):
     machine = models.ForeignKey(Machine, related_name='pending_updates')
     update = models.CharField(db_index=True, max_length=255, null=True, blank=True)

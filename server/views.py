@@ -1701,136 +1701,97 @@ def checkin(request):
         historical_setting.save()
         historical_days = '180'
 
-    if machine:
-        machine.hostname = data.get('name', '<NO NAME>')
-        machine.last_checkin = datetime.now()
-        if 'username' in data:
-            if data.get('username') != '_mbsetupuser':
-                machine.username = data.get('username')
-        if 'base64bz2report' in data:
-            machine.update_report(data.get('base64bz2report'))
+    machine.hostname = data.get('name', '<NO NAME>')
+    machine.last_checkin = datetime.now()
+    if 'username' in data:
+        if data.get('username') != '_mbsetupuser':
+            machine.username = data.get('username')
+    if 'base64bz2report' in data:
+        machine.update_report(data.get('base64bz2report'))
 
-        if 'sal_version' in data:
-            machine.sal_version = data.get('sal_version')
+    if 'sal_version' in data:
+        machine.sal_version = data.get('sal_version')
 
-        # extract machine data from the report
-        report_data = machine.get_report()
-        if 'Puppet_Version' in report_data:
-            machine.puppet_version = report_data['Puppet_Version']
-        if 'ManifestName' in report_data:
-            manifest = report_data['ManifestName']
-            machine.manifest = manifest
-        if 'MachineInfo' in report_data:
-            machine.operating_system = report_data['MachineInfo'].get(
-                'os_vers', 'UNKNOWN')
-            # some machines are reporting 10.9, some 10.9.0 - make them the same
-            if len(machine.operating_system) <= 4:
-                machine.operating_system = machine.operating_system + '.0'
-        machine.hd_space = report_data.get('AvailableDiskSpace') or 0
-        machine.hd_total = int(data.get('disk_size')) or 0
+    # extract machine data from the report
+    report_data = machine.get_report()
+    if 'Puppet_Version' in report_data:
+        machine.puppet_version = report_data['Puppet_Version']
+    if 'ManifestName' in report_data:
+        manifest = report_data['ManifestName']
+        machine.manifest = manifest
+    if 'MachineInfo' in report_data:
+        machine.operating_system = report_data['MachineInfo'].get(
+            'os_vers', 'UNKNOWN')
+        # some machines are reporting 10.9, some 10.9.0 - make them the same
+        if len(machine.operating_system) <= 4:
+            machine.operating_system = machine.operating_system + '.0'
+    machine.hd_space = report_data.get('AvailableDiskSpace') or 0
+    machine.hd_total = int(data.get('disk_size')) or 0
 
-        machine.hd_percent = int(round(((float(machine.hd_total)-float(machine.hd_space))/float(machine.hd_total))*100))
-        machine.munki_version = report_data.get('ManagedInstallVersion') or 0
-        hwinfo = {}
-        if 'SystemProfile' in report_data.get('MachineInfo', []):
-            for profile in report_data['MachineInfo']['SystemProfile']:
-                if profile['_dataType'] == 'SPHardwareDataType':
-                    hwinfo = profile._items[0]
-                    break
+    machine.hd_percent = int(round(((float(machine.hd_total)-float(machine.hd_space))/float(machine.hd_total))*100))
+    machine.munki_version = report_data.get('ManagedInstallVersion') or 0
+    hwinfo = {}
+    if 'SystemProfile' in report_data.get('MachineInfo', []):
+        for profile in report_data['MachineInfo']['SystemProfile']:
+            if profile['_dataType'] == 'SPHardwareDataType':
+                hwinfo = profile._items[0]
+                break
 
-        if 'Puppet' in report_data:
-            puppet = report_data.get('Puppet')
-            if 'time' in puppet:
-                machine.last_puppet_run = datetime.fromtimestamp(float(puppet['time']['last_run']))
-            if 'events' in puppet:
-                machine.puppet_errors = puppet['events']['failure']
+    if 'Puppet' in report_data:
+        puppet = report_data.get('Puppet')
+        if 'time' in puppet:
+            machine.last_puppet_run = datetime.fromtimestamp(float(puppet['time']['last_run']))
+        if 'events' in puppet:
+            machine.puppet_errors = puppet['events']['failure']
 
-        if hwinfo:
-            machine.machine_model = hwinfo.get('machine_model')
-            machine.cpu_type = hwinfo.get('cpu_type')
-            machine.cpu_speed = hwinfo.get('current_processor_speed')
-            machine.memory = hwinfo.get('physical_memory')
+    if hwinfo:
+        machine.machine_model = hwinfo.get('machine_model')
+        machine.cpu_type = hwinfo.get('cpu_type')
+        machine.cpu_speed = hwinfo.get('current_processor_speed')
+        machine.memory = hwinfo.get('physical_memory')
 
-            if hwinfo.get('physical_memory')[-2:] == 'MB':
-                memory_mb = float(hwinfo.get('physical_memory')[:-3])
-                machine.memory_kb = int(memory_mb * 1024)
-            if hwinfo.get('physical_memory')[-2:] == 'GB':
-                memory_gb = float(hwinfo.get('physical_memory')[:-3])
-                machine.memory_kb = int(memory_gb * 1024 * 1024)
-            if hwinfo.get('physical_memory')[-2:] == 'TB':
-                memory_tb = float(hwinfo.get('physical_memory')[:-3])
-                machine.memory_kb = int(memory_tb * 1024 * 1024 * 1024)
+        if hwinfo.get('physical_memory')[-2:] == 'MB':
+            memory_mb = float(hwinfo.get('physical_memory')[:-3])
+            machine.memory_kb = int(memory_mb * 1024)
+        if hwinfo.get('physical_memory')[-2:] == 'GB':
+            memory_gb = float(hwinfo.get('physical_memory')[:-3])
+            machine.memory_kb = int(memory_gb * 1024 * 1024)
+        if hwinfo.get('physical_memory')[-2:] == 'TB':
+            memory_tb = float(hwinfo.get('physical_memory')[:-3])
+            machine.memory_kb = int(memory_tb * 1024 * 1024 * 1024)
 
-        if 'os_family' in report_data:
-            machine.os_family = report_data['os_family']
+    if 'os_family' in report_data:
+        machine.os_family = report_data['os_family']
 
-        machine.save()
+    machine.save()
 
-        # If Plugin_Results are in the report, handle them
-        # if Plugin_Results in report_data:
-        #     for plugin_result in report_data.get('Plugin_Results'):
-        #         if 'plugin' not in plugin_result or 'result' not in plugin_result:
-        #             # Make sure what we need has been sent to the server
-        #             break
-        #         plugin = plugin_result.get('plugin')
-        #         historical = plugin_result.get('historical', False)
-        #         data =
-        # Remove existing PendingUpdates for the machine
-        updates = machine.pending_updates.all()
-        updates.delete()
-        now = datetime.now()
-        if 'ItemsToInstall' in report_data:
-            for update in report_data.get('ItemsToInstall'):
-                display_name = update.get('display_name', update['name'])
-                update_name = update.get('name')
-                version = str(update['version_to_install'])
-                if version:
-                    pending_update = PendingUpdate(machine=machine, display_name=display_name, update_version=version, update=update_name)
-                    pending_update.save()
-                    # Let's handle some of those lovely pending installs into the UpdateHistory Model
-                    try:
-                        update_history = UpdateHistory.objects.get(name=update_name,
-                        version=version, machine=machine, update_type='third_party')
-                    except UpdateHistory.DoesNotExist:
-                        update_history = UpdateHistory(name=update_name, version=version, machine=machine, update_type='third_party')
-                        update_history.save()
-
-                    if update_history.pending_recorded == False:
-                        update_history_item = UpdateHistoryItem(update_history=update_history, status='pending', recorded=now, uuid=uuid)
-                        update_history_item.save()
-                        update_history.pending_recorded = True
-                        update_history.save()
-
-        updates = machine.installed_updates.all()
-        updates.delete()
-        if 'ManagedInstalls' in report_data:
-            for update in report_data.get('ManagedInstalls'):
-                display_name = update.get('display_name', update['name'])
-                update_name = update.get('name')
-                version = str(update.get('installed_version', 'UNKNOWN'))
-                installed = update.get('installed')
-                if version != 'UNKNOWN' and version != None and len(version) != 0:
-                    installed_update = InstalledUpdate(machine=machine, display_name=display_name, update_version=version, update=update_name, installed=installed)
-                    installed_update.save()
-
-        # Remove existing PendingAppleUpdates for the machine
-        updates = machine.pending_apple_updates.all()
-        updates.delete()
-        if 'AppleUpdates' in report_data:
-            for update in report_data.get('AppleUpdates'):
-                display_name = update.get('display_name', update['name'])
-                update_name = update.get('name')
-                version = str(update['version_to_install'])
-                try:
-                    pending_update = PendingAppleUpdate.objects.get(machine=machine, display_name=display_name, update_version=version, update=update_name)
-                except PendingAppleUpdate.DoesNotExist:
-                    pending_update = PendingAppleUpdate(machine=machine, display_name=display_name, update_version=version, update=update_name)
-                    pending_update.save()
+    # If Plugin_Results are in the report, handle them
+    # if Plugin_Results in report_data:
+    #     for plugin_result in report_data.get('Plugin_Results'):
+    #         if 'plugin' not in plugin_result or 'result' not in plugin_result:
+    #             # Make sure what we need has been sent to the server
+    #             break
+    #         plugin = plugin_result.get('plugin')
+    #         historical = plugin_result.get('historical', False)
+    #         data =
+    # Remove existing PendingUpdates for the machine
+    updates = machine.pending_updates.all()
+    updates.delete()
+    now = datetime.now()
+    if 'ItemsToInstall' in report_data:
+        for update in report_data.get('ItemsToInstall'):
+            display_name = update.get('display_name', update['name'])
+            update_name = update.get('name')
+            version = str(update['version_to_install'])
+            if version:
+                pending_update = PendingUpdate(machine=machine, display_name=display_name, update_version=version, update=update_name)
+                pending_update.save()
                 # Let's handle some of those lovely pending installs into the UpdateHistory Model
                 try:
-                    update_history = UpdateHistory.objects.get(name=update_name, version=version, machine=machine, update_type='apple')
+                    update_history = UpdateHistory.objects.get(name=update_name,
+                    version=version, machine=machine, update_type='third_party')
                 except UpdateHistory.DoesNotExist:
-                    update_history = UpdateHistory(name=update_name, version=version, machine=machine, update_type='apple')
+                    update_history = UpdateHistory(name=update_name, version=version, machine=machine, update_type='third_party')
                     update_history.save()
 
                 if update_history.pending_recorded == False:
@@ -1839,81 +1800,92 @@ def checkin(request):
                     update_history.pending_recorded = True
                     update_history.save()
 
+    updates = machine.installed_updates.all()
+    updates.delete()
+    if 'ManagedInstalls' in report_data:
+        for update in report_data.get('ManagedInstalls'):
+            display_name = update.get('display_name', update['name'])
+            update_name = update.get('name')
+            version = str(update.get('installed_version', 'UNKNOWN'))
+            installed = update.get('installed')
+            if version != 'UNKNOWN' and version != None and len(version) != 0:
+                installed_update = InstalledUpdate(machine=machine, display_name=display_name, update_version=version, update=update_name, installed=installed)
+                installed_update.save()
 
-
-        # if Facter data is submitted, we need to first remove any existing facts for this machine
-        if 'Facter' in report_data:
-            facts = machine.facts.all()
-            facts.delete()
-            # Delete old historical facts
-
+    # Remove existing PendingAppleUpdates for the machine
+    updates = machine.pending_apple_updates.all()
+    updates.delete()
+    if 'AppleUpdates' in report_data:
+        for update in report_data.get('AppleUpdates'):
+            display_name = update.get('display_name', update['name'])
+            update_name = update.get('name')
+            version = str(update['version_to_install'])
             try:
-                datelimit = datetime.now() - timedelta(days=historical_days)
-                HistoricalFact.objects.filter(fact_recorded__lt=datelimit).delete()
-            except Exception:
-                pass
+                pending_update = PendingAppleUpdate.objects.get(machine=machine, display_name=display_name, update_version=version, update=update_name)
+            except PendingAppleUpdate.DoesNotExist:
+                pending_update = PendingAppleUpdate(machine=machine, display_name=display_name, update_version=version, update=update_name)
+                pending_update.save()
+            # Let's handle some of those lovely pending installs into the UpdateHistory Model
             try:
-                historical_facts = settings.HISTORICAL_FACTS
-            except Exception:
-                historical_facts = []
-                pass
-            # now we need to loop over the submitted facts and save them
-            for fact_name, fact_data in report_data['Facter'].iteritems():
-                fact = Fact(machine=machine, fact_name=fact_name, fact_data=fact_data)
+                update_history = UpdateHistory.objects.get(name=update_name, version=version, machine=machine, update_type='apple')
+            except UpdateHistory.DoesNotExist:
+                update_history = UpdateHistory(name=update_name, version=version, machine=machine, update_type='apple')
+                update_history.save()
+
+            if update_history.pending_recorded == False:
+                update_history_item = UpdateHistoryItem(update_history=update_history, status='pending', recorded=now, uuid=uuid)
+                update_history_item.save()
+                update_history.pending_recorded = True
+                update_history.save()
+
+
+
+    # if Facter data is submitted, we need to first remove any existing facts for this machine
+    if 'Facter' in report_data:
+        facts = machine.facts.all()
+        facts.delete()
+        # Delete old historical facts
+
+        try:
+            datelimit = datetime.now() - timedelta(days=historical_days)
+            HistoricalFact.objects.filter(fact_recorded__lt=datelimit).delete()
+        except Exception:
+            pass
+        try:
+            historical_facts = settings.HISTORICAL_FACTS
+        except Exception:
+            historical_facts = []
+            pass
+        # now we need to loop over the submitted facts and save them
+        for fact_name, fact_data in report_data['Facter'].iteritems():
+            fact = Fact(machine=machine, fact_name=fact_name, fact_data=fact_data)
+            fact.save()
+            if fact_name in historical_facts:
+                fact = HistoricalFact(machine=machine, fact_name=fact_name, fact_data=fact_data, fact_recorded=datetime.now())
                 fact.save()
-                if fact_name in historical_facts:
-                    fact = HistoricalFact(machine=machine, fact_name=fact_name, fact_data=fact_data, fact_recorded=datetime.now())
-                    fact.save()
 
-        if 'Conditions' in report_data:
-            conditions = machine.conditions.all()
-            conditions.delete()
-            for condition_name, condition_data in report_data['Conditions'].iteritems():
-                # if it's a list (more than one result), we're going to conacetnate it into one comma separated string
-                if type(condition_data) == list:
-                    result = None
-                    for item in condition_data:
-                        # is this the first loop? If so, no need for a comma
-                        if result:
-                            result = result + ', '+str(item)
-                        else:
-                            result = item
-                    condition_data = result
+    if 'Conditions' in report_data:
+        conditions = machine.conditions.all()
+        conditions.delete()
+        for condition_name, condition_data in report_data['Conditions'].iteritems():
+            # if it's a list (more than one result), we're going to conacetnate it into one comma separated string
+            if type(condition_data) == list:
+                result = None
+                for item in condition_data:
+                    # is this the first loop? If so, no need for a comma
+                    if result:
+                        result = result + ', '+str(item)
+                    else:
+                        result = item
+                condition_data = result
 
-                #print condition_data
-                condition = Condition(machine=machine, condition_name=condition_name, condition_data=str(condition_data))
-                condition.save()
+            #print condition_data
+            condition = Condition(machine=machine, condition_name=condition_name, condition_data=str(condition_data))
+            condition.save()
 
-        # if 'osquery' in report_data:
-        #     try:
-        #         datelimit = (datetime.now() - timedelta(days=historical_days)).strftime("%s")
-        #         OSQueryResult.objects.filter(unix_time__lt=datelimit).delete()
-        #     except:
-        #         pass
-        #     for report in report_data['osquery']:
-        #         unix_time = int(report['unixTime'])
-        #         # Have we already processed this report?
-        #         try:
-        #             osqueryresult = OSQueryResult.objects.get(hostidentifier=report['hostIdentifier'], machine=machine, unix_time=unix_time, name=report['name'])
-        #             continue
-        #         except OSQueryResult.DoesNotExist:
-        #             osqueryresult = OSQueryResult(hostidentifier=report['hostIdentifier'], machine=machine, unix_time=unix_time, name=report['name'])
-        #             osqueryresult.save()
-        #
-        #         if 'added' in report['diffResults']:
-        #             for items in report['diffResults']['added']:
-        #                 for column, col_data in items.items():
-        #                     osquerycolumn = OSQueryColumn(osquery_result=osqueryresult, action='added', column_name=column, column_data=col_data)
-        #                     osquerycolumn.save()
-        #
-        #         if 'removed' in report['diffResults']:
-        #             for items in report['diffResults']['removed']:
-        #                 for column, col_data in items.items():
-        #                     osquerycolumn = OSQueryColumn(osquery_result=osqueryresult, action='removed', column_name=column, column_data=col_data)
-        #                     osquerycolumn.save()
-        utils.get_version_number()
-        return HttpResponse("Sal report submmitted for %s"
-                            % data.get('name'))
+    utils.get_version_number()
+    return HttpResponse("Sal report submmitted for %s"
+                        % data.get('name'))
 
 @csrf_exempt
 def install_log_hash(request, serial):

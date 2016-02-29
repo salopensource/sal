@@ -1766,14 +1766,14 @@ def checkin(request):
     machine.save()
 
     # If Plugin_Results are in the report, handle them
-    # if Plugin_Results in report_data:
-    #     for plugin_result in report_data.get('Plugin_Results'):
-    #         if 'plugin' not in plugin_result or 'result' not in plugin_result:
-    #             # Make sure what we need has been sent to the server
-    #             break
-    #         plugin = plugin_result.get('plugin')
-    #         historical = plugin_result.get('historical', False)
-    #         data =
+    try:
+        datelimit = datetime.now() - timedelta(days=historical_days)
+        PluginScriptSubmission.objects.filter(recorded__lt=datelimit).delete()
+    except:
+        pass
+
+    if 'Plugin_Results' in report_data:
+        utils.process_plugin_script(report_data.get('Plugin_Results'), machine)
     # Remove existing PendingUpdates for the machine
     updates = machine.pending_updates.all()
     updates.delete()
@@ -1880,7 +1880,7 @@ def checkin(request):
                 condition_data = result
 
             #print condition_data
-            condition = Condition(machine=machine, condition_name=condition_name, condition_data=str(condition_data))
+            condition = Condition(machine=machine, condition_name=condition_name, condition_data=utils.safe_unicode(condition_data))
             condition.save()
 
     utils.get_version_number()

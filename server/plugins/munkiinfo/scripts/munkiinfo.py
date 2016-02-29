@@ -4,13 +4,14 @@ import sys
 sys.path.append('/usr/local/munki')
 from munkilib import FoundationPlist
 from munkilib import munkicommon
+import os
 
 def main():
     # Skip a manual check
     if len(sys.argv) > 1:
-    if sys.argv[1] == 'manualcheck':
-        munkicommon.display_debug2("Manual check: skipping")
-        exit(0)
+        if sys.argv[1] == 'manualcheck':
+            munkicommon.display_debug2("Manual check: skipping MunkiInfo Plugin")
+            exit(0)
 
     prefs_to_get = [
         'ManagedInstallDir',
@@ -53,11 +54,24 @@ def main():
         'ShowRemovalDetail',
         'MSULogEnabled',
         'MSUDebugLogEnabled',
-        'LocalOnlyManifest'
+        'LocalOnlyManifest',
+        'UnattendedAppleUpdates'
     ]
-
+    plist_path = '/usr/local/sal/plugin_results.plist'
+    if os.path.exists(plist_path):
+        plist = FoundationPlist.readPlist(plist_path)
+    else:
+        plist = []
+    result = {}
+    result['plugin'] = 'MunkiInfo'
+    result['historical'] = False
+    data = {}
     for the_pref in prefs_to_get:
-        print the_pref, munkicommon.pref(the_pref)
+        data[the_pref] = str(munkicommon.pref(the_pref))
+
+    result['data'] = data
+    plist.append(result)
+    FoundationPlist.writePlist(plist, plist_path)
 
 if __name__ == '__main__':
     main()

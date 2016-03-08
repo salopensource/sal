@@ -1,138 +1,198 @@
 <div class="row">
-    <div class="col-md-4">
-        <div class="row">
-            {% if output|length != 0 %}
-            <div class="col-md-12">
-                <div class="panel panel-default">
-                    <div class="panel-heading">
-                        <h4>Installs Items</h4>
-                    </div>
-                    <div class="panel-body">
-                        <form role="form">
-                            <div class="form-group">
-                                <input id="searchinput" class="form-control" type="search" placeholder="Search..." />
-                            </div>
-                            <div id="searchlist" class="list-group">
-                                {% for item in output %}
-                                <a class="list-group-item" id="{{ item.dotName }}-{{ item.dotVersion }}-link" href="#"><span>{{ item.name }} {{item.version}}</span></a>
-                                {% endfor %}
-
-                            </div>
-                        </form>
-
-                    </div>
-                </div>
-            </div>
-            {% endif %}
-
-        </div>
-    </div>
-    <div class="col-md-8">
+    <div class="col-md-12">
         <div class="panel panel-default">
+            <div class="panel-heading">
+                <h3>Munki Repository Connection Security</h3>
+            </div>
             <div class="panel-body" id="display-body">
-                {% for item in output %}
-                <div class="hidden" id="{{ item.dotName }}-{{ item.dotVersion }}">
-                    <table class="col-md-12 table-striped table-condensed">
-                        <tr>
-                            <th>Name</th>
-                            <td>{{ item.name }}</td>
-                        </tr>
-                        {% if item.description|length != 0 %}
-                        <tr>
-                            <th>Description</th>
-                            <td>{{ item.description }}</td>
-                        </tr>
+                <div class="row">
+                    <div class="col-md-3">
+                        <a href="{% url 'machine_list_front' 'MunkiInfo' 'http_only?' %}">
+                        {% if http_only == 0 %}
+                        <div class="panel panel-green">
+                        {% else %}
+                        <div class="panel panel-red">
                         {% endif %}
-                        <tr>
-                            <th>Version</th>
-                            <td>{{ item.version }}</td>
-                        </tr>
-                    </table>
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="panel-body">
-                                <a href="{% url 'machine_list_front' 'InstallReport' item.installed_url %}">
-                                    <div class="panel panel-green">
-                                        <div class="panel-heading">
-                                            <div class="row">
-                                                <div class="col-md-3">
-                                                    <i class="fa fa-check-circle-o fa-5x"></i>
+                            <div class="panel-heading">
+                                <div class="row">
+                                    <div class="col-md-3">
+                                        <i class="fa fa-unlock fa-5x"></i>
 
-                                                </div>
-                                                <div class="col-md-9 text-right">
-                                                    <div class="huge">{{ item.install_count }}</div>
-                                                    <div>Installed Count</div>
-                                                </div>
-                                            </div>
-
-                                        </div>
                                     </div>
-                                </a>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="panel-body">
-                                <a href="{% url 'machine_list_front' 'InstallReport' item.pending_url %}">
-                                    {% if item.pending_count == 0 %}<div class="panel panel-green">
-                                        {% else %}<div class="panel panel-yellow">{% endif %}
-
-                                        <div class="panel-heading">
-                                            <div class="row">
-                                                <div class="col-md-3">
-                                                    <i class="fa fa-clock-o fa-5x"></i>
-
-                                                </div>
-                                                <div class="col-md-9 text-right">
-                                                    <div class="huge">{{ item.pending_count }}</div>
-                                                    <div>Pending Count</div>
-                                                </div>
-                                            </div>
-
-                                        </div>
+                                    <div class="col-md-9 text-right">
+                                        <div class="huge">{{ http_only }}</div>
+                                        <div>HTTP</div>
                                     </div>
-                                </a>
+                                </div>
+
                             </div>
+                        </a>
                         </div>
                     </div>
+
+                    <div class="col-md-3">
+                        <a href="{% url 'machine_list_front' 'MunkiInfo' 'https_only?' %}">
+                        {% if https_only == 0 %}
+                        <div class="panel panel-red">
+                        {% else %}
+                        <div class="panel panel-green">
+                        {% endif %}
+                            <div class="panel-heading">
+                                <div class="row">
+                                    <div class="col-md-3">
+                                        <i class="fa fa-lock fa-5x"></i>
+
+                                    </div>
+                                    <div class="col-md-9 text-right">
+                                        <div class="huge">{{ https_only }}</div>
+                                        <div>HTTPS</div>
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+                    </a>
+                    </div>
+
+                    <div class="col-md-3">
+                        <a href="{% url 'machine_list_front' 'MunkiInfo' 'http_munki?' %}">
+                        {% if http_munki == 0 %}
+                        <div class="panel panel-green">
+                        {% else %}
+                        <div class="panel panel-yellow">
+                        {% endif %}
+                            <div class="panel-heading">
+                                <div class="row">
+                                    <div class="col-md-3">
+                                        <i class="fa fa-warning fa-5x"></i>
+
+                                    </div>
+                                    <div class="col-md-9 text-right">
+                                        <div class="huge">{{ http_munki }}</div>
+                                        <div>http://munki</div>
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+                    </a>
+                    </div>
+
+                    <div class="col-md-3">
+                        <a href="{% url 'machine_list_front' 'MunkiInfo' 'client_certs?' %}">
+                        <div class="panel panel-green">
+                            <div class="panel-heading">
+                                <div class="row">
+                                    <div class="col-md-3">
+                                        <i class="fa fa-certificate fa-5x"></i>
+
+                                    </div>
+                                    <div class="col-md-9 text-right">
+                                        <div class="huge">{{ client_certs }}</div>
+                                        <div>Client Certificates</div>
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div></a>
+                    </div>
                 </div>
-                {% endfor %}
+            </div>
             </div>
         </div>
     </div>
+
+
+<div class="row">
+    <div class="col-md-4">
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h3>Software Repo URLs</h3>
+            </div>
+            <div class="panel-body">
+                <table class="table table-striped table-condensed table-bordered">
+                {% for item in repo_urls %}
+                    <tr>
+                        <td>
+                            <a href="{% url 'machine_list_front' 'MunkiInfo' item.item_link %}">
+                            {{ item.pluginscript_data }}
+                            <span class="badge pull-right">{{ item.count }}</span>
+                            </a>
+                        </td>
+                    </tr>
+                {% endfor %}
+                </table>
+            </div>
+        </div>
+    </div>
+    {% if package_urls|length != 0 %}
+    <div class="col-md-4">
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h3>Package URLs</h3>
+            </div>
+            <div class="panel-body">
+                <table class="table table-striped table-condensed table-bordered">
+                {% for item in package_urls %}
+                    <tr>
+                        <td>
+                            <a href="{% url 'machine_list_front' 'MunkiInfo' item.item_link %}">
+                            {{ item.pluginscript_data }}
+                            <span class="badge pull-right">{{ item.count }}</span>
+                            </a>
+                        </td>
+                    </tr>
+                {% endfor %}
+                </table>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    {% if manifest_urls|length != 0 %}
+    <div class="col-md-4">
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h3>Manifest URLs</h3>
+            </div>
+            <div class="panel-body">
+                <table class="table table-striped table-condensed table-bordered">
+                {% for item in manifest_urls %}
+                    <tr>
+                        <td>
+                            <a href="{% url 'machine_list_front' 'MunkiInfo' item.item_link %}">
+                            {{ item.pluginscript_data }}
+                            <span class="badge pull-right">{{ item.count }}</span>
+                            </a>
+                        </td>
+                    </tr>
+                {% endfor %}
+                </table>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    {% if catalog_urls|length != 0 %}
+    <div class="col-md-4">
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h3>Catalog URLs</h3>
+            </div>
+            <div class="panel-body">
+                <table class="table table-striped table-condensed table-bordered">
+                {% for item in catalog_urls %}
+                    <tr>
+                        <td>
+                            <a href="{% url 'machine_list_front' 'MunkiInfo' item.item_link %}">
+                            {{ item.pluginscript_data }}
+                            <span class="badge pull-right">{{ item.count }}</span>
+                            </a>
+                        </td>
+                    </tr>
+                {% endfor %}
+                </table>
+            </div>
+        </div>
+    </div>
+    {% endif %}
 </div>
-
-<script type="text/javascript">
-// A $( document ).ready() block.
-$( document ).ready(function() {
-    // Hide all items, then show the first one
-
-    //$('#display-body').children().hide();
-    {% with output|first as first_output %}
-    $('#{{ first_output.dotName }}-{{ first_output.dotVersion }}').removeClass('hidden');
-    {% endwith %}
-
-    function displayDiv(name) {
-        //$('#display-body').children().hide();
-        $('#display-body').children().not(name).addClass('hidden');
-        $(name).removeClass('hidden');
-    };
-    {% for item in output %}
-    $("#{{ item.dotName }}-{{ item.dotVersion }}-link").click(function(e) {
-        e.preventDefault();
-        displayDiv("#{{ item.dotName }}-{{ item.dotVersion }}");
-    });
-    {% endfor %}
-    $('#searchlist').btsListFilter('#searchinput', {itemChild: 'span'});
-    $(function() {
-   var window_height = $(window).height(),
-   content_height = window_height - 300;
-   $('#searchlist').height(content_height).css('overflow', 'scroll');
-});
-
-$( window ).resize(function() {
-   var window_height = $(window).height(),
-   content_height = window_height - 300;
-   $('#searchlist').height(content_height).css('overflow', 'scroll');
-});
-});
-</script>

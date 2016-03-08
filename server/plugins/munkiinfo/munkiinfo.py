@@ -1,12 +1,13 @@
 from yapsy.IPlugin import IPlugin
 from yapsy.PluginManager import PluginManager
 from django.template import loader, Context
-from django.db.models import Count
+from django.db.models import Count, F
 from server.models import *
 from catalog.models import *
 from django.shortcuts import get_object_or_404
 import server.utils as utils
 import plistlib
+import urllib
 import re
 
 class MunkiInfo(IPlugin):
@@ -17,7 +18,7 @@ class MunkiInfo(IPlugin):
         return 12
 
     def get_description(self):
-        return 'Information Munki configuration.'
+        return 'Information on Munki configuration.'
 
     def get_title(self):
         return 'Munki'
@@ -27,14 +28,6 @@ class MunkiInfo(IPlugin):
             return s.encode('utf-8', errors='replace')
         else:
             return s
-
-    def replace_dots(self,item):
-        # item['name'] = item['pkginfo']['name']
-        item['dotVersion'] = item['version'].replace('.','DOT')
-        item['dotVersion'] = re.sub(r'\W+', '', item['dotVersion'])
-        item['dotName'] = item['name'].replace('.','DOT')
-        item['dotName'] = re.sub(r'\W+', '', item['dotName'])
-        return item
 
     def widget_content(self, page, machines=None, theid=None):
 
@@ -47,69 +40,66 @@ class MunkiInfo(IPlugin):
         if page == 'group_dashboard':
             t = loader.get_template('munkiinfo/templates/front.html')
 
-        output = []
-        # Get the install reports for the machines we're looking for
-        installed_updates = InstalledUpdate.objects.filter(machine=machines).values('update', 'display_name', 'update_version').distinct()
-        for catalog in catalog_objects:
-            catalog.content = plistlib.readPlistFromString(self.safe_unicode(catalog.content))
-        for installed_update in installed_updates:
-            found = False
-            for item in output:
-                #print item
-                if installed_update['update'] == item['name'] and installed_update['update_version'] == item['version']:
-                    found = True
-                    break
+        # HTTP only machines
+        http_only = machines.filter(pluginscriptsubmission__plugin='MunkiInfo', pluginscriptsubmission__pluginscriptrow__pluginscript_name='SoftwareRepoURL', pluginscriptsubmission__pluginscriptrow__pluginscript_data__startswith='http://').count()
 
-            if found == False:
-                item = {}
-                for catalog in catalog_objects:
+        # HTTPS only machines
+        https_only = machines.filter(pluginscriptsubmission__plugin='MunkiInfo', pluginscriptsubmission__pluginscriptrow__pluginscript_name='SoftwareRepoURL', pluginscriptsubmission__pluginscriptrow__pluginscript_data__startswith='https://').count()
 
-                    for pkginfo in catalog.content:
-                        if pkginfo['name'] == installed_update['update'] and pkginfo['version'] == installed_update['update_version']:
-                            #print pkginfo
-                            if 'description' in pkginfo:
-                                item['description'] = pkginfo['description']
-                            else:
-                                item['description'] = ''
-                            break
-                    if 'description' in item:
-                        break
+        # Distinct Repo URLs
+        repo_urls = machines.filter(pluginscriptsubmission__plugin='MunkiInfo', pluginscriptsubmission__pluginscriptrow__pluginscript_name='SoftwareRepoURL').annotate(pluginscript_data=F('pluginscriptsubmission__pluginscriptrow__pluginscript_data')).values('pluginscript_data').annotate(count=Count('pluginscript_data')).order_by('pluginscript_data')
 
-                item['version'] = installed_update['update_version']
-                item['name'] = installed_update['update']
-                item['install_count'] = InstalledUpdate.objects.filter(machine=machines, update=installed_update['update'], update_version=installed_update['update_version'], installed=True).count()
-                # item['not_installed_count'] = InstalledUpdate.objects.filter(machine=machines, update=installed_update['update'], update_version=installed_update['update_version'], installed=False).count()
-                item['pending_count'] = PendingUpdate.objects.filter(machine=machines, update=installed_update['update'], update_version=installed_update['update_version']).count()
-                item['installed_url'] = 'Installed?VERSION=%s&&NAME=%s' % (item['version'], item['name'])
-                item['pending_url'] = 'Pending?VERSION=%s&&NAME=%s' % (item['version'], item['name'])
-                item = self.replace_dots(item)
-                #print item
-                output.append(item)
+        for url in repo_urls:
+            url['item_link'] = 'repo_urls?URL="%s"' % urllib.quote(url['pluginscript_data'],
+            safe='')
 
-        # for catalog_object in catalog_objects:
-        #     print catalog_object.name
-        #     for pkginfo in plistlib.readPlistFromString(self.safe_unicode(catalog_object.content)):
-        #         if 'installer_type' in pkginfo and pkginfo['installer_type'] == 'apple_update_metadata':
-        #             continue
-        #         else:
-        #             filtered_updates = installed_updates.filter(update=pkginfo['name'], update_version=pkginfo['version'])
-        #             item = {}
-        #             item['pkginfo'] = pkginfo
-        #             item['catalog'] = catalog_object.name
-        #             item['install_reports'] = filtered_updates
-        #             item['install_count'] = filtered_updates.filter(installed=True).count()
-        #             item['not_installed_count'] = filtered_updates.filter(installed=False).count()
-        #             item['installed_url'] = 'Installed?VERSION=%s&&NAME=%s' % (item['pkginfo']['version'], item['pkginfo']['name'])
-        #             item['pending_url'] = 'Pending?VERSION=%s&&NAME=%s' % (item['pkginfo']['version'], item['pkginfo']['name'])
-        #             item = self.replace_dots(item)
-        #             output.append(item)
+        # Distinct Package URLs
+        try:
+            package_urls = machines.filter(pluginscriptsubmission__plugin='MunkiInfo', pluginscriptsubmission__pluginscriptrow__pluginscript_name='PackageURL').annotate(pluginscript_data=F('pluginscriptsubmission__pluginscriptrow__pluginscript_data')).values('pluginscript_data').exclude(pluginscript_data='None').annotate(count=Count('pluginscript_data')).order_by('pluginscript_data')
+            package_url_prefix = 'package_urls?URL='
+            for url in package_urls:
+                url['item_link'] = package_url_prefix + urllib.quote(url['pluginscript_data'])
+        except:
+            package_urls = None
 
-        # Sort the output
-        output = sorted(output, key = lambda k: (k['name'], k['version']))
+
+        # Distinct Manifest URLs
+        try:
+            manifest_urls = machines.filter(pluginscriptsubmission__plugin='MunkiInfo', pluginscriptsubmission__pluginscriptrow__pluginscript_name='ManifestURL').annotate(pluginscript_data=F('pluginscriptsubmission__pluginscriptrow__pluginscript_data')).values('pluginscript_data').exclude(pluginscript_data='None').annotate(count=Count('pluginscript_data')).order_by('pluginscript_data')
+            manifest_url_prefix = 'manifest_urls?URL='
+            for url in manifest_urls:
+                url['item_link'] = manifest_url_prefix + urllib.quote(url['pluginscript_data'])
+
+        except:
+            manifest_urls = None
+
+        # Distinct Catalog URLs
+        try:
+            catalog_urls = machines.filter(pluginscriptsubmission__plugin='MunkiInfo', pluginscriptsubmission__pluginscriptrow__pluginscript_name='CatalogURL').annotate(pluginscript_data=F('pluginscriptsubmission__pluginscriptrow__pluginscript_data')).values('pluginscript_data').exclude(pluginscript_data='None').annotate(count=Count('pluginscript_data')).order_by('pluginscript_data')
+            catalog_url_prefix = 'catalog_urls?URL='
+            for url in catalog_urls:
+                url['item_link'] = catalog_url_prefix + urllib.quote(url['pluginscript_data'])
+
+        except:
+            catalog_urls = None
+
+        # Machines using the default repo url
+        http_munki = machines.filter(pluginscriptsubmission__plugin='MunkiInfo', pluginscriptsubmission__pluginscriptrow__pluginscript_name='SoftwareRepoURL', pluginscriptsubmission__pluginscriptrow__pluginscript_data__exact='http://munki').count()
+
+        # Machines using client certs
+        client_certs = machines.filter(pluginscriptsubmission__plugin='MunkiInfo',pluginscriptsubmission__pluginscriptrow__pluginscript_name='UseClientCertificate', pluginscriptsubmission__pluginscriptrow__pluginscript_data='True').count()
+
         c = Context({
-            'title': 'Install Reports',
-            'output': output,
-            'plugin': 'ShardReport',
+            'title': 'Munki Info',
+            'http_only': http_only,
+            'https_only': https_only,
+            'http_munki': http_munki,
+            'repo_urls': repo_urls,
+            'catalog_urls': catalog_urls,
+            'manifest_urls': manifest_urls,
+            'package_urls': package_urls,
+            'client_certs': client_certs,
+            'plugin': 'MunkiInfo',
             'page': page,
             'theid': theid
         })
@@ -117,24 +107,57 @@ class MunkiInfo(IPlugin):
 
     def filter_machines(self, machines, data):
         # You will be passed a QuerySet of machines, you then need to perform some filtering based on the 'data' part of the url from the show_widget output. Just return your filtered list of machines and the page title.
+        print data
+        if data.startswith('http_only?'):
+            try:
+                machines = machines.filter(pluginscriptsubmission__plugin='MunkiInfo', pluginscriptsubmission__pluginscriptrow__pluginscript_name='SoftwareRepoURL', pluginscriptsubmission__pluginscriptrow__pluginscript_data__startswith='http://')
+            except:
+                machines = None
+            title = 'Machines using HTTP'
 
-        if data.startswith('Installed?'):
-            version_re = re.search('Installed\?VERSION\=(.*)&&NAME', data)
-            version = version_re.group(1)
-            name_re = re.search('&&NAME=(.*)', data)
-            name = name_re.group(1)
+        if data.startswith('https_only?'):
+            try:
+                machines = machines.filter(pluginscriptsubmission__plugin='MunkiInfo', pluginscriptsubmission__pluginscriptrow__pluginscript_name='SoftwareRepoURL', pluginscriptsubmission__pluginscriptrow__pluginscript_data__startswith='https://')
+            except:
+                machines = None
+            title = 'Machines using HTTPS'
 
-            machines = machines.filter(installed_updates__update=name, installed_updates__update_version=version, installed_updates__installed=True)
-            title = 'Machines with %s %s installed' % (name, version)
+        if data.startswith('http_munki?'):
+            try:
+                machines = machines.filter(pluginscriptsubmission__plugin='MunkiInfo', pluginscriptsubmission__pluginscriptrow__pluginscript_name='SoftwareRepoURL', pluginscriptsubmission__pluginscriptrow__pluginscript_data__exact='http://munki')
+            except:
+                machines = None
+            title = 'Machines connecting to Munki using http://munki'
 
-        if data.startswith('Pending?'):
-            version_re = re.search('Pending\?VERSION\=(.*)&&NAME', data)
-            version = version_re.group(1)
-            name_re = re.search('&&NAME=(.*)', data)
-            name = name_re.group(1)
+        if data.startswith('client_certs?'):
+            try:
+                machines = machines.filter(pluginscriptsubmission__plugin='MunkiInfo',pluginscriptsubmission__pluginscriptrow__pluginscript_name='UseClientCertificate', pluginscriptsubmission__pluginscriptrow__pluginscript_data='True')
+            except:
+                machines = None
+            title = 'Machines connecting to Munki using client certificates'
 
-            machines = machines.filter(pending_updates__update=name, pending_updates__update_version=version)
-            title = 'Machines with %s %s pending' % (name, version)
+        if data.startswith('repo_urls?'):
 
+            url_re = re.search('repo_urls\?URL=\"(.*)\"', data)
+            url = urllib.unquote(url_re.group(1))
+
+            try:
+
+                machines = machines.filter(pluginscriptsubmission__plugin='MunkiInfo', pluginscriptsubmission__pluginscriptrow__pluginscript_name='SoftwareRepoURL', pluginscriptsubmission__pluginscriptrow__pluginscript_data__exact=url)
+            except:
+                machines = None
+            title = 'Machines using %s' % url
+
+        if data.startswith('manifest_urls?'):
+
+            url_re = re.search('manifest_urls\?URL=\"(.*)\"', data)
+            url = urllib.unquote(url_re.group(1))
+
+            try:
+
+                machines = machines.filter(pluginscriptsubmission__plugin='MunkiInfo', pluginscriptsubmission__pluginscriptrow__pluginscript_name='ManifestURL', pluginscriptsubmission__pluginscriptrow__pluginscript_data__exact=url)
+            except:
+                machines = None
+            title = 'Machines using %s' % url
 
         return machines, title

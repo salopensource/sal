@@ -84,31 +84,15 @@ class InstallReport(IPlugin):
                 item['version'] = installed_update['update_version']
                 item['name'] = installed_update['update']
                 item['install_count'] = InstalledUpdate.objects.filter(machine=machines, update=installed_update['update'], update_version=installed_update['update_version'], installed=True).count()
-                # item['not_installed_count'] = InstalledUpdate.objects.filter(machine=machines, update=installed_update['update'], update_version=installed_update['update_version'], installed=False).count()
+
                 item['pending_count'] = PendingUpdate.objects.filter(machine=machines, update=installed_update['update'], update_version=installed_update['update_version']).count()
                 item['installed_url'] = 'Installed?VERSION=%s&&NAME=%s' % (item['version'], item['name'])
                 item['pending_url'] = 'Pending?VERSION=%s&&NAME=%s' % (item['version'], item['name'])
                 item = self.replace_dots(item)
-                #print item
+
                 output.append(item)
 
-        # for catalog_object in catalog_objects:
-        #     print catalog_object.name
-        #     for pkginfo in plistlib.readPlistFromString(self.safe_unicode(catalog_object.content)):
-        #         if 'installer_type' in pkginfo and pkginfo['installer_type'] == 'apple_update_metadata':
-        #             continue
-        #         else:
-        #             filtered_updates = installed_updates.filter(update=pkginfo['name'], update_version=pkginfo['version'])
-        #             item = {}
-        #             item['pkginfo'] = pkginfo
-        #             item['catalog'] = catalog_object.name
-        #             item['install_reports'] = filtered_updates
-        #             item['install_count'] = filtered_updates.filter(installed=True).count()
-        #             item['not_installed_count'] = filtered_updates.filter(installed=False).count()
-        #             item['installed_url'] = 'Installed?VERSION=%s&&NAME=%s' % (item['pkginfo']['version'], item['pkginfo']['name'])
-        #             item['pending_url'] = 'Pending?VERSION=%s&&NAME=%s' % (item['pkginfo']['version'], item['pkginfo']['name'])
-        #             item = self.replace_dots(item)
-        #             output.append(item)
+
 
         # Sort the output
         output = sorted(output, key = lambda k: (k['name'], k['version']))
@@ -138,7 +122,7 @@ class InstallReport(IPlugin):
             version = version_re.group(1)
             name_re = re.search('&&NAME=(.*)', data)
             name = name_re.group(1)
-            
+
             machines = machines.filter(pending_updates__update=name, pending_updates__update_version=version)
             title = 'Machines with %s %s pending' % (name, version)
 

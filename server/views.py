@@ -479,21 +479,21 @@ def tableajax(request, pluginName, data, page='front', theID=None):
             order_name = column['name']
             break
 
-    print order_name
+
     (machines, title) = plugin_machines(request, pluginName, data, page, theID)
     if len(order_name) != 0:
         if order_direction == 'desc':
             order_string = "-%s" % order_name
         else:
             order_string = "%s" % order_name
-        print order_string
+
     if len(search_value) != 0:
         searched_machines = machines.filter(Q(hostname__icontains=search_value) | Q(console_user__icontains=search_value) | Q(last_checkin__icontains=search_value)).order_by(order_string)
     else:
         searched_machines = machines.order_by(order_string)
 
     limited_machines = searched_machines[start:(start+length)]
-    print limited_machines.query
+    
     return_data = {}
     return_data['draw'] = int(draw)
     return_data['recordsTotal'] = machines.count()

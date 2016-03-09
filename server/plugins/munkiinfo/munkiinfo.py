@@ -35,10 +35,10 @@ class MunkiInfo(IPlugin):
             t = loader.get_template('munkiinfo/templates/front.html')
 
         if page == 'bu_dashboard':
-            t = loader.get_template('munkiinfo/templates/front.html')
+            t = loader.get_template('munkiinfo/templates/id.html')
 
         if page == 'group_dashboard':
-            t = loader.get_template('munkiinfo/templates/front.html')
+            t = loader.get_template('munkiinfo/templates/id.html')
 
         # HTTP only machines
         http_only = machines.filter(pluginscriptsubmission__plugin='MunkiInfo', pluginscriptsubmission__pluginscriptrow__pluginscript_name='SoftwareRepoURL', pluginscriptsubmission__pluginscriptrow__pluginscript_data__startswith='http://').count()

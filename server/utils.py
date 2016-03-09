@@ -26,11 +26,8 @@ def process_plugin_script(results, machine):
         plugin_name = plugin.get('plugin')
         historical = plugin.get('historical', False)
         if historical == False:
-            # Try to find any old info and delete it
-            try:
-                deleted_sub = PluginScriptSubmission.objects.filter(machine=machine, plugin=safe_unicode(plugin)).delete()
-            except:
-                pass
+            deleted_sub = PluginScriptSubmission.objects.filter(machine=machine, plugin=safe_unicode(plugin_name)).delete()
+
         plugin_script = PluginScriptSubmission(machine=machine, plugin=safe_unicode(plugin_name), historical=historical)
         plugin_script.save()
         data = plugin.get('data')

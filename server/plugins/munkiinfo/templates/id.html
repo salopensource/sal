@@ -1,0 +1,198 @@
+<div class="row">
+    <div class="col-md-12">
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h3>Munki Repository Connection Security</h3>
+            </div>
+            <div class="panel-body" id="display-body">
+                <div class="row">
+                    <div class="col-md-3">
+                        <a href="{% url 'machine_list_id' 'MunkiInfo' 'http_only?' page theid %}">
+                        {% if http_only == 0 %}
+                        <div class="panel panel-green">
+                        {% else %}
+                        <div class="panel panel-red">
+                        {% endif %}
+                            <div class="panel-heading">
+                                <div class="row">
+                                    <div class="col-md-3">
+                                        <i class="fa fa-unlock fa-5x"></i>
+
+                                    </div>
+                                    <div class="col-md-9 text-right">
+                                        <div class="huge">{{ http_only }}</div>
+                                        <div>HTTP</div>
+                                    </div>
+                                </div>
+
+                            </div>
+                        </a>
+                        </div>
+                    </div>
+
+                    <div class="col-md-3">
+                        <a href="{% url 'machine_list_id' 'MunkiInfo' 'https_only?' page theid %}">
+                        {% if https_only == 0 %}
+                        <div class="panel panel-red">
+                        {% else %}
+                        <div class="panel panel-green">
+                        {% endif %}
+                            <div class="panel-heading">
+                                <div class="row">
+                                    <div class="col-md-3">
+                                        <i class="fa fa-lock fa-5x"></i>
+
+                                    </div>
+                                    <div class="col-md-9 text-right">
+                                        <div class="huge">{{ https_only }}</div>
+                                        <div>HTTPS</div>
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+                    </a>
+                    </div>
+
+                    <div class="col-md-3">
+                        <a href="{% url 'machine_list_id' 'MunkiInfo' 'http_munki?' page theid %}">
+                        {% if http_munki == 0 %}
+                        <div class="panel panel-green">
+                        {% else %}
+                        <div class="panel panel-yellow">
+                        {% endif %}
+                            <div class="panel-heading">
+                                <div class="row">
+                                    <div class="col-md-3">
+                                        <i class="fa fa-warning fa-5x"></i>
+
+                                    </div>
+                                    <div class="col-md-9 text-right">
+                                        <div class="huge">{{ http_munki }}</div>
+                                        <div>http://munki</div>
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+                    </a>
+                    </div>
+
+                    <div class="col-md-3">
+                        <a href="{% url 'machine_list_id' 'MunkiInfo' 'client_certs?' page theid %}">
+                        <div class="panel panel-green">
+                            <div class="panel-heading">
+                                <div class="row">
+                                    <div class="col-md-3">
+                                        <i class="fa fa-certificate fa-5x"></i>
+
+                                    </div>
+                                    <div class="col-md-9 text-right">
+                                        <div class="huge">{{ client_certs }}</div>
+                                        <div>Client Certificates</div>
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div></a>
+                    </div>
+                </div>
+            </div>
+            </div>
+        </div>
+    </div>
+
+
+<div class="row">
+    <div class="col-md-4">
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h3>Software Repo URLs</h3>
+            </div>
+            <div class="panel-body">
+                <table class="table table-striped table-condensed table-bordered">
+                {% for item in repo_urls %}
+                    <tr>
+                        <td>
+                            <a href="{% url 'machine_list_id' 'MunkiInfo' item.item_link page theid %}">
+                            {{ item.pluginscript_data }}
+                            <span class="badge pull-right">{{ item.count }}</span>
+                            </a>
+                        </td>
+                    </tr>
+                {% endfor %}
+                </table>
+            </div>
+        </div>
+    </div>
+    {% if package_urls|length != 0 %}
+    <div class="col-md-4">
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h3>Package URLs</h3>
+            </div>
+            <div class="panel-body">
+                <table class="table table-striped table-condensed table-bordered">
+                {% for item in package_urls %}
+                    <tr>
+                        <td>
+                            <a href="{% url 'machine_list_id' 'MunkiInfo' item.item_link page theid %}">
+                            {{ item.pluginscript_data }}
+                            <span class="badge pull-right">{{ item.count }}</span>
+                            </a>
+                        </td>
+                    </tr>
+                {% endfor %}
+                </table>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    {% if manifest_urls|length != 0 %}
+    <div class="col-md-4">
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h3>Manifest URLs</h3>
+            </div>
+            <div class="panel-body">
+                <table class="table table-striped table-condensed table-bordered">
+                {% for item in manifest_urls %}
+                    <tr>
+                        <td>
+                            <a href="{% url 'machine_list_id' 'MunkiInfo' item.item_link page theid %}">
+                            {{ item.pluginscript_data }}
+                            <span class="badge pull-right">{{ item.count }}</span>
+                            </a>
+                        </td>
+                    </tr>
+                {% endfor %}
+                </table>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    {% if catalog_urls|length != 0 %}
+    <div class="col-md-4">
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h3>Catalog URLs</h3>
+            </div>
+            <div class="panel-body">
+                <table class="table table-striped table-condensed table-bordered">
+                {% for item in catalog_urls %}
+                    <tr>
+                        <td>
+                            <a href="{% url 'machine_list_id' 'MunkiInfo' item.item_link page theid %}">
+                            {{ item.pluginscript_data }}
+                            <span class="badge pull-right">{{ item.count }}</span>
+                            </a>
+                        </td>
+                    </tr>
+                {% endfor %}
+                </table>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>

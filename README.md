@@ -4,7 +4,7 @@ Sal is a multi-tenanted reporting dashboard for [Munki](https://github.com/munki
 
 With Sal, you are able to allow access to reports on certain sets of machines to certain people - for example, giving a manager access to the reports on the machines in their department.
 
-![Sal](docs/img/Sal.png)
+![Sal](assets/Sal.png)
 
 ## Getting Started
 

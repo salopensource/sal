@@ -1,6 +1,6 @@
 # Sal Dockerfile
 # Version 0.4
-FROM ubuntu:14.04
+FROM ubuntu:14.04.4
 
 MAINTAINER Graham Gilbert <graham@grahamgilbert.com>
 

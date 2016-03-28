@@ -58,3 +58,6 @@ postgres
 
 sal.dump
 config.codekit
+wip_plugins/
+
+sal.log

@@ -5,12 +5,27 @@
 <script type="text/javascript" charset="utf-8">
     $(document).ready(function() {
         $('.groupList').dataTable({
-            //"sDom": "<'row'<'span6'l><'span6'f>r>t<'row'<'span6'i><'span6'p>>",
-            // "iDisplayLength": 20,
-            "aLengthMenu": [[20, 50, -1], [20, 50, "All"]],
-            // "sPaginationType": "bootstrap",
-            // "bStateSave": true,
-            "aaSorting": [2,'desc']
+            "serverSide": true,
+            "ajax": {
+                "contentType": "application/json",
+                {% if req_type == "front" %}
+                "url": "{% url 'tableajax_front' plugin_name data %}",
+                {% else %}
+                "url": "{% url 'tableajax_id' plugin_name data req_type bu_id %}",
+                {% endif %}
+                "data": function ( args ) {
+                    return { "args": JSON.stringify( args ) };
+                }
+            },
+            "lengthMenu": [[20, 50, 100, 500], [20, 50, 100, 500]],
+            stateSave: true,
+            "order": [2,'desc'],
+            "orderMulti": false,
+            "columns": [
+                { "name": "hostname" },
+                { "name": "console_user" },
+                { "name": "last_checkin" },
+            ],
         });
     } );
 </script>
@@ -48,11 +63,7 @@
                 <tr>
                     <td>
                         <a href="{% url 'machine_detail' item.id %}">
-                        {% if item.hostname %}
-                            {{ item.hostname }}
-                        {% else %}
-                            {{ item.serial }}
-                        {% endif %}
+                        {{ item.hostname }}
                         </a>
                     </td>
 

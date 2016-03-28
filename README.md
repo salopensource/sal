@@ -4,29 +4,29 @@ Sal is a multi-tenanted reporting dashboard for [Munki](https://github.com/munki
 
 With Sal, you are able to allow access to reports on certain sets of machines to certain people - for example, giving a manager access to the reports on the machines in their department.
 
-![Sal](docs/img/Sal.png)
+![Sal](assets/Sal.png)
 
 ## Getting Started
 
-First off, you're going to need to get the Server and then the Client component of Sal installed. [Instructions can be found here](https://github.com/salopensource/sal/blob/master/docs/Installation.md).
+First off, you're going to need to get the Server and then the Client component of Sal installed. [Instructions can be found here](https://github.com/salopensource/sal/wiki/Getting-Started).
 
-Once you've got clients reporting in, you're probably going to want to customise what you see on the various screens. [Here is a full list](https://github.com/salopensource/sal/blob/master/docs/Settings.md) of the various options that can be set in ``sal/settings.py``.
+Once you've got clients reporting in, you're probably going to want to customise what you see on the various screens. [Here is a full list](https://github.com/salopensource/sal/wiki/Settings) of the various options that can be set in ``sal/settings.py``.
 
 If you would like a demo of setting up Sal along with some of the features please watch the following presentation Graham made at the 2014 [Penn State MacAdmins Conference](http://youtu.be/BPTJnz27T44?t=21m28s). Slides available from [here](http://grahamgilbert.com/images/posts/2014-07-09/Multi_site_Munki.pdf).
 
 ## Search
 
-Sal has full search across machines, Facts and Munki conditions. For more information, see [it's documentation](https://github.com/salopensource/sal/blob/master/docs/Search.md).
+Sal has full search across machines, Facts and Munki conditions. For more information, see [it's documentation](https://github.com/salopensource/sal/wiki/Search).
 
 ## Plugins
 
-You can enable, disable and re-order your plugins from the Settings page, under the 'person' menu in the main menu bar. For more information on using and installing your own plugins, visit the [Using Plugins](https://github.com/salopensource/sal/blob/master/docs/Using%20Plugins.md) page.
+You can enable, disable and re-order your plugins from the Settings page, under the 'person' menu in the main menu bar. For more information on using and installing your own plugins, visit the [Using Plugins](https://github.com/salopensource/sal/wiki/Installing-and-using-plugins) page.
 
-After re-ordering and hiding plugins from some screens, you might even want to make your own plugins. You can base your plugin off of one of the included ones, or one of mine in the [repository of optional plugins](https://github.com/salopensource/grahamgilbert-plugins). Trust me it's easy if you know python, and completely possible even if you don't. If you want more information on creating your own plugin you can follow a series of posts from my blog [part 1](http://grahamgilbert.com/blog/2014/01/26/writing-plugins-for-sal-part-1/), [part 2](http://grahamgilbert.com/blog/2014/02/07/writing-plugins-for-sal-part-2/), and [part 3](http://grahamgilbert.com/blog/2014/02/17/writing-plugins-for-sal-part-3/).
+After re-ordering and hiding plugins from some screens, you might even want to make your own plugins. You can base your plugin off of one of the included ones, or one of mine in the [repository of optional plugins](https://github.com/salopensource/grahamgilbert-plugins). For more information on writing plugins, check out the [wiki](https://github.com/salopensource/sal/wiki).
 
 ## Brute force protection
 
-Sal has built in brute force protection. See it's [documentation](https://github.com/salopensource/sal/blob/master/docs/Settings.md) for more details or if you're using Docker, see how to turn it on in the [Readme](https://github.com/salopensource/sal/blob/master/docker/README.md).
+Sal has built in brute force protection. See it's [documentation](https://github.com/salopensource/sal/wiki/Brute-force-protection) for more details or if you're using Docker, see how to turn it on in the [Readme](https://github.com/salopensource/sal/blob/master/docker/README.md).
 
 ## LDAP Authentication
 
@@ -34,11 +34,11 @@ There is a variant of Sal that supports LDAP authenctication. At this time, only
 
 ## Having problems?
 
-You should check out the [troubleshooting](https://github.com/salopensource/sal/blob/master/docs/Troubleshooting.md) page.
+You should check out the [troubleshooting](https://github.com/salopensource/sal/wiki/Troubleshooting) page.
 
 ## API
 
-There is a simple API available for Sal. Documentation can be found at [docs/Api.md](https://github.com/salopensource/sal/blob/master/docs/API.md)
+There is a simple API available for Sal. Documentation can be found at [docs/Api.md](https://github.com/salopensource/sal/wiki/API)
 
 ## Discussion
 

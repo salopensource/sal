@@ -38,6 +38,30 @@ $( document ).ready(function() {
     });
 </script>
 {% endif %}
+{% if new_version_available == True and user.userprofile.level == 'GA' %}
+<script type="text/javascript">
+    $(window).load(function(){
+        $('#newVersion').modal('show');
+    });
+</script>
+{% endif %}
+{% endblock %}
+
+{% block plugins %}
+{% if reports %}
+<li class="dropdown">
+    <a class="dropdown-toggle" data-toggle="dropdown" href="#">
+        <i class="fa fa-th-large fa-fw"></i>  <i class="fa fa-caret-down"></i>
+    </a>
+    <ul class="dropdown-menu dropdown-plugin">
+        {% for report in reports %}
+        <li><a href="{% url 'report_load_front' report.name %}">{{report.title}}</a></li>
+        {% endfor %}
+    </ul>
+    <!-- /.dropdown-plugin -->
+</li>
+<!-- /.dropdown -->
+{% endif %}
 {% endblock %}
 
 {% block nav %}
@@ -92,9 +116,37 @@ $( document ).ready(function() {
       </div>
       <div class="modal-footer">
         <a href="{% url 'senddata_enable' %}" class="btn btn-success">Send usage data (and be awesome!)</a>
-        <a href="{% url 'senddata_disable' %}" class="btn btn-danger" href="#">Do not send usage data</a>
+        <a href="{% url 'senddata_disable' %}" class="btn btn-danger">Do not send usage data</a>
       </div>
     </div>
   </div>
+</div>
+
+<div class="modal fade" id="newVersion" tabindex="-1" role="dialog" aria-labelledby="newVersionLabel" aria-hidden="true" data-backdrop="static">
+<div class="modal-dialog">
+<div class="modal-content">
+  <div class="modal-header">
+    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+    <h4 class="modal-title" id="newVersionLabel">New version available</h4>
+  </div>
+  <div class="modal-body">
+    <p>Version <strong>{{ new_version }}</strong> of Sal has been released. You are currently running {{ current_version }}.</p>
+  </div>
+  <div class="modal-footer">
+    <a href="https://github.com/salopensource/sal/wiki" target="_blank" class="btn btn-success">How to upgrade</a>
+    <!-- Single button -->
+<div class="btn-group">
+  <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+    Don't remind me again... <span class="caret"></span>
+  </button>
+  <ul class="dropdown-menu new_version_dropdown">
+    <li class="new_version"><a href="#">For a day</a></li>
+    <li class="new_version"><a href="#">For a week</a></li>
+    <li class="new_version"><a href="{% url 'new_version_never' %}">Until the next version</a></li>
+  </ul>
+</div>
+  </div>
+</div>
+</div>
 </div>
 {% endblock %}

@@ -1,6 +1,6 @@
 # Sal Dockerfile
-# Version 0.3
-FROM ubuntu:14.04.1
+# Version 0.4
+FROM ubuntu:14.04.4
 
 MAINTAINER Graham Gilbert <graham@grahamgilbert.com>
 
@@ -16,6 +16,7 @@ ENV DOCKER_SAL_DEBUG false
 
 ADD / $APP_DIR
 RUN apt-get update && \
+    apt-get install -y libc-bin && \
     apt-get install -y software-properties-common && \
     apt-get -y update && \
     add-apt-repository -y ppa:nginx/stable && \
@@ -28,7 +29,6 @@ RUN apt-get update && \
     libpq-dev \
     python-dev \
     supervisor \
-    nano \
     libffi-dev && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*

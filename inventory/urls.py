@@ -10,9 +10,15 @@ urlpatterns = [
     url(r'^id_list/(?P<page>.+)/(?P<theID>.+)/$', views.inventory_list,
         name='inventory_list_id'),
     url(r'^hash/(?P<serial>.+)/$', views.inventory_hash),
-    url(r'^business_unit/(?P<bu_id>.+)/$', views.bu_inventory),
-    url(r'^machine_group/(?P<group_id>.+)/$', views.machine_group_inventory),
-    url(r'^machine/(?P<machine_id>.+)/$', views.machine_inventory),
+    url(r'^business_unit/(?P<bu_id>.+)/$',
+        views.BusinessUnitApplicationView.as_view(),
+        name="bu_inventory"),
+    url(r'^machine_group/(?P<group_id>.+)/$',
+        views.MachineGroupApplicationView.as_view(),
+        name="machine_group_inventory"),
+    # url(r'^machine/(?P<machine_id>.+)/$', views.machine_inventory),
+    url(r'^machine/(?P<machine_id>.+)/$',
+        views.MachineApplicationView.as_view(), name="machine_inventory"),
     # CSV Export (front page)
     url(r'^csv/$', views.export_csv, name='inventory_export_csv_front'),
     # CSV Export (id)

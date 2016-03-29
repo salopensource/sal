@@ -58,7 +58,6 @@ class ApplicationView(DatatableView):
         return super(ApplicationView, self).dispatch(*args, **kwargs)
 
 
-
 class ApplicationDetailView(DetailView):
     # TODO: There should be some access logic here, as presumably only
     # GA level should be able to see everything.
@@ -90,6 +89,35 @@ class ApplicationDetailView(DetailView):
     @method_decorator(login_required)
     def dispatch(self, *args, **kwargs):
         return super(ApplicationDetailView, self).dispatch(*args, **kwargs)
+
+
+# TODO: The next three classes can all be refactored into one.
+class BusinessUnitApplicationView(ApplicationView):
+
+    def get_queryset(self):
+        self.business_unit = get_object_or_404(
+            BusinessUnit, pk=self.kwargs['bu_id'])
+        return Application.objects.filter(
+            inventoryitem__machine__machine_group__business_unit__name=
+            self.business_unit)
+
+
+class MachineGroupApplicationView(ApplicationView):
+
+    def get_queryset(self):
+        self.machine_group = get_object_or_404(
+            MachineGroup, pk=self.kwargs['group_id'])
+        return Application.objects.filter(
+            inventoryitem__machine__machine_group=self.machine_group)
+
+
+class MachineApplicationView(ApplicationView):
+
+    def get_queryset(self):
+        self.machine = get_object_or_404(
+            Machine, pk=self.kwargs['machine_id'])
+        return Application.objects.filter(
+            inventoryitem__machine=self.machine)
 
 
 @csrf_exempt
@@ -156,47 +184,108 @@ def is_postgres():
 
 
 # TODO: Unrefactored below!
-def unique_apps(inventory, input_type='object'):
-    found = []
-    for inventory_item in inventory:
-        found_flag = False
-        if input_type == 'dict':
-            for found_item in found:
-                if (inventory_item['name'] == found_item['name'] and
-                    inventory_item['version'] == found_item['version'] and
-                    inventory_item['bundleid'] == found_item['bundleid'] and
-                    inventory_item['bundlename'] == found_item['bundlename'] and
-                    inventory_item['path'] == found_item['path']):
-                    found_flag = True
-                    break
-            if found_flag == False:
-                found_item = {}
-                found_item['name'] = inventory_item['name']
-                found_item['version'] = inventory_item['version']
-                found_item['bundleid'] = inventory_item['bundleid']
-                found_item['bundlename'] = inventory_item['bundlename']
-                found_item['path'] = inventory_item['path']
-                found.append(found_item)
+def decode_to_string(base64bz2data):
+    '''Decodes an inventory submission, which is a plist-encoded
+    list, compressed via bz2 and base64 encoded.'''
+    try:
+        bz2data = base64.b64decode(base64bz2data)
+        return bz2.decompress(bz2data)
+    except Exception:
+        return ''
+
+
+@csrf_exempt
+def inventory_hash(request, serial):
+    sha256hash = "'
+    machine = None
+    if serial:
+        try:
+            machine = Machine.objects.get(serial=serial)
+            inventory_meta = Inventory.objects.get(machine=machine)
+            sha256hash = inventory_meta.sha256hash
+        except (Machine.DoesNotExist, Inventory.DoesNotExist):
+            pass
+    else:
+        return HttpResponse("MACHINE NOT FOUND")
+    return HttpResponse(sha256hash)
+
+
+@login_required
+def export_csv(request, page='front', theID=None):
+    user = request.user
+    title = 'Inventory Export'
+    inventory_name = request.GET.get('name')
+    inventory_version = request.GET.get('version', '0')
+    inventory_bundleid = request.GET.get('bundleid', '')
+    inventory_path = request.GET.get('path')
+    inventory_bundlename = request.GET.get('bundlename','')
+    # get a list of machines (either from the BU or the group)
+    if page == 'front':
+        # get all machines
+        if user.userprofile.level == 'GA':
+            machines = Machine.objects.all()
         else:
-            for found_item in found:
-                if (inventory_item.name == found_item['name'] and
-                    inventory_item.version == found_item['version'] and
-                    inventory_item.bundleid == found_item['bundleid'] and
-                    inventory_item.bundlename == found_item['bundlename'] and
-                    inventory_item.path == found_item['path']):
-                    found_flag = True
-                    break
-            if found_flag == False:
-                found_item = {}
-                found_item['name'] = inventory_item.name
-                found_item['version'] = inventory_item.version
-                found_item['bundleid'] = inventory_item.bundleid
-                found_item['bundlename'] = inventory_item.bundlename
-                found_item['path'] = inventory_item.path
-                found.append(found_item)
-    return found
+            machines = Machine.objects.none()
+            for business_unit in user.businessunit_set.all():
+                for group in business_unit.machinegroup_set.all():
+                    machines = machines | group.machine_set.all()
+    if page == 'bu_dashboard':
+        # only get machines for that BU
+        # Need to make sure the user is allowed to see this
+        business_unit = get_object_or_404(BusinessUnit, pk=theID)
+        machine_groups = MachineGroup.objects.filter(business_unit=business_unit).prefetch_related('machine_set').all()
+
+        if machine_groups.count() != 0:
+            machines_unsorted = machine_groups[0].machine_set.all()
+            for machine_group in machine_groups[1:]:
+                machines_unsorted = machines_unsorted | machine_group.machine_set.all()
+        else:
+            machines_unsorted = None
+        machines=machines_unsorted
+
+    if page == 'group_dashboard':
+        # only get machines from that group
+        machine_group = get_object_or_404(MachineGroup, pk=theID)
+        # check that the user has access to this
+        machines = Machine.objects.filter(machine_group=machine_group)
+
+    if page == 'machine_id':
+        machines = Machine.objects.filter(id=theID)
+
+    # get the InventoryItems limited to the machines we're allowed to look at
+    inventoryitems = InventoryItem.objects.filter(name=inventory_name, version=inventory_version, bundleid=inventory_bundleid, bundlename=inventory_bundlename).filter(machine=machines).order_by('name')
+
+    machines = machines.filter(inventoryitem__name=inventory_name, inventoryitem__version=inventory_version, inventoryitem__bundleid=inventory_bundleid, inventoryitem__bundlename=inventory_bundlename)
+
+    # Create the HttpResponse object with the appropriate CSV header.
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = 'attachment; filename="%s.csv"' % title
+
+    writer = csv.writer(response)
+    # Fields
+    header_row = []
+    fields = Machine._meta.get_fields()
+    for field in fields:
+        if not field.is_relation and field.name != 'id' and field.name != 'report' and field.name != 'activity' and field.name != 'os_family':
+            header_row.append(field.name)
+    header_row.append('business_unit')
+    header_row.append('machine_group')
+    writer.writerow(header_row)
+    for machine in machines:
+        row = []
+        for name, value in machine.get_fields():
+            if name != 'id' and name !='machine_group' and name != 'report' and name != 'activity' and name != 'os_family':
+                row.append(value.strip())
+        row.append(machine.machine_group.business_unit.name)
+        row.append(machine.machine_group.name)
+        writer.writerow(row)
+        #writer.writerow([machine.serial, machine.machine_group.business_unit.name, machine.machine_group.name,
+        #machine.hostname, machine.operating_system, machine.memory, machine.memory_kb, machine.munki_version, machine.manifest])
+
+    return response
 
 
+# TODO: I think this can be done away with.
 @login_required
 def inventory_list(request, page='front', theID=None):
     user = request.user
@@ -254,32 +343,7 @@ def inventory_list(request, page='front', theID=None):
     return render_to_response('inventory/overview_list_all.html', c, context_instance=RequestContext(request))
 
 
-def decode_to_string(base64bz2data):
-    '''Decodes an inventory submission, which is a plist-encoded
-    list, compressed via bz2 and base64 encoded.'''
-    try:
-        bz2data = base64.b64decode(base64bz2data)
-        return bz2.decompress(bz2data)
-    except Exception:
-        return ''
-
-
-@csrf_exempt
-def inventory_hash(request, serial):
-    sha256hash = ''
-    machine = None
-    if serial:
-        try:
-            machine = Machine.objects.get(serial=serial)
-            inventory_meta = Inventory.objects.get(machine=machine)
-            sha256hash = inventory_meta.sha256hash
-        except (Machine.DoesNotExist, Inventory.DoesNotExist):
-            pass
-    else:
-        return HttpResponse("MACHINE NOT FOUND")
-    return HttpResponse(sha256hash)
-
-
+# Deprecated, but not removed.
 @login_required
 def bu_inventory(request, bu_id):
     user = request.user
@@ -379,79 +443,45 @@ def machine_inventory(request, machine_id):
     return render_to_response('inventory/index.html', c, context_instance=RequestContext(request))
 
 
-@login_required
-def export_csv(request, page='front', theID=None):
-    user = request.user
-    title = 'Inventory Export'
-    inventory_name = request.GET.get('name')
-    inventory_version = request.GET.get('version', '0')
-    inventory_bundleid = request.GET.get('bundleid', '')
-    inventory_path = request.GET.get('path')
-    inventory_bundlename = request.GET.get('bundlename','')
-    # get a list of machines (either from the BU or the group)
-    if page == 'front':
-        # get all machines
-        if user.userprofile.level == 'GA':
-            machines = Machine.objects.all()
+def unique_apps(inventory, input_type='object'):
+    found = []
+    for inventory_item in inventory:
+        found_flag = False
+        if input_type == 'dict':
+            for found_item in found:
+                if (inventory_item['name'] == found_item['name'] and
+                    inventory_item['version'] == found_item['version'] and
+                    inventory_item['bundleid'] == found_item['bundleid'] and
+                    inventory_item['bundlename'] == found_item['bundlename'] and
+                    inventory_item['path'] == found_item['path']):
+                    found_flag = True
+                    break
+            if found_flag == False:
+                found_item = {}
+                found_item['name'] = inventory_item['name']
+                found_item['version'] = inventory_item['version']
+                found_item['bundleid'] = inventory_item['bundleid']
+                found_item['bundlename'] = inventory_item['bundlename']
+                found_item['path'] = inventory_item['path']
+                found.append(found_item)
         else:
-            machines = Machine.objects.none()
-            for business_unit in user.businessunit_set.all():
-                for group in business_unit.machinegroup_set.all():
-                    machines = machines | group.machine_set.all()
-    if page == 'bu_dashboard':
-        # only get machines for that BU
-        # Need to make sure the user is allowed to see this
-        business_unit = get_object_or_404(BusinessUnit, pk=theID)
-        machine_groups = MachineGroup.objects.filter(business_unit=business_unit).prefetch_related('machine_set').all()
-
-        if machine_groups.count() != 0:
-            machines_unsorted = machine_groups[0].machine_set.all()
-            for machine_group in machine_groups[1:]:
-                machines_unsorted = machines_unsorted | machine_group.machine_set.all()
-        else:
-            machines_unsorted = None
-        machines=machines_unsorted
-
-    if page == 'group_dashboard':
-        # only get machines from that group
-        machine_group = get_object_or_404(MachineGroup, pk=theID)
-        # check that the user has access to this
-        machines = Machine.objects.filter(machine_group=machine_group)
-
-    if page == 'machine_id':
-        machines = Machine.objects.filter(id=theID)
-
-    # get the InventoryItems limited to the machines we're allowed to look at
-    inventoryitems = InventoryItem.objects.filter(name=inventory_name, version=inventory_version, bundleid=inventory_bundleid, bundlename=inventory_bundlename).filter(machine=machines).order_by('name')
-
-    machines = machines.filter(inventoryitem__name=inventory_name, inventoryitem__version=inventory_version, inventoryitem__bundleid=inventory_bundleid, inventoryitem__bundlename=inventory_bundlename)
-
-    # Create the HttpResponse object with the appropriate CSV header.
-    response = HttpResponse(content_type='text/csv')
-    response['Content-Disposition'] = 'attachment; filename="%s.csv"' % title
-
-    writer = csv.writer(response)
-    # Fields
-    header_row = []
-    fields = Machine._meta.get_fields()
-    for field in fields:
-        if not field.is_relation and field.name != 'id' and field.name != 'report' and field.name != 'activity' and field.name != 'os_family':
-            header_row.append(field.name)
-    header_row.append('business_unit')
-    header_row.append('machine_group')
-    writer.writerow(header_row)
-    for machine in machines:
-        row = []
-        for name, value in machine.get_fields():
-            if name != 'id' and name !='machine_group' and name != 'report' and name != 'activity' and name != 'os_family':
-                row.append(value.strip())
-        row.append(machine.machine_group.business_unit.name)
-        row.append(machine.machine_group.name)
-        writer.writerow(row)
-        #writer.writerow([machine.serial, machine.machine_group.business_unit.name, machine.machine_group.name,
-        #machine.hostname, machine.operating_system, machine.memory, machine.memory_kb, machine.munki_version, machine.manifest])
-
-    return response
+            for found_item in found:
+                if (inventory_item.name == found_item['name'] and
+                    inventory_item.version == found_item['version'] and
+                    inventory_item.bundleid == found_item['bundleid'] and
+                    inventory_item.bundlename == found_item['bundlename'] and
+                    inventory_item.path == found_item['path']):
+                    found_flag = True
+                    break
+            if found_flag == False:
+                found_item = {}
+                found_item['name'] = inventory_item.name
+                found_item['version'] = inventory_item.version
+                found_item['bundleid'] = inventory_item.bundleid
+                found_item['bundlename'] = inventory_item.bundlename
+                found_item['path'] = inventory_item.path
+                found.append(found_item)
+    return found
 
 
 # TODO: This isn't used.

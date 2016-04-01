@@ -25,7 +25,7 @@ from django.shortcuts import (get_object_or_404, redirect, render_to_response,
 from django.template import Context, RequestContext, Template
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
-from django.views.generic import DetailView
+from django.views.generic import DetailView, View
 import django_tables2 as tables
 import datatableview
 from datatableview.views import DatatableView
@@ -36,6 +36,15 @@ from server import utils
 from server.models import *
 
 
+def class_login_required(cls):
+    if not isinstance(cls, type) or not issubclass(cls, View):
+        raise Exception("Must be applied to subclass of View")
+    decorator = method_decorator(login_required)
+    cls.dispatch = decorator(cls.dispatch)
+    return cls
+
+
+@class_login_required
 class ApplicationView(DatatableView):
     model = Application
     template_name = "inventory/application_list.html"
@@ -53,11 +62,12 @@ class ApplicationView(DatatableView):
         return ('<span class="badge">%s</span>' %
                 instance.inventoryitem_set.count())
 
-    @method_decorator(login_required)
-    def dispatch(self, *args, **kwargs):
-        return super(ApplicationView, self).dispatch(*args, **kwargs)
+    # @method_decorator(login_required)
+    # def dispatch(self, *args, **kwargs):
+    #     return super(ApplicationView, self).dispatch(*args, **kwargs)
 
 
+@class_login_required
 class ApplicationDetailView(DetailView):
     # TODO: There should be some access logic here, as presumably only
     # GA level should be able to see everything.
@@ -85,10 +95,6 @@ class ApplicationDetailView(DetailView):
             for path in paths]
         context["install_count"] = self.object.inventoryitem_set.count()
         return context
-
-    @method_decorator(login_required)
-    def dispatch(self, *args, **kwargs):
-        return super(ApplicationDetailView, self).dispatch(*args, **kwargs)
 
 
 # TODO: The next three classes can all be refactored into one.
@@ -183,6 +189,14 @@ def is_postgres():
     return db_setting == postgres_backend
 
 
+# def require_authenticated_bu():
+
+#     def decorator(cls):
+#         if not isinstance(cls, type) or not issubclass(cls, DataTableView):
+#             raise Exception("Must be applied to subclass of DataTableView")
+#         check_auth = method_decorator(login_required)
+
+
 # TODO: Unrefactored below!
 def decode_to_string(base64bz2data):
     '''Decodes an inventory submission, which is a plist-encoded
@@ -196,7 +210,7 @@ def decode_to_string(base64bz2data):
 
 @csrf_exempt
 def inventory_hash(request, serial):
-    sha256hash = "'
+    sha256hash = ""
     machine = None
     if serial:
         try:

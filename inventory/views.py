@@ -56,6 +56,7 @@ class ApplicationView(DatatableView):
                     ("Install Count", None, "get_install_count")]}
 
     def get_name_link(self, instance, *args, **kwargs):
+        # TODO: I don't understand how this "just works".
         return '<a href="application/%s">%s</a>' % (instance.pk, instance.name)
 
     def get_install_count(self, instance, *args, **kwargs):
@@ -69,14 +70,23 @@ class ApplicationView(DatatableView):
 
 @class_login_required
 class ApplicationDetailView(DetailView):
-    # TODO: There should be some access logic here, as presumably only
-    # GA level should be able to see everything.
+    # TODO: ALL DatatabeViews are linking to this for details. Need to be able
+    # to handle the different URLs. (hint-add in one URL for each type and get
+    # BU and MG from the context.
     model = Application
     template_name = "inventory/application_detail.html"
 
     def get_context_data(self, **kwargs):
         context = super(ApplicationDetailView, self).get_context_data(**kwargs)
-        details = self.object.inventoryitem_set.values("version", "path")
+
+        if "bu_id" in self.kwargs:
+            bu = get_object_or_404(BusinessUnit, pk=self.kwargs["bu_id"])
+            bu_machines = [machine.id for mg in bu.machinegroup_set.all() for machine in mg.machine_set.all()]
+
+            details = self.object.inventoryitem_set.values(
+                "version", "path", "machine").filter(machine__machine_group__business_unit=bu)
+        else:
+            details = self.object.inventoryitem_set.values("version", "path")
 
         # TODO: Need to profile to see if this is necessary.
         if is_postgres():
@@ -93,11 +103,13 @@ class ApplicationDetailView(DetailView):
         context["paths"] = [
             {"path": path, "count": details.filter(path=path).count()}
             for path in paths]
-        context["install_count"] = self.object.inventoryitem_set.count()
+        # context["install_count"] = self.object.inventoryitem_set.count()
+        context["install_count"] = details.count()
         return context
 
 
 # TODO: The next three classes can all be refactored into one.
+# TODO: Override get_name_link to use different detail URL.
 class BusinessUnitApplicationView(ApplicationView):
 
     def get_queryset(self):

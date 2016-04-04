@@ -60,38 +60,35 @@ class ApplicationView(DatatableView):
         return '<a href="application/%s">%s</a>' % (instance.pk, instance.name)
 
     def get_install_count(self, instance, *args, **kwargs):
-        return ('<span class="badge">%s</span>' %
-                instance.inventoryitem_set.count())
-
-    # @method_decorator(login_required)
-    # def dispatch(self, *args, **kwargs):
-    #     return super(ApplicationView, self).dispatch(*args, **kwargs)
+        inventory_items = instance.inventoryitem_set
+        if "group_id" in self.kwargs:
+            machine_group = get_object_or_404(
+                MachineGroup, pk=self.kwargs["group_id"])
+            inventory_items = inventory_items.filter(
+                machine__machine_group=machine_group)
+        elif "bu_id" in self.kwargs:
+            bu = get_object_or_404(BusinessUnit, pk=self.kwargs["bu_id"])
+            inventory_items = inventory_items.filter(
+                machine__machine_group__business_unit=bu)
+        return ('<span class="badge">%s</span>' % inventory_items.count())
 
 
 @class_login_required
 class ApplicationDetailView(DetailView):
-    # TODO: ALL DatatabeViews are linking to this for details. Need to be able
-    # to handle the different URLs. (hint-add in one URL for each type and get
-    # BU and MG from the context.
     model = Application
     template_name = "inventory/application_detail.html"
 
     def get_context_data(self, **kwargs):
         context = super(ApplicationDetailView, self).get_context_data(**kwargs)
 
-        if "machine_group" in self.kwargs:
+        if "group_id" in self.kwargs:
             machine_group = get_object_or_404(
-                MachineGroup, pk=self.kwargs["machine_group"])
-            # mg_machines = [machine.id for mg in bu.machinegroup_set.all() for
-            #                machine in mg.machine_set.all()]
+                MachineGroup, pk=self.kwargs["group_id"])
             details = self.object.inventoryitem_set.values(
                 "version", "path", "machine").filter(
                     machine__machine_group=machine_group)
         elif "bu_id" in self.kwargs:
             bu = get_object_or_404(BusinessUnit, pk=self.kwargs["bu_id"])
-            # bu_machines = [machine.id for mg in bu.machinegroup_set.all() for
-            #                machine in mg.machine_set.all()]
-
             details = self.object.inventoryitem_set.values(
                 "version", "path", "machine").filter(
                     machine__machine_group__business_unit=bu)

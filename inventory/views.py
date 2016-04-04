@@ -79,12 +79,22 @@ class ApplicationDetailView(DetailView):
     def get_context_data(self, **kwargs):
         context = super(ApplicationDetailView, self).get_context_data(**kwargs)
 
-        if "bu_id" in self.kwargs:
+        if "machine_group" in self.kwargs:
+            machine_group = get_object_or_404(
+                MachineGroup, pk=self.kwargs["machine_group"])
+            # mg_machines = [machine.id for mg in bu.machinegroup_set.all() for
+            #                machine in mg.machine_set.all()]
+            details = self.object.inventoryitem_set.values(
+                "version", "path", "machine").filter(
+                    machine__machine_group=machine_group)
+        elif "bu_id" in self.kwargs:
             bu = get_object_or_404(BusinessUnit, pk=self.kwargs["bu_id"])
-            bu_machines = [machine.id for mg in bu.machinegroup_set.all() for machine in mg.machine_set.all()]
+            # bu_machines = [machine.id for mg in bu.machinegroup_set.all() for
+            #                machine in mg.machine_set.all()]
 
             details = self.object.inventoryitem_set.values(
-                "version", "path", "machine").filter(machine__machine_group__business_unit=bu)
+                "version", "path", "machine").filter(
+                    machine__machine_group__business_unit=bu)
         else:
             details = self.object.inventoryitem_set.values("version", "path")
 
@@ -201,14 +211,6 @@ def is_postgres():
     return db_setting == postgres_backend
 
 
-# def require_authenticated_bu():
-
-#     def decorator(cls):
-#         if not isinstance(cls, type) or not issubclass(cls, DataTableView):
-#             raise Exception("Must be applied to subclass of DataTableView")
-#         check_auth = method_decorator(login_required)
-
-
 # TODO: Unrefactored below!
 def decode_to_string(base64bz2data):
     '''Decodes an inventory submission, which is a plist-encoded
@@ -312,61 +314,61 @@ def export_csv(request, page='front', theID=None):
 
 
 # TODO: I think this can be done away with.
-@login_required
-def inventory_list(request, page='front', theID=None):
-    user = request.user
-    title=None
-    inventory_name = request.GET.get('name')
-    inventory_version = request.GET.get('version', '0')
-    inventory_bundleid = request.GET.get('bundleid', '')
-    inventory_path = request.GET.get('path')
-    inventory_bundlename = request.GET.get('bundlename','')
+# @login_required
+# def inventory_list(request, page='front', theID=None):
+#     user = request.user
+#     title=None
+#     inventory_name = request.GET.get('name')
+#     inventory_version = request.GET.get('version', '0')
+#     inventory_bundleid = request.GET.get('bundleid', '')
+#     inventory_path = request.GET.get('path')
+#     inventory_bundlename = request.GET.get('bundlename','')
 
-    # get a list of machines (either from the BU or the group)
-    if page == 'front':
-        # get all machines
-        if user.userprofile.level == 'GA':
-            machines = Machine.objects.all()
-        else:
-            machines = Machine.objects.none()
-            for business_unit in user.businessunit_set.all():
-                for group in business_unit.machinegroup_set.all():
-                    machines = machines | group.machine_set.all()
-    if page == 'bu_dashboard':
-        # only get machines for that BU
-        # Need to make sure the user is allowed to see this
+#     # get a list of machines (either from the BU or the group)
+#     if page == 'front':
+#         # get all machines
+#         if user.userprofile.level == 'GA':
+#             machines = Machine.objects.all()
+#         else:
+#             machines = Machine.objects.none()
+#             for business_unit in user.businessunit_set.all():
+#                 for group in business_unit.machinegroup_set.all():
+#                     machines = machines | group.machine_set.all()
+#     if page == 'bu_dashboard':
+#         # only get machines for that BU
+#         # Need to make sure the user is allowed to see this
 
-        machines = utils.getBUmachines(theID)
+#         machines = utils.getBUmachines(theID)
 
-    if page == 'group_dashboard' or page == 'machine_group':
-        # only get machines from that group
-        machine_group = get_object_or_404(MachineGroup, pk=theID)
-        # check that the user has access to this
-        machines = Machine.objects.filter(machine_group=machine_group)
+#     if page == 'group_dashboard' or page == 'machine_group':
+#         # only get machines from that group
+#         machine_group = get_object_or_404(MachineGroup, pk=theID)
+#         # check that the user has access to this
+#         machines = Machine.objects.filter(machine_group=machine_group)
 
-    if page == 'machine_id':
-        machines = Machine.objects.filter(id=theID)
+#     if page == 'machine_id':
+#         machines = Machine.objects.filter(id=theID)
 
-    try:
-        page = int(request.GET.get('page'))
-    except:
-        page = 1
+#     try:
+#         page = int(request.GET.get('page'))
+#     except:
+#         page = 1
 
-    previous_id = page - 1
-    next_id = page + 1
-    start = (page - 1) * 25
-    end = page * 25
+#     previous_id = page - 1
+#     next_id = page + 1
+#     start = (page - 1) * 25
+#     end = page * 25
 
-    # get the InventoryItems limited to the machines we're allowed to look at
-    inventory = InventoryItem.objects.filter(name=inventory_name, version=inventory_version, bundleid=inventory_bundleid, bundlename=inventory_bundlename).filter(machine=machines)[start:end]
+#     # get the InventoryItems limited to the machines we're allowed to look at
+#     inventory = InventoryItem.objects.filter(name=inventory_name, version=inventory_version, bundleid=inventory_bundleid, bundlename=inventory_bundlename).filter(machine=machines)[start:end]
 
-    if len(inventory) != 25:
-        # we've not got 25 results, probably the last page
-        next_id = 0
+#     if len(inventory) != 25:
+#         # we've not got 25 results, probably the last page
+#         next_id = 0
 
-    c = {'user':user, 'machines': machines, 'req_type': page, 'title': title, 'bu_id': theID, 'request':request, 'inventory_name':inventory_name, 'inventory_version':inventory_version, 'inventory_bundleid':inventory_bundleid, 'inventory_bundlename':inventory_bundlename, 'previous_id': previous_id, 'next_id':next_id, 'inventory':inventory }
+#     c = {'user':user, 'machines': machines, 'req_type': page, 'title': title, 'bu_id': theID, 'request':request, 'inventory_name':inventory_name, 'inventory_version':inventory_version, 'inventory_bundleid':inventory_bundleid, 'inventory_bundlename':inventory_bundlename, 'previous_id': previous_id, 'next_id':next_id, 'inventory':inventory }
 
-    return render_to_response('inventory/overview_list_all.html', c, context_instance=RequestContext(request))
+#     return render_to_response('inventory/overview_list_all.html', c, context_instance=RequestContext(request))
 
 
 # Deprecated, but not removed.

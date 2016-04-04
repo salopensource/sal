@@ -12,7 +12,7 @@ urlpatterns = [
     # Hash
     url(r'^hash/(?P<serial>.+)/$', views.inventory_hash),
     # Machine Group Application Detail
-    url(r'^machine_group/(?P<machine_group>[0-9]+)/'
+    url(r'^machine_group/(?P<group_id>[0-9]+)/'
         r'application/(?P<pk>[0-9]+)/$',
         views.ApplicationDetailView.as_view(),
         name="mg-application-detail"),

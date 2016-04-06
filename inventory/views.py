@@ -38,6 +38,18 @@ from server import utils
 from sal.decorators import class_login_required, class_access_required
 from server.models import *
 
+@class_login_required
+@class_access_required
+class InventoryListView(DatatableView):
+    model = Inventory
+    template_name = "inventory/inventory_list.html"
+    datatable_options = {
+        'structure_template': 'datatableview/bootstrap_structure.html',
+        'columns': [('Machine', 'machine'),
+                    ("Serial Number", "machine__serial"),
+                    ("Date", 'datestamp'),
+                    ("User", "machine__console_user")]}
+
 
 @class_login_required
 @class_access_required
@@ -229,7 +241,6 @@ def is_postgres():
     return db_setting == postgres_backend
 
 
-# TODO: Unrefactored below!
 @csrf_exempt
 def inventory_hash(request, serial):
     sha256hash = ""
@@ -246,6 +257,7 @@ def inventory_hash(request, serial):
     return HttpResponse(sha256hash)
 
 
+# TODO: Unrefactored below!
 @login_required
 def export_csv(request, page='front', theID=None):
     user = request.user
@@ -321,221 +333,60 @@ def export_csv(request, page='front', theID=None):
     return response
 
 
-# TODO: I think this can be done away with.
-# @login_required
-# def inventory_list(request, page='front', theID=None):
-#     user = request.user
-#     title=None
-#     inventory_name = request.GET.get('name')
-#     inventory_version = request.GET.get('version', '0')
-#     inventory_bundleid = request.GET.get('bundleid', '')
-#     inventory_path = request.GET.get('path')
-#     inventory_bundlename = request.GET.get('bundlename','')
-
-#     # get a list of machines (either from the BU or the group)
-#     if page == 'front':
-#         # get all machines
-#         if user.userprofile.level == 'GA':
-#             machines = Machine.objects.all()
-#         else:
-#             machines = Machine.objects.none()
-#             for business_unit in user.businessunit_set.all():
-#                 for group in business_unit.machinegroup_set.all():
-#                     machines = machines | group.machine_set.all()
-#     if page == 'bu_dashboard':
-#         # only get machines for that BU
-#         # Need to make sure the user is allowed to see this
-
-#         machines = utils.getBUmachines(theID)
-
-#     if page == 'group_dashboard' or page == 'machine_group':
-#         # only get machines from that group
-#         machine_group = get_object_or_404(MachineGroup, pk=theID)
-#         # check that the user has access to this
-#         machines = Machine.objects.filter(machine_group=machine_group)
-
-#     if page == 'machine_id':
-#         machines = Machine.objects.filter(id=theID)
-
-#     try:
-#         page = int(request.GET.get('page'))
-#     except:
-#         page = 1
-
-#     previous_id = page - 1
-#     next_id = page + 1
-#     start = (page - 1) * 25
-#     end = page * 25
-
-#     # get the InventoryItems limited to the machines we're allowed to look at
-#     inventory = InventoryItem.objects.filter(name=inventory_name, version=inventory_version, bundleid=inventory_bundleid, bundlename=inventory_bundlename).filter(machine=machines)[start:end]
-
-#     if len(inventory) != 25:
-#         # we've not got 25 results, probably the last page
-#         next_id = 0
-
-#     c = {'user':user, 'machines': machines, 'req_type': page, 'title': title, 'bu_id': theID, 'request':request, 'inventory_name':inventory_name, 'inventory_version':inventory_version, 'inventory_bundleid':inventory_bundleid, 'inventory_bundlename':inventory_bundlename, 'previous_id': previous_id, 'next_id':next_id, 'inventory':inventory }
-
-#     return render_to_response('inventory/overview_list_all.html', c, context_instance=RequestContext(request))
-
-
-# Deprecated, but not removed.
+# TODO: Remove, and with template.
 @login_required
-def bu_inventory(request, bu_id):
+def inventory_list(request, page='front', theID=None):
     user = request.user
-    user_level = user.userprofile.level
-    business_unit = get_object_or_404(BusinessUnit, pk=bu_id)
-    if business_unit not in user.businessunit_set.all() and user_level != 'GA':
-        print 'not letting you in ' + user_level
-        return redirect(index)
-    try:
-        page = int(request.GET.get('page'))
-    except:
-        page = 1
+    title=None
+    inventory_name = request.GET.get('name')
+    inventory_version = request.GET.get('version', '0')
+    inventory_bundleid = request.GET.get('bundleid', '')
+    inventory_path = request.GET.get('path')
+    inventory_bundlename = request.GET.get('bundlename','')
 
-    previous_id = page - 1
-    next_id = page + 1
-    start = (page - 1) * 25
-    end = page * 25
-
-    if is_postgres():
-        inventory = InventoryItem.objects.filter(machine__machine_group__business_unit=business_unit).values('name', 'version', 'path', 'bundleid', 'bundlename').distinct()[start:end]
-    else:
-        inventory = InventoryItem.objects.filter(machine__machine_group__business_unit=business_unit).values('name', 'version', 'path', 'bundleid', 'bundlename')
-
-        inventory = unique_apps(inventory, 'dict')[start:end]
-    if len(inventory) != 25:
-        # we've not got 25 results, probably the last page
-        next_id = 0
-    c = {'user': request.user, 'inventory': inventory, 'page':'business_unit', 'business_unit':business_unit, 'request': request, 'previous_id': previous_id, 'next_id':next_id}
-    return render_to_response('inventory/index.html', c, context_instance=RequestContext(request))
-
-
-@login_required
-def machine_group_inventory(request, group_id):
-    user = request.user
-    user_level = user.userprofile.level
-    machine_group = get_object_or_404(MachineGroup, pk=group_id)
-    business_unit = machine_group.business_unit
-    if business_unit not in user.businessunit_set.all() and user_level != 'GA':
-        print 'not letting you in ' + user_level
-        return redirect(index)
-
-    try:
-        page = int(request.GET.get('page'))
-    except:
-        page = 1
-
-    previous_id = page - 1
-    next_id = page + 1
-    start = (page - 1) * 25
-    end = page * 25
-    if is_postgres():
-        inventory = InventoryItem.objects.filter(machine__machine_group=machine_group).values('name', 'version', 'path', 'bundleid', 'bundlename').distinct()[start:end]
-    else:
-        inventory = InventoryItem.objects.filter(machine__machine_group=machine_group).values('name', 'version', 'path', 'bundleid', 'bundlename')
-        inventory = unique_apps(inventory, 'dict')[start:end]
-    if len(inventory) != 25:
-        # we've not got 25 results, probably the last page
-        next_id = 0
-
-
-    c = {'user': request.user, 'inventory': inventory, 'page':'machine_group', 'business_unit':business_unit,'machine_group':machine_group, 'request': request, 'previous_id': previous_id, 'next_id':next_id}
-    return render_to_response('inventory/index.html', c, context_instance=RequestContext(request))
-
-
-@login_required
-def machine_inventory(request, machine_id):
-    user = request.user
-    user_level = user.userprofile.level
-    machine = get_object_or_404(Machine, pk=machine_id)
-    machine_group = machine.machine_group
-    business_unit = machine_group.business_unit
-    if business_unit not in user.businessunit_set.all() and user_level != 'GA':
-        print 'not letting you in ' + user_level
-        return redirect(index)
-
-    try:
-        page = int(request.GET.get('page'))
-    except:
-        page = 1
-
-    previous_id = page - 1
-    next_id = page + 1
-    start = (page - 1) * 25
-    end = page * 25
-    if is_postgres():
-        inventory = InventoryItem.objects.filter(machine=machine).values('name', 'version', 'path', 'bundleid', 'bundlename').distinct()[start:end]
-    else:
-        inventory = InventoryItem.objects.filter(machine=machine).values('name', 'version', 'path', 'bundleid', 'bundlename')
-        inventory = unique_apps(inventory, 'dict')[start:end]
-
-    if len(inventory) != 25:
-        # we've not got 25 results, probably the last page
-        next_id = 0
-
-
-    c = {'user': request.user, 'inventory': inventory, 'page':'machine_id', 'business_unit':business_unit,'machine':machine, 'request': request, 'previous_id': previous_id, 'next_id':next_id}
-    return render_to_response('inventory/index.html', c, context_instance=RequestContext(request))
-
-
-def unique_apps(inventory, input_type='object'):
-    found = []
-    for inventory_item in inventory:
-        found_flag = False
-        if input_type == 'dict':
-            for found_item in found:
-                if (inventory_item['name'] == found_item['name'] and
-                    inventory_item['version'] == found_item['version'] and
-                    inventory_item['bundleid'] == found_item['bundleid'] and
-                    inventory_item['bundlename'] == found_item['bundlename'] and
-                    inventory_item['path'] == found_item['path']):
-                    found_flag = True
-                    break
-            if found_flag == False:
-                found_item = {}
-                found_item['name'] = inventory_item['name']
-                found_item['version'] = inventory_item['version']
-                found_item['bundleid'] = inventory_item['bundleid']
-                found_item['bundlename'] = inventory_item['bundlename']
-                found_item['path'] = inventory_item['path']
-                found.append(found_item)
+    # get a list of machines (either from the BU or the group)
+    if page == 'front':
+        # get all machines
+        if user.userprofile.level == 'GA':
+            machines = Machine.objects.all()
         else:
-            for found_item in found:
-                if (inventory_item.name == found_item['name'] and
-                    inventory_item.version == found_item['version'] and
-                    inventory_item.bundleid == found_item['bundleid'] and
-                    inventory_item.bundlename == found_item['bundlename'] and
-                    inventory_item.path == found_item['path']):
-                    found_flag = True
-                    break
-            if found_flag == False:
-                found_item = {}
-                found_item['name'] = inventory_item.name
-                found_item['version'] = inventory_item.version
-                found_item['bundleid'] = inventory_item.bundleid
-                found_item['bundlename'] = inventory_item.bundlename
-                found_item['path'] = inventory_item.path
-                found.append(found_item)
-    return found
+            machines = Machine.objects.none()
+            for business_unit in user.businessunit_set.all():
+                for group in business_unit.machinegroup_set.all():
+                    machines = machines | group.machine_set.all()
+    if page == 'bu_dashboard':
+        # only get machines for that BU
+        # Need to make sure the user is allowed to see this
 
+        machines = utils.getBUmachines(theID)
 
-# TODO: This isn't used.
-@login_required
-def list_machines(request, page, name, version, bundleid, bundlename, path, id=None):
-    user = request.user
-    user_level = user.userprofile.level
-    machines = Machine.objects.all()
-    if page == 'group':
-        group = get_object_or_404(MachineGroup, pk=id)
-        machines = machines.filter(machine_group=group)
-    elif page == 'bu':
-        business_unit = get_object_or_404(BusinessUnit, pk=id)
-        machines = machines.filter(machine_group=machine_group__business_unit)
-    else:
-        if user_level == 'GA':
-            machines = machines
-        else:
-            for business_unit in BusinessUnit.objects.all():
-                if business_unit not in user.businessunit_set.all():
-                    machines = machines.exclude(machine_group__business_unit = business_unit)
+    if page == 'group_dashboard' or page == 'machine_group':
+        # only get machines from that group
+        machine_group = get_object_or_404(MachineGroup, pk=theID)
+        # check that the user has access to this
+        machines = Machine.objects.filter(machine_group=machine_group)
+
+    if page == 'machine_id':
+        machines = Machine.objects.filter(id=theID)
+
+    try:
+        page = int(request.GET.get('page'))
+    except:
+        page = 1
+
+    previous_id = page - 1
+    next_id = page + 1
+    start = (page - 1) * 25
+    end = page * 25
+
+    # get the InventoryItems limited to the machines we're allowed to look at
+    inventory = InventoryItem.objects.filter(name=inventory_name, version=inventory_version, bundleid=inventory_bundleid, bundlename=inventory_bundlename).filter(machine=machines)[start:end]
+
+    if len(inventory) != 25:
+        # we've not got 25 results, probably the last page
+        next_id = 0
+
+    c = {'user':user, 'machines': machines, 'req_type': page, 'title': title, 'bu_id': theID, 'request':request, 'inventory_name':inventory_name, 'inventory_version':inventory_version, 'inventory_bundleid':inventory_bundleid, 'inventory_bundlename':inventory_bundlename, 'previous_id': previous_id, 'next_id':next_id, 'inventory':inventory }
+
+    return render_to_response('inventory/overview_list_all.html', c, context_instance=RequestContext(request))
+

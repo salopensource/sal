@@ -16,12 +16,14 @@ from django import forms
 from django.conf import settings
 from django.contrib.auth.decorators import login_required, permission_required
 from django.core.context_processors import csrf
+from django.core.exceptions import PermissionDenied
 from django.core.urlresolvers import reverse
 from django.db.models import Q, Count
-from django.http import (Http404, HttpRequest, HttpResponse,
-                         HttpResponseNotFound, HttpResponseRedirect)
-from django.shortcuts import (get_object_or_404, redirect, render_to_response,
-                              render)
+from django.http import (
+    Http404, HttpRequest, HttpResponse, HttpResponseForbidden,
+    HttpResponseNotFound, HttpResponseRedirect)
+from django.shortcuts import (
+    get_object_or_404, redirect, render_to_response, render)
 from django.template import Context, RequestContext, Template
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
@@ -33,19 +35,12 @@ from datatableview.views import DatatableView
 # local Django
 from models import *
 from server import utils
+from sal.decorators import class_login_required, class_access_required
 from server.models import *
 
 
-def class_login_required(cls):
-    if not isinstance(cls, type) or not issubclass(cls, View):
-        raise Exception("Must be applied to subclass of View")
-    decorator = method_decorator(login_required)
-    cls.dispatch = decorator(cls.dispatch)
-    return cls
-
-
 @class_login_required
-class ApplicationView(DatatableView):
+class ApplicationListView(DatatableView):
     model = Application
     template_name = "inventory/application_list.html"
     datatable_options = {
@@ -79,8 +74,13 @@ class ApplicationDetailView(DetailView):
     template_name = "inventory/application_detail.html"
 
     def get_context_data(self, **kwargs):
+        details = self._get_filtered_queryset()
+        versions, paths = self._get_unique_items(details)
         context = super(ApplicationDetailView, self).get_context_data(**kwargs)
+        return self._build_context_data(context, details, versions, paths)
 
+    def _get_filtered_queryset(self):
+        """Filter results based on URL parameters / user access."""
         if "group_id" in self.kwargs:
             machine_group = get_object_or_404(
                 MachineGroup, pk=self.kwargs["group_id"])
@@ -92,10 +92,17 @@ class ApplicationDetailView(DetailView):
             details = self.object.inventoryitem_set.values(
                 "version", "path", "machine").filter(
                     machine__machine_group__business_unit=bu)
+        elif "machine_id" in self.kwargs:
+            machine = get_object_or_404(Machine, pk=self.kwargs["machine_id"])
+            details = self.object.inventoryitem_set.values(
+                "version", "path", "machine").filter(machine=machine)
         else:
             details = self.object.inventoryitem_set.values("version", "path")
 
-        # TODO: Need to profile to see if this is necessary.
+        return details
+
+    def _get_unique_items(self, details):
+        """Use optimized DB methods for getting unique items if possible."""
         if is_postgres():
             versions = self.object.inventoryitem_set.distinct("version")
             paths = self.object.inventoryitem_set.distinct("path")
@@ -103,21 +110,29 @@ class ApplicationDetailView(DetailView):
             versions = {item["version"] for item in details}
             paths = {item["path"] for item in details}
 
+        return (versions, paths)
+
+    def _build_context_data(self, context, details, versions, paths):
+        # Get list of dicts of installed versions and number of installs
+        # for each.
         context["versions"] = [
-            {"version": version, "count": details.filter(
-                version=version).count()}
-            for version in versions]
+            {"version": version,
+             "count": details.filter(version=version).count()} for
+            version in versions]
+        # Get list of dicts of installation locations and number of
+        # installs for each.
         context["paths"] = [
             {"path": path, "count": details.filter(path=path).count()}
             for path in paths]
-        # context["install_count"] = self.object.inventoryitem_set.count()
+        # Get the total number of installations.
         context["install_count"] = details.count()
+
         return context
 
 
-# TODO: The next three classes can all be refactored into one.
-# TODO: Override get_name_link to use different detail URL.
-class BusinessUnitApplicationView(ApplicationView):
+@class_login_required
+@class_access_required
+class BusinessUnitApplicationListView(ApplicationListView):
 
     def get_queryset(self):
         self.business_unit = get_object_or_404(
@@ -127,7 +142,9 @@ class BusinessUnitApplicationView(ApplicationView):
             self.business_unit)
 
 
-class MachineGroupApplicationView(ApplicationView):
+@class_login_required
+@class_access_required
+class MachineGroupApplicationListView(ApplicationListView):
 
     def get_queryset(self):
         self.machine_group = get_object_or_404(
@@ -136,7 +153,9 @@ class MachineGroupApplicationView(ApplicationView):
             inventoryitem__machine__machine_group=self.machine_group)
 
 
-class MachineApplicationView(ApplicationView):
+@class_login_required
+@class_access_required
+class MachineApplicationListView(ApplicationListView):
 
     def get_queryset(self):
         self.machine = get_object_or_404(
@@ -166,7 +185,7 @@ def inventory_submit(request):
         compressed_inventory = submission.get('base64bz2inventory')
         if compressed_inventory:
             compressed_inventory = compressed_inventory.replace(" ", "+")
-            inventory_str = decode_to_string(compressed_inventory)
+            inventory_str = utils.decode_to_string(compressed_inventory)
             try:
                 inventory_list = plistlib.readPlistFromString(inventory_str)
             except Exception:
@@ -209,16 +228,6 @@ def is_postgres():
 
 
 # TODO: Unrefactored below!
-def decode_to_string(base64bz2data):
-    '''Decodes an inventory submission, which is a plist-encoded
-    list, compressed via bz2 and base64 encoded.'''
-    try:
-        bz2data = base64.b64decode(base64bz2data)
-        return bz2.decompress(bz2data)
-    except Exception:
-        return ''
-
-
 @csrf_exempt
 def inventory_hash(request, serial):
     sha256hash = ""

@@ -38,10 +38,10 @@ def class_access_required(cls):
                     Machine,
                     pk=kwargs["machine_id"]).machine_group.business_unit
             else:
-                raise PermissionDenied()
+                business_unit = None
 
-            if (not user.userprofile.level == "GA" and business_unit
-                    not in user.businessunit_set.all()):
+            if (not user.userprofile.level == "GA" and (not business_unit or
+                business_unit not in user.businessunit_set.all())):
                 raise PermissionDenied()
             else:
                 return f(*args, **kwargs)

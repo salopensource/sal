@@ -40,6 +40,7 @@ from server.models import *
 
 
 @class_login_required
+@class_access_required
 class ApplicationListView(DatatableView):
     model = Application
     template_name = "inventory/application_list.html"
@@ -69,6 +70,7 @@ class ApplicationListView(DatatableView):
 
 
 @class_login_required
+@class_access_required
 class ApplicationDetailView(DetailView):
     model = Application
     template_name = "inventory/application_detail.html"

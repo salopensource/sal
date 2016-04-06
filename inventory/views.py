@@ -1,42 +1,26 @@
 # standard library
-import base64
-import bz2
 import hashlib
-import json
 import plistlib
-import urllib2
 from datetime import datetime
-from xml.etree import ElementTree
 
 # third-party
 import unicodecsv as csv
 
 # Django
-from django import forms
 from django.conf import settings
-from django.contrib.auth.decorators import login_required, permission_required
-from django.core.context_processors import csrf
-from django.core.exceptions import PermissionDenied
-from django.core.urlresolvers import reverse
-from django.db.models import Q, Count
-from django.http import (
-    Http404, HttpRequest, HttpResponse, HttpResponseForbidden,
-    HttpResponseNotFound, HttpResponseRedirect)
-from django.shortcuts import (
-    get_object_or_404, redirect, render_to_response, render)
-from django.template import Context, RequestContext, Template
-from django.utils.decorators import method_decorator
+from django.contrib.auth.decorators import login_required
+from django.http import HttpResponse, HttpResponseNotFound
+from django.shortcuts import get_object_or_404, render_to_response
+from django.template import RequestContext
 from django.views.decorators.csrf import csrf_exempt
-from django.views.generic import DetailView, View
-import django_tables2 as tables
-import datatableview
+from django.views.generic import DetailView
 from datatableview.views import DatatableView
 
 # local Django
-from models import *
+from models import Application, Inventory, InventoryItem
 from server import utils
 from sal.decorators import class_login_required, class_access_required
-from server.models import *
+from server.models import BusinessUnit, MachineGroup, Machine
 
 @class_login_required
 @class_access_required
@@ -257,7 +241,7 @@ def inventory_hash(request, serial):
     return HttpResponse(sha256hash)
 
 
-# TODO: Unrefactored below!
+# TODO: Refactor! (New models as well)
 @login_required
 def export_csv(request, page='front', theID=None):
     user = request.user
@@ -333,7 +317,6 @@ def export_csv(request, page='front', theID=None):
     return response
 
 
-# TODO: Remove, and with template.
 @login_required
 def inventory_list(request, page='front', theID=None):
     user = request.user
@@ -341,7 +324,8 @@ def inventory_list(request, page='front', theID=None):
     inventory_name = request.GET.get('name')
     inventory_version = request.GET.get('version', '0')
     inventory_bundleid = request.GET.get('bundleid', '')
-    inventory_path = request.GET.get('path')
+    # Unused
+    # inventory_path = request.GET.get('path')
     inventory_bundlename = request.GET.get('bundlename','')
 
     # get a list of machines (either from the BU or the group)

@@ -30,7 +30,5 @@ class InventoryItem(models.Model):
     version = models.CharField(db_index=True, max_length=32)
     path = models.TextField()
 
-    # class Meta:
-    #     ordering = ['name', '-version']
 
 watson.register(InventoryItem)

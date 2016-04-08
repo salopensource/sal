@@ -6,17 +6,19 @@ urlpatterns = [
     # Hash
     url(r'^hash/(?P<serial>.+)/$', views.inventory_hash),
     # CSV Export (front page)
-    url(r'^csv/$', views.export_csv, name='inventory_export_csv_front'),
-    # CSV Export (id)
-    url(r'^id_csv/(?P<page>.+)/(?P<theID>.+)/$', views.export_csv,
-        name='inventory_export_csv_id'),
+    # url(r'^csv/$', views.CSVExportView.as_view(), name='inventory_export_csv'),
+    # Temporary CSV Export View
+    url(r'^csv/(?P<group_type>.+)/'
+        r'(?P<group_id>[0-9]+)/'
+        r'(?P<application_id>[0-9]+)/$',
+        views.CSVExportView.as_view(), name='inventory_export_csv'),
     # Application Detail View
-     url(r'^application/'
-         r'(?P<pk>[0-9]+)/'
-         r'(?P<group_type>[a-zA-Z_-]+)/'
-         r'(?P<group_id>[0-9]+)/$',
-         views.ApplicationDetailView.as_view(),
-         name="application_detail"),
+    url(r'^application/'
+        r'(?P<pk>[0-9]+)/'
+        r'(?P<group_type>[a-zA-Z_-]+)/'
+        r'(?P<group_id>[0-9]+)/$',
+        views.ApplicationDetailView.as_view(),
+        name="application_detail"),
     # Install List View
     url(r'^list/(?P<group_type>.+)/'
         r'(?P<group_id>[0-9]+)/'

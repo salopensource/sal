@@ -43,7 +43,8 @@
 <div class="panel panel-default">
 
     <div class="panel-heading">
-			Inventories for {{ app_name }} where {{ field_type }} is {{ field_value }}
+			{% if group_type == "all" %}All machines {% else %}Machines from {{ group_type|title }}: {{ group_name }}{% endif %}
+			{% if field_type == "all" %}with application {{ app_name }}{% else %}where {{ app_name }} {{ field_type }} is {{ field_value }}{% endif %}
     </div>
 
 <div class="panel-body">

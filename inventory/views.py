@@ -10,7 +10,8 @@ import unicodecsv as csv
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.core.urlresolvers import reverse
-from django.http import HttpResponse, HttpResponseNotFound
+from django.http import (HttpResponse, HttpResponseNotFound,
+                         HttpResponseBadRequest)
 from django.shortcuts import get_object_or_404, render_to_response
 from django.template import RequestContext
 from django.views.decorators.csrf import csrf_exempt
@@ -67,21 +68,21 @@ class InventoryListView(DatatableView, GroupMixin):
         # Filter Application.objects based on type.
         # group_type = self.kwargs["group_type"]
         group_type = self.kwargs["group_type"]
-        if group_type == "business_unit":
-            business_unit = get_object_or_404(
-                BusinessUnit, pk=self.kwargs["group_id"])
+        # TODO: Add method to GroupMixin
+        group_class = self.classes[group_type]
+        if group_class:
+            self.group_instance = get_object_or_404(
+                group_class, pk=self.kwargs["group_id"])
+        if group_class is BusinessUnit:
             queryset = queryset.filter(
-                machine__machine_group__business_unit=business_unit)
-        elif group_type == "machine_group":
-            machine_group = get_object_or_404(
-                MachineGroup, pk=self.kwargs["group_id"])
+                machine__machine_group__business_unit=self.group_instance)
+        elif group_class is MachineGroup:
             queryset = queryset.filter(
-                machine__machine_group=machine_group)
-        elif group_type == "machine":
-            machine = get_object_or_404(
-                Machine, pk=self.kwargs["group_id"])
-            queryset = queryset.filter(machine=machine)
-        # Filter based on Applicagtion.
+                machine__machine_group=self.group_instance)
+        elif group_class is Machine:
+            queryset = queryset.filter(machine=self.group_instance)
+
+        # Filter based on Application.
         self.application = get_object_or_404(
             Application, pk=self.kwargs["application_id"])
         queryset = queryset.filter(application=self.application)
@@ -91,16 +92,14 @@ class InventoryListView(DatatableView, GroupMixin):
             queryset = queryset.filter(path=self.kwargs["field_value"])
         elif field_type == "version":
             queryset = queryset.filter(version=self.kwargs["field_value"])
-        elif field_type == "all":
-            pass
-        else:
-            raise Exception("TODO: Refine this.")
 
         # Return filtered Application.objects queryset
         return queryset
 
     def get_context_data(self, **kwargs):
         context = super(InventoryListView, self).get_context_data(**kwargs)
+        context["group_type"] = self.kwargs["group_type"]
+        context["group_name"] = self.group_instance.name if hasattr(self, "group_instance") else "ALL"
         context["app_name"] = self.application.name
         context["field_type"] = self.kwargs["field_type"]
         context["field_value"] = self.kwargs["field_value"]

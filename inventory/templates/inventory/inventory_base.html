@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% load django_tables2 %}
+
+{% block script %}
+	<script type="text/javascript" charset="utf8" src="{{ STATIC_URL }}js/datatableview.js"></script>
+{% endblock %}
+
+{% block nav %}
+	<li><a href="{{ request.META.HTTP_REFERER }}"><i class="fa fa-fw fa-chevron-left"></i> Back</a></li>
+{% endblock %}
+
+{% block content %}
+	<div class="panel panel-default">
+		<div class="panel-heading">
+			{% block heading %}
+				Inventory
+			{% endblock %}
+		</div>
+
+		<div class="panel-body">
+			{% block inventory_data %}
+				<div class="table-responsive">
+					{{ datatable }}
+				</div>
+			{% endblock %}
+		</div>
+	</div>
+{% endblock %}

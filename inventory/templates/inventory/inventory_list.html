@@ -1,55 +1,5 @@
-{% extends "base.html" %}
-{% load i18n %}
-{% load dashboard_extras %}
-{% load django_tables2 %}
-
-{% block script %}
-<script type="text/javascript" charset="utf-8">
-    $(document).ready(function() {
-        $(function () {
-          $('[data-toggle="tooltip"]').tooltip()
-        })
-        $('.groupList').dataTable({
-            //"sDom": "<'row'<'span6'l><'span6'f>r>t<'row'<'span6'i><'span6'p>>",
-            // "iDisplayLength": 20,
-            "lengthMenu": [[20, 50, -1], [20, 50, "All"]],
-            stateSave: true,
-        });
-    } );
-</script>
-{# datatables.js #}
-<script type="text/javascript" charset="utf8" src="http://cdn.datatables.net/1.10.9/js/jquery.dataTables.min.js"></script>
-<!-- <link rel="stylesheet" type="text/css" href="http://cdn.datatables.net/1.10.9/css/jquery.dataTables.css"> -->
-{# django-datatable-view #}
-<script type="text/javascript" charset="utf8" src="{{ STATIC_URL }}js/datatableview.js"></script>
-<!-- <script type="text/javascript" charset="utf8"> -->
-<!-- 		datatableview.auto_initialize = true; -->
-<!-- </script> -->
-<style type="text/css">
-.tooltip-inner {
-    max-width: 1000px;
-    max-width: 1000px;
-}
-</style>
-{% endblock %}
-
-{% block nav %}
-<li><a href="{{ request.META.HTTP_REFERER }}"><i class="fa fa-fw fa-chevron-left"></i> Back</a></li>
-
-
-{% endblock %}
-{% block content %}
-
-<div class="panel panel-default">
-
-    <div class="panel-heading">
-			{% if group_type == "all" %}All machines {% else %}Machines from {{ group_type|title }}: {{ group_name }}{% endif %}
-			{% if field_type == "all" %}with application {{ app_name }}{% else %}where {{ app_name }} {{ field_type }} is {{ field_value }}{% endif %}
-    </div>
-
-<div class="panel-body">
-    <div class="table-responsive">
-			{{ datatable }}
-    </div>
-</div>
+{% extends "inventory/inventory_base.html" %}
+{% block heading %}
+	{% if group_type == "all" %}All machines {% else %}Machines from {{ group_type|title }}: {{ group_name }}{% endif %}
+	{% if field_type == "all" %}with application {{ app_name }}{% else %}where {{ app_name }} {{ field_type }} is {{ field_value }}{% endif %}
 {% endblock %}

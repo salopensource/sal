@@ -154,6 +154,14 @@ class ApplicationListView(DatatableView, GroupMixin):
             url, queryset.count())
         return anchor
 
+    def get_context_data(self, **kwargs):
+        context = super(ApplicationListView, self).get_context_data(**kwargs)
+        self.group_instance = self.get_group_instance()
+        context["group_type"] = self.kwargs["group_type"]
+        context["group_name"] = (self.group_instance.name if hasattr(
+            self.group_instance, "name") else None)
+        return context
+
 
 @class_login_required
 @class_access_required
@@ -202,6 +210,8 @@ class ApplicationDetailView(DetailView, GroupMixin):
         # Add in access data.
         context["group_type"] = self.kwargs["group_type"]
         context["group_id"] = self.kwargs["group_id"]
+        context["group_name"] = (self.group_instance.name if hasattr(
+            self.group_instance, "name") else None)
 
         return context
 

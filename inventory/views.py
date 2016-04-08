@@ -216,6 +216,9 @@ class ApplicationDetailView(DetailView, GroupMixin):
             for path in paths]
         # Get the total number of installations.
         context["install_count"] = details.count()
+        # Add in access data.
+        context["group_type"] = self.kwargs["group_type"]
+        context["group_id"] = self.kwargs["group_id"]
 
         return context
 

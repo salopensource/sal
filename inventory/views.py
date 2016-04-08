@@ -50,6 +50,29 @@ class GroupMixin(object):
 
         return instance
 
+    def get_group_instance(self):
+        group_type = self.kwargs["group_type"]
+        group_class = self.classes[group_type]
+        if group_class:
+            instance = get_object_or_404(
+                group_class, pk=self.kwargs["group_id"])
+        else:
+            instance = None
+
+        return instance
+
+    def filter_inventoryitem_by_group(self, queryset):
+        if isinstance(self.group_instance, BusinessUnit):
+            queryset = queryset.filter(
+                machine__machine_group__business_unit=self.group_instance)
+        elif isinstance(self.group_instance, MachineGroup):
+            queryset = queryset.filter(
+                machine__machine_group=self.group_instance)
+        elif isinstance(self.group_instance, Machine):
+            queryset = queryset.filter(machine=self.group_instance)
+
+        return queryset
+
 
 @class_login_required
 @class_access_required
@@ -64,28 +87,15 @@ class InventoryListView(DatatableView, GroupMixin):
                     ("User", "machine__console_user")]}
 
     def get_queryset(self):
+        self.group_instance = self.get_group_instance()
         queryset = self.model.objects
-        # Filter Application.objects based on type.
-        # group_type = self.kwargs["group_type"]
-        group_type = self.kwargs["group_type"]
-        # TODO: Add method to GroupMixin
-        group_class = self.classes[group_type]
-        if group_class:
-            self.group_instance = get_object_or_404(
-                group_class, pk=self.kwargs["group_id"])
-        if group_class is BusinessUnit:
-            queryset = queryset.filter(
-                machine__machine_group__business_unit=self.group_instance)
-        elif group_class is MachineGroup:
-            queryset = queryset.filter(
-                machine__machine_group=self.group_instance)
-        elif group_class is Machine:
-            queryset = queryset.filter(machine=self.group_instance)
+        queryset = self.filter_inventoryitem_by_group(queryset)
 
         # Filter based on Application.
         self.application = get_object_or_404(
             Application, pk=self.kwargs["application_id"])
         queryset = queryset.filter(application=self.application)
+
         # Filter again based on criteria.
         field_type = self.kwargs["field_type"]
         if field_type == "path":
@@ -93,14 +103,13 @@ class InventoryListView(DatatableView, GroupMixin):
         elif field_type == "version":
             queryset = queryset.filter(version=self.kwargs["field_value"])
 
-        # Return filtered Application.objects queryset
         return queryset
 
     def get_context_data(self, **kwargs):
         context = super(InventoryListView, self).get_context_data(**kwargs)
         context["group_type"] = self.kwargs["group_type"]
         context["group_name"] = (self.group_instance.name if hasattr(
-            self, "group_instance") else "ALL")
+            self.group_instance, "name") else None)
         context["app_name"] = self.application.name
         context["field_type"] = self.kwargs["field_type"]
         context["field_value"] = self.kwargs["field_value"]
@@ -126,37 +135,24 @@ class ApplicationListView(DatatableView, GroupMixin):
         params = self.kwargs
         params["pk"] = instance.pk
         return '<a href="%s">%s</a>' % (
-            reverse("application-detail", kwargs=self.kwargs), instance.name)
+            reverse("application_detail", kwargs=self.kwargs), instance.name)
 
     def get_install_count(self, instance, *args, **kwargs):
-        inventory_items = instance.inventoryitem_set
-        group_type = self.kwargs["group_type"]
-        if group_type == "machine_group":
-            machine_group = get_object_or_404(
-                MachineGroup, pk=self.kwargs["group_id"])
-            inventory_items = inventory_items.filter(
-                machine__machine_group=machine_group)
-        elif group_type == "business_unit":
-            bu = get_object_or_404(
-                BusinessUnit, pk=self.kwargs["group_id"])
-            inventory_items = inventory_items.filter(
-                machine__machine_group__business_unit=bu)
-        elif group_type == "machine":
-            machine = get_object_or_404(
-                Machine, pk=self.kwargs["group_id"])
-            inventory_items = inventory_items.filter(
-                machine=machine)
+        self.group_instance = self.get_group_instance()
+        queryset = instance.inventoryitem_set
+        queryset = self.filter_inventoryitem_by_group(queryset)
 
-        # TODO: Does this sometimes leave a group_type of ""/None?
-        url_kwargs = {"group_type": group_type,
-                      "group_id": (0 if group_type == "all" else
-                                   self.kwargs["group_id"]),
-                      "application_id": instance.pk,
-                      "field_type": "all",
-                      "field_value": 0}
-        return ('<a href="%s"><span class="badge">%s</span></a>' %
-                (reverse("inventory_list", kwargs=url_kwargs),
-                 inventory_items.count()))
+        # Build a link to InventoryListView for install count badge.
+        url_kwargs = {
+            "group_type": self.kwargs["group_type"],
+            "group_id": self.kwargs["group_id"],
+            "application_id": instance.pk,
+            "field_type": "all",
+            "field_value": 0}
+        url = reverse("inventory_list", kwargs=url_kwargs)
+        anchor = '<a href="%s"><span class="badge">%s</span></a>' % (
+            url, queryset.count())
+        return anchor
 
 
 @class_login_required
@@ -173,26 +169,10 @@ class ApplicationDetailView(DetailView, GroupMixin):
 
     def _get_filtered_queryset(self):
         """Filter results based on URL parameters / user access."""
-        group_type = self.kwargs["group_type"]
-        group_class = self.classes[group_type]
-        if group_class:
-            group_object = get_object_or_404(
-                group_class, pk=self.kwargs["group_id"])
-        if group_class is MachineGroup:
-            details = self.object.inventoryitem_set.values(
-                "version", "path", "machine").filter(
-                    machine__machine_group=group_object)
-        elif group_class is BusinessUnit:
-            details = self.object.inventoryitem_set.values(
-                "version", "path", "machine").filter(
-                    machine__machine_group__business_unit=group_object)
-        elif group_class is Machine:
-            details = self.object.inventoryitem_set.values(
-                "version", "path", "machine").filter(machine=group_object)
-        else:
-            details = self.object.inventoryitem_set.values("version", "path")
-
-        return details
+        self.group_instance = self.get_group_instance()
+        queryset = self.object.inventoryitem_set
+        queryset = self.filter_inventoryitem_by_group(queryset).values()
+        return queryset
 
     def _get_unique_items(self, details):
         """Use optimized DB methods for getting unique items if possible."""

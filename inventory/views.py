@@ -60,7 +60,7 @@ class InventoryListView(DatatableView, GroupMixin):
         'structure_template': 'datatableview/bootstrap_structure.html',
         'columns': [('Machine', 'machine'),
                     ("Serial Number", "machine__serial"),
-                    ("Date", 'machine__last_checkin'),
+                    ("Date", 'machine__last_checkin', 'format_date'),
                     ("User", "machine__console_user")]}
 
     def get_queryset(self):
@@ -99,11 +99,15 @@ class InventoryListView(DatatableView, GroupMixin):
     def get_context_data(self, **kwargs):
         context = super(InventoryListView, self).get_context_data(**kwargs)
         context["group_type"] = self.kwargs["group_type"]
-        context["group_name"] = self.group_instance.name if hasattr(self, "group_instance") else "ALL"
+        context["group_name"] = (self.group_instance.name if hasattr(
+            self, "group_instance") else "ALL")
         context["app_name"] = self.application.name
         context["field_type"] = self.kwargs["field_type"]
         context["field_value"] = self.kwargs["field_value"]
         return context
+
+    def format_date(self, instance, *args, **kwargs):
+        return instance.machine.last_checkin.strftime("%Y-%m-%d %H:%M:%S")
 
 
 @class_login_required

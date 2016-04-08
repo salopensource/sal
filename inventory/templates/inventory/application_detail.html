@@ -2,6 +2,9 @@
 
 {% block heading %}
 	<h2 style="text-align:center">{{ object.name }}</h2>
+	<h4 style="text-align:center">
+		{% if not group_type == "all" %}Filtered by {{ group_type|title }}: {{ group_name }}{% endif %}
+	</h4>
 {% endblock %}
 {% block inventory_data %}
 	<dl class="dl-horizontal" >

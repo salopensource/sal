@@ -16,7 +16,7 @@ urlpatterns = [
          r'(?P<group_type>[a-zA-Z_-]+)/'
          r'(?P<group_id>[0-9]+)/$',
          views.ApplicationDetailView.as_view(),
-         name="application-detail"),
+         name="application_detail"),
     # Install List View
     url(r'^list/(?P<group_type>.+)/'
         r'(?P<group_id>[0-9]+)/'

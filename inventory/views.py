@@ -9,6 +9,7 @@ import unicodecsv as csv
 # Django
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
+from django.core.urlresolvers import reverse
 from django.http import HttpResponse, HttpResponseNotFound
 from django.shortcuts import get_object_or_404, render_to_response
 from django.template import RequestContext
@@ -22,22 +23,93 @@ from server import utils
 from sal.decorators import class_login_required, class_access_required
 from server.models import BusinessUnit, MachineGroup, Machine
 
+
+class GroupMixin(object):
+    """Mixin to add get_business_unit method for access decorators."""
+    classes = {"all": None,
+               "business_unit": BusinessUnit,
+               "machine": Machine,
+               "machine_group": MachineGroup}
+
+    @classmethod
+    def get_business_unit(cls, **kwargs):
+        instance = None
+        group_class = cls.classes[kwargs["group_type"]]
+
+        if group_class:
+            instance = get_object_or_404(
+                group_class, pk=kwargs["group_id"])
+
+        # Implicitly returns BusinessUnit, or None if that is the type.
+        # No need for an extra test.
+        if group_class is MachineGroup:
+            instance = instance.business_unit
+        elif group_class is Machine:
+            instance = instance.machine_group.business_unit
+
+        return instance
+
+
 @class_login_required
 @class_access_required
-class InventoryListView(DatatableView):
-    model = Inventory
+class InventoryListView(DatatableView, GroupMixin):
+    model = InventoryItem
     template_name = "inventory/inventory_list.html"
     datatable_options = {
         'structure_template': 'datatableview/bootstrap_structure.html',
         'columns': [('Machine', 'machine'),
                     ("Serial Number", "machine__serial"),
-                    ("Date", 'datestamp'),
+                    ("Date", 'machine__last_checkin'),
                     ("User", "machine__console_user")]}
+
+    def get_queryset(self):
+        queryset = self.model.objects
+        # Filter Application.objects based on type.
+        # group_type = self.kwargs["group_type"]
+        group_type = self.kwargs["group_type"]
+        if group_type == "business_unit":
+            business_unit = get_object_or_404(
+                BusinessUnit, pk=self.kwargs["group_id"])
+            queryset = queryset.filter(
+                machine__machine_group__business_unit=business_unit)
+        elif group_type == "machine_group":
+            machine_group = get_object_or_404(
+                MachineGroup, pk=self.kwargs["group_id"])
+            queryset = queryset.filter(
+                machine__machine_group=machine_group)
+        elif group_type == "machine":
+            machine = get_object_or_404(
+                Machine, pk=self.kwargs["group_id"])
+            queryset = queryset.filter(machine=machine)
+        # Filter based on Applicagtion.
+        self.application = get_object_or_404(
+            Application, pk=self.kwargs["application_id"])
+        queryset = queryset.filter(application=self.application)
+        # Filter again based on criteria.
+        field_type = self.kwargs["field_type"]
+        if field_type == "path":
+            queryset = queryset.filter(path=self.kwargs["field_value"])
+        elif field_type == "version":
+            queryset = queryset.filter(version=self.kwargs["field_value"])
+        elif field_type == "all":
+            pass
+        else:
+            raise Exception("TODO: Refine this.")
+
+        # Return filtered Application.objects queryset
+        return queryset
+
+    def get_context_data(self, **kwargs):
+        context = super(InventoryListView, self).get_context_data(**kwargs)
+        context["app_name"] = self.application.name
+        context["field_type"] = self.kwargs["field_type"]
+        context["field_value"] = self.kwargs["field_value"]
+        return context
 
 
 @class_login_required
 @class_access_required
-class ApplicationListView(DatatableView):
+class ApplicationListView(DatatableView, GroupMixin):
     model = Application
     template_name = "inventory/application_list.html"
     datatable_options = {
@@ -48,26 +120,45 @@ class ApplicationListView(DatatableView):
                     ("Install Count", None, "get_install_count")]}
 
     def get_name_link(self, instance, *args, **kwargs):
-        # TODO: I don't understand how this "just works".
-        return '<a href="application/%s">%s</a>' % (instance.pk, instance.name)
+        params = self.kwargs
+        params["pk"] = instance.pk
+        return '<a href="%s">%s</a>' % (
+            reverse("application-detail", kwargs=self.kwargs), instance.name)
 
     def get_install_count(self, instance, *args, **kwargs):
         inventory_items = instance.inventoryitem_set
-        if "group_id" in self.kwargs:
+        group_type = self.kwargs["group_type"]
+        if group_type == "machine_group":
             machine_group = get_object_or_404(
                 MachineGroup, pk=self.kwargs["group_id"])
             inventory_items = inventory_items.filter(
                 machine__machine_group=machine_group)
-        elif "bu_id" in self.kwargs:
-            bu = get_object_or_404(BusinessUnit, pk=self.kwargs["bu_id"])
+        elif group_type == "business_unit":
+            bu = get_object_or_404(
+                BusinessUnit, pk=self.kwargs["group_id"])
             inventory_items = inventory_items.filter(
                 machine__machine_group__business_unit=bu)
-        return ('<span class="badge">%s</span>' % inventory_items.count())
+        elif group_type == "machine":
+            machine = get_object_or_404(
+                Machine, pk=self.kwargs["group_id"])
+            inventory_items = inventory_items.filter(
+                machine=machine)
+
+        # TODO: Does this sometimes leave a group_type of ""/None?
+        url_kwargs = {"group_type": group_type,
+                      "group_id": (0 if group_type == "all" else
+                                   self.kwargs["group_id"]),
+                      "application_id": instance.pk,
+                      "field_type": "all",
+                      "field_value": 0}
+        return ('<a href="%s"><span class="badge">%s</span></a>' %
+                (reverse("inventory_list", kwargs=url_kwargs),
+                 inventory_items.count()))
 
 
 @class_login_required
 @class_access_required
-class ApplicationDetailView(DetailView):
+class ApplicationDetailView(DetailView, GroupMixin):
     model = Application
     template_name = "inventory/application_detail.html"
 
@@ -79,21 +170,22 @@ class ApplicationDetailView(DetailView):
 
     def _get_filtered_queryset(self):
         """Filter results based on URL parameters / user access."""
-        if "group_id" in self.kwargs:
-            machine_group = get_object_or_404(
-                MachineGroup, pk=self.kwargs["group_id"])
+        group_type = self.kwargs["group_type"]
+        group_class = self.classes[group_type]
+        if group_class:
+            group_object = get_object_or_404(
+                group_class, pk=self.kwargs["group_id"])
+        if group_class is MachineGroup:
             details = self.object.inventoryitem_set.values(
                 "version", "path", "machine").filter(
-                    machine__machine_group=machine_group)
-        elif "bu_id" in self.kwargs:
-            bu = get_object_or_404(BusinessUnit, pk=self.kwargs["bu_id"])
+                    machine__machine_group=group_object)
+        elif group_class is BusinessUnit:
             details = self.object.inventoryitem_set.values(
                 "version", "path", "machine").filter(
-                    machine__machine_group__business_unit=bu)
-        elif "machine_id" in self.kwargs:
-            machine = get_object_or_404(Machine, pk=self.kwargs["machine_id"])
+                    machine__machine_group__business_unit=group_object)
+        elif group_class is Machine:
             details = self.object.inventoryitem_set.values(
-                "version", "path", "machine").filter(machine=machine)
+                "version", "path", "machine").filter(machine=group_object)
         else:
             details = self.object.inventoryitem_set.values("version", "path")
 
@@ -126,40 +218,6 @@ class ApplicationDetailView(DetailView):
         context["install_count"] = details.count()
 
         return context
-
-
-@class_login_required
-@class_access_required
-class BusinessUnitApplicationListView(ApplicationListView):
-
-    def get_queryset(self):
-        self.business_unit = get_object_or_404(
-            BusinessUnit, pk=self.kwargs['bu_id'])
-        return Application.objects.filter(
-            inventoryitem__machine__machine_group__business_unit__name=
-            self.business_unit)
-
-
-@class_login_required
-@class_access_required
-class MachineGroupApplicationListView(ApplicationListView):
-
-    def get_queryset(self):
-        self.machine_group = get_object_or_404(
-            MachineGroup, pk=self.kwargs['group_id'])
-        return Application.objects.filter(
-            inventoryitem__machine__machine_group=self.machine_group)
-
-
-@class_login_required
-@class_access_required
-class MachineApplicationListView(ApplicationListView):
-
-    def get_queryset(self):
-        self.machine = get_object_or_404(
-            Machine, pk=self.kwargs['machine_id'])
-        return Application.objects.filter(
-            inventoryitem__machine=self.machine)
 
 
 @csrf_exempt
@@ -250,7 +308,7 @@ def export_csv(request, page='front', theID=None):
     inventory_version = request.GET.get('version', '0')
     inventory_bundleid = request.GET.get('bundleid', '')
     inventory_path = request.GET.get('path')
-    inventory_bundlename = request.GET.get('bundlename','')
+    inventory_bundlename = request.GET.get('bundlename', '')
     # get a list of machines (either from the BU or the group)
     if page == 'front':
         # get all machines
@@ -265,15 +323,17 @@ def export_csv(request, page='front', theID=None):
         # only get machines for that BU
         # Need to make sure the user is allowed to see this
         business_unit = get_object_or_404(BusinessUnit, pk=theID)
-        machine_groups = MachineGroup.objects.filter(business_unit=business_unit).prefetch_related('machine_set').all()
+        machine_groups = MachineGroup.objects.filter(
+            business_unit=business_unit).prefetch_related('machine_set').all()
 
         if machine_groups.count() != 0:
             machines_unsorted = machine_groups[0].machine_set.all()
             for machine_group in machine_groups[1:]:
-                machines_unsorted = machines_unsorted | machine_group.machine_set.all()
+                machines_unsorted = (machines_unsorted |
+                                     machine_group.machine_set.all())
         else:
             machines_unsorted = None
-        machines=machines_unsorted
+        machines = machines_unsorted
 
     if page == 'group_dashboard':
         # only get machines from that group
@@ -285,9 +345,16 @@ def export_csv(request, page='front', theID=None):
         machines = Machine.objects.filter(id=theID)
 
     # get the InventoryItems limited to the machines we're allowed to look at
-    inventoryitems = InventoryItem.objects.filter(name=inventory_name, version=inventory_version, bundleid=inventory_bundleid, bundlename=inventory_bundlename).filter(machine=machines).order_by('name')
+    inventoryitems = InventoryItem.objects.filter(
+        name=inventory_name, version=inventory_version,
+        bundleid=inventory_bundleid,
+        bundlename=inventory_bundlename).filter(machine=machines).order_by(
+            'name')
 
-    machines = machines.filter(inventoryitem__name=inventory_name, inventoryitem__version=inventory_version, inventoryitem__bundleid=inventory_bundleid, inventoryitem__bundlename=inventory_bundlename)
+    machines = machines.filter(inventoryitem__name=inventory_name,
+                               inventoryitem__version=inventory_version,
+                               inventoryitem__bundleid=inventory_bundleid,
+                               inventoryitem__bundlename=inventory_bundlename)
 
     # Create the HttpResponse object with the appropriate CSV header.
     response = HttpResponse(content_type='text/csv')
@@ -298,7 +365,11 @@ def export_csv(request, page='front', theID=None):
     header_row = []
     fields = Machine._meta.get_fields()
     for field in fields:
-        if not field.is_relation and field.name != 'id' and field.name != 'report' and field.name != 'activity' and field.name != 'os_family':
+        if (not field.is_relation and
+                field.name != 'id' and
+                field.name != 'report' and
+                field.name != 'activity' and
+                field.name != 'os_family'):
             header_row.append(field.name)
     header_row.append('business_unit')
     header_row.append('machine_group')
@@ -306,13 +377,21 @@ def export_csv(request, page='front', theID=None):
     for machine in machines:
         row = []
         for name, value in machine.get_fields():
-            if name != 'id' and name !='machine_group' and name != 'report' and name != 'activity' and name != 'os_family':
+            if (name != 'id' and
+                    name != 'machine_group' and
+                    name != 'report' and
+                    name != 'activity' and
+                    name != 'os_family'):
                 row.append(value.strip())
         row.append(machine.machine_group.business_unit.name)
         row.append(machine.machine_group.name)
         writer.writerow(row)
-        #writer.writerow([machine.serial, machine.machine_group.business_unit.name, machine.machine_group.name,
-        #machine.hostname, machine.operating_system, machine.memory, machine.memory_kb, machine.munki_version, machine.manifest])
+        # writer.writerow([machine.serial,
+        #                  machine.machine_group.business_unit.name,
+        #                  machine.machine_group.name, machine.hostname,
+        #                  machine.operating_system, machine.memory,
+        #                  machine.memory_kb, machine.munki_version,
+        #                  machine.manifest])
 
     return response
 
@@ -320,13 +399,13 @@ def export_csv(request, page='front', theID=None):
 @login_required
 def inventory_list(request, page='front', theID=None):
     user = request.user
-    title=None
+    title = None
     inventory_name = request.GET.get('name')
     inventory_version = request.GET.get('version', '0')
     inventory_bundleid = request.GET.get('bundleid', '')
     # Unused
     # inventory_path = request.GET.get('path')
-    inventory_bundlename = request.GET.get('bundlename','')
+    inventory_bundlename = request.GET.get('bundlename', '')
 
     # get a list of machines (either from the BU or the group)
     if page == 'front':
@@ -364,13 +443,22 @@ def inventory_list(request, page='front', theID=None):
     end = page * 25
 
     # get the InventoryItems limited to the machines we're allowed to look at
-    inventory = InventoryItem.objects.filter(name=inventory_name, version=inventory_version, bundleid=inventory_bundleid, bundlename=inventory_bundlename).filter(machine=machines)[start:end]
+    inventory = InventoryItem.objects.filter(
+        name=inventory_name, version=inventory_version,
+        bundleid=inventory_bundleid,
+        bundlename=inventory_bundlename).filter(machine=machines)[start:end]
 
     if len(inventory) != 25:
         # we've not got 25 results, probably the last page
         next_id = 0
 
-    c = {'user':user, 'machines': machines, 'req_type': page, 'title': title, 'bu_id': theID, 'request':request, 'inventory_name':inventory_name, 'inventory_version':inventory_version, 'inventory_bundleid':inventory_bundleid, 'inventory_bundlename':inventory_bundlename, 'previous_id': previous_id, 'next_id':next_id, 'inventory':inventory }
+    c = {'user':user, 'machines': machines, 'req_type': page, 'title':
+         title, 'bu_id': theID, 'request':request,
+         'inventory_name':inventory_name,
+         'inventory_version':inventory_version,
+         'inventory_bundleid':inventory_bundleid,
+         'inventory_bundlename':inventory_bundlename, 'previous_id':
+         previous_id, 'next_id':next_id, 'inventory':inventory}
 
-    return render_to_response('inventory/overview_list_all.html', c, context_instance=RequestContext(request))
-
+    return render_to_response('inventory/overview_list_all.html', c,
+                              context_instance=RequestContext(request))

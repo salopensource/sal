@@ -125,7 +125,9 @@ class InventoryListView(DatatableView, GroupMixin):
 
     def get_context_data(self, **kwargs):
         context = super(InventoryListView, self).get_context_data(**kwargs)
+        context["application_id"] = self.application.id
         context["group_type"] = self.kwargs["group_type"]
+        context["group_id"] = self.kwargs["group_id"]
         context["group_name"] = (self.group_instance.name if hasattr(
             self.group_instance, "name") else None)
         context["app_name"] = self.application.name
@@ -170,22 +172,30 @@ class ApplicationListView(DatatableView, GroupMixin):
         url = reverse("inventory_list", kwargs=url_kwargs)
         anchor = '<a href="%s"><span class="badge">%s</span></a>' % (
             url, queryset.count())
+        # import pdb;pdb.set_trace()
         return anchor
 
     def get_context_data(self, **kwargs):
         context = super(ApplicationListView, self).get_context_data(**kwargs)
         self.group_instance = self.get_group_instance()
         context["group_type"] = self.kwargs["group_type"]
-        context["group_name"] = (self.group_instance.name if hasattr(
-            self.group_instance, "name") else None)
+        if hasattr(self.group_instance, "name"):
+            context["group_name"] = self.group_instance.name
+        elif hasattr(self.group_instance, "hostname"):
+            context["group_name"] = self.group_instance.hostname
+        else:
+            context["group_name"] = None
         context["group_id"] = (self.group_instance.id if hasattr(
-            self.group_instance, "id") else None)
+            self.group_instance, "id") else 0)
+        context["application_id"] = 0
+        context["field_type"] = "all"
+        context["field_value"] = 0
         return context
 
 
 @class_login_required
 @class_access_required
-class ApplicationDetailView(DetailView, GroupMixin, View):
+class ApplicationDetailView(DetailView, GroupMixin):
     model = Application
     template_name = "inventory/application_detail.html"
 
@@ -232,6 +242,9 @@ class ApplicationDetailView(DetailView, GroupMixin, View):
         context["group_id"] = self.kwargs["group_id"]
         context["group_name"] = (self.group_instance.name if hasattr(
             self.group_instance, "name") else None)
+        # TODO: Add in field_type/field_value for export link to reverse.
+        # context["field_type"] = "all"
+        # context["field_value"] = 0
 
         return context
 
@@ -239,11 +252,40 @@ class ApplicationDetailView(DetailView, GroupMixin, View):
 @class_login_required
 @class_access_required
 class CSVExportView(CSVResponseMixin, GroupMixin, View):
-    model = Application
-    template_name = "inventory/application_detail.html"
+    model = InventoryItem
 
     def get(self, rqeuest, *args, **kwargs):
-        data = [["test", "test2"], ["test3", "test4"]]
+        # Filter data by access level
+        self.group_instance = self.get_group_instance()
+        queryset = self.model.objects
+        queryset = self.filter_inventoryitem_by_group(queryset)
+
+        # TODO: Add in report name.
+        # TODO: Add in headings.
+
+        if kwargs["application_id"] == "0":
+            applications = [
+                get_object_or_404(Application, pk=app["application_id"]) for
+                app in queryset.values()]
+            # TODO: Add in install count.
+            data = [[app.bundleid, app.id, app.bundlename, app.name] for app in
+                    applications]
+        else:
+            # Inventory List for one application.
+            queryset = queryset.filter(application=kwargs["application_id"])
+            if kwargs["field_type"] == "path":
+                queryset = queryset.filter(
+                    path=kwargs["field_value"])
+            elif kwargs["field_type"] == "version":
+                queryset = queryset.filter(
+                    version=kwargs["field_value"])
+
+            data = [[item.machine.hostname,
+                    item.machine.serial,
+                    item.machine.last_checkin,
+                    item.machine.console_user] for
+                    item in queryset.select_related("machine")]
+
         return self.render_to_csv(data)
 
 

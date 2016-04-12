@@ -75,10 +75,13 @@ class GroupMixin(object):
 
 
 class CSVResponseMixin(object):
-    csv_filename = 'csvfile.csv'
+    csv_filename = 'sal_inventory.csv'
 
     def get_csv_filename(self):
         return self.csv_filename
+
+    def set_header(self, headers):
+        self._header = headers
 
     def render_to_csv(self, data):
         response = HttpResponse(content_type='text/csv')
@@ -86,6 +89,8 @@ class CSVResponseMixin(object):
         response['Content-Disposition'] = cd
 
         writer = csv.writer(response)
+        if hasattr(self, "_header"):
+            writer.writerow(self._header)
         for row in data:
             writer.writerow(row)
 
@@ -209,6 +214,7 @@ class ApplicationDetailView(DetailView, GroupMixin):
         """Filter results based on URL parameters / user access."""
         self.group_instance = self.get_group_instance()
         queryset = self.object.inventoryitem_set
+        # TODO: Remove unnecessary values call
         queryset = self.filter_inventoryitem_by_group(queryset).values()
         return queryset
 
@@ -261,15 +267,28 @@ class CSVExportView(CSVResponseMixin, GroupMixin, View):
         queryset = self.filter_inventoryitem_by_group(queryset)
 
         # TODO: Add in report name.
-        # TODO: Add in headings.
 
         if kwargs["application_id"] == "0":
-            applications = [
-                get_object_or_404(Application, pk=app["application_id"]) for
-                app in queryset.values()]
-            # TODO: Add in install count.
-            data = [[app.bundleid, app.id, app.bundlename, app.name] for app in
-                    applications]
+            # TODO: Not tested.
+            if is_postgres():
+                apps = [[item.application.name,
+                        item.application.bundleid,
+                        item.application.bundlename,
+                        queryset.filter(application=item.application).count()]
+                        for item in
+                        queryset.select_related("application").distinct(
+                            "application")]
+            else:
+                # We build a set of tuples, as mutable types are not hashable.
+                apps = {(item.application.name,
+                        item.application.bundleid,
+                        item.application.bundlename,
+                        queryset.filter(application=item.application).count())
+                        for item in queryset.select_related("application")}
+
+            data = sorted(apps, key=lambda x: x[0])
+            self.set_header(["Name", "BundleID", "BundleName",
+                             "Install Count"])
         else:
             # Inventory List for one application.
             queryset = queryset.filter(application=kwargs["application_id"])
@@ -285,6 +304,8 @@ class CSVExportView(CSVResponseMixin, GroupMixin, View):
                     item.machine.last_checkin,
                     item.machine.console_user] for
                     item in queryset.select_related("machine")]
+            self.set_header(["Hostname", "Serial Number", "Last Checkin",
+                             "Console User"])
 
         return self.render_to_csv(data)
 

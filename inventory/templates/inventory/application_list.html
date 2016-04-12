@@ -4,3 +4,6 @@
 	Application Inventory for
 	{% if group_type == "all" %}all machines {% else %}machines from {{ group_type|title }}: {{ group_name }}{% endif %}
 {% endblock %}
+{% block csv_export %}
+  {% include 'inventory/csv_export.html' %}
+{% endblock %}

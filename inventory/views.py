@@ -86,12 +86,13 @@ class GroupMixin(object):
 
 class CSVResponseMixin(object):
     csv_filename = 'sal_inventory.csv'
+    header = []
 
     def get_csv_filename(self):
         return self.csv_filename
 
     def set_header(self, headers):
-        self._header = headers
+        self.header = headers
 
     def render_to_csv(self, data):
         response = HttpResponse(content_type='text/csv')
@@ -99,8 +100,8 @@ class CSVResponseMixin(object):
         response['Content-Disposition'] = cd
 
         writer = csv.writer(response)
-        if hasattr(self, "_header"):
-            writer.writerow(self._header)
+        if hasattr(self, "header") and self.header:
+            writer.writerow(self.header)
         for row in data:
             writer.writerow(row)
 
@@ -112,6 +113,7 @@ class CSVResponseMixin(object):
 class InventoryListView(DatatableView, GroupMixin):
     model = InventoryItem
     template_name = "inventory/inventory_list.html"
+    csv_filename = "sal_inventory_list.csv"
     datatable_options = {
         'structure_template': 'datatableview/bootstrap_structure.html',
         'columns': [('Machine', 'machine'),
@@ -159,6 +161,7 @@ class InventoryListView(DatatableView, GroupMixin):
 class ApplicationListView(DatatableView, GroupMixin):
     model = Application
     template_name = "inventory/application_list.html"
+    csv_filename = "sal_application_list.csv"
     datatable_options = {
         'structure_template': 'datatableview/bootstrap_structure.html',
         'columns': [('Name', 'name', "get_name_link"),
@@ -213,6 +216,7 @@ class ApplicationListView(DatatableView, GroupMixin):
 class ApplicationDetailView(DetailView, GroupMixin):
     model = Application
     template_name = "inventory/application_detail.html"
+    csv_filename = "sal_application_detail.csv"
 
     def get_context_data(self, **kwargs):
         details = self._get_filtered_queryset()

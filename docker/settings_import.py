@@ -91,6 +91,14 @@ if getenv('DOCKER_SAL_DEFAULT_MACHINE_GROUP_KEY'):
 else:
     DEFAULT_MACHINE_GROUP_KEY = None
 
+try:
+    if getenv('DOCKER_SAL_ADD_TO_ALL_BUSINESS_UNITS').lower() == 'true':
+        ADD_TO_ALL_BUSINESS_UNITS = True
+    else:
+        ADD_TO_ALL_BUSINESS_UNITS = False
+except:
+    ADD_TO_ALL_BUSINESS_UNITS = False
+
 if BRUTE_PROTECT == True:
     ###############
     # Max number of login attemts within the ``AXES_COOLOFF_TIME``

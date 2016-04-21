@@ -21,7 +21,7 @@ urlpatterns = [
         views.InventoryListView.as_view(), name='inventory_list'),
     # # CSV Export View
     url(r'^csv_export/'
-        r'(?P<group_type>[a-zA-Z]+)/'
+        r'(?P<group_type>[a-zA-Z_-]+)/'
         r'(?P<group_id>[0-9]+)/'
         r'(?P<application_id>[0-9]+)/'
         r'(?P<field_type>[a-zA-Z]+)/'

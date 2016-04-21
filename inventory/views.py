@@ -34,6 +34,7 @@ class GroupMixin(object):
 
     @classmethod
     def get_business_unit(cls, **kwargs):
+        """Return the business unit associated with this request."""
         instance = None
         group_class = cls.classes[kwargs["group_type"]]
 
@@ -62,14 +63,23 @@ class GroupMixin(object):
         return instance
 
     def filter_inventoryitem_by_group(self, queryset):
-        if isinstance(self.group_instance, BusinessUnit):
-            queryset = queryset.filter(
-                machine__machine_group__business_unit=self.group_instance)
-        elif isinstance(self.group_instance, MachineGroup):
-            queryset = queryset.filter(
-                machine__machine_group=self.group_instance)
-        elif isinstance(self.group_instance, Machine):
-            queryset = queryset.filter(machine=self.group_instance)
+        """Filter the model to only include allowed data.
+
+        Depending on the type of query being performed, filter to only
+        include entries of that type (Machine, MachineGroup,
+        BusinessUnit).
+        """
+        # No need to filter if group_instance is None.
+        if self.group_instance:
+            if isinstance(self.group_instance, BusinessUnit):
+                filter_path = "machine__machine_group__business_unit"
+            elif isinstance(self.group_instance, MachineGroup):
+                filter_path = "machine__machine_group"
+            elif isinstance(self.group_instance, Machine):
+                filter_path = "machine"
+
+            kwargs = {filter_path: self.group_instance}
+            queryset = queryset.filter(**kwargs)
 
         return queryset
 
@@ -280,6 +290,8 @@ class CSVExportView(CSVResponseMixin, GroupMixin, View):
                             "application")]
             else:
                 # We build a set of tuples, as mutable types are not hashable.
+                # TODO: Need to revisit all queryset handling throughout to
+                # reflect new understanding.
                 apps = {(item.application.name,
                         item.application.bundleid,
                         item.application.bundlename,

@@ -4,6 +4,17 @@ from __future__ import unicode_literals
 from django.db import migrations, models
 
 
+def migrate_inventoryitems_to_applications(apps, schema_editor):
+    inventory_items = apps.get_model("inventory", "InventoryItem")
+    for item in inventory_items.objects.all():
+        app, _ = Application.objects.get_or_create(
+            bundleid=item.get("bundleid", ""),
+            name=item.get("name", ""),
+            bundlename=item.get("CFBundleName", ""))
+        item.application = app
+        item.save()
+
+
 class Migration(migrations.Migration):
 
     dependencies = [
@@ -45,4 +56,5 @@ class Migration(migrations.Migration):
             field=models.ForeignKey(default=0, to='inventory.Application'),
             preserve_default=False,
         ),
+        migrations.RunPython(migrate_inventoryitems_to_applications),
     ]

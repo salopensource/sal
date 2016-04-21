@@ -2,6 +2,7 @@
 import hashlib
 import plistlib
 from datetime import datetime
+from urllib import quote
 
 # third-party
 import unicodecsv as csv
@@ -69,6 +70,7 @@ class GroupMixin(object):
         include entries of that type (Machine, MachineGroup,
         BusinessUnit).
         """
+        self.group_instance = self.get_group_instance()
         # No need to filter if group_instance is None.
         if self.group_instance:
             if isinstance(self.group_instance, BusinessUnit):
@@ -85,11 +87,15 @@ class GroupMixin(object):
 
 
 class CSVResponseMixin(object):
-    csv_filename = 'sal_inventory.csv'
+    csv_filename = "sal_inventory"
+    csv_ext = ".csv"
+    components = []
     header = []
 
     def get_csv_filename(self):
-        return self.csv_filename
+        identifier = "_" + "_".join(self.components) if self.components else ""
+        filename = "%s%s%s" % (self.csv_filename, identifier, self.csv_ext)
+        return filename
 
     def set_header(self, headers):
         self.header = headers
@@ -122,9 +128,7 @@ class InventoryListView(DatatableView, GroupMixin):
                     ("User", "machine__console_user")]}
 
     def get_queryset(self):
-        self.group_instance = self.get_group_instance()
-        queryset = self.model.objects
-        queryset = self.filter_inventoryitem_by_group(queryset)
+        queryset = self.filter_inventoryitem_by_group(self.model.objects)
 
         # Filter based on Application.
         self.application = get_object_or_404(
@@ -161,7 +165,6 @@ class InventoryListView(DatatableView, GroupMixin):
 class ApplicationListView(DatatableView, GroupMixin):
     model = Application
     template_name = "inventory/application_list.html"
-    csv_filename = "sal_application_list.csv"
     datatable_options = {
         'structure_template': 'datatableview/bootstrap_structure.html',
         'columns': [('Name', 'name', "get_name_link"),
@@ -176,9 +179,8 @@ class ApplicationListView(DatatableView, GroupMixin):
             reverse("application_detail", kwargs=self.kwargs), instance.name)
 
     def get_install_count(self, instance, *args, **kwargs):
-        self.group_instance = self.get_group_instance()
-        queryset = instance.inventoryitem_set
-        queryset = self.filter_inventoryitem_by_group(queryset)
+        queryset = self.filter_inventoryitem_by_group(
+            instance.inventoryitem_set)
 
         # Build a link to InventoryListView for install count badge.
         url_kwargs = {
@@ -216,7 +218,6 @@ class ApplicationListView(DatatableView, GroupMixin):
 class ApplicationDetailView(DetailView, GroupMixin):
     model = Application
     template_name = "inventory/application_detail.html"
-    csv_filename = "sal_application_detail.csv"
 
     def get_context_data(self, **kwargs):
         details = self._get_filtered_queryset()
@@ -226,10 +227,8 @@ class ApplicationDetailView(DetailView, GroupMixin):
 
     def _get_filtered_queryset(self):
         """Filter results based on URL parameters / user access."""
-        self.group_instance = self.get_group_instance()
-        queryset = self.object.inventoryitem_set
-        # TODO: Remove unnecessary values call
-        queryset = self.filter_inventoryitem_by_group(queryset).values()
+        queryset = self.filter_inventoryitem_by_group(
+            self.object.inventoryitem_set)
         return queryset
 
     def _get_unique_items(self, details):
@@ -238,6 +237,7 @@ class ApplicationDetailView(DetailView, GroupMixin):
             versions = self.object.inventoryitem_set.distinct("version")
             paths = self.object.inventoryitem_set.distinct("path")
         else:
+            details = details.values()
             versions = {item["version"] for item in details}
             paths = {item["path"] for item in details}
 
@@ -262,9 +262,6 @@ class ApplicationDetailView(DetailView, GroupMixin):
         context["group_id"] = self.kwargs["group_id"]
         context["group_name"] = (self.group_instance.name if hasattr(
             self.group_instance, "name") else None)
-        # TODO: Add in field_type/field_value for export link to reverse.
-        # context["field_type"] = "all"
-        # context["field_value"] = 0
 
         return context
 
@@ -274,39 +271,42 @@ class ApplicationDetailView(DetailView, GroupMixin):
 class CSVExportView(CSVResponseMixin, GroupMixin, View):
     model = InventoryItem
 
-    def get(self, rqeuest, *args, **kwargs):
+    def get(self, request, *args, **kwargs):
         # Filter data by access level
-        self.group_instance = self.get_group_instance()
-        queryset = self.model.objects
-        queryset = self.filter_inventoryitem_by_group(queryset)
-
-        # TODO: Add in report name.
+        queryset = self.filter_inventoryitem_by_group(self.model.objects)
 
         if kwargs["application_id"] == "0":
-            # TODO: Not tested.
+            self.set_header(
+                ["Name", "BundleID", "BundleName", "Install Count"])
+            self.components = ["application", "list", "for",
+                               self.kwargs["group_type"]]
+            if self.kwargs["group_type"] != "all":
+                self.components.append(self.kwargs["group_id"])
+
+            # TODO: Not tested on postgres.
             if is_postgres():
-                apps = [[item.application.name,
-                        item.application.bundleid,
-                        item.application.bundlename,
-                        queryset.filter(application=item.application).count()]
+                apps = [self.get_application_entry(item, queryset)
                         for item in
                         queryset.select_related("application").distinct(
                             "application")]
             else:
-                # We build a set of tuples, as mutable types are not hashable.
-                # TODO: Need to revisit all queryset handling throughout to
-                # reflect new understanding.
-                apps = {(item.application.name,
-                        item.application.bundleid,
-                        item.application.bundlename,
-                        queryset.filter(application=item.application).count())
+                apps = {self.get_application_entry(item, queryset)
                         for item in queryset.select_related("application")}
 
             data = sorted(apps, key=lambda x: x[0])
-            self.set_header(["Name", "BundleID", "BundleName",
-                             "Install Count"])
         else:
             # Inventory List for one application.
+            self.set_header(
+                ["Hostname", "Serial Number", "Last Checkin", "Console User"])
+            self.components = ["application", self.kwargs["application_id"],
+                               "for", self.kwargs["group_type"]]
+            if self.kwargs["group_type"] != "all":
+                self.components.append(self.kwargs["group_id"])
+            if self.kwargs["field_type"] != "all":
+                self.components.extend(
+                    ["where", self.kwargs["field_type"], "is",
+                     quote(self.kwargs["field_value"])])
+
             queryset = queryset.filter(application=kwargs["application_id"])
             if kwargs["field_type"] == "path":
                 queryset = queryset.filter(
@@ -315,15 +315,24 @@ class CSVExportView(CSVResponseMixin, GroupMixin, View):
                 queryset = queryset.filter(
                     version=kwargs["field_value"])
 
-            data = [[item.machine.hostname,
-                    item.machine.serial,
-                    item.machine.last_checkin,
-                    item.machine.console_user] for
-                    item in queryset.select_related("machine")]
-            self.set_header(["Hostname", "Serial Number", "Last Checkin",
-                             "Console User"])
+            data = [self.get_machine_entry(item, queryset)
+                    for item in queryset.select_related("machine")]
 
         return self.render_to_csv(data)
+
+    def get_application_entry(self, item, queryset):
+        # We return tuples, as mutable types are not hashable.
+        return (item.application.name,
+                item.application.bundleid,
+                item.application.bundlename,
+                queryset.filter(application=item.application).count())
+
+    def get_machine_entry(self, item, queryset):
+        # We return tuples, as mutable types are not hashable.
+        return (item.machine.hostname,
+                item.machine.serial,
+                item.machine.last_checkin,
+                item.machine.console_user)
 
 
 @csrf_exempt
@@ -383,12 +392,6 @@ def inventory_submit(request):
     return HttpResponse("No inventory submitted.\n")
 
 
-def is_postgres():
-    postgres_backend = 'django.db.backends.postgresql_psycopg2'
-    db_setting = settings.DATABASES['default']['ENGINE']
-    return db_setting == postgres_backend
-
-
 @csrf_exempt
 def inventory_hash(request, serial):
     sha256hash = ""
@@ -403,5 +406,11 @@ def inventory_hash(request, serial):
     else:
         return HttpResponse("MACHINE NOT FOUND")
     return HttpResponse(sha256hash)
+
+
+def is_postgres():
+    postgres_backend = 'django.db.backends.postgresql_psycopg2'
+    db_setting = settings.DATABASES['default']['ENGINE']
+    return db_setting == postgres_backend
 
 

@@ -43,13 +43,13 @@ class InstallReport(IPlugin):
             catalog_objects = Catalog.objects.all()
 
         if page == 'bu_dashboard':
-            t = loader.get_template('installreport/templates/front.html')
+            t = loader.get_template('installreport/templates/id.html')
             business_unit = get_object_or_404(BusinessUnit, pk=theid)
             machine_groups = business_unit.machinegroup_set.all()
             catalog_objects = Catalog.objects.filter(machine_group=machine_groups)
 
         if page == 'group_dashboard':
-            t = loader.get_template('installreport/templates/front.html')
+            t = loader.get_template('installreport/templates/id.html')
             machine_group = get_object_or_404(MachineGroup, pk=theid)
             catalog_objects = Catalog.objects.filter(machine_group=machine_group)
 
@@ -99,7 +99,7 @@ class InstallReport(IPlugin):
         c = Context({
             'title': 'Install Reports',
             'output': output,
-            'plugin': 'ShardReport',
+            'plugin': 'InstallReport',
             'page': page,
             'theid': theid
         })

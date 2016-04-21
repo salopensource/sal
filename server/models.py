@@ -34,7 +34,7 @@ class UserProfile(models.Model):
         ('RW', 'Read Write'),
         ('GA', 'Global Admin'),
     )
-    level = models.CharField(max_length=2, choices=LEVEL_CHOICES, default='SO')
+    level = models.CharField(max_length=2, choices=LEVEL_CHOICES, default='RO')
     def __unicode__(self):
         return self.user.username
 User.userprofile = property(lambda u: UserProfile.objects.get_or_create(user=u)[0])

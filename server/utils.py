@@ -108,6 +108,9 @@ def send_report():
     plugins = []
     for plugin in Plugin.objects.all():
         plugins.append(plugin.name)
+
+    for plugin in Report.objects.all():
+        plugins.append(plugin.name)
     output['plugins'] = plugins
     # get install type
     output['install_type'] = get_install_type()
@@ -126,6 +129,7 @@ def send_report():
         return r.text
     else:
         return 'Error'
+        
 def loadDefaultPlugins():
     # Are there any plugin objects? If not, add in the defaults
     plugin_objects = Plugin.objects.all().count()

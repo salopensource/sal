@@ -3,14 +3,16 @@ from __future__ import unicode_literals
 
 from django.db import migrations, models
 
+from inventory.models import Application
+
 
 def migrate_inventoryitems_to_applications(apps, schema_editor):
     inventory_items = apps.get_model("inventory", "InventoryItem")
     for item in inventory_items.objects.all():
         app, _ = Application.objects.get_or_create(
-            bundleid=item.get("bundleid", ""),
-            name=item.get("name", ""),
-            bundlename=item.get("CFBundleName", ""))
+            bundleid=item.bundleid or "",
+            name=item.name or "",
+            bundlename=item.bundlename or "")
         item.application = app
         item.save()
 

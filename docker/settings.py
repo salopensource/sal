@@ -29,7 +29,7 @@ host = None
 port = None
 
 if os.environ.has_key('DB_HOST'):
-    host = os.environ('DB_HOST')
+    host = os.environ.get('DB_HOST')
     port = os.environ.get('DB_PORT')
 
 elif os.environ.has_key('DB_PORT_5432_TCP_ADDR'):

@@ -1,6 +1,6 @@
 # Django settings for sal project.
 from system_settings import *
-from settings_import import ADMINS, TIME_ZONE, LANGUAGE_CODE, ALLOWED_HOSTS, DISPLAY_NAME, DEFAULT_MACHINE_GROUP_KEY,DEBUG, BRUTE_PROTECT, BRUTE_COOLOFF, BRUTE_LIMIT
+from settings_import import *
 
 DATABASES = {
     'default': {

@@ -31,7 +31,7 @@ class Uptime(IPlugin):
 
         try:
             ok_range = []
-            for i in range(1,30):
+            for i in range(0,30):
                 ok_range.append(str(i))
 
             ok = machines.filter(pluginscriptsubmission__plugin='Uptime', pluginscriptsubmission__pluginscriptrow__pluginscript_name='UptimeDays', pluginscriptsubmission__pluginscriptrow__pluginscript_data__in=ok_range).count()
@@ -69,7 +69,7 @@ class Uptime(IPlugin):
 
         if data == 'ok':
             ok_range = []
-            for i in range(1,30):
+            for i in range(0,30):
                 ok_range.append(str(i))
             machines = machines.filter(pluginscriptsubmission__plugin='Uptime', pluginscriptsubmission__pluginscriptrow__pluginscript_name='UptimeDays', pluginscriptsubmission__pluginscriptrow__pluginscript_data__in=ok_range)
             title = 'Machines with less than 30 days of uptime'

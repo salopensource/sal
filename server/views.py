@@ -1877,6 +1877,9 @@ def checkin(request):
                         result = result + ', '+str(item)
                     else:
                         result = item
+                if result == None:
+                    # Handle empty arrays
+                    result = '{EMPTY}'
                 condition_data = result
 
             #print condition_data

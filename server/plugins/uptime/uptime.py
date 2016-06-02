@@ -8,7 +8,7 @@ import server.utils as utils
 
 class Uptime(IPlugin):
     def plugin_type(self):
-        return 'facter'
+        return 'builtin'
 
     def widget_width(self):
         return 4
@@ -34,18 +34,18 @@ class Uptime(IPlugin):
             for i in range(0,30):
                 ok_range.append(str(i))
 
-            ok = machines.filter(pluginscriptsubmission__plugin='Uptime', pluginscriptsubmission__pluginscriptrow__pluginscript_name='UptimeDays', pluginscriptsubmission__pluginscriptrow__pluginscript_data__in=ok_range).count()
+            ok = machines.filter(pluginscriptsubmission__plugin__exact='Uptime', pluginscriptsubmission__pluginscriptrow__pluginscript_name__exact='UptimeDays', pluginscriptsubmission__pluginscriptrow__pluginscript_data__in=ok_range).count()
 
             warning_range = []
             for i in range(30,90):
                 warning_range.append(str(i))
 
-            warning = machines.filter(pluginscriptsubmission__plugin='Uptime', pluginscriptsubmission__pluginscriptrow__pluginscript_name='UptimeDays', pluginscriptsubmission__pluginscriptrow__pluginscript_data__in=warning_range).count()
+            warning = machines.filter(pluginscriptsubmission__plugin__exact='Uptime', pluginscriptsubmission__pluginscriptrow__pluginscript_name__exact='UptimeDays', pluginscriptsubmission__pluginscriptrow__pluginscript_data__in=warning_range).count()
 
             not_alert_range = []
             for i in range(0,90):
                 not_alert_range.append(str(i))
-            alert = machines.filter(pluginscriptsubmission__plugin='Uptime', pluginscriptsubmission__pluginscriptrow__pluginscript_name='UptimeDays').exclude(pluginscriptsubmission__pluginscriptrow__pluginscript_data__in=not_alert_range).count()
+            alert = machines.filter(pluginscriptsubmission__plugin__exact='Uptime', pluginscriptsubmission__pluginscriptrow__pluginscript_name__exact='UptimeDays').exclude(pluginscriptsubmission__pluginscriptrow__pluginscript_data__in=not_alert_range).count()
         except:
             ok = 0
             warning = 0
@@ -71,21 +71,21 @@ class Uptime(IPlugin):
             ok_range = []
             for i in range(0,30):
                 ok_range.append(str(i))
-            machines = machines.filter(pluginscriptsubmission__plugin='Uptime', pluginscriptsubmission__pluginscriptrow__pluginscript_name='UptimeDays', pluginscriptsubmission__pluginscriptrow__pluginscript_data__in=ok_range)
+            machines = machines.filter(pluginscriptsubmission__plugin__exact='Uptime', pluginscriptsubmission__pluginscriptrow__pluginscript_name__exact='UptimeDays', pluginscriptsubmission__pluginscriptrow__pluginscript_data__in=ok_range)
             title = 'Machines with less than 30 days of uptime'
 
         elif data == 'warning':
             warning_range = []
             for i in range(30,90):
                 warning_range.append(str(i))
-            machines = machines.filter(pluginscriptsubmission__plugin='Uptime', pluginscriptsubmission__pluginscriptrow__pluginscript_name='UptimeDays', pluginscriptsubmission__pluginscriptrow__pluginscript_data__in=warning_range)
+            machines = machines.filter(pluginscriptsubmission__plugin__exact='Uptime', pluginscriptsubmission__pluginscriptrow__pluginscript_name__exact='UptimeDays', pluginscriptsubmission__pluginscriptrow__pluginscript_data__in=warning_range)
             title = 'Machines with less than 90 days of uptime'
 
         elif data == 'alert':
             not_alert_range = []
             for i in range(0,90):
                 not_alert_range.append(str(i))
-            machines = machines.filter(pluginscriptsubmission__plugin='Uptime', pluginscriptsubmission__pluginscriptrow__pluginscript_name='UptimeDays').exclude(pluginscriptsubmission__pluginscriptrow__pluginscript_data__in=not_alert_range).count()
+            machines = machines.filter(pluginscriptsubmission__plugin__exact='Uptime', pluginscriptsubmission__pluginscriptrow__pluginscript_name__exact='UptimeDays').exclude(pluginscriptsubmission__pluginscriptrow__pluginscript_data__in=not_alert_range).count()
             title = 'Machines with more than 90 days of uptime'
 
         else:

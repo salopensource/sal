@@ -1297,16 +1297,25 @@ def machine_detail(request, machine_id):
                 elif not name in report['RemovedItems']:
                     report['RemovedItems'].append(item['name'])
 
-    config_installed = 'config' in settings.INSTALLED_APPS
+    uptime_enabled = False
+    plugins = Plugin.objects.all()
+    for plugin in plugins:
+        if plugin.name == 'Uptime':
+            uptime_enabled = True
 
+    if uptime_enabled == True:
+        try:
+            plugin_script_submission = PluginScriptSubmission.objects.get(machine=machine, plugin__exact='Uptime')
+            uptime_seconds = PluginScriptRow.objects.get(submission=plugin_script_submission, pluginscript_name__exact='UptimeSeconds').pluginscript_data
+        except:
+            uptime_seconds = '0'
+
+    uptime = utils.display_time(int(uptime_seconds))
     if 'managed_uninstalls_list' in report:
         report['managed_uninstalls_list'].sort()
-        if config_installed:
-            from config.views import filter_uninstalls
-            report['managed_uninstalls_list'] = filter_uninstalls(business_unit.id, report['managed_uninstalls_list'])
 
 
-    c = {'user':user, 'machine_group': machine_group, 'business_unit': business_unit, 'report': report, 'install_results': install_results, 'removal_results': removal_results, 'machine': machine, 'facts':facts, 'conditions':conditions, 'ip_address':ip_address, 'config_installed':config_installed }
+    c = {'user':user, 'machine_group': machine_group, 'business_unit': business_unit, 'report': report, 'install_results': install_results, 'removal_results': removal_results, 'machine': machine, 'facts':facts, 'conditions':conditions, 'ip_address':ip_address, 'uptime_enabled':uptime_enabled, 'uptime':uptime }
     return render_to_response('server/machine_detail.html', c, context_instance=RequestContext(request))
 
 # Edit Machine

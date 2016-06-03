@@ -101,6 +101,10 @@
           {% endif %}
           <dt>Free disk space:</dt>
           <dd>{{ report.AvailableDiskSpace|humanreadablesize }} ({{ machine.hd_percent }}% used)</dd>
+          {% if uptime_enabled %}
+          <dt>Uptime:</dt>
+          <dd>{{ uptime }}</dd>
+          {% endif %}
           <dt>Console user:</dt>
           <dd>{{ report.ConsoleUser }}</dd>
           <br>

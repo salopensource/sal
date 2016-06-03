@@ -32,6 +32,7 @@ def main():
     data = {}
     
     data['UptimeDays'] = uptime_seconds / 60 / 60 / 24
+    data['UptimeSeconds'] = uptime_seconds
     result['data'] = data
     plist.append(result)
     FoundationPlist.writePlist(plist, plist_path)

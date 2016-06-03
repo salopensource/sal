@@ -1,28 +1,24 @@
 #!/usr/bin/python
 
 import subprocess
-from datetime import datetime, timedelta
+import time
 import sys
 sys.path.append('/usr/local/munki')
 from munkilib import FoundationPlist
 from munkilib import munkicommon
 import os
+import re
 
 def get_uptime():
-    p = subprocess.Popen("/usr/bin/uptime".split(), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    stdout, stderr = p.communicate()
-    if 'days' in stdout:
-        uptime_days = stdout.split()[2]
-        uptime_hours, uptime_minutes = stdout.split()[4][:-1].split(":")
-    else:
-        uptime_days = 0
-        uptime_hours, uptime_minutes = stdout.split()[2][:-1].split(":")
-    uptime = timedelta(days=int(uptime_days), hours=int(uptime_hours), minutes=int(uptime_minutes))
-
-    return (uptime.total_seconds(), uptime_minutes, uptime_hours, uptime_days)
+    cmd = ['/usr/sbin/sysctl', '-n', 'kern.boottime']
+    p = subprocess.Popen(cmd, shell=False, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    (output, unused_error) = p.communicate()
+    sec = int(re.sub('.*sec = (\d+),.*', '\\1', output))
+    up = int(time.time() - sec)
+    return up if up > 0 else -1
 
 def main():
-    (uptime_seconds, uptime_minutes, uptime_hours, uptime_days) = get_uptime()
+    uptime_seconds = get_uptime()
     
     plist_path = '/usr/local/sal/plugin_results.plist'
 
@@ -35,10 +31,7 @@ def main():
     result['historical'] = False
     data = {}
     
-    data['UptimeDays'] = uptime_days
-    data['UptimeHours'] = uptime_hours
-    data['UptimeMinutes'] = uptime_minutes
-    data['TotalSeconds'] = uptime_seconds
+    data['UptimeDays'] = uptime_seconds / 60 / 60 / 24
     result['data'] = data
     plist.append(result)
     FoundationPlist.writePlist(plist, plist_path)

@@ -1276,7 +1276,10 @@ def machine_detail(request, machine_id):
     # this is crappy. We should fix it in Munki.
     removal_results = {}
     for result in report.get('RemovalResults', []):
-        m = re.search('^Removal of (.+): (.+)$', result)
+        try:
+            m = re.search('^Removal of (.+): (.+)$', result)
+        except:
+            m = None
         if m:
             try:
                 if m.group(2) == 'SUCCESSFUL':

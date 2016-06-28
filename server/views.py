@@ -509,7 +509,7 @@ def tableajax(request, pluginName, data, page='front', theID=None):
         if machine.last_checkin:
             #formatted_date = pytz.utc.localize(machine.last_checkin)
             if settings_time_zone:
-            formatted_date = machine.last_checkin.astimezone(settings_time_zone).strftime("%Y-%m-%d %H:%M %Z")
+                formatted_date = machine.last_checkin.astimezone(settings_time_zone).strftime("%Y-%m-%d %H:%M %Z")
             else:
                 formatted_date = machine.last_checkin.strftime("%Y-%m-%d %H:%M")
         else:

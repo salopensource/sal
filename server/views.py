@@ -511,7 +511,7 @@ def tableajax(request, pluginName, data, page='front', theID=None):
             if settings_time_zone:
             formatted_date = machine.last_checkin.astimezone(settings_time_zone).strftime("%Y-%m-%d %H:%M %Z")
             else:
-                formatted_date = machine.last_checkin.strftime("%Y-%m-%d %H:%M %Z")
+                formatted_date = machine.last_checkin.strftime("%Y-%m-%d %H:%M")
         else:
             formatted_date = ""
         hostname_link = "<a href=\"%s\">%s</a>" % (reverse('machine_detail', args=[machine.id]), machine.hostname)

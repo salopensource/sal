@@ -500,10 +500,18 @@ def tableajax(request, pluginName, data, page='front', theID=None):
     return_data['recordsFiltered'] = machines.count()
 
     return_data['data'] = []
-
+    settings_time_zone = None
+    try:
+        settings_time_zone = pytz.timezone(settings.TIME_ZONE)
+    except:
+        pass
     for machine in limited_machines:
         if machine.last_checkin:
-            formatted_date = machine.last_checkin.strftime("%Y-%m-%d %H:%M")
+            #formatted_date = pytz.utc.localize(machine.last_checkin)
+            if settings_time_zone:
+            formatted_date = machine.last_checkin.astimezone(settings_time_zone).strftime("%Y-%m-%d %H:%M %Z")
+            else:
+                formatted_date = machine.last_checkin.strftime("%Y-%m-%d %H:%M %Z")
         else:
             formatted_date = ""
         hostname_link = "<a href=\"%s\">%s</a>" % (reverse('machine_detail', args=[machine.id]), machine.hostname)

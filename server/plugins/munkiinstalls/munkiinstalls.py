@@ -9,7 +9,8 @@ from datetime import datetime, timedelta, date, time
 import django.utils.timezone
 
 now = django.utils.timezone.now()
-this_day = now -  timedelta(days=1)
+this_day = now -  timedelta(days=0)
+one_day_ago = now -  timedelta(days=1)
 two_days_ago = now - timedelta(days=2)
 three_days_ago = now - timedelta(days=3)
 four_days_ago = now - timedelta(days=4)
@@ -48,7 +49,7 @@ class MunkiInstalls(IPlugin):
             t = loader.get_template('munkiinstalls/templates/front.html')
 
         data = []
-        for time_range in [this_day, two_days_ago, three_days_ago, four_days_ago,
+        for time_range in [this_day, one_day_ago, two_days_ago, three_days_ago, four_days_ago,
         five_days_ago, six_days_ago, seven_days_ago, eight_days_ago, nine_days_ago,
         ten_days_ago, eleven_days_ago, twelve_days_ago, thirteen_days_ago, fourteen_days_ago]:
             my_dict = {}

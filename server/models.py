@@ -292,7 +292,7 @@ class PluginScriptSubmission(models.Model):
 class PluginScriptRow(models.Model):
     submission = models.ForeignKey(PluginScriptSubmission)
     pluginscript_name = models.TextField()
-    pluginscript_data = models.TextField()
+    pluginscript_data = models.TextField(blank=True, null=True)
     def __unicode__(self):
         return '%s: %s' % (self.pluginscript_name, self.pluginscript_data)
     class Meta:

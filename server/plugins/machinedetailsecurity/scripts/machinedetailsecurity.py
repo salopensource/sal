@@ -28,6 +28,10 @@ def sip_status():
     cmd = ['/usr/bin/csrutil', 'status']
     return get_status(cmd, 'System Integrity Protection status: enabled.')
 
+def gatekeeper_status():
+    cmd = ['/usr/sbin/spctl', '--status']
+    return get_status(cmd, 'assessments enabled')
+
 def main():
     filevault = fv_status()
     
@@ -38,6 +42,12 @@ def main():
     else:
         sip = 'Not Supported'
 
+    # Yes, I know it came in 10.7.5, but eh. I don't care, I'm lazy
+    if LooseVersion("10.8") <= LooseVersion(mac_ver):
+        gatekeeper = gatekeeper_status()
+    else:
+        gatekeeper = 'Not Supported'
+
     plist_path = '/usr/local/sal/plugin_results.plist'
 
     if os.path.exists(plist_path):
@@ -46,11 +56,12 @@ def main():
         plist = []
     result = {}
     result['plugin'] = 'MachineDetailSecurity'
-    result['historical'] = False
+    result['historical'] = True
     data = {}
     
     data['Filevault'] = filevault
     data['SIP'] = sip
+    data['Gatekeeper'] = gatekeeper
     result['data'] = data
     plist.append(result)
     FoundationPlist.writePlist(plist, plist_path)

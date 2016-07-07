@@ -6,6 +6,8 @@
 <script>
 
 $( document ).ready(function() {
+  (function(){
+
 
    {% for widget in output %}
 
@@ -27,6 +29,8 @@ $( document ).ready(function() {
 
 
    {% endfor %}
+    setTimeout(arguments.callee, 60000);
+})();
 
 });
 

@@ -3,7 +3,37 @@
 {% load dashboard_extras %}
 
 {% block script %}
+<script>
 
+$( document ).ready(function() {
+
+
+
+   {% for widget in output %}
+
+   $.ajaxWithRetries(
+    {
+        url: "{% url 'plugin_load_id' widget.name 'machine_detail' machine.id%}",
+        error: function(){
+            console.log('{{ widget.name }} Failed');
+        },
+        success: function( data ) {
+                $('#plugin-{{ widget.name }}').html(data);
+            },
+    },
+    {
+        retries: 20,
+        backoff: false
+    }
+);
+
+
+   {% endfor %}
+
+
+});
+
+</script>
 
 {% endblock %}
 
@@ -76,6 +106,12 @@
               </p>
             </div>
           </div>
+          </dl>
+      </div>
+    </div>
+    <div class="panel panel-default">
+      <div class="panel-body">
+        <dl class="dl-horizontal">
           <legend><h5 class"text-uppercase">Machine Details</h5></legend>
           <dt>Model:</dt>
           <dd>
@@ -107,7 +143,12 @@
           {% endif %}
           <dt>Console user:</dt>
           <dd>{{ report.ConsoleUser }}</dd>
-          <br>
+        </dl>
+      </div>
+    </div>
+    <div class="panel panel-default">
+      <div class="panel-body">
+        <dl class="dl-horizontal">
           <legend><h5 class"text-uppercase">Management Tools</h5></legend>
           <dt>Business Unit</dt>
           <dd>{{ business_unit }}</dd>
@@ -128,7 +169,7 @@
           {% if 'ManifestName' in report %}
           <dt>Munki Manifest:</dt>
           <dd>
-            {{ report.ManifestName }}</a>
+            {{ report.ManifestName }}
           </dd>
           {% endif %}
           {% if report.ManagedInstallVersion %}
@@ -146,6 +187,11 @@
         </dl>
       </div>
     </div>
+
+              {% for widget in output %}
+              {{ widget.html|safe }}
+              {% endfor %}
+            
   </div>
 
   <div class="col-md-7">

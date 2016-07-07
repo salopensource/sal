@@ -25,10 +25,16 @@ class MachineDetailSecurity(IPlugin):
         except:
             fv_status = 'Unknown'
 
+        try:
+            sip_status = PluginScriptRow.objects.get(submission__machine=machines, submission__plugin__exact='MachineDetailSecurity', pluginscript_name__exact='SIP')
+        except:
+            sip_status = 'Unknown'
+
 
         c = Context({
             'title': 'Security',
-            'fv_status': fv_status.pluginscript_data
+            'fv_status': fv_status.pluginscript_data,
+            'sip_status': sip_status.pluginscript_data,
         })
         return t.render(c)
 

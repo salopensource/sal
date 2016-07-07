@@ -1,7 +1,6 @@
 #!/usr/bin/python
 
 import subprocess
-import sys
 sys.path.append('/usr/local/munki')
 from munkilib import FoundationPlist
 from munkilib import munkicommon
@@ -68,4 +67,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-

@@ -22,7 +22,7 @@
 <script>
 
 $( document ).ready(function() {
-
+    (function(){
    {% for widget in output %}
 
     $.ajaxWithRetries(
@@ -41,7 +41,8 @@ $( document ).ready(function() {
     }
 );
    {% endfor %}
-
+    setTimeout(arguments.callee, 60000);
+})();
 });
 
 </script>

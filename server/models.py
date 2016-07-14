@@ -334,13 +334,29 @@ class Plugin(models.Model):
     PLUGIN_TYPES = (
         ('facter', 'Facter'),
         ('munkicondition', 'Munki Condition'),
-        ('osquery', 'osquery'),
         ('builtin', 'Built In'),
+        ('custom', 'Custom Script'),
     )
     name = models.CharField(max_length=255, unique=True)
     description = models.TextField(blank=True, null=True)
     order = models.IntegerField()
-    type = models.CharField(max_length=255, choices=PLUGIN_TYPES, default='facter')
+    type = models.CharField(max_length=255, choices=PLUGIN_TYPES, default='builtin')
+    def __unicode__(self):
+        return self.name
+    class Meta:
+        ordering = ['order']
+
+class MachineDetailPlugin(models.Model):
+    PLUGIN_TYPES = (
+        ('facter', 'Facter'),
+        ('munkicondition', 'Munki Condition'),
+        ('builtin', 'Built In'),
+        ('custom', 'Custom Script'),
+    )
+    name = models.CharField(max_length=255, unique=True)
+    description = models.TextField(blank=True, null=True)
+    order = models.IntegerField()
+    type = models.CharField(max_length=255, choices=PLUGIN_TYPES, default='builtin')
     def __unicode__(self):
         return self.name
     class Meta:

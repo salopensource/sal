@@ -100,7 +100,16 @@ urlpatterns = patterns('server.views',
     url(r'^settings/plugins/reports/enable/(?P<plugin_name>.+)/', 'settings_report_enable', name='settings_report_enable'),
     # Manage Reports
     url(r'^settings/plugins/reports/', 'settings_reports', name='settings_reports'),
-
+    # Plus Machine Detail Plugin
+    url(r'^settings/plugins/machinedetail/plus/(?P<plugin_id>.+)/', 'machine_detail_plugin_plus', name='machine_detail_plugin_plus'),
+    # Minus Machine Detail Plugin
+    url(r'^settings/plugins/machinedetail/minus/(?P<plugin_id>.+)/', 'machine_detail_plugin_minus', name='machine_detail_plugin_minus'),
+    # Disable Machine Detail Plugin
+    url(r'^settings/plugins/machinedetail/disable/(?P<plugin_id>.+)/', 'machine_detail_plugin_disable', name='machine_detail_plugin_disable'),
+    # Enable Machine Detail Plugin
+    url(r'^settings/plugins/machinedetail/enable/(?P<plugin_name>.+)/', 'machine_detail_plugin_enable', name='machine_detail_plugin_enable'),
+    # Manage Machine Detail Plugins
+    url(r'^settings/plugins/machinedetail/', 'settings_machine_detail_plugins', name='settings_machine_detail_plugins'),
     # Plus Plugin
     url(r'^settings/plugins/plus/(?P<plugin_id>.+)/', 'plugin_plus', name='plugin_plus'),
     # Minus Plugin

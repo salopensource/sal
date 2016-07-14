@@ -564,6 +564,10 @@ def plugin_load(request, pluginName, page='front', theID=None):
         machine_group = get_object_or_404(MachineGroup, pk=theID)
         # check that the user has access to this
         machines = Machine.objects.filter(machine_group=machine_group)
+
+    if page =='machine_detail':
+        machines = Machine.objects.get(pk=theID)
+
     # send the machines and the data to the plugin
     for plugin in manager.getAllPlugins():
         if plugin.name == pluginName:
@@ -606,6 +610,10 @@ def report_load(request, pluginName, page='front', theID=None):
         machine_group = get_object_or_404(MachineGroup, pk=theID)
         # check that the user has access to this
         machines = Machine.objects.filter(machine_group=machine_group)
+
+    if page =='machine_detail':
+        machines = Machine.objects.get(pk=theID)
+
     # send the machines and the data to the plugin
     for plugin in manager.getAllPlugins():
         if plugin.name == pluginName:
@@ -671,6 +679,10 @@ def export_csv(request, pluginName, data, page='front', theID=None):
         machine_group = get_object_or_404(MachineGroup, pk=theID)
         # check that the user has access to this
         machines = Machine.objects.filter(machine_group=machine_group)
+
+    if page =='machine_detail':
+        machines = Machine.objects.get(pk=theID)
+            
     # send the machines and the data to the plugin
     for plugin in manager.getAllPlugins():
         if plugin.name == pluginName:
@@ -1325,8 +1337,38 @@ def machine_detail(request, machine_id):
     if 'managed_uninstalls_list' in report:
         report['managed_uninstalls_list'].sort()
 
+    # Woo, plugin time
+    # Load in the default plugins if needed
+    utils.loadDefaultPlugins()
+    # Build the manager
+    manager = PluginManager()
+    # Tell it the default place(s) where to find plugins
+    manager.setPluginPlaces([settings.PLUGIN_DIR, os.path.join(settings.PROJECT_DIR, 'server/plugins')])
+    # Load all plugins
+    manager.collectPlugins()
+    output = []
 
-    c = {'user':user, 'machine_group': machine_group, 'business_unit': business_unit, 'report': report, 'install_results': install_results, 'removal_results': removal_results, 'machine': machine, 'facts':facts, 'conditions':conditions, 'ip_address':ip_address, 'uptime_enabled':uptime_enabled, 'uptime':uptime }
+    # Get all the enabled plugins
+    enabled_plugins = MachineDetailPlugin.objects.all().order_by('order')
+    for enabled_plugin in enabled_plugins:
+        # Loop round the plugins and print their names.
+        for plugin in manager.getAllPlugins():
+            # If plugin_type isn't set, assume its an old style one
+            try:
+                plugin_type = plugin.plugin_object.plugin_type()
+            except:
+                plugin_type = 'widget'
+            if plugin.name == enabled_plugin.name and \
+            plugin_type != 'builtin' and plugin_type != 'report':
+                data = {}
+                data['name'] = plugin.name
+                data['html'] = '<div id="plugin-%s"><img class="center-block blue-spinner" src="%s"/></div>' % (data['name'], static('img/blue-spinner.gif'))
+                output.append(data)
+                break
+
+    output = utils.orderPluginOutput(output)
+
+    c = {'user':user, 'machine_group': machine_group, 'business_unit': business_unit, 'report': report, 'install_results': install_results, 'removal_results': removal_results, 'machine': machine, 'facts':facts, 'conditions':conditions, 'ip_address':ip_address, 'uptime_enabled':uptime_enabled, 'uptime':uptime,'output':output }
     return render_to_response('server/machine_detail.html', c, context_instance=RequestContext(request))
 
 # Edit Machine
@@ -1449,6 +1491,19 @@ def settings_reports(request):
         return render_to_response('server/reports.html', c, context_instance=RequestContext(request))
 
 @login_required
+def settings_machine_detail_plugins(request):
+        user = request.user
+        user_level = user.userprofile.level
+        if user_level != 'GA':
+            return redirect(index)
+        # Load the plugins
+        utils.reloadPluginsModel()
+        enabled_plugins = MachineDetailPlugin.objects.all()
+        disabled_plugins = utils.disabled_plugins(plugin_kind='machine_detail')
+        c = {'user':request.user, 'request':request, 'enabled_plugins':enabled_plugins, 'disabled_plugins':disabled_plugins}
+        return render_to_response('server/machine_detail_plugins.html', c, context_instance=RequestContext(request))
+
+@login_required
 def plugin_plus(request, plugin_id):
     user = request.user
     profile = UserProfile.objects.get(user=user)
@@ -1509,6 +1564,68 @@ def plugin_enable(request, plugin_name):
         plugin = Plugin(name=plugin_name, order=utils.UniquePluginOrder())
         plugin.save()
     return redirect('plugins_page')
+
+@login_required
+def machine_detail_plugin_plus(request, plugin_id):
+    user = request.user
+    profile = UserProfile.objects.get(user=user)
+    user_level = profile.level
+    if user_level != 'GA':
+        return redirect('server.views.index')
+
+    # get current plugin order
+    current_plugin = get_object_or_404(MachineDetailPlugin, pk=plugin_id)
+
+    # get 'old' next one
+    old_plugin = get_object_or_404(Plugin, order=(int(current_plugin.order)+1))
+    current_plugin.order = current_plugin.order + 1
+    current_plugin.save()
+
+    old_plugin.order = old_plugin.order - 1
+    old_plugin.save()
+    return redirect('settings_machine_detail_plugins')
+
+@login_required
+def machine_detail_plugin_minus(request, plugin_id):
+    user = request.user
+    profile = UserProfile.objects.get(user=user)
+    user_level = profile.level
+    if user_level != 'GA':
+        return redirect('server.views.index')
+
+    # get current plugin order
+    current_plugin = get_object_or_404(MachineDetailPlugin, pk=plugin_id)
+    #print current_plugin
+    # get 'old' previous one
+
+    old_plugin = get_object_or_404(MachineDetailPlugin, order=(int(current_plugin.order)-1))
+    current_plugin.order = current_plugin.order - 1
+    current_plugin.save()
+
+    old_plugin.order = old_plugin.order + 1
+    old_plugin.save()
+    return redirect('settings_machine_detail_plugins')
+
+@login_required
+def machine_detail_plugin_disable(request, plugin_id):
+    user = request.user
+    profile = UserProfile.objects.get(user=user)
+    user_level = profile.level
+    if user_level != 'GA':
+        return redirect('server.views.index')
+    plugin = get_object_or_404(MachineDetailPlugin, pk=plugin_id)
+    plugin.delete()
+    return redirect('settings_machine_detail_plugins')
+
+@login_required
+def machine_detail_plugin_enable(request, plugin_name):
+    # only do this if there isn't a plugin already with the name
+    try:
+        plugin = Plugin.objects.get(name=plugin_name)
+    except Plugin.DoesNotExist:
+        plugin = MachineDetailPlugin(name=plugin_name, order=utils.UniquePluginOrder(plugin_type='machine_detail'))
+        plugin.save()
+    return redirect('settings_machine_detail_plugins')
 
 @login_required
 def settings_report_disable(request, plugin_id):
@@ -1636,6 +1753,16 @@ def preflight_v2(request):
     for enabled_report in enabled_reports:
         for plugin in manager.getAllPlugins():
             if enabled_report.name == plugin.name:
+                content = utils.get_plugin_scripts(plugin, hash_only=True)
+                if content:
+                    output.append(content)
+
+                break
+    enabled_machine_detail_plugins = MachineDetailPlugin.objects.all()
+    print enabled_machine_detail_plugins
+    for enabled_machine_detail_plugin in enabled_machine_detail_plugins:
+        for plugin in manager.getAllPlugins():
+            if enabled_machine_detail_plugin.name == plugin.name:
                 content = utils.get_plugin_scripts(plugin, hash_only=True)
                 if content:
                     output.append(content)

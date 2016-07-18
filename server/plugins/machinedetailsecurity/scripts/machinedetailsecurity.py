@@ -1,6 +1,7 @@
 #!/usr/bin/python
 
 import subprocess
+import sys
 sys.path.append('/usr/local/munki')
 from munkilib import FoundationPlist
 from munkilib import munkicommon
@@ -33,7 +34,7 @@ def gatekeeper_status():
 
 def main():
     filevault = fv_status()
-    
+
     mac_ver = mac_version()
 
     if LooseVersion("10.11") <= LooseVersion(mac_ver):
@@ -57,7 +58,7 @@ def main():
     result['plugin'] = 'MachineDetailSecurity'
     result['historical'] = True
     data = {}
-    
+
     data['Filevault'] = filevault
     data['SIP'] = sip
     data['Gatekeeper'] = gatekeeper

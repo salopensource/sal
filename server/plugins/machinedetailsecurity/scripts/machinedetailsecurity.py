@@ -14,7 +14,10 @@ def mac_version():
     return v
 
 def get_status(cmd, checkstring):
-    output = subprocess.check_output(cmd)
+    try:
+        output = subprocess.check_output(cmd, stderr=subprocess.STDOUT)
+    except Exception, e:
+        output = str(e.output)
     if checkstring in output:
         return 'Enabled'
     else:

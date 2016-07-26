@@ -115,7 +115,14 @@ $( document ).ready(function() {
           <legend><h5 class"text-uppercase">Machine Details</h5></legend>
           <dt>Model:</dt>
           <dd>
+            {% if machine.machine_model_friendly %}
+            {{ machine.machine_model_friendly }}
+            {% else %}
             {{ machine.machine_model }}
+            {% endif %}
+          </dd>
+          <dt>Processor:</dt>
+          <dd>
             {{ machine.cpu_type }}
             {{ machine.cpu_speed }}
           </dd>
@@ -191,7 +198,7 @@ $( document ).ready(function() {
               {% for widget in output %}
               {{ widget.html|safe }}
               {% endfor %}
-            
+
   </div>
 
   <div class="col-md-7">

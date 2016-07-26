@@ -10,6 +10,7 @@ import logging
 import requests
 import plistlib
 import hashlib
+import xml.etree.ElementTree as ET
 
 def safe_unicode(s):
     if isinstance(s, unicode):
@@ -129,7 +130,7 @@ def send_report():
         return r.text
     else:
         return 'Error'
-        
+
 def loadDefaultPlugins():
     # Are there any plugin objects? If not, add in the defaults
     plugin_objects = Plugin.objects.all().count()
@@ -348,7 +349,7 @@ def orderPluginOutput(pluginOutput, page='front', theID=None):
                     if item['name'] == key:
                         output.remove(item)
     # Loop over all of the items, their width will have been returned
-    col_width = 12 
+    col_width = 12
     total_width = 0
     counter = 0
     # length of the output, but starting at 0, so subtract one
@@ -387,6 +388,14 @@ def decode_to_string(base64bz2data):
         return ''
 
 
+def friendly_machine_model(serial):
+    payload = {'cc': serial[-4:]}
+    try:
+        r = requests.get('http://support-sp.apple.com/sp/product', params=payload)
+        return ET.fromstring(r.text).find('configCode').text
+    except:
+        return None
+        
 def display_time(seconds, granularity=2):
     result = []
     intervals = (

@@ -493,7 +493,7 @@ def tableajax(request, pluginName, data, page='front', theID=None):
         searched_machines = machines.order_by(order_string)
 
     limited_machines = searched_machines[start:(start+length)]
-    
+
     return_data = {}
     return_data['draw'] = int(draw)
     return_data['recordsTotal'] = machines.count()
@@ -682,7 +682,7 @@ def export_csv(request, pluginName, data, page='front', theID=None):
 
     if page =='machine_detail':
         machines = Machine.objects.get(pk=theID)
-            
+
     # send the machines and the data to the plugin
     for plugin in manager.getAllPlugins():
         if plugin.name == pluginName:
@@ -1911,6 +1911,10 @@ def checkin(request):
         machine.os_family = report_data['os_family']
 
     machine.save()
+
+    if not machine.machine_model_friendly:
+        machine.machine_model_friendly = utils.friendly_machine_model(machine.serial)
+        machine.save()
 
     # If Plugin_Results are in the report, handle them
     try:

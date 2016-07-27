@@ -36,6 +36,7 @@ class Migration(migrations.Migration):
                 'ordering': ['name'],
             },
         ),
+        migrations.RunPython(migrate_inventoryitems_to_applications),
         migrations.AlterModelOptions(
             name='inventoryitem',
             options={},
@@ -58,5 +59,4 @@ class Migration(migrations.Migration):
             field=models.ForeignKey(default=0, to='inventory.Application'),
             preserve_default=False,
         ),
-        migrations.RunPython(migrate_inventoryitems_to_applications),
     ]

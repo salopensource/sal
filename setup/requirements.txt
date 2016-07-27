@@ -22,4 +22,4 @@ python-memcached==1.57
 unicodecsv==0.14.1
 django-axes==1.5.0
 futures==3.0.3
-django-tables2==1.1.1
+django-datatable-view==0.8.3

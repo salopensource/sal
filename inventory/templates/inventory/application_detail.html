@@ -1,0 +1,34 @@
+{% extends "inventory/inventory_base.html" %}
+
+{% block heading %}
+	<h2 style="text-align:center">{{ object.name }}</h2>
+	<h4 style="text-align:center">
+		{% if not group_type == "all" %}Filtered by {{ group_type|title }}: {{ group_name }}{% endif %}
+	</h4>
+{% endblock %}
+{% block inventory_data %}
+	<dl class="dl-horizontal" >
+		<legend><h5 class"text-uppercase">Application Details</h5></legend>
+		<dt>Name:</dt>
+		<dd>{{ object.name }} </dd>
+		<dt>Bundle ID:</dt>
+		<dd>{{ object.bundleid }} </dd>
+		<dt>Bundle Name:</dt>
+		<dd>{{ object.bundlename }}</dd>
+		<dt>Total Install Count:</dt>
+		<dd><a href="{% url 'inventory_list' group_type=group_type group_id=group_id application_id=object.id field_type='all' field_value='0' %}"><span class="badge">{{ install_count }}</span></a></dd>
+		<br>
+		<legend><h5 class"text-uppercase">Installed Versions</h5></legend>
+		{% for version in versions %}
+		<dt>{{ version.version }}:</dt>
+		<dd><a href="{% url 'inventory_list' group_type=group_type group_id=group_id application_id=object.id field_type='version' field_value=version.version %}"><span class="badge">{{ version.count }}</span></a></dd>
+		{% endfor %}
+		</ul>
+		<br>
+		<legend><h5 class"text-uppercase">Installed Paths</h5></legend>
+		{% for path in paths %}
+		<dt>Path:</dt>
+		<dd><a href="{% url 'inventory_list' group_type=group_type group_id=group_id application_id=object.id field_type='path' field_value=path.path %}"><span class="badge">{{ path.count }}</span></a> {{ path.path }}</dd>
+		{% endfor %}
+	</dl>
+{% endblock %}

@@ -1,7 +1,7 @@
 from django.http import HttpResponse, HttpRequest, HttpResponseRedirect
 from django.template import RequestContext, Template, Context
-from django.shortcuts import render_to_response
-from django.core.context_processors import csrf
+from django.shortcuts import render
+from django.template.context_processors import csrf
 from django.views.decorators.csrf import csrf_exempt
 from django.core.urlresolvers import reverse
 from django.http import Http404
@@ -12,7 +12,7 @@ from django import forms
 from django.db.models import Q
 from django.db.models import Count
 from server import utils
-from django.shortcuts import render_to_response, get_object_or_404, redirect
+from django.shortcuts import get_object_or_404, redirect
 import plistlib
 import hashlib
 

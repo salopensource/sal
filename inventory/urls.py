@@ -15,5 +15,5 @@ urlpatterns = [
     url(r'^csv/$', views.export_csv, name='inventory_export_csv_front'),
     # CSS Ecport (id)
     url(r'^id_csv/(?P<page>.+)/(?P<theID>.+)/$', views.export_csv, name='inventory_export_csv_id'),
-    url(r'^$', views.index),
+    url(r'^$', views.index, name='inventory_index'),
 ]

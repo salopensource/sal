@@ -1,7 +1,6 @@
 from django.http import HttpResponse, HttpRequest, HttpResponseRedirect, HttpResponseNotFound
 from django.template import RequestContext, Template, Context
-from django.shortcuts import render_to_response
-from django.core.context_processors import csrf
+from django.template.context_processors import csrf
 from django.views.decorators.csrf import csrf_exempt
 from django.core.urlresolvers import reverse
 from django.http import Http404
@@ -12,7 +11,7 @@ from django import forms
 from django.db.models import Q
 from django.db.models import Count
 from server import utils
-from django.shortcuts import render_to_response, get_object_or_404, redirect
+from django.shortcuts import render, get_object_or_404, redirect
 import unicodecsv as csv
 import plistlib
 import base64
@@ -136,7 +135,7 @@ def inventory_list(request, page='front', theID=None):
 
     c = {'user':user, 'machines': machines, 'req_type': page, 'title': title, 'bu_id': theID, 'request':request, 'inventory_name':inventory_name, 'inventory_version':inventory_version, 'inventory_bundleid':inventory_bundleid, 'inventory_bundlename':inventory_bundlename, 'previous_id': previous_id, 'next_id':next_id, 'inventory':inventory }
 
-    return render_to_response('inventory/overview_list_all.html', c, context_instance=RequestContext(request))
+    return render(request,'inventory/overview_list_all.html', c)
 
 @csrf_exempt
 def inventory_submit(request):
@@ -244,7 +243,7 @@ def index(request):
         next_id = 0
 
     c = {'user': request.user, 'inventory': inventory, 'page':'front', 'request': request, 'previous_id': previous_id, 'next_id':next_id}
-    return render_to_response('inventory/index.html', c, context_instance=RequestContext(request))
+    return render(request, 'inventory/index.html', c)
 
 @login_required
 def bu_inventory(request, bu_id):
@@ -274,7 +273,7 @@ def bu_inventory(request, bu_id):
         # we've not got 25 results, probably the last page
         next_id = 0
     c = {'user': request.user, 'inventory': inventory, 'page':'business_unit', 'business_unit':business_unit, 'request': request, 'previous_id': previous_id, 'next_id':next_id}
-    return render_to_response('inventory/index.html', c, context_instance=RequestContext(request))
+    return render(request, 'inventory/index.html', c)
 
 @login_required
 def machine_group_inventory(request, group_id):
@@ -306,7 +305,7 @@ def machine_group_inventory(request, group_id):
 
 
     c = {'user': request.user, 'inventory': inventory, 'page':'machine_group', 'business_unit':business_unit,'machine_group':machine_group, 'request': request, 'previous_id': previous_id, 'next_id':next_id}
-    return render_to_response('inventory/index.html', c, context_instance=RequestContext(request))
+    return render(request, 'inventory/index.html', c)
 
 @login_required
 def machine_inventory(request, machine_id):
@@ -340,7 +339,7 @@ def machine_inventory(request, machine_id):
 
 
     c = {'user': request.user, 'inventory': inventory, 'page':'machine_id', 'business_unit':business_unit,'machine':machine, 'request': request, 'previous_id': previous_id, 'next_id':next_id}
-    return render_to_response('inventory/index.html', c, context_instance=RequestContext(request))
+    return render(request, 'inventory/index.html', c)
 
 @login_required
 def export_csv(request, page='front', theID=None):
@@ -411,8 +410,6 @@ def export_csv(request, page='front', theID=None):
         row.append(machine.machine_group.business_unit.name)
         row.append(machine.machine_group.name)
         writer.writerow(row)
-        #writer.writerow([machine.serial, machine.machine_group.business_unit.name, machine.machine_group.name,
-        #machine.hostname, machine.operating_system, machine.memory, machine.memory_kb, machine.munki_version, machine.manifest])
 
     return response
 

@@ -1,6 +1,6 @@
 from django.db import models
 from server.models import *
-import watson
+from watson import search as watson
 # Create your models here.
 
 class Inventory(models.Model):

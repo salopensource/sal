@@ -7,7 +7,7 @@ from xml.parsers.expat import ExpatError
 import base64
 import bz2
 from datetime import datetime
-import watson
+from watson import search as watson
 
 def GenerateKey():
     key = ''.join(random.choice(string.ascii_lowercase + string.digits) for x in range(128))

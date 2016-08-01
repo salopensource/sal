@@ -8,8 +8,8 @@ from django.views.decorators.csrf import csrf_exempt, csrf_protect
 from django.http import HttpResponse, Http404, HttpResponseNotFound, HttpResponseRedirect, JsonResponse
 from django.contrib.auth.models import Permission, User
 from django.conf import settings
-from django.core.context_processors import csrf
-from django.shortcuts import render_to_response, get_object_or_404, redirect
+from django.template.context_processors import csrf
+from django.shortcuts import render, get_object_or_404, redirect
 from datetime import datetime, timedelta, date
 from django.db.models import Count, Sum, Max, Q
 from django.contrib import messages
@@ -77,7 +77,7 @@ def search(request):
 
     title = "Search results for %s" % query_string
     c = {'user': request.user, 'search_results': search_results, 'title':title, 'request':request}
-    return render_to_response(template, c, context_instance=RequestContext(request))
+    return render(request, template, c)
 
 @login_required
 def index(request):
@@ -107,11 +107,11 @@ def index(request):
         business_units = user.businessunit_set.all()
         if user.businessunit_set.count() == 0:
             c = {'user': request.user, }
-            return render_to_response('server/no_access.html', c, context_instance=RequestContext(request))
+            return render('server/no_access.html', c)
         if user.businessunit_set.count() == 1:
             # user only has one BU, redirect to it
             for bu in user.businessunit_set.all():
-                return redirect('server.views.bu_dashboard', bu_id=bu.id)
+                return redirect('bu_dashboard', bu_id=bu.id)
                 break
 
     # Load in the default plugins if needed
@@ -177,7 +177,7 @@ def index(request):
     new_version = False
     current_version = False
     c = {'user': request.user, 'business_units': business_units, 'output': output, 'data_setting_decided':data_setting_decided, 'new_version_available':new_version_available, 'new_version':new_version, 'reports':reports, 'current_version': current_version}
-    return render_to_response('server/index.html', c, context_instance=RequestContext(request))
+    return render(request, 'server/index.html', c)
 
 def check_version():
     # Get current version
@@ -282,7 +282,7 @@ def manage_users(request):
         return redirect(index)
     users = User.objects.all()
     c = {'user':request.user, 'users':users, 'request':request, 'brute_protect':brute_protect}
-    return render_to_response('server/manage_users.html', c, context_instance=RequestContext(request))
+    return render(request, 'server/manage_users.html', c)
 
 # Unlock account
 @login_required
@@ -303,7 +303,7 @@ def brute_unlock(request):
         return redirect(index)
     axes.utils.reset()
     c = {'user':request.user, 'request':request, 'brute_protect':brute_protect}
-    return render_to_response('server/brute_unlock.html', c, context_instance=RequestContext(request))
+    return render(request, 'server/brute_unlock.html', c)
 
 # New User
 @login_required
@@ -329,7 +329,7 @@ def new_user(request):
         form = NewUserForm()
     c = {'form': form}
 
-    return render_to_response('forms/new_user.html', c, context_instance=RequestContext(request))
+    return render(request, 'forms/new_user.html', c)
 
 
 @login_required
@@ -366,7 +366,7 @@ def edit_user(request, user_id):
 
     c = {'form': form, 'the_user':the_user}
 
-    return render_to_response('forms/edit_user.html', c, context_instance=RequestContext(request))
+    return render(request, 'forms/edit_user.html', c)
 
 @login_required
 def user_add_staff(request, user_id):
@@ -528,7 +528,7 @@ def machine_list(request, pluginName, data, page='front', theID=None):
     user = request.user
     c = {'user':user, 'plugin_name': pluginName, 'machines': machines, 'req_type': page, 'title': title, 'bu_id': theID, 'request':request, 'data':data }
 
-    return render_to_response('server/overview_list_all.html', c, context_instance=RequestContext(request))
+    return render(request, 'server/overview_list_all.html', c)
 
 # Plugin machine list
 @login_required
@@ -638,7 +638,7 @@ def report_load(request, pluginName, page='front', theID=None):
                     break
 
     c = {'user': request.user, 'output': output, 'page':page, 'business_unit': business_unit, 'machine_group': machine_group, 'reports': reports}
-    return render_to_response('server/display_report.html', c, context_instance=RequestContext(request))
+    return render(request, 'server/display_report.html', c)
 
 @login_required
 def export_csv(request, pluginName, data, page='front', theID=None):
@@ -734,7 +734,7 @@ def new_business_unit(request):
     user_level = user.userprofile.level
     if user_level != 'GA':
         return redirect(index)
-    return render_to_response('forms/new_business_unit.html', c, context_instance=RequestContext(request))
+    return render(request, 'forms/new_business_unit.html', c)
 
 # Edit BU
 @login_required
@@ -766,7 +766,7 @@ def edit_business_unit(request, bu_id):
     user_level = user.userprofile.level
     if user_level != 'GA':
         return redirect(index)
-    return render_to_response('forms/edit_business_unit.html', c, context_instance=RequestContext(request))
+    return render('forms/edit_business_unit.html', c)
 
 @login_required
 def delete_business_unit(request, bu_id):
@@ -779,13 +779,11 @@ def delete_business_unit(request, bu_id):
 
     machine_groups = business_unit.machinegroup_set.all()
     machines = []
-    # for machine_group in machine_groups:
-    #     machines.append(machine_group.machine_set.all())
 
     machines = Machine.objects.filter(machine_group__business_unit=business_unit)
 
     c = {'user': user, 'business_unit':business_unit, 'config_installed':config_installed, 'machine_groups': machine_groups, 'machines':machines}
-    return render_to_response('server/business_unit_delete_confirm.html', c, context_instance=RequestContext(request))
+    return render(request, 'server/business_unit_delete_confirm.html', c)
 
 @login_required
 def really_delete_business_unit(request, bu_id):
@@ -867,7 +865,7 @@ def bu_dashboard(request, bu_id):
     output = utils.orderPluginOutput(output, 'bu_dashboard', bu.id)
 
     c = {'user': request.user, 'machine_groups': machine_groups, 'is_editor': is_editor, 'business_unit': business_unit, 'user_level': user_level, 'output':output, 'config_installed':config_installed, 'reports':reports }
-    return render_to_response('server/bu_dashboard.html', c, context_instance=RequestContext(request))
+    return render(request, 'server/bu_dashboard.html', c)
 
 # Overview list (all)
 @login_required
@@ -1011,7 +1009,7 @@ def overview_list_all(request, req_type, data, bu_id=None):
         machines = all_machines.filter(pendingappleupdate__update=pending_apple_update)
     c = {'user':user, 'machines': machines, 'req_type': req_type, 'data': data, 'bu_id': bu_id }
 
-    return render_to_response('server/overview_list_all.html', c, context_instance=RequestContext(request))
+    return render(request, 'server/overview_list_all.html', c)
 
 @login_required
 def delete_machine_group(request, group_id):
@@ -1028,7 +1026,7 @@ def delete_machine_group(request, group_id):
     machines = Machine.objects.filter(machine_group=machine_group)
 
     c = {'user': user, 'machine_group': machine_group, 'machines':machines}
-    return render_to_response('server/machine_group_delete_confirm.html', c, context_instance=RequestContext(request))
+    return render(request, 'server/machine_group_delete_confirm.html', c)
 
 @login_required
 def really_delete_machine_group(request, group_id):
@@ -1102,7 +1100,7 @@ def group_dashboard(request, group_id):
 
     output = utils.orderPluginOutput(output, 'group_dashboard', machine_group.id)
     c = {'user': request.user, 'machine_group': machine_group, 'user_level': user_level,  'is_editor': is_editor, 'business_unit': business_unit, 'output':output, 'config_installed':config_installed, 'request':request, 'reports':reports}
-    return render_to_response('server/group_dashboard.html', c, context_instance=RequestContext(request))
+    return render(request, 'server/group_dashboard.html', c)
 
 # New Group
 @login_required
@@ -1132,7 +1130,7 @@ def new_machine_group(request, bu_id):
         if user_level != 'GA':
             return redirect(index)
     c = {'form': form, 'is_editor': is_editor, 'business_unit': business_unit, }
-    return render_to_response('forms/new_machine_group.html', c, context_instance=RequestContext(request))
+    return render(request, 'forms/new_machine_group.html', c)
 
 # Edit Group
 @login_required
@@ -1161,9 +1159,7 @@ def edit_machine_group(request, group_id):
         form = EditMachineGroupForm(instance=machine_group)
 
     c = {'form': form, 'is_editor': is_editor, 'business_unit': business_unit, 'machine_group':machine_group}
-    return render_to_response('forms/edit_machine_group.html', c, context_instance=RequestContext(request))
-
-# Delete Group
+    return render(request, 'forms/edit_machine_group.html', c)
 
 # New machine
 @login_required
@@ -1194,7 +1190,7 @@ def new_machine(request, group_id):
         if user_level != 'GA':
             return redirect(index)
     c = {'form': form, 'is_editor': is_editor, 'machine_group': machine_group, }
-    return render_to_response('forms/new_machine.html', c, context_instance=RequestContext(request))
+    return render(request, 'forms/new_machine.html', c)
 
 # Machine detail
 @login_required
@@ -1369,7 +1365,7 @@ def machine_detail(request, machine_id):
     output = utils.orderPluginOutput(output)
 
     c = {'user':user, 'machine_group': machine_group, 'business_unit': business_unit, 'report': report, 'install_results': install_results, 'removal_results': removal_results, 'machine': machine, 'facts':facts, 'conditions':conditions, 'ip_address':ip_address, 'uptime_enabled':uptime_enabled, 'uptime':uptime,'output':output }
-    return render_to_response('server/machine_detail.html', c, context_instance=RequestContext(request))
+    return render(request, 'server/machine_detail.html', c)
 
 # Edit Machine
 
@@ -1410,7 +1406,7 @@ def settings_page(request):
         senddata_setting.save()
 
     c = {'user':request.user, 'request':request, 'historical_setting_form':historical_setting_form,'senddata_setting':senddata_setting.value}
-    return render_to_response('server/settings.html', c, context_instance=RequestContext(request))
+    return render(request, 'server/settings.html', c)
 
 @login_required
 def senddata_enable(request):
@@ -1475,7 +1471,7 @@ def plugins_page(request):
     enabled_plugins = Plugin.objects.all()
     disabled_plugins = utils.disabled_plugins(plugin_kind='main')
     c = {'user':request.user, 'request':request, 'enabled_plugins':enabled_plugins, 'disabled_plugins':disabled_plugins}
-    return render_to_response('server/plugins.html', c, context_instance=RequestContext(request))
+    return render(request, 'server/plugins.html', c)
 
 @login_required
 def settings_reports(request):
@@ -1488,7 +1484,7 @@ def settings_reports(request):
         enabled_plugins = Report.objects.all()
         disabled_plugins = utils.disabled_plugins(plugin_kind='report')
         c = {'user':request.user, 'request':request, 'enabled_plugins':enabled_plugins, 'disabled_plugins':disabled_plugins}
-        return render_to_response('server/reports.html', c, context_instance=RequestContext(request))
+        return render(request, 'server/reports.html', c)
 
 @login_required
 def settings_machine_detail_plugins(request):
@@ -1501,7 +1497,7 @@ def settings_machine_detail_plugins(request):
         enabled_plugins = MachineDetailPlugin.objects.all()
         disabled_plugins = utils.disabled_plugins(plugin_kind='machine_detail')
         c = {'user':request.user, 'request':request, 'enabled_plugins':enabled_plugins, 'disabled_plugins':disabled_plugins}
-        return render_to_response('server/machine_detail_plugins.html', c, context_instance=RequestContext(request))
+        return render(request, 'server/machine_detail_plugins.html', c)
 
 @login_required
 def plugin_plus(request, plugin_id):
@@ -1657,7 +1653,7 @@ def api_keys(request):
 
     api_keys = ApiKey.objects.all()
     c = {'user':request.user, 'api_keys':api_keys, 'request':request}
-    return render_to_response('server/api_keys.html', c, context_instance=RequestContext(request))
+    return render(request, 'server/api_keys.html', c)
 
 @login_required
 def new_api_key(request):
@@ -1675,7 +1671,7 @@ def new_api_key(request):
     user_level = user.userprofile.level
     if user_level != 'GA':
         return redirect(index)
-    return render_to_response('forms/new_api_key.html', c, context_instance=RequestContext(request))
+    return render(request, 'forms/new_api_key.html', c)
 
 @login_required
 def display_api_key(request, key_id):
@@ -1690,7 +1686,7 @@ def display_api_key(request, key_id):
         api_key.has_been_seen = True
         api_key.save()
         c = {'user':request.user, 'api_key':api_key, 'request':request}
-        return render_to_response('server/api_key_display.html', c, context_instance=RequestContext(request))
+        return render(request, 'server/api_key_display.html', c)
 
 @login_required
 def edit_api_key(request, key_id):
@@ -1714,7 +1710,7 @@ def edit_api_key(request, key_id):
     user_level = user.userprofile.level
     if user_level != 'GA':
         return redirect(index)
-    return render_to_response('forms/edit_api_key.html', c, context_instance=RequestContext(request))
+    return render(request, 'forms/edit_api_key.html', c)
 
 @login_required
 def delete_api_key(request, key_id):

@@ -11,19 +11,17 @@ from weakref import WeakValueDictionary
 from django.conf import settings
 from django.core.signals import request_finished
 from django.core.exceptions import ImproperlyConfigured, ObjectDoesNotExist
-from django.contrib.contenttypes.models import ContentType
 from django.db import models
 from django.db.models import Q
 from django.db.models.query import QuerySet
 from django.db.models.signals import post_save, pre_delete
 from django.utils.encoding import force_text
 from django.utils.html import strip_tags
+from django.core.serializers.json import DjangoJSONEncoder
 try:
     from importlib import import_module
 except ImportError:
     from django.utils.importlib import import_module
-
-from watson.models import SearchEntry, has_int_pk
 
 
 class SearchAdapterError(Exception):
@@ -103,9 +101,9 @@ class SearchAdapter(object):
 
         You can access the title of the search entry as `entry.title` in your search results.
 
-        The default implementation returns `force_text(obj)`.
+        The default implementation returns `force_text(obj)` truncated to 1000 characters.
         """
-        return force_text(obj)
+        return force_text(obj)[:1000]
 
     def get_description(self, obj):
         """
@@ -151,6 +149,18 @@ class SearchAdapter(object):
             for field_name in self.store
         )
 
+    def serialize_meta(self, obj):
+        """serialise meta ready to be saved in "meta_encoded"."""
+        meta_obj = self.get_meta(obj)
+        return json.dumps(meta_obj, cls=DjangoJSONEncoder)
+
+    def deserialize_meta(self, meta_encoded):
+        """
+        deserialize the encoded meta string for use in views etc., this is
+        used by SearchEntry's _deserialize_meta method to create the "meta" property
+        """
+        return json.loads(meta_encoded)
+
     def get_live_queryset(self):
         """
         Returns the queryset of objects that should be considered live.
@@ -177,17 +187,14 @@ class SearchContextError(Exception):
 
 def _bulk_save_search_entries(search_entries, batch_size=100):
     """Creates the given search entry data in the most efficient way possible."""
+    from watson.models import SearchEntry
     if search_entries:
-        if hasattr(SearchEntry.objects, "bulk_create"):
-            search_entries = iter(search_entries)
-            while True:
-                search_entry_batch = list(islice(search_entries, 0, batch_size))
-                if not search_entry_batch:
-                    break
-                SearchEntry.objects.bulk_create(search_entry_batch)
-        else:
-            for search_entry in search_entries:
-                search_entry.save()
+        search_entries = iter(search_entries)
+        while True:
+            search_entry_batch = list(islice(search_entries, 0, batch_size))
+            if not search_entry_batch:
+                break
+            SearchEntry.objects.bulk_create(search_entry_batch)
 
 
 class SearchContextManager(local):
@@ -319,7 +326,6 @@ class SkipSearchContext(SearchContext):
             self._context_manager.end()
 
 
-
 # The shared, thread-safe search context manager.
 search_context_manager = SearchContextManager()
 
@@ -417,6 +423,8 @@ class SearchEngine(object):
 
     def _get_entries_for_obj(self, obj):
         """Returns a queryset of entries associate with the given obj."""
+        from django.contrib.contenttypes.models import ContentType
+        from watson.models import SearchEntry, has_int_pk
         model = obj.__class__
         content_type = ContentType.objects.get_for_model(model)
         object_id = force_text(obj.pk)
@@ -441,6 +449,8 @@ class SearchEngine(object):
 
     def _update_obj_index_iter(self, obj):
         """Either updates the given object index, or yields an unsaved search entry."""
+        from django.contrib.contenttypes.models import ContentType
+        from watson.models import SearchEntry
         model = obj.__class__
         adapter = self.get_adapter(model)
         content_type = ContentType.objects.get_for_model(model)
@@ -452,7 +462,7 @@ class SearchEngine(object):
             "description": adapter.get_description(obj),
             "content": adapter.get_content(obj),
             "url": adapter.get_url(obj),
-            "meta_encoded": json.dumps(adapter.get_meta(obj)),
+            "meta_encoded": adapter.serialize_meta(obj),
         }
         # Try to get the existing search entry.
         object_id_int, search_entries = self._get_entries_for_obj(obj)
@@ -492,6 +502,8 @@ class SearchEngine(object):
 
     def _create_model_filter(self, models):
         """Creates a filter for the given model/queryset list."""
+        from django.contrib.contenttypes.models import ContentType
+        from watson.models import has_int_pk
         filters = Q()
         for model in models:
             filter = Q()
@@ -540,6 +552,7 @@ class SearchEngine(object):
 
     def search(self, search_text, models=(), exclude=(), ranking=True, backend_name=None):
         """Performs a search using the given text, returning a queryset of SearchEntry."""
+        from watson.models import SearchEntry
         # Check for blank search text.
         search_text = search_text.strip()
         if not search_text:
@@ -615,3 +628,21 @@ def get_backend(backend_name=None):
     backend = backend_cls()
     _backends_cache[backend_name] = backend
     return backend
+
+
+# The main search methods.
+search = default_search_engine.search
+filter = default_search_engine.filter
+
+
+# Easy registration.
+register = default_search_engine.register
+unregister = default_search_engine.unregister
+is_registered = default_search_engine.is_registered
+get_registered_models = default_search_engine.get_registered_models
+get_adapter = default_search_engine.get_adapter
+
+
+# Easy context management.
+update_index = search_context_manager.update_index
+skip_index_update = search_context_manager.skip_index_update

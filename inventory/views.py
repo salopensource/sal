@@ -9,12 +9,9 @@ import unicodecsv as csv
 
 # Django
 from django.conf import settings
-from django.contrib.auth.decorators import login_required
 from django.core.urlresolvers import reverse
-from django.http import (HttpResponse, HttpResponseNotFound,
-                         HttpResponseBadRequest)
-from django.shortcuts import get_object_or_404, render_to_response
-from django.template import RequestContext
+from django.http import (HttpResponse, HttpResponseNotFound)
+from django.shortcuts import get_object_or_404
 from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import DetailView, View
 from datatableview.views import DatatableView

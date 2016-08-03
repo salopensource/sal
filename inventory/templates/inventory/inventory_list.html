@@ -1,0 +1,8 @@
+{% extends "inventory/inventory_base.html" %}
+{% block heading %}
+	{% if group_type == "all" %}All machines {% else %}Machines from {{ group_type|title }}: {{ group_name }}{% endif %}
+	{% if field_type == "all" %}with application {{ app_name }}{% else %}where {{ app_name }} {{ field_type }} is {{ field_value }}{% endif %}
+{% endblock %}
+{% block csv_export %}
+  {% include 'inventory/csv_export.html' %}
+{% endblock %}

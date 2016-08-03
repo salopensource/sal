@@ -300,10 +300,11 @@ class CSVExportView(CSVResponseMixin, GroupMixin, View):
             data = sorted(apps, key=lambda x: x[0])
         else:
             # Inventory List for one application.
+            app = Application.objects.get(pk=self.kwargs["application_id"])
             self.set_header(
                 ["Hostname", "Serial Number", "Last Checkin", "Console User"])
-            self.components = ["application", self.kwargs["application_id"],
-                               "for", self.kwargs["group_type"]]
+            self.components = ["application", app.name, "for",
+                               self.kwargs["group_type"]]
             if self.kwargs["group_type"] != "all":
                 self.components.append(self.kwargs["group_id"])
             if self.kwargs["field_type"] != "all":

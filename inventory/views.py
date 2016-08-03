@@ -63,6 +63,17 @@ class GroupMixin(object):
 
         return instance
 
+    def get_group_name(self):
+        name = ""
+        instance = self.get_group_instance()
+        if instance:
+            identities = ("name", "hostname", "serial")
+            for identity in identities:
+                if hasattr(instance, identity):
+                    name = getattr(instance, identity)
+                    break
+        return name
+
     def filter_inventoryitem_by_group(self, queryset):
         """Filter the model to only include allowed data.
 
@@ -149,8 +160,7 @@ class InventoryListView(DatatableView, GroupMixin):
         context["application_id"] = self.application.id
         context["group_type"] = self.kwargs["group_type"]
         context["group_id"] = self.kwargs["group_id"]
-        context["group_name"] = (self.group_instance.name if hasattr(
-            self.group_instance, "name") else None)
+        context["group_name"] = self.get_group_name()
         context["app_name"] = self.application.name
         context["field_type"] = self.kwargs["field_type"]
         context["field_value"] = self.kwargs["field_value"]
@@ -284,8 +294,9 @@ class CSVExportView(CSVResponseMixin, GroupMixin, View):
                 ["Name", "BundleID", "BundleName", "Install Count"])
             self.components = ["application", "list", "for",
                                self.kwargs["group_type"]]
+
             if self.kwargs["group_type"] != "all":
-                self.components.append(self.kwargs["group_id"])
+                self.components.append(quote(self.get_group_name()))
 
             # TODO: Not tested on postgres.
             if is_postgres():
@@ -306,7 +317,7 @@ class CSVExportView(CSVResponseMixin, GroupMixin, View):
             self.components = ["application", app.name, "for",
                                self.kwargs["group_type"]]
             if self.kwargs["group_type"] != "all":
-                self.components.append(self.kwargs["group_id"])
+                self.components.append(quote(self.get_group_name()))
             if self.kwargs["field_type"] != "all":
                 self.components.extend(
                     ["where", self.kwargs["field_type"], "is",

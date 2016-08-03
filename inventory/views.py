@@ -260,8 +260,12 @@ class ApplicationDetailView(DetailView, GroupMixin):
         # Add in access data.
         context["group_type"] = self.kwargs["group_type"]
         context["group_id"] = self.kwargs["group_id"]
-        context["group_name"] = (self.group_instance.name if hasattr(
-            self.group_instance, "name") else None)
+        if hasattr(self.group_instance, "name"):
+            context["group_name"] = self.group_instance.name
+        elif hasattr(self.group_instance, "hostname"):
+            context["group_name"] = self.group_instance.hostname
+        else:
+            context["group_name"] = None
 
         return context
 

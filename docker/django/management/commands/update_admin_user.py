@@ -8,19 +8,31 @@ from optparse import make_option
 
 class Command(BaseCommand):
     help = 'Creates/Updates an Admin user'
-    option_list = BaseCommand.option_list + (
-        make_option('--username',
-            action='store',
-            dest='username',
-            default=None,
-            help='Admin username'),
-        ) + (
-        make_option('--password',
-            action='store',
-            dest='password',
-            default=None,
-            help='Admin password'),
-        )
+    # option_list = BaseCommand.option_list + (
+    #     make_option('--username',
+    #         action='store',
+    #         dest='username',
+    #         default=None,
+    #         help='Admin username'),
+    #     ) + (
+    #     make_option('--password',
+    #         action='store',
+    #         dest='password',
+    #         default=None,
+    #         help='Admin password'),
+        # )
+    def add_arguments(self, parser):
+        parser.add_argument('--username',
+                action='store',
+                dest='username',
+                default=None,
+                help='Admin username')
+
+        parser.add_argument('--password',
+                action='store',
+                dest='password',
+                default=None,
+                help='Admin password')
 
     def handle(self, *args, **options):
         username = options.get('username')

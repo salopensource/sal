@@ -79,11 +79,11 @@ class Machine(models.Model):
     hd_total = models.CharField(db_index=True, max_length=256, null=True, blank=True)
     hd_percent = models.CharField(max_length=256, null=True, blank=True)
     console_user = models.CharField(max_length=256, null=True, blank=True)
-    machine_model = models.CharField(max_length=256, null=True, blank=True)
-    machine_model_friendly = models.CharField(max_length=256, null=True, blank=True)
+    machine_model = models.CharField(db_index=True,max_length=256, null=True, blank=True)
+    machine_model_friendly = models.CharField(db_index=True,max_length=256, null=True, blank=True)
     cpu_type = models.CharField(max_length=256, null=True, blank=True)
     cpu_speed = models.CharField(max_length=256, null=True, blank=True)
-    os_family = models.CharField(max_length=256, choices=OS_CHOICES, verbose_name="OS Family", default="Darwin")
+    os_family = models.CharField(db_index=True,max_length=256, choices=OS_CHOICES, verbose_name="OS Family", default="Darwin")
     last_checkin = models.DateTimeField(db_index=True, blank=True,null=True)
     first_checkin = models.DateTimeField(db_index=True, blank=True,null=True, auto_now_add=True)
     report = models.TextField(editable=True, null=True)
@@ -282,7 +282,7 @@ class OSQueryColumn(models.Model):
 
 class PluginScriptSubmission(models.Model):
     machine = models.ForeignKey(Machine)
-    plugin = models.CharField(max_length=255)
+    plugin = models.CharField(db_index=True, max_length=255)
     historical = models.BooleanField(default=False)
     recorded = models.DateTimeField(auto_now_add=True)
     def __unicode__(self):
@@ -292,8 +292,8 @@ class PluginScriptSubmission(models.Model):
 
 class PluginScriptRow(models.Model):
     submission = models.ForeignKey(PluginScriptSubmission)
-    pluginscript_name = models.TextField()
-    pluginscript_data = models.TextField(blank=True, null=True)
+    pluginscript_name = models.TextField(db_index=True)
+    pluginscript_data = models.TextField(blank=True, null=True, db_index=True)
     def __unicode__(self):
         return '%s: %s' % (self.pluginscript_name, self.pluginscript_data)
     class Meta:

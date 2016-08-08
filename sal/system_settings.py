@@ -33,6 +33,7 @@ TEMPLATES = [
                 'sal.context_processors.sal_version',
             ],
             'debug': DEBUG,
+            'autoescape': False,
         },
     },
 ]

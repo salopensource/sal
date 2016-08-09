@@ -711,6 +711,17 @@ def export_csv(request, pluginName, data, page='front', theID=None):
     for distinct_condition in distinct_conditions:
         condition_headers.append('Munki Condition: '+ distinct_condition['condition_name'])
         header_row.append('Munki Condition: '+ distinct_condition['condition_name'])
+
+
+    plugin_script_headers = []
+
+    for pluginscript_submission in PluginScriptSubmission.objects.all().prefetch_related('pluginscriptrow_set'):
+        for pluginscript_row in pluginscript_submission.pluginscriptrow_set.all().values('pluginscript_name').distinct():
+            header = pluginscript_submission.plugin + ': ' + pluginscript_row['pluginscript_name']
+            if header not in plugin_script_headers:
+                plugin_script_headers.append(header)
+                header_row.append(header)
+
     header_row.append('business_unit')
     header_row.append('machine_group')
     writer.writerow(header_row)
@@ -728,6 +739,10 @@ def export_csv(request, pluginName, data, page='front', theID=None):
         conditions = machine.conditions.all().values('condition_name', 'condition_data').order_by('condition_name')
         for header_item in condition_headers:
             row.append(utils.csvrelated(header_item, conditions, 'condition'))
+
+        pluginscript_rows = PluginScriptRow.objects.filter(submission__machine=machine)
+        for header_item in plugin_script_headers:
+            row.append(utils.csvrelated(header_item, pluginscript_rows, 'pluginscript'))
         row.append(machine.machine_group.business_unit.name)
         row.append(machine.machine_group.name)
         writer.writerow(row)

@@ -30,6 +30,11 @@ def csvrelated(header_item, facts, kind):
             if header_item == 'Munki Condition: '+condition['condition_name']:
                 found = True
                 return condition['condition_data']
+    elif kind == 'pluginscript':
+        for pluginscriptrow in facts:
+            if header_item == pluginscriptrow.submission.plugin + ': '+pluginscriptrow.pluginscript_name:
+                found = True
+                return pluginscriptrow.pluginscript_data
     if found == False:
         return ''
 
@@ -242,6 +247,12 @@ def reloadPluginsModel():
                 except:
                     pass
                 dbplugin.save()
+
+def is_postgres():
+    if settings.DATABASES['default']['ENGINE'] == 'django.db.backends.postgresql_psycopg2':
+        return True
+    else:
+        return False
 
 def disabled_plugins(plugin_kind='main'):
     enabled_plugins = Plugin.objects.all()

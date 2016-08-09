@@ -714,6 +714,13 @@ def export_csv(request, pluginName, data, page='front', theID=None):
 
 
     plugin_script_headers = []
+    if utils.is_postgres():
+
+        distinct_pluginscript_rows = PluginScriptRow.objects.order_by('submission__plugin', 'pluginscript_name').distinct('submission__plugin', 'pluginscript_name')
+        for distinct_pluginscript_row in distinct_pluginscript_rows:
+            plugin_script_headers.append(distinct_pluginscript_row.submission.plugin + ': '+distinct_pluginscript_row.pluginscript_name)
+            header_row.append(distinct_pluginscript_row.submission.plugin + ': '+distinct_pluginscript_row.pluginscript_name)
+
 
     for pluginscript_submission in PluginScriptSubmission.objects.all().prefetch_related('pluginscriptrow_set'):
         for pluginscript_row in pluginscript_submission.pluginscriptrow_set.all().values('pluginscript_name').distinct():

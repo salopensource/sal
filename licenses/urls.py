@@ -1,7 +1,7 @@
 from django.conf.urls import include, url
 from licenses.views import *
 urlpatterns = [
-    url(r'^$', index, name='index'),
+    url(r'^$', index, name='license_index'),
     url(r'^available/(?P<key>.+)', available),
     url(r'^available/(?P<key>.+)(?P<item_name>[^/]+)$', available),
     url(r'^usage/$', usage),

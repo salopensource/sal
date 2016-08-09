@@ -18,6 +18,22 @@ def safe_unicode(s):
     else:
         return s
 
+def csvrelated(header_item, facts, kind):
+    found = False
+    if kind == 'facter':
+        for fact in facts:
+            if header_item == 'Facter: '+fact['fact_name']:
+                found = True
+                return fact['fact_data']
+    elif kind == 'condition':
+        for condition in facts:
+            if header_item == 'Munki Condition: '+condition['condition_name']:
+                found = True
+                return condition['condition_data']
+    if found == False:
+        return ''
+
+
 def process_plugin_script(results, machine):
     for plugin in results:
         if 'plugin' not in plugin or 'data' not in plugin:
@@ -395,7 +411,7 @@ def friendly_machine_model(serial):
         return ET.fromstring(r.text).find('configCode').text
     except:
         return None
-        
+
 def display_time(seconds, granularity=2):
     result = []
     intervals = (

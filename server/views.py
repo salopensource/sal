@@ -699,19 +699,32 @@ def export_csv(request, pluginName, data, page='front', theID=None):
     for field in fields:
         if not field.is_relation and field.name != 'id' and field.name != 'report' and field.name != 'activity' and field.name != 'os_family' and field.name != 'install_log' and field.name != 'install_log_hash':
             header_row.append(field.name)
+    distinct_facts = Fact.objects.all().values('fact_name').distinct()
+    for distinct_fact in distinct_facts:
+        header_row.append('Facter: '+ distinct_fact['fact_name'])
+    distinct_conditions = Condition.objects.all().values('condition_name').distinct()
+    for distinct_condition in distinct_conditions:
+        header_row.append('Munki Condition: '+ distinct_condition['condition_name'])
     header_row.append('business_unit')
     header_row.append('machine_group')
     writer.writerow(header_row)
+
     for machine in machines:
         row = []
         for name, value in machine.get_fields():
             if name != 'id' and name !='machine_group' and name != 'report' and name != 'activity' and name != 'os_family' and name != 'install_log' and name != 'install_log_hash':
                 row.append(value.strip())
+
+        facts = machine.facts.all().values('fact_name', 'fact_data')
+        for header_item in header_row:
+            row.append(utils.csvrelated(header_item, facts, 'facter'))
+
+        conditions = machine.conditions.all().values('condition_name', 'condition_data')
+        for header_item in header_row:
+            row.append(utils.csvrelated(header_item, conditions, 'condition'))
         row.append(machine.machine_group.business_unit.name)
         row.append(machine.machine_group.name)
         writer.writerow(row)
-        #writer.writerow([machine.serial, machine.machine_group.business_unit.name, machine.machine_group.name,
-        #machine.hostname, machine.operating_system, machine.memory, machine.memory_kb, machine.munki_version, machine.manifest])
 
     return response
 

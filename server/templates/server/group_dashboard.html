@@ -52,7 +52,7 @@ $( document ).ready(function() {
 
 {% block nav %}
 <li> <a href="{% url 'bu_dashboard' business_unit.id %}"><i class="fa fa-fw fa-chevron-left"></i> Back</a></li>
-<li><a href="{% url 'inventory.views.machine_group_inventory' machine_group.id %}"><i class="fa fa-list-alt fa-fw"></i> Application Inventory</a></li>
+<li><a href="{% url 'machine_group_inventory' machine_group.id %}"><i class="fa fa-list-alt fa-fw"></i> Application Inventory</a></li>
     <li class="active">
         <a href="#"><i class="fa fa-building fa-fw"></i> {{business_unit}}<span class="fa arrow"></span></a>
         <ul class="nav nav-second-level">

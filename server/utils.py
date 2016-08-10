@@ -32,7 +32,7 @@ def csvrelated(header_item, facts, kind):
                 return condition['condition_data']
     elif kind == 'pluginscript':
         for pluginscriptrow in facts:
-            if header_item == pluginscriptrow['submission__plugin'] + ': '+pluginscriptrow['pluginscript_name']:
+            if header_item == pluginscriptrow['submission_and_script_name']:
                 found = True
                 return pluginscriptrow['pluginscript_data']
     if found == False:
@@ -54,7 +54,7 @@ def process_plugin_script(results, machine):
         plugin_script.save()
         data = plugin.get('data')
         for key, value in data.items():
-            plugin_row = PluginScriptRow(submission=safe_unicode(plugin_script), pluginscript_name=safe_unicode(key), pluginscript_data=safe_unicode(value))
+            plugin_row = PluginScriptRow(submission=safe_unicode(plugin_script), pluginscript_name=safe_unicode(key), pluginscript_data=safe_unicode(value), submission_and_script_name=(safe_unicode(plugin_name + ': ' + key)))
             plugin_row.save()
 
 def get_version_number():

@@ -236,8 +236,8 @@ class UpdateHistoryItem(models.Model):
 
 class Fact(models.Model):
     machine = models.ForeignKey(Machine, related_name='facts')
-    fact_name = models.TextField()
-    fact_data = models.TextField()
+    fact_name = models.TextField(db_index=True)
+    fact_data = models.TextField(db_index=True)
     def __unicode__(self):
         return '%s: %s' % (self.fact_name, self.fact_data)
     class Meta:
@@ -255,30 +255,30 @@ class HistoricalFact(models.Model):
 
 class Condition(models.Model):
     machine = models.ForeignKey(Machine, related_name='conditions')
-    condition_name = models.CharField(max_length=255)
-    condition_data = models.TextField()
+    condition_name = models.CharField(max_length=255,db_index=True)
+    condition_data = models.TextField(db_index=True)
     def __unicode__(self):
         return self.condition_name
     class Meta:
         ordering = ['condition_name']
 
-class OSQueryResult(models.Model):
-    machine = models.ForeignKey(Machine, related_name='osquery_results')
-    name = models.CharField(db_index=True, max_length=255)
-    hostidentifier = models.CharField(db_index=True, max_length=255, null=True, blank=True)
-    unix_time = models.IntegerField(db_index=True)
-    def __unicode__(self):
-        return self.name
-    class Meta:
-        ordering = ['unix_time']
-
-class OSQueryColumn(models.Model):
-    osquery_result = models.ForeignKey(OSQueryResult, related_name='osquery_columns')
-    column_name = models.CharField(db_index=True, max_length=255)
-    column_data = models.TextField(null=True, blank=True)
-    action = models.CharField(max_length=255, null=True, blank=True)
-    def __unicode__(self):
-        return self.column_name
+# class OSQueryResult(models.Model):
+#     machine = models.ForeignKey(Machine, related_name='osquery_results')
+#     name = models.CharField(db_index=True, max_length=255)
+#     hostidentifier = models.CharField(db_index=True, max_length=255, null=True, blank=True)
+#     unix_time = models.IntegerField(db_index=True)
+#     def __unicode__(self):
+#         return self.name
+#     class Meta:
+#         ordering = ['unix_time']
+#
+# class OSQueryColumn(models.Model):
+#     osquery_result = models.ForeignKey(OSQueryResult, related_name='osquery_columns')
+#     column_name = models.CharField(db_index=True, max_length=255)
+#     column_data = models.TextField(null=True, blank=True)
+#     action = models.CharField(max_length=255, null=True, blank=True)
+#     def __unicode__(self):
+#         return self.column_name
 
 class PluginScriptSubmission(models.Model):
     machine = models.ForeignKey(Machine)

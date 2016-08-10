@@ -689,8 +689,11 @@ def export_csv(request, pluginName, data, page='front', theID=None):
             (machines, title) = plugin.plugin_object.filter_machines(machines, data)
 
     # Create the HttpResponse object with the appropriate CSV header.
-    response = HttpResponse(content_type='text/csv')
-    response['Content-Disposition'] = 'attachment; filename="%s.csv"' % title
+    if getattr(settings, 'DEBUG_CSV', False):
+        response = HttpResponse(content_type='text/html')
+    else:
+        response = HttpResponse(content_type='text/csv')
+        response['Content-Disposition'] = 'attachment; filename="%s.csv"' % title
 
     writer = csv.writer(response)
     # Fields
@@ -699,13 +702,13 @@ def export_csv(request, pluginName, data, page='front', theID=None):
     for field in fields:
         if not field.is_relation and field.name != 'id' and field.name != 'report' and field.name != 'activity' and field.name != 'os_family' and field.name != 'install_log' and field.name != 'install_log_hash':
             header_row.append(field.name)
-    distinct_facts = Fact.objects.all().values('fact_name').distinct().order_by('fact_name')
+    distinct_facts = Fact.objects.values('fact_name').distinct().order_by('fact_name')
 
     facter_headers = []
     for distinct_fact in distinct_facts:
         facter_headers.append('Facter: '+ distinct_fact['fact_name'])
         header_row.append('Facter: '+ distinct_fact['fact_name'])
-    distinct_conditions = Condition.objects.all().values('condition_name').distinct().order_by('condition_name')
+    distinct_conditions = Condition.objects.values('condition_name').distinct().order_by('condition_name')
 
     condition_headers = []
     for distinct_condition in distinct_conditions:
@@ -754,6 +757,8 @@ def export_csv(request, pluginName, data, page='front', theID=None):
         row.append(machine.machine_group.name)
         writer.writerow(row)
 
+    if getattr(settings, 'DEBUG_CSV', False):
+        writer.writerow(['</body>'])
     return response
 
 # New BU

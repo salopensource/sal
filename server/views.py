@@ -723,7 +723,7 @@ def export_csv(request, pluginName, data, page='front', theID=None):
 
 
     for pluginscript_submission in PluginScriptSubmission.objects.all().prefetch_related('pluginscriptrow_set'):
-        for pluginscript_row in pluginscript_submission.pluginscriptrow_set.all().values('pluginscript_name').distinct():
+        for pluginscript_row in pluginscript_submission.pluginscriptrow_set.values('pluginscript_name').distinct():
             header = pluginscript_submission.plugin + ': ' + pluginscript_row['pluginscript_name']
             if header not in plugin_script_headers:
                 plugin_script_headers.append(header)
@@ -747,7 +747,7 @@ def export_csv(request, pluginName, data, page='front', theID=None):
         for header_item in condition_headers:
             row.append(utils.csvrelated(header_item, conditions, 'condition'))
 
-        pluginscript_rows = PluginScriptRow.objects.filter(submission__machine=machine)
+        pluginscript_rows = PluginScriptRow.objects.filter(submission__machine=machine).values('submission__plugin', 'pluginscript_name', 'pluginscript_data')
         for header_item in plugin_script_headers:
             row.append(utils.csvrelated(header_item, pluginscript_rows, 'pluginscript'))
         row.append(machine.machine_group.business_unit.name)

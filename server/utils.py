@@ -32,9 +32,9 @@ def csvrelated(header_item, facts, kind):
                 return condition['condition_data']
     elif kind == 'pluginscript':
         for pluginscriptrow in facts:
-            if header_item == pluginscriptrow.submission.plugin + ': '+pluginscriptrow.pluginscript_name:
+            if header_item == pluginscriptrow['submission__plugin'] + ': '+pluginscriptrow['pluginscript_name']:
                 found = True
-                return pluginscriptrow.pluginscript_data
+                return pluginscriptrow['pluginscript_data']
     if found == False:
         return ''
 

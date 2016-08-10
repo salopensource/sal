@@ -26,7 +26,7 @@ from yapsy.PluginManager import PluginManager
 from django.core.exceptions import PermissionDenied
 import utils
 import pytz
-import watson
+from watson import search as watson
 import unicodecsv as csv
 import django.utils.timezone
 import dateutil.parser

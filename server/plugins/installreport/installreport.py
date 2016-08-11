@@ -85,7 +85,7 @@ class InstallReport(IPlugin):
                 item['name'] = installed_update['update']
                 item['install_count'] = InstalledUpdate.objects.filter(machine__in=machines, update=installed_update['update'], update_version=installed_update['update_version'], installed=True).count()
 
-                item['pending_count'] = PendingUpdate.objects.filter(machine=machines, update=installed_update['update'], update_version=installed_update['update_version']).count()
+                item['pending_count'] = PendingUpdate.objects.filter(machine__in=machines, update=installed_update['update'], update_version=installed_update['update_version']).count()
                 item['installed_url'] = 'Installed?VERSION=%s&&NAME=%s' % (item['version'], item['name'])
                 item['pending_url'] = 'Pending?VERSION=%s&&NAME=%s' % (item['version'], item['name'])
                 item = self.replace_dots(item)

@@ -2052,6 +2052,9 @@ def checkin(request):
         conditions = machine.conditions.all()
         conditions.delete()
         for condition_name, condition_data in report_data['Conditions'].iteritems():
+            # Skip the condtions that come from facter
+            if 'Facter' in report_data and condition_name.startswith('facter_'):
+                continue
             # if it's a list (more than one result), we're going to conacetnate it into one comma separated string
             if type(condition_data) == list:
                 result = None

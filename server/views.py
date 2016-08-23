@@ -100,7 +100,6 @@ def index(request):
     week_ago = today - timedelta(days=7)
     month_ago = today - timedelta(days=30)
     three_months_ago = today - timedelta(days=90)
-    config_installed = 'config' in settings.INSTALLED_APPS
 
     if user_level != 'GA':
         # user has many BU's display them all in a friendly manner
@@ -812,14 +811,13 @@ def delete_business_unit(request, bu_id):
     if user_level != 'GA':
         return redirect(index)
     business_unit = get_object_or_404(BusinessUnit, pk=int(bu_id))
-    config_installed = 'config' in settings.INSTALLED_APPS
 
     machine_groups = business_unit.machinegroup_set.all()
     machines = []
 
     machines = Machine.objects.filter(machine_group__business_unit=business_unit)
 
-    c = {'user': user, 'business_unit':business_unit, 'config_installed':config_installed, 'machine_groups': machine_groups, 'machines':machines}
+    c = {'user': user, 'business_unit':business_unit, 'machine_groups': machine_groups, 'machines':machines}
     return render(request, 'server/business_unit_delete_confirm.html', c)
 
 @login_required
@@ -839,7 +837,6 @@ def bu_dashboard(request, bu_id):
     user_level = user.userprofile.level
     business_unit = get_object_or_404(BusinessUnit, pk=bu_id)
     bu = business_unit
-    config_installed = 'config' in settings.INSTALLED_APPS
     if business_unit not in user.businessunit_set.all() and user_level != 'GA':
         print 'not letting you in ' + user_level
         return redirect(index)
@@ -901,7 +898,7 @@ def bu_dashboard(request, bu_id):
 
     output = utils.orderPluginOutput(output, 'bu_dashboard', bu.id)
 
-    c = {'user': request.user, 'machine_groups': machine_groups, 'is_editor': is_editor, 'business_unit': business_unit, 'user_level': user_level, 'output':output, 'config_installed':config_installed, 'reports':reports }
+    c = {'user': request.user, 'machine_groups': machine_groups, 'is_editor': is_editor, 'business_unit': business_unit, 'user_level': user_level, 'output':output, 'reports':reports }
     return render(request, 'server/bu_dashboard.html', c)
 
 # Overview list (all)
@@ -1081,7 +1078,6 @@ def really_delete_machine_group(request, group_id):
 def group_dashboard(request, group_id):
     # check user is allowed to access this
     user = request.user
-    config_installed = 'config' in settings.INSTALLED_APPS
     user_level = user.userprofile.level
     machine_group = get_object_or_404(MachineGroup, pk=group_id)
     business_unit = machine_group.business_unit
@@ -1136,7 +1132,7 @@ def group_dashboard(request, group_id):
                 break
 
     output = utils.orderPluginOutput(output, 'group_dashboard', machine_group.id)
-    c = {'user': request.user, 'machine_group': machine_group, 'user_level': user_level,  'is_editor': is_editor, 'business_unit': business_unit, 'output':output, 'config_installed':config_installed, 'request':request, 'reports':reports}
+    c = {'user': request.user, 'machine_group': machine_group, 'user_level': user_level,  'is_editor': is_editor, 'business_unit': business_unit, 'output':output, 'request':request, 'reports':reports}
     return render(request, 'server/group_dashboard.html', c)
 
 # New Group

@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+{% load example_app_tags %}
+
+{% block title %}
+    Example index
+{% endblock title %}
+
+{% block header %}
+    Example index
+{% endblock header %}
+
+{% block content %}
+    <h2>django-datatable-view example project</h2>
+    <p class="muted">
+        <em>Running
+            <a href="https://github.com/pivotal-energy-solutions/django-datatable-view">django-datatable-view</a> {{ datatableview_version }},
+            <a href="https://github.com/django-nonrel/django/">django</a> {{ django_version }}
+            <a href="https://datatables.net/">datatables.js</a> {{ datatables_version }}
+        </em>
+    </p>
+
+    <p>
+        Click on an example type in the sidebar to interact with a live table and read details on
+        how it can be implemented.
+    </p>
+
+    <h2>Database status</h2>
+    {% if db_works %}
+        <p class="alert alert-success">
+            Your database tables appear sync'd!  Check out the example pages at your leisure.
+        </p>
+    {% else %}
+        <p class="alert alert-danger">
+            Make sure you've done a <code>syncdb</code> for the test project!  This view failed to
+            read from one of the example model tables!
+        </p>
+        <p>
+            This project's settings use a simple sqlite3 file to keep things tidy for you, so we
+            recommend using this project in its own environment. Ideally, you could run the
+            <code>manage.py</code> script from inside the root of the django-datatable-view project
+            directory:
+        </p>
+<pre>$ cd django-datatable-view
+$ datatableview{{ os_sep }}test{{ os_sep }}test_project{{ os_sep }}manage.py syncdb
+$ datatableview{{ os_sep }}test{{ os_sep }}test_project{{ os_sep }}manage.py loaddata initial_data_modern
+$ datatableview{{ os_sep }}test{{ os_sep }}test_project{{ os_sep }}manage.py runserver
+</pre>
+    {% endif %}
+
+    <h2>Main topics</h2>
+    <p>
+        The demos and example code found in this example project all rely on the automatic
+        initialization provided by a simple jQuery <code>document.ready</code> event.  A couple of
+        the pages use additional static resources (Bootstrap theme, x-editable); these pages include
+        an HTML comment in the source that highlights their use in the live demo.
+    </p>
+
+    <p>
+        Aside from the primary value of this set of examples as a reference site, noteworthy topics
+        that branch outside of basic syntax are:
+    </p>
+    <ul>
+        <li><a href="{% url "js-init" %}">Automatic vs manual Javascript initialization</a></li>
+        <li><a href="{% url "bootstrap-template" %}">Bootstrap integration</a></li>
+        <li><a href="{% url "x-editable-columns" %}">x-editable integration</a></li>
+        <li><a href="{% url "helpers-reference" %}">Demonstrations of the <code>helpers</code> column callbacks</a></li>
+    </ul>
+
+    <h2>Models used in the examples</h2>
+    <p>
+        The main model used in most of the examples is <code>Entry</code>, because of its diverse
+        fields.  <code>Blog</code> makes a simple relationship demonstration possible, and
+        <code>Author</code> helps shed light on how to handle
+        <a href="{% url "many-to-many-fields" %}">many to many</a> relationships.
+    </p>
+<pre class="brush: python">
+class Blog(models.Model):
+    name = models.CharField(max_length=100)
+    tagline = models.TextField()
+
+class Author(models.Model):
+    name = models.CharField(max_length=50)
+    email = models.EmailField()
+
+class Entry(models.Model):
+    blog = models.ForeignKey(Blog)
+    headline = models.CharField(max_length=255)
+    body_text = models.TextField()
+    pub_date = models.DateField()
+    mod_date = models.DateField()
+    authors = models.ManyToManyField(Author)
+    n_comments = models.IntegerField()
+    n_pingbacks = models.IntegerField()
+    rating = models.IntegerField()
+    status = models.IntegerField(choices=(
+        (0, "Draft"),
+        (1, "Published"),
+    ))
+</pre>
+
+{% endblock content %}

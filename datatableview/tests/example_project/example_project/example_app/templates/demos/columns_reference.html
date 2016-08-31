@@ -1,0 +1,34 @@
+{% extends "example_base.html" %}
+
+{% block content %}
+    <h2>Description</h2>
+    {% block description %}
+        {{ block.super }}
+    {% endblock description %}
+
+
+    <br><br>
+    <h2>Example</h2>
+<pre class="brush: python">
+from datatableview import columns
+from datatableview.datatables import Datatable
+from myproject.fields import CustomField
+
+class CustomColumn(columns.Column):
+    model_field_class = CustomField
+    lookup_types = ['icontains', 'mycustomquery']
+
+
+# You can let the field detect the new column by itself:
+class MyDatatable(Datatable):
+    class Meta:
+        columns = ['my_customfield']
+
+# Or you can always use it explicitly:
+class MyDatatable(Datatable):
+    customcolumn = CustomColumn("My Field", sources=['my_customfield')
+    class Meta:
+        columns = ['customcolumn']
+
+</pre>
+{% endblock content %}

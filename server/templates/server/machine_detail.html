@@ -39,7 +39,7 @@ $( document ).ready(function() {
 
 {% block nav %}
 <li><a href="{% url 'group_dashboard' machine_group.id %}"><i class="fa fa-chevron-left fa-fw"></i> Back</a></li>
-<li><a href="{% url 'machine_inventory' machine.id %}"><i class="fa fa-list-alt fa-fw"></i> Application Inventory</a></li>
+<li><a href="{% url 'application_list' group_type='machine' group_id=machine.id %}"><i class="fa fa-list-alt fa-fw"></i> Application Inventory</a></li>
 {% if user.userprofile.level == 'GA' or user.userprofile.level == 'RW' %}
   {% if CONFIG_INSTALLED %}
     <li><a href="{% url 'config_machine_index' machine.id %}"><i class="fa fa-wrench fa-fw"></i> Configure Computer</a></li>

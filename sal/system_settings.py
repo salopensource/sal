@@ -184,6 +184,7 @@ INSTALLED_APPS = (
     'licenses',
     'bootstrap3',
     'watson',
+    'datatableview',
 )
 
 LOGGING = {

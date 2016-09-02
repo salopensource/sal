@@ -155,7 +155,7 @@ class InventoryListView(LegacyDatatableView, GroupMixin):
         # This is basically changing the model for this class, which is
         # suspect.
         if is_postgres():
-            queryset = queryset.distinct("machine")
+            queryset = queryset.order_by().distinct("machine")
         else:
             machines = queryset.order_by().values_list("machine", flat=True).distinct()
             queryset = Machine.objects.filter(id__in=machines)
@@ -276,13 +276,13 @@ class ApplicationDetailView(DetailView, GroupMixin):
 
     def _get_unique_items(self, details):
         """Use optimized DB methods for getting unique items if possible."""
-        if is_postgres():
-            versions = self.object.inventoryitem_set.distinct("version")
-            paths = self.object.inventoryitem_set.distinct("path")
-        else:
-            details = details.values()
-            versions = {item["version"] for item in details}
-            paths = {item["path"] for item in details}
+        # if is_postgres():
+        #     versions = self.object.inventoryitem_set.distinct("version")
+        #     paths = self.object.inventoryitem_set.distinct("path")
+        # else:
+        details = details.values()
+        versions = {item["version"] for item in details}
+        paths = {item["path"] for item in details}
 
         return (versions, paths)
 
@@ -419,7 +419,7 @@ def inventory_submit(request):
                         bundleid=item.get("bundleid", ""),
                         name=item.get("name", ""),
                         bundlename=item.get("CFBundleName", ""))
-                    print app.name
+                    # print app.name
                     # skip items in bundleid_ignorelist.
                     if not item.get('bundleid') in bundleid_ignorelist:
                         i_item = machine.inventoryitem_set.create(
@@ -455,5 +455,3 @@ def is_postgres():
     postgres_backend = 'django.db.backends.postgresql_psycopg2'
     db_setting = settings.DATABASES['default']['ENGINE']
     return db_setting == postgres_backend
-
-

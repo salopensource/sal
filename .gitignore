@@ -60,5 +60,6 @@ sal.dump
 config.codekit
 wip_plugins/
 sal/metadata.xml
+test-pg-db
 
 sal.log

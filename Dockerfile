@@ -31,12 +31,14 @@ RUN apt-get update && \
     libffi-dev && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
-ADD / $APP_DIR
+ADD setup/requirements.txt /requirements.txt
 RUN easy_install pip && \
-    pip install -r $APP_DIR/setup/requirements.txt && \
+    pip install -r /requirements.txt && \
     pip install psycopg2==2.5.3 && \
     pip install gunicorn && \
-    pip install setproctitle
+    pip install setproctitle && \
+    rm /requirements.txt
+ADD / $APP_DIR
 ADD docker/nginx/nginx-env.conf /etc/nginx/main.d/
 ADD docker/nginx/sal.conf /etc/nginx/sites-enabled/sal.conf
 ADD docker/nginx/nginx.conf /etc/nginx/nginx.conf

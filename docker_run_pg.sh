@@ -25,5 +25,6 @@ docker run -d \
     --link postgres-sal:db \
     --name=sal \
     --restart="always" \
+    -v "$CWD/inventory/views.py":/home/docker/sal/inventory/views.py \
     -p 8000:8000 \
     macadmins/sal

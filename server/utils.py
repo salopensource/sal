@@ -270,7 +270,7 @@ def disabled_plugins(plugin_kind='main'):
                 plugin_type = plugin.plugin_object.plugin_type()
             except:
                 plugin_type = 'builtin'
-            if plugin_type != 'report':
+            if plugin_type == 'builtin':
                 try:
                     item = Plugin.objects.get(name=plugin.name)
                 except Plugin.DoesNotExist:

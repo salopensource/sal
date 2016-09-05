@@ -8,6 +8,7 @@ import base64
 import bz2
 from datetime import datetime
 from watson import search as watson
+from dateutil.parser import *
 
 def GenerateKey():
     key = ''.join(random.choice(string.ascii_lowercase + string.digits) for x in range(128))
@@ -262,24 +263,6 @@ class Condition(models.Model):
     class Meta:
         ordering = ['condition_name']
 
-# class OSQueryResult(models.Model):
-#     machine = models.ForeignKey(Machine, related_name='osquery_results')
-#     name = models.CharField(db_index=True, max_length=255)
-#     hostidentifier = models.CharField(db_index=True, max_length=255, null=True, blank=True)
-#     unix_time = models.IntegerField(db_index=True)
-#     def __unicode__(self):
-#         return self.name
-#     class Meta:
-#         ordering = ['unix_time']
-#
-# class OSQueryColumn(models.Model):
-#     osquery_result = models.ForeignKey(OSQueryResult, related_name='osquery_columns')
-#     column_name = models.CharField(db_index=True, max_length=255)
-#     column_data = models.TextField(null=True, blank=True)
-#     action = models.CharField(max_length=255, null=True, blank=True)
-#     def __unicode__(self):
-#         return self.column_name
-
 class PluginScriptSubmission(models.Model):
     machine = models.ForeignKey(Machine)
     plugin = models.CharField(db_index=True, max_length=255)
@@ -294,7 +277,39 @@ class PluginScriptRow(models.Model):
     submission = models.ForeignKey(PluginScriptSubmission)
     pluginscript_name = models.TextField(db_index=True)
     pluginscript_data = models.TextField(blank=True, null=True, db_index=True)
+    pluginscript_data_string = models.TextField(blank=True, null=True, db_index=True)
+    pluginscript_data_int = models.IntegerField(default=0)
+    pluginscript_data_date = models.DateTimeField(blank=True, null=True)
     submission_and_script_name = models.TextField(db_index=True)
+    def save(self):
+        try:
+            self.pluginscript_data_int = int(self.pluginscript_data)
+        except:
+            self.pluginscript_data_int = 0
+
+        try:
+            self.pluginscript_data_string = str(self.pluginscript_data)
+        except:
+            self.pluginscript_data_string = ""
+
+        try:
+            self.pluginscript_data_date = parse(self.pluginscript_data)
+        except:
+            # Try converting it to an int if we're here
+            try:
+                if int(self.pluginscript_data) != 0:
+
+                    try:
+                        self.pluginscript_data_date = datetime.fromtimestamp(int(self.pluginscript_data))
+                    except:
+                        self.pluginscript_data_date = None
+                else:
+                    self.pluginscript_data_date = None
+            except:
+                self.pluginscript_data_date = None
+
+
+        super(PluginScriptRow, self).save()
     def __unicode__(self):
         return '%s: %s' % (self.pluginscript_name, self.pluginscript_data)
     class Meta:

@@ -14,8 +14,6 @@ def migrate_inventoryitems_to_applications(apps, schema_editor):
                 bundleid=item.bundleid or "",
                 name=item.name or "",
                 bundlename=item.bundlename or "")
-            item.application = app
-            item.save()
         except:
             pass
 
@@ -39,6 +37,7 @@ class Migration(migrations.Migration):
                 'ordering': ['name'],
             },
         ),
+        migrations.RunPython(migrate_inventoryitems_to_applications),
         migrations.AlterModelOptions(
             name='inventoryitem',
             options={},
@@ -55,11 +54,10 @@ class Migration(migrations.Migration):
             model_name='inventoryitem',
             name='name',
         ),
-        migrations.RunPython(migrate_inventoryitems_to_applications),
         migrations.AddField(
             model_name='inventoryitem',
             name='application',
-            field=models.ForeignKey(to='inventory.Application'),
+            field=models.ForeignKey(default=1, to='inventory.Application'),
             preserve_default=False,
         ),
     ]

@@ -23,29 +23,14 @@ def get_status(cmd, checkstring):
     else:
         return 'Disabled'
 
-def fv_status():
-    cmd = ['/usr/bin/fdesetup', 'status']
-    return get_status(cmd, 'FileVault is On.')
-
-def sip_status():
-    cmd = ['/usr/bin/csrutil', 'status']
-    return get_status(cmd, 'System Integrity Protection status: enabled.')
-
 def gatekeeper_status():
     cmd = ['/usr/sbin/spctl', '--status']
     return get_status(cmd, 'assessments enabled')
 
 def main():
-    filevault = fv_status()
 
     mac_ver = mac_version()
 
-    if LooseVersion("10.11") >= LooseVersion(mac_ver):
-        sip = sip_status()
-    else:
-        sip = 'Not Supported'
-
-    # Yes, I know it came in 10.7.5, but eh. I don't care, I'm lazy
     if LooseVersion("10.8") >= LooseVersion(mac_ver):
         gatekeeper = gatekeeper_status()
     else:
@@ -58,12 +43,9 @@ def main():
     else:
         plist = []
     result = {}
-    result['plugin'] = 'MachineDetailSecurity'
-    result['historical'] = True
+    result['plugin'] = 'Gatekeeper'
+    result['historical'] = False
     data = {}
-
-    data['Filevault'] = filevault
-    data['SIP'] = sip
     data['Gatekeeper'] = gatekeeper
     result['data'] = data
     plist.append(result)

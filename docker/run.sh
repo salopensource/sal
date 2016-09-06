@@ -3,7 +3,6 @@
 cd $APP_DIR
 ADMIN_PASS=${ADMIN_PASS:-}
 NEW_RELIC_INI=${NEW_RELIC_INI:-}
-python manage.py syncdb --noinput
 python manage.py migrate --noinput
 python manage.py collectstatic --noinput
 #python manage.py buildwatson

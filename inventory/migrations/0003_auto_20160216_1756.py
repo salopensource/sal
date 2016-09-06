@@ -9,12 +9,15 @@ from inventory.models import Application
 def migrate_inventoryitems_to_applications(apps, schema_editor):
     inventory_items = apps.get_model("inventory", "InventoryItem")
     for item in inventory_items.objects.all():
-        app, _ = Application.objects.get_or_create(
-            bundleid=item.bundleid or "",
-            name=item.name or "",
-            bundlename=item.bundlename or "")
-        item.application = app
-        item.save()
+        try:
+            app, _ = Application.objects.get_or_create(
+                bundleid=item.bundleid or "",
+                name=item.name or "",
+                bundlename=item.bundlename or "")
+            item.application = app
+            item.save()
+        except:
+            pass
 
 
 class Migration(migrations.Migration):

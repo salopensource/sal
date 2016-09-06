@@ -4,14 +4,7 @@ import subprocess
 import sys
 sys.path.append('/usr/local/munki')
 from munkilib import FoundationPlist
-from munkilib import munkicommon
 import os
-import platform
-from distutils.version import LooseVersion
-
-def mac_version():
-    v = platform.mac_ver()[0][:-2]
-    return v
 
 def get_status(cmd, checkstring):
     try:
@@ -26,11 +19,10 @@ def get_status(cmd, checkstring):
 def sip_status():
     cmd = ['/usr/bin/csrutil', 'status']
     return get_status(cmd, 'System Integrity Protection status: enabled.')
+
 def main():
 
-    mac_ver = mac_version()
-
-    if LooseVersion("10.11") >= LooseVersion(mac_ver):
+    if os.path.exists('/usr/bin/csrutil'):
         sip = sip_status()
     else:
         sip = 'Not Supported'

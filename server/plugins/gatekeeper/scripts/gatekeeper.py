@@ -6,12 +6,6 @@ sys.path.append('/usr/local/munki')
 from munkilib import FoundationPlist
 from munkilib import munkicommon
 import os
-import platform
-from distutils.version import LooseVersion
-
-def mac_version():
-    v = platform.mac_ver()[0][:-2]
-    return v
 
 def get_status(cmd, checkstring):
     try:
@@ -29,9 +23,7 @@ def gatekeeper_status():
 
 def main():
 
-    mac_ver = mac_version()
-
-    if LooseVersion("10.8") >= LooseVersion(mac_ver):
+    if os.path.exists('/usr/sbin/spctl'):
         gatekeeper = gatekeeper_status()
     else:
         gatekeeper = 'Not Supported'

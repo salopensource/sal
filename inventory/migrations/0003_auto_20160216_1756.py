@@ -55,11 +55,11 @@ class Migration(migrations.Migration):
             model_name='inventoryitem',
             name='name',
         ),
+        migrations.RunPython(migrate_inventoryitems_to_applications),
         migrations.AddField(
             model_name='inventoryitem',
             name='application',
-            field=models.ForeignKey(default=0, to='inventory.Application'),
+            field=models.ForeignKey(to='inventory.Application'),
             preserve_default=False,
         ),
-        migrations.RunPython(migrate_inventoryitems_to_applications),
     ]

@@ -130,9 +130,9 @@ class InventoryListView(LegacyDatatableView, GroupMixin):
         #             ("Last Checkin", 'machine__last_checkin', 'format_date'),
         #             ("User", "machine__console_user")]}
         'columns': [('Machine', 'machine', "get_machine_link"),
-                    ("Serial Number", "serial"),
+                    ("Serial Number", "machine__serial"),
                     ("Last Checkin", 'last_checkin', 'format_date'),
-                    ("User", "console_user"),
+                    ("User", "machine__console_user"),
                     ("Installed Copies", None, "get_install_count")]}
 
     def get_queryset(self):
@@ -175,16 +175,17 @@ class InventoryListView(LegacyDatatableView, GroupMixin):
         return context
 
     def format_date(self, instance, *args, **kwargs):
-        return instance.last_checkin.strftime("%Y-%m-%d %H:%M:%S")
+        return instance.machine.last_checkin.strftime("%Y-%m-%d %H:%M:%S")
 
     def get_machine_link(self, instance, *args, **kwargs):
+        machine = instance.machine
         url = reverse(
-            "machine_detail", kwargs={"machine_id": instance.pk})
+            "machine_detail", kwargs={"machine_id": machine.pk})
 
-        return '<a href="{}">{}</a>'.format(url, instance.hostname)
+        return '<a href="{}">{}</a>'.format(url, machine.hostname)
 
     def get_install_count(self, instance, *args, **kwargs):
-        queryset = instance.inventoryitem_set.filter(
+        queryset = instance.machine.inventoryitem_set.filter(
             application=self.application)
         field_type = self.kwargs["field_type"]
         if field_type == "path":

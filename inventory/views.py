@@ -220,7 +220,7 @@ class ApplicationListView(LegacyDatatableView, GroupMixin):
     def get_name_link(self, instance, *args, **kwargs):
         self.kwargs["pk"] = instance.pk
         url = reverse("application_detail", kwargs=self.kwargs)
-        return '<a href="{}">{}</a>'.format(url, instance.name)
+        return '<a href="{}">{}</a>'.format(url, instance.name.encode("utf-8"))
 
     def get_install_count(self, instance, *args, **kwargs):
         queryset = self.filter_inventoryitem_by_group(

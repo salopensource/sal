@@ -6,16 +6,13 @@ from django.db import migrations, models
 from inventory.models import Application
 
 
-def migrate_inventoryitems_to_applications(apps, schema_editor):
+def create_applications_from_inventoryitems(apps, schema_editor):
     inventory_items = apps.get_model("inventory", "InventoryItem")
     for item in inventory_items.objects.all():
-        try:
-            app, _ = Application.objects.get_or_create(
-                bundleid=item.bundleid or "",
-                name=item.name or "",
-                bundlename=item.bundlename or "")
-        except:
-            pass
+        app, _ = Application.objects.get_or_create(
+            bundleid=item.bundleid,
+            name=item.name,
+            bundlename=item.bundlename)
 
 
 class Migration(migrations.Migration):
@@ -37,23 +34,7 @@ class Migration(migrations.Migration):
                 'ordering': ['name'],
             },
         ),
-        migrations.RunPython(migrate_inventoryitems_to_applications),
-        migrations.AlterModelOptions(
-            name='inventoryitem',
-            options={},
-        ),
-        migrations.RemoveField(
-            model_name='inventoryitem',
-            name='bundleid',
-        ),
-        migrations.RemoveField(
-            model_name='inventoryitem',
-            name='bundlename',
-        ),
-        migrations.RemoveField(
-            model_name='inventoryitem',
-            name='name',
-        ),
+        migrations.RunPython(create_applications_from_inventoryitems),
         migrations.AddField(
             model_name='inventoryitem',
             name='application',

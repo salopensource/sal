@@ -17,6 +17,7 @@ from django.shortcuts import get_object_or_404, render_to_response
 from django.template import RequestContext
 from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import DetailView, View
+# TODO: For new django-datatables-view interface
 # from datatableview import Datatable, ValuesDatatable
 # from datatableview.columns import TextColumn
 # from datatableview.views import DatatableView
@@ -195,6 +196,7 @@ class InventoryListView(LegacyDatatableView, GroupMixin):
         return queryset.count()
 
 
+# TODO: For new django-datatables-view interface
 # class ApplicationList(Datatable):
 
 #     class Meta:

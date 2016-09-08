@@ -37,7 +37,7 @@ class Encryption(IPlugin):
                 t = loader.get_template('encryption/templates/id_laptops.html')
 
         try:
-            laptop_ok = machines.filter(pluginscriptsubmission__plugin__exact='Encryption', pluginscriptsubmission__pluginscriptrow__pluginscript_name__exact='Filevault', pluginscriptsubmission__pluginscriptrow__pluginscript_data__exact='Enabled').filter(machine_model__contains='Book').count()
+            laptop_ok = machines.filter(pluginscriptsubmission__plugin='Encryption', pluginscriptsubmission__pluginscriptrow__pluginscript_name='Filevault', pluginscriptsubmission__pluginscriptrow__pluginscript_data='Enabled').filter(machine_model__contains='Book').count()
         except:
             laptop_ok = 0
 

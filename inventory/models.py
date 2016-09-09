@@ -27,7 +27,7 @@ class Inventory(models.Model):
 class InventoryItem(models.Model):
     machine = models.ForeignKey(Machine)
     application = models.ForeignKey(Application)
-    version = models.CharField(db_index=True, max_length=32)
+    version = models.CharField(db_index=True, max_length=64)
     path = models.TextField()
 
     class Meta:

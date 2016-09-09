@@ -17,6 +17,7 @@ from django.shortcuts import get_object_or_404, render_to_response
 from django.template import RequestContext
 from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import DetailView, View
+# TODO: For new django-datatables-view interface
 # from datatableview import Datatable, ValuesDatatable
 # from datatableview.columns import TextColumn
 # from datatableview.views import DatatableView
@@ -35,6 +36,19 @@ class GroupMixin(object):
                "business_unit": BusinessUnit,
                "machine": Machine,
                "machine_group": MachineGroup}
+    access_filter = {
+        Application: {
+            BusinessUnit: ("inventoryitem__machine__machine_group__"
+                           "business_unit"),
+            MachineGroup: "inventoryitem__machine__machine_group",
+            Machine: "inventoryitem__machine",},
+        InventoryItem: {
+            BusinessUnit: "machine__machine_group__business_unit",
+            MachineGroup: "machine__machine_group",
+            Machine: "machine",},
+        Inventory: {},}
+
+    model = None
 
     @classmethod
     def get_business_unit(cls, **kwargs):
@@ -66,22 +80,25 @@ class GroupMixin(object):
 
         return instance
 
-    def filter_inventoryitem_by_group(self, queryset):
-        """Filter the model to only include allowed data.
+    def filter_queryset_by_group(self, queryset):
+        """Filter queryset to only include group data.
 
-        Depending on the type of query being performed, filter to only
-        include entries of that type (Machine, MachineGroup,
-        BusinessUnit).
+        The filter depends on the instance's group_type kwarg. The
+        provided queryset is filtered to include only records matching
+        the view's specified BusinessUnit, MachineGroup, Machine (or
+        not filtered at all for GA access).
+
+        Args:
+            queryset (Queryset): The queryset that should be filtered.
+
+        Returns:
+            Queryset with appropriate filter applied.
         """
         self.group_instance = self.get_group_instance()
         # No need to filter if group_instance is None.
         if self.group_instance:
-            if isinstance(self.group_instance, BusinessUnit):
-                filter_path = "machine__machine_group__business_unit"
-            elif isinstance(self.group_instance, MachineGroup):
-                filter_path = "machine__machine_group"
-            elif isinstance(self.group_instance, Machine):
-                filter_path = "machine"
+            filter_path = self.access_filter[queryset.model]\
+                [self.classes[self.kwargs["group_type"]]]
 
             kwargs = {filter_path: self.group_instance}
             queryset = queryset.filter(**kwargs)
@@ -125,18 +142,14 @@ class InventoryListView(LegacyDatatableView, GroupMixin):
     csv_filename = "sal_inventory_list.csv"
     datatable_options = {
         'structure_template': 'bootstrap_structure.html',
-        # 'columns': [('Machine', 'machine', "get_machine_link"),
-        #             ("Serial Number", "machine__serial"),
-        #             ("Last Checkin", 'machine__last_checkin', 'format_date'),
-        #             ("User", "machine__console_user")]}
-        'columns': [('Machine', 'machine', "get_machine_link"),
-                    ("Serial Number", "serial"),
+        'columns': [('Machine', 'machine__hostname', "get_machine_link"),
+                    ("Serial Number", "machine__serial"),
                     ("Last Checkin", 'last_checkin', 'format_date'),
-                    ("User", "console_user"),
+                    ("User", "machine__console_user"),
                     ("Installed Copies", None, "get_install_count")]}
 
     def get_queryset(self):
-        queryset = self.filter_inventoryitem_by_group(self.model.objects)
+        queryset = self.filter_queryset_by_group(self.model.objects.all())
 
         # Filter based on Application.
         self.application = get_object_or_404(
@@ -157,7 +170,8 @@ class InventoryListView(LegacyDatatableView, GroupMixin):
         if is_postgres():
             queryset = queryset.order_by().distinct("machine")
         else:
-            machines = queryset.order_by().values_list("machine", flat=True).distinct()
+            machines = queryset.order_by().values_list(
+                "machine", flat=True).distinct()
             queryset = Machine.objects.filter(id__in=machines)
 
         return queryset
@@ -175,16 +189,17 @@ class InventoryListView(LegacyDatatableView, GroupMixin):
         return context
 
     def format_date(self, instance, *args, **kwargs):
-        return instance.last_checkin.strftime("%Y-%m-%d %H:%M:%S")
+        return instance.machine.last_checkin.strftime("%Y-%m-%d %H:%M:%S")
 
     def get_machine_link(self, instance, *args, **kwargs):
+        machine = instance.machine
         url = reverse(
-            "machine_detail", kwargs={"machine_id": instance.pk})
+            "machine_detail", kwargs={"machine_id": machine.pk})
 
-        return '<a href="{}">{}</a>'.format(url, instance.hostname)
+        return '<a href="{}">{}</a>'.format(url, machine.hostname)
 
     def get_install_count(self, instance, *args, **kwargs):
-        queryset = instance.inventoryitem_set.filter(
+        queryset = instance.machine.inventoryitem_set.filter(
             application=self.application)
         field_type = self.kwargs["field_type"]
         if field_type == "path":
@@ -194,6 +209,7 @@ class InventoryListView(LegacyDatatableView, GroupMixin):
         return queryset.count()
 
 
+# TODO: For new django-datatables-view interface
 # class ApplicationList(Datatable):
 
 #     class Meta:
@@ -209,22 +225,42 @@ class InventoryListView(LegacyDatatableView, GroupMixin):
 class ApplicationListView(LegacyDatatableView, GroupMixin):
     model = Application
     template_name = "inventory/application_list.html"
+    # TODO: For new django-datatables-view interface
     # datatable_class = ApplicationList
     datatable_options = {
         'structure_template': 'bootstrap_structure.html',
         'columns': [('Name', 'name', "get_name_link"),
                     ("Bundle ID", 'bundleid'),
                     ("Bundle Name", 'bundlename'),
-                    ("Install Count", None, "get_install_count")]}
+                    ("Install Count", None, "get_install_count")],
+        'ordering': ["Name"]}
+
+    def get_queryset(self):
+        queryset = self.filter_queryset_by_group(self.model.objects).distinct()
+
+        # For now, remove cruft from results (until we can add prefs):
+
+        # Virtualization proxied apps
+        crufty_bundles = ["com.vmware.proxyApp", "com.parallels.winapp"]
+        crufty_pattern = r"({}).*".format("|".join(crufty_bundles))
+
+        # Apple apps that are not generally used by users.
+        apple_cruft_pattern = (r'com.apple.(?!iPhoto)(?!iWork)(?!Aperture)'
+            r'(?!iDVD)(?!garageband)(?!iMovieApp)(?!Server)(?!dt\.Xcode).*')
+        queryset = queryset.exclude(bundleid__regex=crufty_pattern)
+        queryset = queryset.exclude(bundleid__regex=apple_cruft_pattern)
+
+        return queryset
 
     def get_name_link(self, instance, *args, **kwargs):
         self.kwargs["pk"] = instance.pk
         url = reverse("application_detail", kwargs=self.kwargs)
-        return '<a href="{}">{}</a>'.format(url, instance.name)
+        return '<a href="{}">{}</a>'.format(url, instance.name.encode("utf-8"))
 
     def get_install_count(self, instance, *args, **kwargs):
-        queryset = self.filter_inventoryitem_by_group(
-            instance.inventoryitem_set)
+        """Get the number of app installs filtered by access group"""
+        queryset = self.filter_queryset_by_group(instance.inventoryitem_set)
+        count = queryset.count()
 
         # Build a link to InventoryListView for install count badge.
         url_kwargs = {
@@ -234,8 +270,10 @@ class ApplicationListView(LegacyDatatableView, GroupMixin):
             "field_type": "all",
             "field_value": 0}
         url = reverse("inventory_list", kwargs=url_kwargs)
-        anchor = '<a href="%s"><span class="badge">%s</span></a>' % (
-            url, queryset.count())
+
+        # Build the link.
+        anchor = '<a href="{}"><span class="badge">{}</span></a>'.format(
+            url, count)
         return anchor
 
     def get_context_data(self, **kwargs):
@@ -270,19 +308,21 @@ class ApplicationDetailView(DetailView, GroupMixin):
 
     def _get_filtered_queryset(self):
         """Filter results based on URL parameters / user access."""
-        queryset = self.filter_inventoryitem_by_group(
-            self.object.inventoryitem_set)
-        return queryset
+        return self.filter_queryset_by_group(self.object.inventoryitem_set)
 
     def _get_unique_items(self, details):
         """Use optimized DB methods for getting unique items if possible."""
-        # if is_postgres():
-        #     versions = self.object.inventoryitem_set.distinct("version")
-        #     paths = self.object.inventoryitem_set.distinct("path")
-        # else:
-        details = details.values()
-        versions = {item["version"] for item in details}
-        paths = {item["path"] for item in details}
+        if is_postgres():
+            versions = list(self.object.inventoryitem_set.order_by("version").distinct("version").values_list("version", flat=True))
+            paths = list(self.object.inventoryitem_set.order_by("path").distinct("path").values_list("path", flat=True))
+        else:
+            details = details.values()
+            versions = {item["version"] for item in details}
+            paths = {item["path"] for item in details}
+
+            # We need to sort the versions for non-Postgres.
+            from distutils.version import LooseVersion
+            versions = sorted(list(versions), key=lambda v: LooseVersion(v))
 
         return (versions, paths)
 
@@ -316,9 +356,10 @@ class CSVExportView(CSVResponseMixin, GroupMixin, View):
 
     def get(self, request, *args, **kwargs):
         # Filter data by access level
-        queryset = self.filter_inventoryitem_by_group(self.model.objects)
+        queryset = self.filter_queryset_by_group(self.model.objects)
 
         if kwargs["application_id"] == "0":
+            # All Applications.
             self.set_header(
                 ["Name", "BundleID", "BundleName", "Install Count"])
             self.components = ["application", "list", "for",
@@ -326,17 +367,18 @@ class CSVExportView(CSVResponseMixin, GroupMixin, View):
             if self.kwargs["group_type"] != "all":
                 self.components.append(self.kwargs["group_id"])
 
-            # TODO: Not tested on postgres.
             if is_postgres():
-                apps = [self.get_application_entry(item, queryset)
-                        for item in
-                        queryset.select_related("application").distinct(
-                            "application")]
+                apps = [self.get_application_entry(item, queryset) for item in
+                        queryset.select_related("application").order_by(
+                            ).distinct("application")]
+                data = apps
             else:
+                # TODO: This is super slow. This probably shouldn't be
+                # used except in testing, but it could be improved.
                 apps = {self.get_application_entry(item, queryset)
                         for item in queryset.select_related("application")}
 
-            data = sorted(apps, key=lambda x: x[0])
+                data = sorted(apps, key=lambda x: x[0])
         else:
             # Inventory List for one application.
             self.set_header(
@@ -419,7 +461,6 @@ def inventory_submit(request):
                         bundleid=item.get("bundleid", ""),
                         name=item.get("name", ""),
                         bundlename=item.get("CFBundleName", ""))
-                    # print app.name
                     # skip items in bundleid_ignorelist.
                     if not item.get('bundleid') in bundleid_ignorelist:
                         i_item = machine.inventoryitem_set.create(

@@ -43,7 +43,7 @@ RUN easy_install pip && \
     wget -O /usr/local/bin/dumb-init https://github.com/Yelp/dumb-init/releases/download/v1.1.3/dumb-init_1.1.3_amd64 && \
     chmod +x /usr/local/bin/dumb-init && \
     mkdir -p /home/app && \
-    mkdir -p /home/backup && \
+    mkdir -p /home/backup
 ADD / $APP_DIR
 ADD docker/settings.py $APP_DIR/sal/
 ADD docker/settings_import.py $APP_DIR/sal/

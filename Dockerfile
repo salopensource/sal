@@ -22,7 +22,6 @@ RUN apt-get update && \
     apt-get -y install \
     git \
     python-setuptools \
-    nginx \
     postgresql \
     postgresql-contrib \
     libpq-dev \
@@ -39,9 +38,6 @@ RUN easy_install pip && \
     pip install setproctitle && \
     rm /requirements.txt
 ADD / $APP_DIR
-ADD docker/nginx/nginx-env.conf /etc/nginx/main.d/
-ADD docker/nginx/sal.conf /etc/nginx/sites-enabled/sal.conf
-ADD docker/nginx/nginx.conf /etc/nginx/nginx.conf
 ADD docker/settings.py $APP_DIR/sal/
 ADD docker/settings_import.py $APP_DIR/sal/
 ADD docker/brute_settings.py $APP_DIR/sal/
@@ -57,14 +53,10 @@ RUN update-rc.d -f postgresql remove && \
     mkdir -p /usr/local/bin && \
     wget -O /usr/local/bin/dumb-init https://github.com/Yelp/dumb-init/releases/download/v1.1.3/dumb-init_1.1.3_amd64 && \
     chmod +x /usr/local/bin/dumb-init && \
-    rm -f /etc/nginx/sites-enabled/default && \
     mkdir -p /home/app && \
     mkdir -p /home/backup && \
     service monit stop && \
     chmod 755 /run.sh && \
-    chmod -R 755 $APP_DIR/start.sh && \
-    chmod -R 755 $APP_DIR/stop.sh && \
-    chmod -R 755 $APP_DIR/monit_stop_all_wait.sh && \
     ln -s $APP_DIR /home/app/sal
 
 WORKDIR $APP_AIR

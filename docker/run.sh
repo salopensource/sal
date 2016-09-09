@@ -2,7 +2,7 @@
 
 cd $APP_DIR
 ADMIN_PASS=${ADMIN_PASS:-}
-service monit stop
+# service monit stop
 python manage.py migrate --noinput
 python manage.py collectstatic --noinput
 
@@ -39,6 +39,6 @@ else
   # while [ 1 ] ; do
   #  sleep 1d
   # done
-  service nginx start
+  # service nginx start
   /usr/local/bin/gunicorn -c gunicorn_config.py sal.wsgi
 fi

@@ -52,7 +52,11 @@ ADD docker/run.sh /run.sh
 ADD docker/monit.conf /etc/monit/conf.d/sal.conf
 ADD docker/monit $APP_DIR/
 
+
 RUN update-rc.d -f postgresql remove && \
+    mkdir -p /usr/local/bin && \
+    wget -O /usr/local/bin/dumb-init https://github.com/Yelp/dumb-init/releases/download/v1.1.3/dumb-init_1.1.3_amd64 && \
+    chmod +x /usr/local/bin/dumb-init && \
     rm -f /etc/nginx/sites-enabled/default && \
     mkdir -p /home/app && \
     mkdir -p /home/backup && \
@@ -64,7 +68,7 @@ RUN update-rc.d -f postgresql remove && \
     ln -s $APP_DIR /home/app/sal
 
 EXPOSE 8000
-
+ENTRYPOINT ["/usr/local/bin/dumb-init", "--"]
 CMD ["/run.sh"]
 
 VOLUME ["$APP_DIR/plugins"]

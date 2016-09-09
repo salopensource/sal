@@ -2,9 +2,9 @@ import multiprocessing
 from os import getenv
 bind = '127.0.0.1:8001'
 
-workers = multiprocessing.cpu_count() * 3 + 1
+workers = multiprocessing.cpu_count() * 2 + 1
 graceful_timeout = 60
-timeout = 10
+timeout = 30
 threads = multiprocessing.cpu_count() * 2
 # max_requests = 600
 pidfile = '/var/run/gunicorn.pid'

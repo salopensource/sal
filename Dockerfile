@@ -45,8 +45,6 @@ ADD docker/wsgi.py $APP_DIR/
 ADD docker/gunicorn_config.py $APP_DIR/
 ADD docker/django/management/ $APP_DIR/sal/management/
 ADD docker/run.sh /run.sh
-ADD docker/monit.conf /etc/monit/conf.d/sal.conf
-ADD docker/monit $APP_DIR/
 
 
 RUN update-rc.d -f postgresql remove && \
@@ -55,7 +53,6 @@ RUN update-rc.d -f postgresql remove && \
     chmod +x /usr/local/bin/dumb-init && \
     mkdir -p /home/app && \
     mkdir -p /home/backup && \
-    service monit stop && \
     chmod 755 /run.sh && \
     ln -s $APP_DIR /home/app/sal
 

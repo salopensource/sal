@@ -56,7 +56,7 @@ RUN update-rc.d -f postgresql remove && \
     chmod 755 /run.sh && \
     ln -s $APP_DIR /home/app/sal
 
-WORKDIR $APP_AIR
+WORKDIR $APP_DIR
 EXPOSE 8000
 ENTRYPOINT ["/usr/local/bin/dumb-init", "--"]
 CMD ["/run.sh"]

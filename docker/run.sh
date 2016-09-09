@@ -20,6 +20,7 @@ touch /var/log/gunicorn/gunicorn-error.log
 touch /var/log/gunicorn/gunicorn-access.log
 touch $APP_DIR/sal.log
 chmod 777 $APP_DIR/sal.log
+tail -n 0 -f /var/log/gunicorn/gunicorn*.log & tail -n 0 -f $APP_DIR/sal.log &
 export PYTHONPATH=$PYTHONPATH:$APP_DIR
 export DJANGO_SETTINGS_MODULE='sal.settings'
 
@@ -39,6 +40,5 @@ else
   # while [ 1 ] ; do
   #  sleep 1d
   # done
-  service nginx start
-  /usr/local/bin/gunicorn -c gunicorn_config.py sal.wsgi
+  supervisord --nodaemon -c $APP_DIR/supervisord.conf
 fi

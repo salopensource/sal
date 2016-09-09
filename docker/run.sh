@@ -34,7 +34,7 @@ else
 
   # Monit will start all apps
   service monit start
-  tail -n 0 -f /var/log/gunicorn/gunicorn*.log & tail -n 0 -f $APP_DIR/sal.log &
+  tail -n 0 -f /var/log/gunicorn/gunicorn*.log & tail -n 0 -f $APP_DIR/sal.log & tail -n 0 -f /var/log/monit.log &
   # Stay up for container to stay alive
   while [ 1 ] ; do
    sleep 1d

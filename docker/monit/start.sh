@@ -1,3 +1,3 @@
 #!/bin/bash
-cd $APP_DIR
+cd /home/app/sal
 /usr/local/bin/gunicorn -D -c gunicorn_config.py sal.wsgi

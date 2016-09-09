@@ -39,6 +39,6 @@ else
   # while [ 1 ] ; do
   #  sleep 1d
   # done
-  # service nginx start
+  service nginx start
   /usr/local/bin/gunicorn -c gunicorn_config.py sal.wsgi
 fi

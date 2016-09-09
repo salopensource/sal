@@ -27,7 +27,7 @@ RUN apt-get update && \
     postgresql-contrib \
     libpq-dev \
     python-dev \
-    monit \
+    wget \
     libffi-dev && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
@@ -67,6 +67,7 @@ RUN update-rc.d -f postgresql remove && \
     chmod -R 755 $APP_DIR/monit_stop_all_wait.sh && \
     ln -s $APP_DIR /home/app/sal
 
+WORKDIR $APP_AIR
 EXPOSE 8000
 ENTRYPOINT ["/usr/local/bin/dumb-init", "--"]
 CMD ["/run.sh"]

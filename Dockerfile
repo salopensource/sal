@@ -49,8 +49,8 @@ ADD docker/wsgi.py $APP_DIR/
 ADD docker/gunicorn_config.py $APP_DIR/
 ADD docker/django/management/ $APP_DIR/sal/management/
 ADD docker/run.sh /run.sh
-ADD docker/monit_stop_all_wait.sh /usr/bin/monit_stop_all_wait.sh
 ADD docker/monit.conf /etc/monit/conf.d/sal.conf
+ADD docker/monit $APP_DIR/
 
 RUN update-rc.d -f postgresql remove && \
     rm -f /etc/nginx/sites-enabled/default && \
@@ -58,7 +58,9 @@ RUN update-rc.d -f postgresql remove && \
     mkdir -p /home/backup && \
     service monit stop && \
     chmod 755 /run.sh && \
-    chmod 755 /usr/bin/monit_stop_all_wait.sh && \
+    chmod -R 755 $APP_DIR/start.sh && \
+    chmod -R 755 $APP_DIR/stop.sh && \
+    chmod -R 755 $APP_DIR/monit_stop_all_wait.sh && \
     ln -s $APP_DIR /home/app/sal
 
 EXPOSE 8000

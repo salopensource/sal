@@ -30,7 +30,7 @@ if [ "$DOCKER_SAL_DEBUG" = "true" ] || [ "$DOCKER_SAL_DEBUG" = "True" ] || [ "$D
     python manage.py runserver 0.0.0.0:8000
 else
   # Catch signals
-  trap "/usr/bin/monit_stop_all_wait.sh ; exit" EXIT
+  trap "/home/app/sal/monit_stop_all_wait.sh ; exit" EXIT
 
   # Monit will start all apps
   service monit start

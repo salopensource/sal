@@ -27,7 +27,7 @@ RUN apt-get update && \
     postgresql-contrib \
     libpq-dev \
     python-dev \
-    supervisor \
+    monit \
     libffi-dev && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
@@ -49,13 +49,16 @@ ADD docker/wsgi.py $APP_DIR/
 ADD docker/gunicorn_config.py $APP_DIR/
 ADD docker/django/management/ $APP_DIR/sal/management/
 ADD docker/run.sh /run.sh
-ADD docker/supervisord.conf $APP_DIR/supervisord.conf
+ADD docker/monit_stop_all_wait.sh /usr/bin/monit_stop_all_wait.sh
+ADD docker/monit.conf /etc/monit/conf.d/sal.conf
 
 RUN update-rc.d -f postgresql remove && \
-    update-rc.d -f nginx remove && \
     rm -f /etc/nginx/sites-enabled/default && \
     mkdir -p /home/app && \
     mkdir -p /home/backup && \
+    service monit stop && \
+    chmod 755 /run.sh && \
+    chmod 755 /usr/bin/monit_stop_all_wait.sh && \
     ln -s $APP_DIR /home/app/sal
 
 EXPOSE 8000

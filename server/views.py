@@ -663,15 +663,17 @@ def export_csv(request, pluginName, data, page='front', theID=None):
         # only get machines for that BU
         # Need to make sure the user is allowed to see this
         business_unit = get_object_or_404(BusinessUnit, pk=theID)
-        machine_groups = MachineGroup.objects.filter(business_unit=business_unit).prefetch_related('machine_set').all()
+        # machine_groups = MachineGroup.objects.filter(business_unit=business_unit).prefetch_related('machine_set').all()
+        #
+        # if machine_groups.count() != 0:
+        #     machines_unsorted = machine_groups[0].machine_set.all()
+        #     for machine_group in machine_groups[1:]:
+        #         machines_unsorted = machines_unsorted | machine_group.machine_set.all().prefetch_related('facts','conditions','pluginscriptsubmission_set','pluginscriptsubmission_set__pluginscriptrow_set')
+        # else:
+        #     machines_unsorted = None
+        # machines=machines_unsorted
 
-        if machine_groups.count() != 0:
-            machines_unsorted = machine_groups[0].machine_set.all()
-            for machine_group in machine_groups[1:]:
-                machines_unsorted = machines_unsorted | machine_group.machine_set.all().prefetch_related('facts','conditions','pluginscriptsubmission_set','pluginscriptsubmission_set__pluginscriptrow_set')
-        else:
-            machines_unsorted = None
-        machines=machines_unsorted
+        machines = Machine.objects.filter(machine_group=business_unit.machinegroup_set.all()).prefetch_related('facts','conditions','pluginscriptsubmission_set','pluginscriptsubmission_set__pluginscriptrow_set')
 
     if page == 'group_dashboard':
         # only get machines from that group

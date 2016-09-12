@@ -650,7 +650,7 @@ def get_csv_row(machine, facter_headers, condition_headers, plugin_script_header
     row = []
     for name, value in machine.get_fields():
         if name != 'id' and name !='machine_group' and name != 'report' and name != 'activity' and name != 'os_family' and name != 'install_log' and name != 'install_log_hash':
-            row.append(utils.safe_unicode(value.strip()))
+            row.append(utils.safe_unicode(value))
 
     facts = machine.facts.all().values('fact_name', 'fact_data').order_by('fact_name')
     for header_item in facter_headers:

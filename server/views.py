@@ -650,25 +650,27 @@ def get_csv_row(machine, facter_headers, condition_headers, plugin_script_header
     row = []
     for name, value in machine.get_fields():
         if name != 'id' and name !='machine_group' and name != 'report' and name != 'activity' and name != 'os_family' and name != 'install_log' and name != 'install_log_hash':
-            row.append(value.strip())
+            row.append(utils.safe_unicode(value.strip()))
 
     facts = machine.facts.all().values('fact_name', 'fact_data').order_by('fact_name')
     for header_item in facter_headers:
-        row.append(utils.csvrelated(header_item, facts, 'facter'))
+        row.append(utils.safe_unicode(utils.csvrelated(header_item, facts, 'facter')))
 
     conditions = machine.conditions.all().values('condition_name', 'condition_data').order_by('condition_name')
     for header_item in condition_headers:
-        row.append(utils.csvrelated(header_item, conditions, 'condition'))
+        row.append(utils.safe_unicode(utils.csvrelated(header_item, conditions, 'condition')))
 
     pluginscript_rows = PluginScriptRow.objects.filter(submission__machine=machine).values('submission_and_script_name', 'pluginscript_name', 'pluginscript_data')
     for header_item in plugin_script_headers:
-        row.append(utils.csvrelated(header_item, pluginscript_rows, 'pluginscript'))
+        row.append(utils.safe_unicode(utils.csvrelated(header_item, pluginscript_rows, 'pluginscript')))
     row.append(machine.machine_group.business_unit.name)
     row.append(machine.machine_group.name)
     return row
 
 def stream_csv(header_row, machines, facter_headers, condition_headers, plugin_script_headers): # Helper function to inject headers
-    if header_row:
+    counter = 0
+    if counter == 0:
+        counter += 1
         yield header_row
     for machine in machines:
         yield get_csv_row(machine, facter_headers, condition_headers, plugin_script_headers)
@@ -758,11 +760,11 @@ def export_csv(request, pluginName, data, page='front', theID=None):
 
     response = StreamingHttpResponse(
             (writer.writerow(row) for row in stream_csv(
-                                            header_row,
-                                            machines,
-                                            facter_headers,
-                                            condition_headers,
-                                            plugin_script_headers)),
+                                            header_row=header_row,
+                                            machines=machines,
+                                            facter_headers=facter_headers,
+                                            condition_headers=condition_headers,
+                                            plugin_script_headers=plugin_script_headers)),
             content_type="text/csv")
     # Create the HttpResponse object with the appropriate CSV header.
     if getattr(settings, 'DEBUG_CSV', False):

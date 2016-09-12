@@ -668,9 +668,7 @@ def get_csv_row(machine, facter_headers, condition_headers, plugin_script_header
     return row
 
 def stream_csv(header_row, machines, facter_headers, condition_headers, plugin_script_headers): # Helper function to inject headers
-    counter = 0
-    if counter == 0:
-        counter += 1
+    if header_row:
         yield header_row
     for machine in machines:
         yield get_csv_row(machine, facter_headers, condition_headers, plugin_script_headers)

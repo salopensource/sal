@@ -5,7 +5,7 @@ from django.contrib.auth.decorators import login_required, permission_required
 from django.template import RequestContext, Template, Context
 import json
 from django.views.decorators.csrf import csrf_exempt, csrf_protect
-from django.http import HttpResponse, Http404, HttpResponseNotFound, HttpResponseRedirect, JsonResponse
+from django.http import HttpResponse, Http404, HttpResponseNotFound, HttpResponseRedirect, JsonResponse, StreamingHttpResponse
 from django.contrib.auth.models import Permission, User
 from django.conf import settings
 from django.template.context_processors import csrf
@@ -639,6 +639,40 @@ def report_load(request, pluginName, page='front', theID=None):
     c = {'user': request.user, 'output': output, 'page':page, 'business_unit': business_unit, 'machine_group': machine_group, 'reports': reports}
     return render(request, 'server/display_report.html', c)
 
+class Echo(object):
+    """An object that implements just the write method of the file-like interface.
+    """
+    def write(self, value):
+        """Write the value by returning it, instead of storing in a buffer."""
+        return value
+
+def get_csv_row(machine, facter_headers, condition_headers, plugin_script_headers):
+    row = []
+    for name, value in machine.get_fields():
+        if name != 'id' and name !='machine_group' and name != 'report' and name != 'activity' and name != 'os_family' and name != 'install_log' and name != 'install_log_hash':
+            row.append(value.strip())
+
+    facts = machine.facts.all().values('fact_name', 'fact_data').order_by('fact_name')
+    for header_item in facter_headers:
+        row.append(utils.csvrelated(header_item, facts, 'facter'))
+
+    conditions = machine.conditions.all().values('condition_name', 'condition_data').order_by('condition_name')
+    for header_item in condition_headers:
+        row.append(utils.csvrelated(header_item, conditions, 'condition'))
+
+    pluginscript_rows = PluginScriptRow.objects.filter(submission__machine=machine).values('submission_and_script_name', 'pluginscript_name', 'pluginscript_data')
+    for header_item in plugin_script_headers:
+        row.append(utils.csvrelated(header_item, pluginscript_rows, 'pluginscript'))
+    row.append(machine.machine_group.business_unit.name)
+    row.append(machine.machine_group.name)
+    return row
+
+def stream_csv(header_row, machines, facter_headers, condition_headers, plugin_script_headers): # Helper function to inject headers
+    if header_row:
+        yield header_row
+    for machine in machines:
+        yield get_csv_row(machine, facter_headers, condition_headers, plugin_script_headers)
+
 @login_required
 def export_csv(request, pluginName, data, page='front', theID=None):
     user = request.user
@@ -689,68 +723,57 @@ def export_csv(request, pluginName, data, page='front', theID=None):
         if plugin.name == pluginName:
             (machines, title) = plugin.plugin_object.filter_machines(machines, data)
 
-    # Create the HttpResponse object with the appropriate CSV header.
-    if getattr(settings, 'DEBUG_CSV', False):
-        response = HttpResponse(content_type='text/html')
-    else:
-        response = HttpResponse(content_type='text/csv')
-        response['Content-Disposition'] = 'attachment; filename="%s.csv"' % title
+    pseudo_buffer = Echo()
+    writer = csv.writer(pseudo_buffer)
 
-    writer = csv.writer(response)
     # Fields
     header_row = []
     fields = Machine._meta.get_fields()
     for field in fields:
         if not field.is_relation and field.name != 'id' and field.name != 'report' and field.name != 'activity' and field.name != 'os_family' and field.name != 'install_log' and field.name != 'install_log_hash':
             header_row.append(field.name)
-    # distinct_facts = Fact.objects.values('fact_name').distinct().order_by('fact_name')
-    #
-    # facter_headers = []
-    # for distinct_fact in distinct_facts:
-    #     facter_headers.append('Facter: '+ distinct_fact['fact_name'])
-    #     header_row.append('Facter: '+ distinct_fact['fact_name'])
-    # distinct_conditions = Condition.objects.values('condition_name').distinct().order_by('condition_name')
-    #
-    # condition_headers = []
-    # for distinct_condition in distinct_conditions:
-    #     condition_headers.append('Munki Condition: '+ distinct_condition['condition_name'])
-    #     header_row.append('Munki Condition: '+ distinct_condition['condition_name'])
+    distinct_facts = Fact.objects.values('fact_name').distinct().order_by('fact_name')
+
+    facter_headers = []
+    for distinct_fact in distinct_facts:
+        facter_headers.append('Facter: '+ distinct_fact['fact_name'])
+        header_row.append('Facter: '+ distinct_fact['fact_name'])
+    distinct_conditions = Condition.objects.values('condition_name').distinct().order_by('condition_name')
+
+    condition_headers = []
+    for distinct_condition in distinct_conditions:
+        condition_headers.append('Munki Condition: '+ distinct_condition['condition_name'])
+        header_row.append('Munki Condition: '+ distinct_condition['condition_name'])
 
 
-    # plugin_script_headers = []
-    #
-    # distinct_pluginscript_rows = PluginScriptRow.objects.values('submission_and_script_name').order_by('submission_and_script_name').distinct()
-    # for distinct_pluginscript_row in distinct_pluginscript_rows:
-    #     plugin_script_headers.append(distinct_pluginscript_row['submission_and_script_name'])
-    #     header_row.append(distinct_pluginscript_row['submission_and_script_name'])
+    plugin_script_headers = []
+
+    distinct_pluginscript_rows = PluginScriptRow.objects.values('submission_and_script_name').order_by('submission_and_script_name').distinct()
+    for distinct_pluginscript_row in distinct_pluginscript_rows:
+        plugin_script_headers.append(distinct_pluginscript_row['submission_and_script_name'])
+        header_row.append(distinct_pluginscript_row['submission_and_script_name'])
 
     header_row.append('business_unit')
     header_row.append('machine_group')
-    writer.writerow(header_row)
 
-    for machine in machines:
-        row = []
-        for name, value in machine.get_fields():
-            if name != 'id' and name !='machine_group' and name != 'report' and name != 'activity' and name != 'os_family' and name != 'install_log' and name != 'install_log_hash':
-                row.append(value.strip())
-
-        # facts = machine.facts.all().values('fact_name', 'fact_data').order_by('fact_name')
-        # for header_item in facter_headers:
-        #     row.append(utils.csvrelated(header_item, facts, 'facter'))
-        #
-        # conditions = machine.conditions.all().values('condition_name', 'condition_data').order_by('condition_name')
-        # for header_item in condition_headers:
-        #     row.append(utils.csvrelated(header_item, conditions, 'condition'))
-
-        # pluginscript_rows = PluginScriptRow.objects.filter(submission__machine=machine).values('submission_and_script_name', 'pluginscript_name', 'pluginscript_data')
-        # for header_item in plugin_script_headers:
-        #     row.append(utils.csvrelated(header_item, pluginscript_rows, 'pluginscript'))
-        row.append(machine.machine_group.business_unit.name)
-        row.append(machine.machine_group.name)
-        writer.writerow(row)
-
+    response = StreamingHttpResponse(
+            (writer.writerow(row) for row in stream_csv(
+                                            header_row,
+                                            machines,
+                                            facter_headers,
+                                            condition_headers,
+                                            plugin_script_headers)),
+            content_type="text/csv")
+    # Create the HttpResponse object with the appropriate CSV header.
     if getattr(settings, 'DEBUG_CSV', False):
-        writer.writerow(['</body>'])
+        pass
+    else:
+        response['Content-Disposition'] = 'attachment; filename="%s.csv"' % title
+
+    #
+    #
+    # if getattr(settings, 'DEBUG_CSV', False):
+    #     writer.writerow(['</body>'])
     return response
 
 # New BU

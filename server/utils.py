@@ -22,19 +22,28 @@ def csvrelated(header_item, facts, kind):
     found = False
     if kind == 'facter':
         for fact in facts:
-            if header_item == 'Facter: '+fact['fact_name']:
-                found = True
-                return fact['fact_data']
+            try:
+                if header_item == 'Facter: '+fact['fact_name']:
+                    found = True
+                    return fact['fact_data']
+            except:
+                pass
     elif kind == 'condition':
         for condition in facts:
-            if header_item == 'Munki Condition: '+condition['condition_name']:
-                found = True
-                return condition['condition_data']
+            try:
+                if header_item == 'Munki Condition: '+condition['condition_name']:
+                    found = True
+                    return condition['condition_data']
+            except:
+                pass
     elif kind == 'pluginscript':
         for pluginscriptrow in facts:
-            if header_item == pluginscriptrow['submission_and_script_name']:
-                found = True
-                return pluginscriptrow['pluginscript_data']
+            try:
+                if header_item == pluginscriptrow['submission_and_script_name']:
+                    found = True
+                    return pluginscriptrow['pluginscript_data']
+                except:
+                    pass
     if found == False:
         return ''
 

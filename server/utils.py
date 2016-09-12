@@ -42,8 +42,8 @@ def csvrelated(header_item, facts, kind):
                 if header_item == pluginscriptrow['submission_and_script_name']:
                     found = True
                     return pluginscriptrow['pluginscript_data']
-                except:
-                    pass
+            except:
+                pass
     if found == False:
         return ''
 

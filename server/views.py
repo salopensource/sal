@@ -655,9 +655,9 @@ def get_csv_row(machine, facter_headers, condition_headers, plugin_script_header
             except:
                 row.append('')
 
-    # facts = machine.facts.all().values('fact_name', 'fact_data').order_by('fact_name')
-    # for header_item in facter_headers:
-    #     row.append(utils.safe_unicode(utils.csvrelated(header_item, facts, 'facter')))
+    facts = machine.facts.all().exclude(fact_name__startswith='installed_packages=>').values('fact_name', 'fact_data').order_by('fact_name')
+    for header_item in facter_headers:
+        row.append(utils.safe_unicode(utils.csvrelated(header_item, facts, 'facter')))
     #
     # conditions = machine.conditions.all().values('condition_name', 'condition_data').order_by('condition_name')
     # for header_item in condition_headers:
@@ -739,12 +739,12 @@ def export_csv(request, pluginName, data, page='front', theID=None):
     for field in fields:
         if not field.is_relation and field.name != 'id' and field.name != 'report' and field.name != 'activity' and field.name != 'os_family' and field.name != 'install_log' and field.name != 'install_log_hash':
             header_row.append(field.name)
-    # distinct_facts = Fact.objects.values('fact_name').distinct().order_by('fact_name')
+    distinct_facts = Fact.objects.values('fact_name').exclude(fact_name__startswith='installed_packages=>').distinct().order_by('fact_name')
 
     facter_headers = []
-    # for distinct_fact in distinct_facts:
-    #     facter_headers.append('Facter: '+ distinct_fact['fact_name'])
-    #     header_row.append('Facter: '+ distinct_fact['fact_name'])
+    for distinct_fact in distinct_facts:
+        facter_headers.append('Facter: '+ distinct_fact['fact_name'])
+        header_row.append('Facter: '+ distinct_fact['fact_name'])
     # distinct_conditions = Condition.objects.values('condition_name').distinct().order_by('condition_name')
 
     condition_headers = []

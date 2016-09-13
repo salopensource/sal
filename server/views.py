@@ -691,10 +691,10 @@ def export_csv(request, pluginName, data, page='front', theID=None):
         # get all machines
         if user.userprofile.level == 'GA':
             # machines = Machine.objects.all().prefetch_related('facts','conditions','pluginscriptsubmission_set','pluginscriptsubmission_set__pluginscriptrow_set')
-            machines = Machine.objects.all()
+            machines = Machine.objects.all().defer('report','activity','os_family','install_log', 'install_log_hash')
         else:
             # machines = Machine.objects.none().prefetch_related('facts','conditions','pluginscriptsubmission_set','pluginscriptsubmission_set__pluginscriptrow_set')
-            machines = Machine.objects.none()
+            machines = Machine.objects.none().defer('report','activity','os_family','install_log', 'install_log_hash')
             for business_unit in user.businessunit_set.all():
                 for group in business_unit.machinegroup_set.all():
                     machines = machines | group.machine_set.all()
@@ -713,14 +713,14 @@ def export_csv(request, pluginName, data, page='front', theID=None):
         # machines=machines_unsorted
 
         # machines = Machine.objects.filter(machine_group=business_unit.machinegroup_set.all()).prefetch_related('facts','conditions','pluginscriptsubmission_set','pluginscriptsubmission_set__pluginscriptrow_set')
-        machines = Machine.objects.filter(machine_group=business_unit.machinegroup_set.all())
+        machines = Machine.objects.filter(machine_group=business_unit.machinegroup_set.all()).defer('report','activity','os_family','install_log', 'install_log_hash')
 
     if page == 'group_dashboard':
         # only get machines from that group
         machine_group = get_object_or_404(MachineGroup, pk=theID)
         # check that the user has access to this
         # machines = Machine.objects.filter(machine_group=machine_group).prefetch_related('facts','conditions','pluginscriptsubmission_set','pluginscriptsubmission_set__pluginscriptrow_set')
-        machines = Machine.objects.filter(machine_group=machine_group)
+        machines = Machine.objects.filter(machine_group=machine_group).defer('report','activity','os_family','install_log', 'install_log_hash')
 
     if page =='machine_detail':
         machines = Machine.objects.get(pk=theID)

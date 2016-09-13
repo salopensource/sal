@@ -655,17 +655,17 @@ def get_csv_row(machine, facter_headers, condition_headers, plugin_script_header
             except:
                 row.append('')
 
-    facts = machine.facts.all().values('fact_name', 'fact_data').order_by('fact_name')
-    for header_item in facter_headers:
-        row.append(utils.safe_unicode(utils.csvrelated(header_item, facts, 'facter')))
-
-    conditions = machine.conditions.all().values('condition_name', 'condition_data').order_by('condition_name')
-    for header_item in condition_headers:
-        row.append(utils.safe_unicode(utils.csvrelated(header_item, conditions, 'condition')))
-
-    pluginscript_rows = PluginScriptRow.objects.filter(submission__machine=machine).values('submission_and_script_name', 'pluginscript_name', 'pluginscript_data')
-    for header_item in plugin_script_headers:
-        row.append(utils.safe_unicode(utils.csvrelated(header_item, pluginscript_rows, 'pluginscript')))
+    # facts = machine.facts.all().values('fact_name', 'fact_data').order_by('fact_name')
+    # for header_item in facter_headers:
+    #     row.append(utils.safe_unicode(utils.csvrelated(header_item, facts, 'facter')))
+    #
+    # conditions = machine.conditions.all().values('condition_name', 'condition_data').order_by('condition_name')
+    # for header_item in condition_headers:
+    #     row.append(utils.safe_unicode(utils.csvrelated(header_item, conditions, 'condition')))
+    #
+    # pluginscript_rows = PluginScriptRow.objects.filter(submission__machine=machine).values('submission_and_script_name', 'pluginscript_name', 'pluginscript_data')
+    # for header_item in plugin_script_headers:
+    #     row.append(utils.safe_unicode(utils.csvrelated(header_item, pluginscript_rows, 'pluginscript')))
     row.append(machine.machine_group.business_unit.name)
     row.append(machine.machine_group.name)
     return row
@@ -690,9 +690,11 @@ def export_csv(request, pluginName, data, page='front', theID=None):
     if page == 'front':
         # get all machines
         if user.userprofile.level == 'GA':
-            machines = Machine.objects.all().prefetch_related('facts','conditions','pluginscriptsubmission_set','pluginscriptsubmission_set__pluginscriptrow_set')
+            # machines = Machine.objects.all().prefetch_related('facts','conditions','pluginscriptsubmission_set','pluginscriptsubmission_set__pluginscriptrow_set')
+            machines = Machine.objects.all()
         else:
-            machines = Machine.objects.none().prefetch_related('facts','conditions','pluginscriptsubmission_set','pluginscriptsubmission_set__pluginscriptrow_set')
+            # machines = Machine.objects.none().prefetch_related('facts','conditions','pluginscriptsubmission_set','pluginscriptsubmission_set__pluginscriptrow_set')
+            machines = Machine.objects.none()
             for business_unit in user.businessunit_set.all():
                 for group in business_unit.machinegroup_set.all():
                     machines = machines | group.machine_set.all()
@@ -710,13 +712,15 @@ def export_csv(request, pluginName, data, page='front', theID=None):
         #     machines_unsorted = None
         # machines=machines_unsorted
 
-        machines = Machine.objects.filter(machine_group=business_unit.machinegroup_set.all()).prefetch_related('facts','conditions','pluginscriptsubmission_set','pluginscriptsubmission_set__pluginscriptrow_set')
+        # machines = Machine.objects.filter(machine_group=business_unit.machinegroup_set.all()).prefetch_related('facts','conditions','pluginscriptsubmission_set','pluginscriptsubmission_set__pluginscriptrow_set')
+        machines = Machine.objects.filter(machine_group=business_unit.machinegroup_set.all())
 
     if page == 'group_dashboard':
         # only get machines from that group
         machine_group = get_object_or_404(MachineGroup, pk=theID)
         # check that the user has access to this
-        machines = Machine.objects.filter(machine_group=machine_group).prefetch_related('facts','conditions','pluginscriptsubmission_set','pluginscriptsubmission_set__pluginscriptrow_set')
+        # machines = Machine.objects.filter(machine_group=machine_group).prefetch_related('facts','conditions','pluginscriptsubmission_set','pluginscriptsubmission_set__pluginscriptrow_set')
+        machines = Machine.objects.filter(machine_group=machine_group)
 
     if page =='machine_detail':
         machines = Machine.objects.get(pk=theID)
@@ -735,26 +739,26 @@ def export_csv(request, pluginName, data, page='front', theID=None):
     for field in fields:
         if not field.is_relation and field.name != 'id' and field.name != 'report' and field.name != 'activity' and field.name != 'os_family' and field.name != 'install_log' and field.name != 'install_log_hash':
             header_row.append(field.name)
-    distinct_facts = Fact.objects.values('fact_name').distinct().order_by('fact_name')
+    # distinct_facts = Fact.objects.values('fact_name').distinct().order_by('fact_name')
 
     facter_headers = []
-    for distinct_fact in distinct_facts:
-        facter_headers.append('Facter: '+ distinct_fact['fact_name'])
-        header_row.append('Facter: '+ distinct_fact['fact_name'])
-    distinct_conditions = Condition.objects.values('condition_name').distinct().order_by('condition_name')
+    # for distinct_fact in distinct_facts:
+    #     facter_headers.append('Facter: '+ distinct_fact['fact_name'])
+    #     header_row.append('Facter: '+ distinct_fact['fact_name'])
+    # distinct_conditions = Condition.objects.values('condition_name').distinct().order_by('condition_name')
 
     condition_headers = []
-    for distinct_condition in distinct_conditions:
-        condition_headers.append('Munki Condition: '+ distinct_condition['condition_name'])
-        header_row.append('Munki Condition: '+ distinct_condition['condition_name'])
+    # for distinct_condition in distinct_conditions:
+    #     condition_headers.append('Munki Condition: '+ distinct_condition['condition_name'])
+    #     header_row.append('Munki Condition: '+ distinct_condition['condition_name'])
 
 
     plugin_script_headers = []
 
-    distinct_pluginscript_rows = PluginScriptRow.objects.values('submission_and_script_name').order_by('submission_and_script_name').distinct()
-    for distinct_pluginscript_row in distinct_pluginscript_rows:
-        plugin_script_headers.append(distinct_pluginscript_row['submission_and_script_name'])
-        header_row.append(distinct_pluginscript_row['submission_and_script_name'])
+    # distinct_pluginscript_rows = PluginScriptRow.objects.values('submission_and_script_name').order_by('submission_and_script_name').distinct()
+    # for distinct_pluginscript_row in distinct_pluginscript_rows:
+    #     plugin_script_headers.append(distinct_pluginscript_row['submission_and_script_name'])
+    #     header_row.append(distinct_pluginscript_row['submission_and_script_name'])
 
     header_row.append('business_unit')
     header_row.append('machine_group')

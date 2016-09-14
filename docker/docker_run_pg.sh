@@ -11,10 +11,6 @@ docker run -d --name="postgres-sal" \
     -v "$CWD"/test-pg-db:/var/lib/postgresql/data \
     grahamgilbert/postgres:9.4.5
 
-sleep 10
-
-docker build -t "macadmins/sal" .
-
 docker run -d \
     -e ADMIN_PASS=pass \
     -e DB_NAME=sal \

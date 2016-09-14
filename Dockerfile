@@ -65,7 +65,7 @@ RUN chmod 755 /run.sh && \
 
 WORKDIR $APP_DIR
 EXPOSE 8000
-ENTRYPOINT ["/usr/local/bin/dumb-init", "--"]
+# ENTRYPOINT ["/usr/local/bin/dumb-init", "--"]
 CMD ["/run.sh"]
 
 VOLUME ["$APP_DIR/plugins"]

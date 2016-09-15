@@ -27,8 +27,7 @@ def decode_to_string(base64bz2data):
     '''Decodes an inventory submission, which is a plist-encoded
     list, compressed via bz2 and base64 encoded.'''
     try:
-        bz2data = base64.b64decode(base64bz2data)
-        return bz2.decompress(bz2data)
+        return bz2.decompress(base64.b64decode(base64bz2data))
     except Exception:
         return ''
 
@@ -40,6 +39,7 @@ def submit_catalog(request):
     submission = request.POST
     key = submission.get('key')
     name = submission.get('name')
+    sha = submission.get('sha256hash')
     machine_group = None
     if key:
         try:
@@ -48,10 +48,11 @@ def submit_catalog(request):
             raise Http404
 
         compressed_catalog = submission.get('base64bz2catalog')
+        # print compressed_catalog
         if compressed_catalog:
-            compressed_catalog = compressed_catalog.replace(" ", "+")
+            # compressed_catalog = compressed_catalog.replace(" ", "+")
             catalog_str = decode_to_string(compressed_catalog)
-
+            print catalog_str
             try:
                 catalog_plist = plistlib.readPlistFromString(catalog_str)
             except Exception:
@@ -61,8 +62,7 @@ def submit_catalog(request):
                     catalog = Catalog.objects.get(name=name, machine_group=machine_group)
                 except Catalog.DoesNotExist:
                     catalog = Catalog(name=name, machine_group=machine_group)
-                catalog.sha256hash = \
-                    hashlib.sha256(catalog_str).hexdigest()
+                catalog.sha256hash = sha
                 catalog.content = catalog_str
                 catalog.save()
     return HttpResponse("Catalogs submitted.")
@@ -82,19 +82,19 @@ def catalog_hash(request):
         except MachineGroup.DoesNotExist:
             raise Http404
     if catalogs:
-        catalogs = catalogs.replace(" ", "+")
         catalogs = decode_to_string(catalogs)
         try:
             catalogs_plist = plistlib.readPlistFromString(catalogs)
         except Exception:
             catalogs_plist = None
-        for item in catalogs_plist:
-            name = item['name']
-            sha256hash = item['sha256hash']
-            try:
-                found_catalog = Catalog.objects.get(name=name, machine_group=machine_group)
-                output.append({'name': name, 'sha256hash':found_catalog.sha256hash})
-            except Catalog.DoesNotExist:
-                output.append({'name': name, 'sha256hash': ''})
+        if catalogs_plist:
+            for item in catalogs_plist:
+                name = item['name']
+                sha256hash = item['sha256hash']
+                try:
+                    found_catalog = Catalog.objects.get(name=name, machine_group=machine_group)
+                    output.append({'name': name, 'sha256hash':found_catalog.sha256hash})
+                except Catalog.DoesNotExist:
+                    output.append({'name': name, 'sha256hash': ''})
 
     return HttpResponse(plistlib.writePlistToString(output))

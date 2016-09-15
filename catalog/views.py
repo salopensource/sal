@@ -15,6 +15,8 @@ from server import utils
 from django.shortcuts import get_object_or_404, redirect
 import plistlib
 import hashlib
+import base64
+import bz2
 
 from models import *
 from server.models import *

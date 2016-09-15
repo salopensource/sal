@@ -10,6 +10,7 @@ class Application(models.Model):
 
     class Meta:
         ordering = ['name']
+        unique_together = (('name', 'bundleid', 'bundlename'))
 
     def __unicode__(self):
         return self.name

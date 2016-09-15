@@ -2,6 +2,7 @@
 import hashlib
 import plistlib
 from datetime import datetime
+from django.utils import timezone
 from urllib import quote
 
 # third-party
@@ -466,7 +467,7 @@ def inventory_submit(request):
                         i_item = machine.inventoryitem_set.create(
                             application=app, version=item.get("version", ""),
                             path=item.get('path', ''))
-                machine.last_inventory_update = datetime.now()
+                machine.last_inventory_update = timezone.now()
                 inventory_meta.save()
             machine.save()
             return HttpResponse(

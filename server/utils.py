@@ -160,6 +160,21 @@ def send_report():
         return r.text
     else:
         return 'Error'
+        
+def listify_condition_data(condition_data):
+    if type(condition_data) == list:
+        result = None
+        for item in condition_data:
+            # is this the first loop? If so, no need for a comma
+            if result:
+                result = result + ', '+str(item)
+            else:
+                result = item
+        if result == None:
+            # Handle empty arrays
+            result = '{EMPTY}'
+        condition_data = result
+    return condition_data
 
 def loadDefaultPlugins():
     # Are there any plugin objects? If not, add in the defaults

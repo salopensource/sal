@@ -1910,7 +1910,7 @@ def checkin(request):
         historical_days = '180'
 
     machine.hostname = data.get('name', '<NO NAME>')
-    machine.last_checkin = datetime.now()
+    machine.last_checkin = django.utils.timezone.now()
     if 'username' in data:
         if data.get('username') != '_mbsetupuser':
             machine.username = data.get('username')
@@ -1979,7 +1979,7 @@ def checkin(request):
 
     # If Plugin_Results are in the report, handle them
     try:
-        datelimit = datetime.now() - timedelta(days=historical_days)
+        datelimit = django.utils.timezone.now() - timedelta(days=historical_days)
         PluginScriptSubmission.objects.filter(recorded__lt=datelimit).delete()
     except:
         pass
@@ -1989,7 +1989,7 @@ def checkin(request):
     # Remove existing PendingUpdates for the machine
     updates = machine.pending_updates.all()
     updates.delete()
-    now = datetime.now()
+    now = django.utils.timezone.now()
     if 'ItemsToInstall' in report_data:
         for update in report_data.get('ItemsToInstall'):
             display_name = update.get('display_name', update['name'])
@@ -2055,11 +2055,30 @@ def checkin(request):
     # if Facter data is submitted, we need to first remove any existing facts for this machine
     if 'Facter' in report_data:
         facts = machine.facts.all()
-        facts.delete()
+        for fact in facts:
+            skip = False
+            if hasattr(settings, 'IGNORE_FACTS'):
+                for prefix in settings.IGNORE_FACTS:
+
+                    if fact.fact_name.startswith(prefix):
+                        skip = True
+                        fact.delete()
+                        break
+            if skip == False:
+                continue
+            found = False
+            for fact_name, fact_data in report_data['Facter'].iteritems():
+
+                if fact.fact_name == fact_name:
+                    found = True
+                    break
+            if found == False:
+                fact.delete()
+
         # Delete old historical facts
 
         try:
-            datelimit = datetime.now() - timedelta(days=historical_days)
+            datelimit = django.utils.timezone.now() - timedelta(days=historical_days)
             HistoricalFact.objects.filter(fact_recorded__lt=datelimit).delete()
         except Exception:
             pass
@@ -2069,37 +2088,75 @@ def checkin(request):
             historical_facts = []
             pass
         # now we need to loop over the submitted facts and save them
+        facts = machine.facts.all()
         for fact_name, fact_data in report_data['Facter'].iteritems():
-            fact = Fact(machine=machine, fact_name=fact_name, fact_data=fact_data)
-            fact.save()
+
+            # does fact exist already?
+            found = False
+            skip = False
+            if hasattr(settings, 'IGNORE_FACTS'):
+                for prefix in settings.IGNORE_FACTS:
+
+                    if fact_name.startswith(prefix):
+                        skip = True
+                        break
+            if skip == True:
+                continue
+            for fact in facts:
+                if fact_name == fact.fact_name:
+                    # it exists, make sure it's got the right info
+                    found = True
+                    if fact_data == fact.fact_data:
+                        # it's right, break
+                        break
+                    else:
+                        fact.fact_data = fact_data
+                        fact.save()
+                        break
+            if found == False:
+
+                fact = Fact(machine=machine, fact_data=fact_data, fact_name=fact_name)
+                fact.save()
+
             if fact_name in historical_facts:
                 fact = HistoricalFact(machine=machine, fact_name=fact_name, fact_data=fact_data, fact_recorded=datetime.now())
                 fact.save()
 
     if 'Conditions' in report_data:
         conditions = machine.conditions.all()
-        conditions.delete()
+        for condition in conditions:
+            found = False
+            for condition_name, condition_data in report_data['Conditions'].iteritems():
+                if condition.condition_name == condition_name:
+                    found = True
+                    break
+            if found == False:
+                condition.delete()
+
+        conditions = machine.conditions.all()
         for condition_name, condition_data in report_data['Conditions'].iteritems():
             # Skip the condtions that come from facter
             if 'Facter' in report_data and condition_name.startswith('facter_'):
                 continue
-            # if it's a list (more than one result), we're going to conacetnate it into one comma separated string
-            if type(condition_data) == list:
-                result = None
-                for item in condition_data:
-                    # is this the first loop? If so, no need for a comma
-                    if result:
-                        result = result + ', '+str(item)
-                    else:
-                        result = item
-                if result == None:
-                    # Handle empty arrays
-                    result = '{EMPTY}'
-                condition_data = result
 
-            #print condition_data
-            condition = Condition(machine=machine, condition_name=condition_name, condition_data=utils.safe_unicode(condition_data))
-            condition.save()
+            # if it's a list (more than one result), we're going to conacetnate it into one comma separated string
+            condition_data = utils.listify_condition_data(condition_data)
+
+            found = False
+            for condition in conditions:
+                if condition_name == condition.condition_name:
+                    # it exists, make sure it's got the right info
+                    found = True
+                    if condition_data == condition.condition_data:
+                        # it's right, break
+                        break
+                    else:
+                        condition.condition_data = condition_data
+                        condition.save()
+                        break
+            if found == False:
+                condition = Condition(machine=machine, condition_name=condition_name, condition_data=utils.safe_unicode(condition_data))
+                condition.save()
 
     utils.get_version_number()
     return HttpResponse("Sal report submmitted for %s"

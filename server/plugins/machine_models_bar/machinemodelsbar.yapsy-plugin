@@ -1,0 +1,8 @@
+[Core]
+Name = MachineModelsBar
+Module = machinemodelsbar
+
+[Documentation]
+Author = Shea G Craig
+Version = 1.0
+Website = http://www.sheacraig.com

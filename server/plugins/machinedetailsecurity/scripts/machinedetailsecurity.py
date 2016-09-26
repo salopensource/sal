@@ -37,17 +37,19 @@ def gatekeeper_status():
     return get_status(cmd, 'assessments enabled')
 
 def main():
-    filevault = fv_status()
 
-    mac_ver = mac_version()
+    if os.path.exists('/usr/bin/fdesetup'):
+        filevault = fv_status()
+    else:
+        filevault = 'Not Supported'
 
-    if LooseVersion("10.11") >= LooseVersion(mac_ver):
+    if os.path.exists('/usr/bin/csrutil'):
         sip = sip_status()
     else:
         sip = 'Not Supported'
 
     # Yes, I know it came in 10.7.5, but eh. I don't care, I'm lazy
-    if LooseVersion("10.8") >= LooseVersion(mac_ver):
+    if os.path.exists('/usr/sbin/spctl'):
         gatekeeper = gatekeeper_status()
     else:
         gatekeeper = 'Not Supported'

@@ -53,7 +53,35 @@ def machine_detail(request, serial):
         machine.delete()
         return HttpResponse(status=204)
 
+@csrf_exempt
 @validate_api_key
+def machine_full_detail(request, serial):
+    """
+    Retrieve, update or delete a machine.
+    """
+    try:
+        machine = Machine.objects.get(serial=serial)
+    except Machine.DoesNotExist:
+        return HttpResponse(status=404)
+
+    if request.method == 'GET':
+        serializer = FullMachineSerializer(machine)
+        return JSONResponse(serializer.data)
+
+    elif request.method == 'PUT':
+        data = JSONParser().parse(request)
+        serializer = FullMachineSerializer(machine, data=data)
+        if serializer.is_valid():
+            serializer.save()
+            return JSONResponse(serializer.data)
+        return JSONResponse(serializer.errors, status=400)
+
+    elif request.method == 'DELETE':
+        machine.delete()
+        return HttpResponse(status=204)
+
+@validate_api_key
+@csrf_exempt
 def machine_inventory(request, serial):
     """
     Retrieve machine inventory.

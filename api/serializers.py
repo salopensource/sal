@@ -38,6 +38,10 @@ class PendingUpdateSerializer(serializers.ModelSerializer):
         model = PendingUpdate
         exclude = ('machine',)
 
+class FullMachineSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Machine
+
 class MachineSerializer(serializers.ModelSerializer):
     # facts = FactSerializer(many=True, required=False)
     # conditions = ConditionSerializer(many=True, required=False)
@@ -46,4 +50,4 @@ class MachineSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Machine
-        exclude = ('facts','conditions','pending_apple_updates','pending_updates')
+        exclude = ('report','install_log','install_log_hash')

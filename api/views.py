@@ -96,7 +96,7 @@ def pending_updates(request, serial):
     updates = PendingUpdate.objects.filter(machine=machine)
     if request.method == 'GET':
         serializer = PendingpdateSerializer(updates, many=True)
-        return JSONResponse(serializer.data
+        return JSONResponse(serializer.data)
 
 @validate_api_key
 @csrf_exempt

@@ -68,6 +68,38 @@ def machine_inventory(request, serial):
 
 @validate_api_key
 @csrf_exempt
+def pending_apple_updates(request, serial):
+    """
+    Retrieves pending apple updates for a given machine.
+    """
+    try:
+        machine = Machine.objects.get(serial=serial)
+    except Machine.DoesNotExist:
+        return HttpResponse(status=404)
+
+    updates = PendingAppleUpdate.objects.filter(machine=machine)
+    if request.method == 'GET':
+        serializer = PendingAppleUpdateSerializer(updates, many=True)
+        return JSONResponse(serializer.data)
+
+@validate_api_key
+@csrf_exempt
+def pending_updates(request, serial):
+    """
+    Retrieves pending updates for a given machine.
+    """
+    try:
+        machine = Machine.objects.get(serial=serial)
+    except Machine.DoesNotExist:
+        return HttpResponse(status=404)
+
+    updates = PendingUpdate.objects.filter(machine=machine)
+    if request.method == 'GET':
+        serializer = PendingpdateSerializer(updates, many=True)
+        return JSONResponse(serializer.data
+
+@validate_api_key
+@csrf_exempt
 def facts(request, serial):
     """
     Retrieves facts for a given machine.

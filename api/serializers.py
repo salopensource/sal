@@ -39,10 +39,11 @@ class PendingUpdateSerializer(serializers.ModelSerializer):
         exclude = ('machine',)
 
 class MachineSerializer(serializers.ModelSerializer):
-    facts = FactSerializer(many=True, required=False)
-    conditions = ConditionSerializer(many=True, required=False)
-    pending_apple_updates = PendingAppleUpdateSerializer(many=True, required=False)
-    pending_updates = PendingUpdateSerializer(many=True, required=False)
+    # facts = FactSerializer(many=True, required=False)
+    # conditions = ConditionSerializer(many=True, required=False)
+    # pending_apple_updates = PendingAppleUpdateSerializer(many=True, required=False)
+    # pending_updates = PendingUpdateSerializer(many=True, required=False)
 
     class Meta:
         model = Machine
+        exclude = ('facts','conditions','pending_apple_updates','pending_updates')

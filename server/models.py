@@ -211,7 +211,7 @@ class UpdateHistory(models.Model):
     version = models.CharField(max_length=254, db_index=True)
     pending_recorded = models.BooleanField(default=False)
     def __unicode__(self):
-        return "%s: %s %s" % (self.machine, self.name, self.version)
+        return u"%s: %s %s" % (self.machine, self.name, self.version)
     class Meta:
         ordering = ['name']
         unique_together = (("machine", "name", "version", "update_type"),)
@@ -229,7 +229,7 @@ class UpdateHistoryItem(models.Model):
     status = models.CharField(max_length=254, choices=UPDATE_STATUS, verbose_name="Status")
     extra = models.TextField(blank=True, null=True)
     def __unicode__(self):
-        return "%s: %s %s %s %s" % (self.update_history.machine, self.update_history.name, self.update_history.version, self.status, self.recorded)
+        return u"%s: %s %s %s %s" % (self.update_history.machine, self.update_history.name, self.update_history.version, self.status, self.recorded)
     class Meta:
         ordering = ['-recorded']
         unique_together = (("update_history", "recorded", "status"),)
@@ -240,7 +240,7 @@ class Fact(models.Model):
     fact_name = models.TextField(db_index=True)
     fact_data = models.TextField(db_index=True)
     def __unicode__(self):
-        return '%s: %s' % (self.fact_name, self.fact_data)
+        return u'%s: %s' % (self.fact_name, self.fact_data)
     class Meta:
         ordering = ['fact_name']
 
@@ -269,7 +269,7 @@ class PluginScriptSubmission(models.Model):
     historical = models.BooleanField(default=False)
     recorded = models.DateTimeField(auto_now_add=True)
     def __unicode__(self):
-        return '%s: %s' % (self.machine, self.plugin)
+        return u'%s: %s' % (self.machine, self.plugin)
     class Meta:
         ordering = ['recorded', 'plugin']
 
@@ -311,7 +311,7 @@ class PluginScriptRow(models.Model):
 
         super(PluginScriptRow, self).save()
     def __unicode__(self):
-        return '%s: %s' % (self.pluginscript_name, self.pluginscript_data)
+        return u'%s: %s' % (self.pluginscript_name, self.pluginscript_data)
     class Meta:
         ordering = ['pluginscript_name']
 

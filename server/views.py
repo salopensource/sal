@@ -63,6 +63,10 @@ def search(request):
         query_string = query_string.replace('facter:','').replace('Facter:', '').strip()
         machines = Fact.objects.filter(machine=machines)
         template = 'server/search_facter.html'
+    if query_string.lower().startswith('ohaiattribute:'):
+        query_string = query_string.replace('ohaiattribute:','').replace('Ohai:', '').strip()
+        machines = OhaiAttribute.objects.filter(machine=machines)
+        template = 'server/search_ohaiattribute.html'
     elif query_string.lower().startswith('condition:'):
         query_string = query_string.replace('condition:','').replace('Condition:', '').strip()
         machines = Condition.objects.filter(machine=machines)
@@ -1282,6 +1286,14 @@ def machine_detail(request, machine_id):
     else:
         facts = None
 
+    if machine.ohaiattributes.count() != 0:
+        ohaiattributes = machine.ohaiattributes.all()
+        if settings.EXCLUDED_OHAIATTRIBUTES:
+            for excluded in settings.EXCLUDED_OHAIATTRIBUTES:
+                ohaiattributes = ohaiattributes.exclude(ohaiattribute_name=excluded)
+    else:
+        facts = None
+
     if machine.conditions.count() != 0:
         conditions = machine.conditions.all()
         # get the IP address(es) from the condition
@@ -1429,7 +1441,7 @@ def machine_detail(request, machine_id):
 
     output = utils.orderPluginOutput(output)
 
-    c = {'user':user, 'machine_group': machine_group, 'business_unit': business_unit, 'report': report, 'install_results': install_results, 'removal_results': removal_results, 'machine': machine, 'facts':facts, 'conditions':conditions, 'ip_address':ip_address, 'uptime_enabled':uptime_enabled, 'uptime':uptime,'output':output }
+    c = {'user':user, 'machine_group': machine_group, 'business_unit': business_unit, 'report': report, 'install_results': install_results, 'removal_results': removal_results, 'machine': machine, 'facts':facts, 'ohaiattributes':ohaiattributes, 'conditions':conditions, 'ip_address':ip_address, 'uptime_enabled':uptime_enabled, 'uptime':uptime,'output':output }
     return render(request, 'server/machine_detail.html', c)
 
 # Edit Machine

@@ -370,6 +370,7 @@ class PendingAppleUpdate(models.Model):
 class Plugin(models.Model):
     PLUGIN_TYPES = (
         ('facter', 'Facter'),
+        ('ohaiatrribute', 'OhaiAtrribute'),
         ('munkicondition', 'Munki Condition'),
         ('builtin', 'Built In'),
         ('custom', 'Custom Script'),
@@ -386,6 +387,7 @@ class Plugin(models.Model):
 class MachineDetailPlugin(models.Model):
     PLUGIN_TYPES = (
         ('facter', 'Facter'),
+        ('ohaiatrribute', 'OhaiAtrribute'),
         ('munkicondition', 'Munki Condition'),
         ('builtin', 'Built In'),
         ('custom', 'Custom Script'),

@@ -6,14 +6,17 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
+
     dependencies = [
         ('server', '0048_auto_20160909_0459'),
     ]
 
+    operations = [
         migrations.CreateModel(
             name='Ohai',
             fields=[
-                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('id', models.AutoField(verbose_name='ID', serialize=False,
+                                        auto_created=True, primary_key=True)),
                 ('ohaiattribute_name', models.TextField()),
                 ('ohaiattribute_data', models.TextField()),
             ],
@@ -24,10 +27,12 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='HistoricalOhai',
             fields=[
-                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('id', models.AutoField(verbose_name='ID', serialize=False,
+                                        auto_created=True, primary_key=True)),
                 ('ohaiattribute_name', models.TextField()),
                 ('ohaiattribute_data', models.TextField()),
-                ('ohaiattribute_recorded', models.DateTimeField(db_index=True)),
+                ('ohaiattribute_recorded',
+                 models.DateTimeField(db_index=True)),
             ],
             options={
                 'ordering': ['ohaiattribute_name', 'ohaiattribute_recorded'],
@@ -43,3 +48,4 @@ class Migration(migrations.Migration):
             name='machine',
             field=models.ForeignKey(to='server.ohaiatrribute'),
         ),
+    ]

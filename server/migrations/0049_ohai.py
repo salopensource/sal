@@ -12,22 +12,32 @@ class Migration(migrations.Migration):
             name='Ohai',
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
-                ('ohai_name', models.TextField()),
-                ('ohai_data', models.TextField()),
+                ('ohaiattribute_name', models.TextField()),
+                ('ohaiattribute_data', models.TextField()),
             ],
             options={
-                'ordering': ['ohai_name'],
+                'ordering': ['ohaiattribute_name'],
             },
         ),
         migrations.CreateModel(
             name='HistoricalOhai',
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
-                ('ohai_name', models.TextField()),
-                ('ohai_data', models.TextField()),
-                ('ohai_recorded', models.DateTimeField(db_index=True)),
+                ('ohaiattribute_name', models.TextField()),
+                ('ohaiattribute_data', models.TextField()),
+                ('ohaiattribute_recorded', models.DateTimeField(db_index=True)),
             ],
             options={
-                'ordering': ['ohai_name', 'ohai_recorded'],
+                'ordering': ['ohaiattribute_name', 'ohaiattribute_recorded'],
             },
+        ),
+        migrations.AddField(
+            model_name='historicalohaiattribute',
+            name='machine',
+            field=models.ForeignKey(to='server.ohaiattribute'),
+        ),
+        migrations.AddField(
+            model_name='ohaiattribute',
+            name='machine',
+            field=models.ForeignKey(to='server.ohaiatrribute'),
         ),

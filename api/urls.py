@@ -7,6 +7,7 @@ urlpatterns = [
     url(r'^machines/(?P<serial>.+)/full/$', views.machine_full_detail),
     url(r'^machines/$', views.machine_list),
     url(r'^facts/(?P<serial>.+)/$', views.facts),
+    url(r'^ohaiattributes/(?P<serial>.+)/$', views.ohaiattributes),
     url(r'^conditions/(?P<serial>.+)/$', views.conditions),
     url(r'^pending_apple_updates/(?P<serial>.+)/$', views.pending_apple_updates),
     url(r'^pending_updates/(?P<serial>.+)/$', views.pending_updates),

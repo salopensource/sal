@@ -39,23 +39,13 @@ class Migration(migrations.Migration):
             },
         ),
         migrations.AddField(
-            model_name='ohaiattribute',
-            name='ohaiattribute_data',
-            field=models.TextField(),
+            model_name='historicalohai',
+            name='machine',
+            field=models.ForeignKey(to='server.Machine'),
         ),
         migrations.AddField(
-            model_name='ohaiattribute',
-            name='ohaiattribute_name',
-            field=models.CharField(max_length=255, db_index=True),
-        ),
-        migrations.AddField(
-            model_name='historicalohaiattribute',
-            name='ohaiattribute_data',
-            field=models.TextField(),
-        ),
-        migrations.AddField(
-            model_name='historicalohaiattribute',
-            name='ohaiattribute_name',
-            field=models.CharField(max_length=255, db_index=True),
+            model_name='ohai',
+            name='machine',
+            field=models.ForeignKey(to='server.Machine'),
         ),
     ]

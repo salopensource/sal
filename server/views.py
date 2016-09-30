@@ -1405,6 +1405,8 @@ def machine_detail(request, machine_id):
             uptime_seconds = PluginScriptRow.objects.get(submission=plugin_script_submission, pluginscript_name__exact='UptimeSeconds').pluginscript_data
         except:
             uptime_seconds = '0'
+    else:
+        uptime_seconds = '0'
 
     uptime = utils.display_time(int(uptime_seconds))
     if 'managed_uninstalls_list' in report:

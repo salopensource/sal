@@ -2122,6 +2122,78 @@ def checkin(request):
                 fact = HistoricalFact(machine=machine, fact_name=fact_name, fact_data=fact_data, fact_recorded=datetime.now())
                 fact.save()
 
+
+    # if Ohai data is submitted, we need to first remove any existing ohaiattributes for this machine
+    if 'Ohai' in report_data:
+        ohaiattributes = machine.ohaiattributes.all()
+        for ohaiattribute in ohaiattributes:
+            skip = False
+            if hasattr(settings, 'IGNORE_ohaiattributes'):
+                for prefix in settings.IGNORE_ohaiattributes:
+
+                    if ohaiattribute.ohaiattribute_name.startswith(prefix):
+                        skip = True
+                        ohaiattribute.delete()
+                        break
+            if skip == False:
+                continue
+            found = False
+            for ohaiattribute_name, ohaiattribute_data in report_data['Ohai'].iteritems():
+
+                if ohaiattribute.ohaiattribute_name == ohaiattribute_name:
+                    found = True
+                    break
+            if found == False:
+                ohaiattribute.delete()
+
+        # Delete old historical ohaiattributes
+
+        try:
+            datelimit = django.utils.timezone.now() - timedelta(days=historical_days)
+            HistoricalOhaiAttribute.objects.filter(ohaiattribute_recorded__lt=datelimit).delete()
+        except Exception:
+            pass
+        try:
+            historical_ohaiattributes = settings.HISTORICAL_ohaiattributes
+        except Exception:
+            historical_ohaiattributes = []
+            pass
+        # now we need to loop over the submitted ohaiattributes and save them
+        ohaiattributes = machine.ohaiattributes.all()
+        for ohaiattribute_name, ohaiattribute_data in report_data['Ohai'].iteritems():
+
+            # does ohaiattribute exist already?
+            found = False
+            skip = False
+            if hasattr(settings, 'IGNORE_ohaiattributes'):
+                for prefix in settings.IGNORE_ohaiattributes:
+
+                    if ohaiattribute_name.startswith(prefix):
+                        skip = True
+                        break
+            if skip == True:
+                continue
+            for ohaiattribute in ohaiattributes:
+                if ohaiattribute_name == ohaiattribute.ohaiattribute_name:
+                    # it exists, make sure it's got the right info
+                    found = True
+                    if ohaiattribute_data == ohaiattribute.ohaiattribute_data:
+                        # it's right, break
+                        break
+                    else:
+                        ohaiattribute.ohaiattribute_data = ohaiattribute_data
+                        ohaiattribute.save()
+                        break
+            if found == False:
+
+                ohaiattribute = OhaiAttribute(machine=machine, ohaiattribute_data=ohaiattribute_data, ohaiattribute_name=ohaiattribute_name)
+                ohaiattribute.save()
+
+            if ohaiattribute_name in historical_ohaiattributes:
+                ohaiattribute = HistoricalOhaiAttribute(machine=machine, ohaiattribute_name=ohaiattribute_name, ohaiattribute_data=ohaiattribute_data, ohaiattribute_recorded=datetime.now())
+                ohaiattribute.save()
+
+
     if 'Conditions' in report_data:
         conditions = machine.conditions.all()
         for condition in conditions:

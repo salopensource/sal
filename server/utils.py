@@ -28,6 +28,14 @@ def csvrelated(header_item, facts, kind):
                     return fact['fact_data']
             except:
                 pass
+    elif kind == 'ohaiattribute':
+        for ohaiaatrribute in ohaiaatrributes:
+            try:
+                if header_item == 'Ohai: '+ohai['ohaiaatrribute_name']:
+                    found = True
+                    return ohai['ohaiaatrribute_data']
+            except:
+                pass
     elif kind == 'condition':
         for condition in facts:
             try:

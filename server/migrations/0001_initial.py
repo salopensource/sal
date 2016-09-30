@@ -190,12 +190,12 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='historicalohaiattribute',
             name='machine',
-            field=models.ForeignKey(to='server.ohaiattribute'),
+            field=models.ForeignKey(to='server.Machine'),
         ),
         migrations.AddField(
             model_name='ohaiattribute',
             name='machine',
-            field=models.ForeignKey(to='server.ohaiatrribute'),
+            field=models.ForeignKey(to='server.Machine'),
         ),
         migrations.AddField(
             model_name='condition',

@@ -6,7 +6,9 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
+    dependencies = [
+        ('server', '0048_auto_20160909_0459'),
+    ]
 
         migrations.CreateModel(
             name='Ohai',

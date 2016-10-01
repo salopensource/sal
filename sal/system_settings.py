@@ -76,6 +76,8 @@ EXCLUDED_FACTS = {
     'sshfp_dsa',
     'sshdsakey',
 }
+EXCLUDED_OHAIATTRIBUTES = {
+}
 
 EXCLUDED_CONDITIONS = {
     # 'some_condition',

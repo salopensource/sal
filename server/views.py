@@ -1292,7 +1292,7 @@ def machine_detail(request, machine_id):
             for excluded in settings.EXCLUDED_OHAIATTRIBUTES:
                 ohaiattributes = ohaiattributes.exclude(ohaiattribute_name=excluded)
     else:
-        facts = None
+        ohaiattributes = None
 
     if machine.conditions.count() != 0:
         conditions = machine.conditions.all()

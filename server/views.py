@@ -2142,10 +2142,10 @@ def checkin(request):
         ohaiattributes = machine.ohaiattributes.all()
         for ohaiattribute in ohaiattributes:
             skip = False
-            if hasattr(settings, 'IGNORE_ohaiattributes'):
-                for prefix in settings.IGNORE_ohaiattributes:
+            if hasattr(settings, 'IGNORE_OHAIATTRIBUTES'):
+                for prefix in settings.IGNORE_OHAIATTRIBUTES:
 
-                    if ohaiattribute.ohaiattribute_name.startswith(prefix):
+                    if ohai.ohaiattribute_name.startswith(prefix):
                         skip = True
                         ohaiattribute.delete()
                         break
@@ -2154,7 +2154,7 @@ def checkin(request):
             found = False
             for ohaiattribute_name, ohaiattribute_data in report_data['Ohai'].iteritems():
 
-                if ohaiattribute.ohaiattribute_name == ohaiattribute_name:
+                if ohai.ohaiattribute_name == ohaiattribute_name:
                     found = True
                     break
             if found == False:
@@ -2168,7 +2168,7 @@ def checkin(request):
         except Exception:
             pass
         try:
-            historical_ohaiattributes = settings.HISTORICAL_ohaiattributes
+            historical_ohaiattributes = settings.HISTORICAL_OHAIATTRIBUTES
         except Exception:
             historical_ohaiattributes = []
             pass
@@ -2179,8 +2179,8 @@ def checkin(request):
             # does ohaiattribute exist already?
             found = False
             skip = False
-            if hasattr(settings, 'IGNORE_ohaiattributes'):
-                for prefix in settings.IGNORE_ohaiattributes:
+            if hasattr(settings, 'IGNORE_OHAIATTRIBUTES'):
+                for prefix in settings.IGNORE_OHAIATTRIBUTES:
 
                     if ohaiattribute_name.startswith(prefix):
                         skip = True
@@ -2188,23 +2188,23 @@ def checkin(request):
             if skip == True:
                 continue
             for ohaiattribute in ohaiattributes:
-                if ohaiattribute_name == ohaiattribute.ohaiattribute_name:
+                if ohaiattribute_name == ohai.ohaiattribute_name:
                     # it exists, make sure it's got the right info
                     found = True
-                    if ohaiattribute_data == ohaiattribute.ohaiattribute_data:
+                    if ohaiattribute_data == ohai.ohaiattribute_data:
                         # it's right, break
                         break
                     else:
-                        ohaiattribute.ohaiattribute_data = ohaiattribute_data
-                        ohaiattribute.save()
+                        ohai.ohaiattribute_data = ohaiattribute_data
+                        ohai.save()
                         break
             if found == False:
 
-                ohaiattribute = OhaiAttribute(machine=machine, ohaiattribute_data=ohaiattribute_data, ohaiattribute_name=ohaiattribute_name)
+                ohaiattribute = Ohai(machine=machine, ohaiattribute_data=ohaiattribute_data, ohaiattribute_name=ohaiattribute_name)
                 ohaiattribute.save()
 
             if ohaiattribute_name in historical_ohaiattributes:
-                ohaiattribute = HistoricalOhaiAttribute(machine=machine, ohaiattribute_name=ohaiattribute_name, ohaiattribute_data=ohaiattribute_data, ohaiattribute_recorded=datetime.now())
+                ohaiattribute = HistoricalOhai(machine=machine, ohaiattribute_name=ohaiattribute_name, ohaiattribute_data=ohaiattribute_data, ohaiattribute_recorded=datetime.now())
                 ohaiattribute.save()
 
 

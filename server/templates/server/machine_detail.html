@@ -244,8 +244,11 @@ $( document ).ready(function() {
             {% if facts|length %}
             <li role="presentation"><a data-toggle="tab" href="#tab2-3">Facter</a></li>
             {% endif %}
+            {% if ohaiattributes|length %}
+            <li role="presentation"><a data-toggle="tab" href="#tab2-4">Ohai</a></li>
+            {% endif %}
             {% if conditions|length %}
-            <li role="presentation"><a data-toggle="tab" href="#tab2-4">MSC Conditions</a></li>
+            <li role="presentation"><a data-toggle="tab" href="#tab2-5">MSC Conditions</a></li>
             {% endif %}
           </ul>
           <!-- Tab panes -->
@@ -320,6 +323,28 @@ $( document ).ready(function() {
               </table>
             </div>
             <div class="tab-pane fade" id="tab2-4">
+              <table class="client_info table table-striped table-condensed">
+                <thead>
+                  <tr>
+                    <th>OhaiAttribute</th>
+                    <th>Value</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for ohaiattribute in ohaiattributes %}
+                  <tr>
+                    <td>
+                      {{ ohaiattribute.ohaiattribute_name }}
+                    </td>
+                    <td>
+                      {{ ohaiattribute.ohaiattribute_data }}
+                    </td>
+                  </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+            <div class="tab-pane fade" id="tab2-5">
               <table class="client_info table table-striped table-condensed">
                 <thead>
                   <tr>

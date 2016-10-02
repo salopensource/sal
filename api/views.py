@@ -145,6 +145,23 @@ def facts(request, serial):
 
 @validate_api_key
 @csrf_exempt
+def ohaiattributes(request, serial):
+    """
+    Retrieves Ohai attributes for a given machine.
+    """
+    try:
+        machine = Machine.objects.get(serial=serial)
+    except Machine.DoesNotExist:
+        return HttpResponse(status=404)
+
+    ohaiattributes = Ohai.objects.filter(machine=machine)
+    if request.method == 'GET':
+        serializer = OhaiSerializer(ohaiattributes, many=True)
+        return JSONResponse(serializer.data)
+
+
+@validate_api_key
+@csrf_exempt
 def conditions(request, serial):
     """
     Retrieves conditions for a given machine.

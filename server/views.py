@@ -63,6 +63,10 @@ def search(request):
         query_string = query_string.replace('facter:','').replace('Facter:', '').strip()
         machines = Fact.objects.filter(machine=machines)
         template = 'server/search_facter.html'
+    if query_string.lower().startswith('ohaiattribute:'):
+        query_string = query_string.replace('ohaiattribute:','').replace('Ohai:', '').strip()
+        machines = OhaiAttribute.objects.filter(machine=machines)
+        template = 'server/search_ohaiattribute.html'
     elif query_string.lower().startswith('condition:'):
         query_string = query_string.replace('condition:','').replace('Condition:', '').strip()
         machines = Condition.objects.filter(machine=machines)
@@ -1282,6 +1286,14 @@ def machine_detail(request, machine_id):
     else:
         facts = None
 
+    if machine.ohaiattributes.count() != 0:
+        ohaiattributes = machine.ohaiattributes.all()
+        if settings.EXCLUDED_OHAIATTRIBUTES:
+            for excluded in settings.EXCLUDED_OHAIATTRIBUTES:
+                ohaiattributes = ohaiattributes.exclude(ohaiattribute_name=excluded)
+    else:
+        ohaiattributes = None
+
     if machine.conditions.count() != 0:
         conditions = machine.conditions.all()
         # get the IP address(es) from the condition
@@ -1393,6 +1405,8 @@ def machine_detail(request, machine_id):
             uptime_seconds = PluginScriptRow.objects.get(submission=plugin_script_submission, pluginscript_name__exact='UptimeSeconds').pluginscript_data
         except:
             uptime_seconds = '0'
+    else:
+        uptime_seconds = '0'
 
     uptime = utils.display_time(int(uptime_seconds))
     if 'managed_uninstalls_list' in report:
@@ -1429,7 +1443,7 @@ def machine_detail(request, machine_id):
 
     output = utils.orderPluginOutput(output)
 
-    c = {'user':user, 'machine_group': machine_group, 'business_unit': business_unit, 'report': report, 'install_results': install_results, 'removal_results': removal_results, 'machine': machine, 'facts':facts, 'conditions':conditions, 'ip_address':ip_address, 'uptime_enabled':uptime_enabled, 'uptime':uptime,'output':output }
+    c = {'user':user, 'machine_group': machine_group, 'business_unit': business_unit, 'report': report, 'install_results': install_results, 'removal_results': removal_results, 'machine': machine, 'facts':facts, 'ohaiattributes':ohaiattributes, 'conditions':conditions, 'ip_address':ip_address, 'uptime_enabled':uptime_enabled, 'uptime':uptime,'output':output }
     return render(request, 'server/machine_detail.html', c)
 
 # Edit Machine
@@ -2121,6 +2135,78 @@ def checkin(request):
             if fact_name in historical_facts:
                 fact = HistoricalFact(machine=machine, fact_name=fact_name, fact_data=fact_data, fact_recorded=datetime.now())
                 fact.save()
+
+
+    # if Ohai data is submitted, we need to first remove any existing ohaiattributes for this machine
+    if 'Ohai' in report_data:
+        ohaiattributes = machine.ohaiattributes.all()
+        for ohaiattribute in ohaiattributes:
+            skip = False
+            if hasattr(settings, 'IGNORE_OHAIATTRIBUTES'):
+                for prefix in settings.IGNORE_OHAIATTRIBUTES:
+
+                    if ohai.ohaiattribute_name.startswith(prefix):
+                        skip = True
+                        ohaiattribute.delete()
+                        break
+            if skip == False:
+                continue
+            found = False
+            for ohaiattribute_name, ohaiattribute_data in report_data['Ohai'].iteritems():
+
+                if ohai.ohaiattribute_name == ohaiattribute_name:
+                    found = True
+                    break
+            if found == False:
+                ohaiattribute.delete()
+
+        # Delete old historical ohaiattributes
+
+        try:
+            datelimit = django.utils.timezone.now() - timedelta(days=historical_days)
+            HistoricalOhaiAttribute.objects.filter(ohaiattribute_recorded__lt=datelimit).delete()
+        except Exception:
+            pass
+        try:
+            historical_ohaiattributes = settings.HISTORICAL_OHAIATTRIBUTES
+        except Exception:
+            historical_ohaiattributes = []
+            pass
+        # now we need to loop over the submitted ohaiattributes and save them
+        ohaiattributes = machine.ohaiattributes.all()
+        for ohaiattribute_name, ohaiattribute_data in report_data['Ohai'].iteritems():
+
+            # does ohaiattribute exist already?
+            found = False
+            skip = False
+            if hasattr(settings, 'IGNORE_OHAIATTRIBUTES'):
+                for prefix in settings.IGNORE_OHAIATTRIBUTES:
+
+                    if ohaiattribute_name.startswith(prefix):
+                        skip = True
+                        break
+            if skip == True:
+                continue
+            for ohaiattribute in ohaiattributes:
+                if ohaiattribute_name == ohai.ohaiattribute_name:
+                    # it exists, make sure it's got the right info
+                    found = True
+                    if ohaiattribute_data == ohai.ohaiattribute_data:
+                        # it's right, break
+                        break
+                    else:
+                        ohai.ohaiattribute_data = ohaiattribute_data
+                        ohai.save()
+                        break
+            if found == False:
+
+                ohaiattribute = Ohai(machine=machine, ohaiattribute_data=ohaiattribute_data, ohaiattribute_name=ohaiattribute_name)
+                ohaiattribute.save()
+
+            if ohaiattribute_name in historical_ohaiattributes:
+                ohaiattribute = HistoricalOhai(machine=machine, ohaiattribute_name=ohaiattribute_name, ohaiattribute_data=ohaiattribute_data, ohaiattribute_recorded=datetime.now())
+                ohaiattribute.save()
+
 
     if 'Conditions' in report_data:
         conditions = machine.conditions.all()

@@ -77,6 +77,10 @@ EXCLUDED_FACTS = {
     'sshdsakey',
 }
 
+EXCLUDED_OHAIATTRIBUTES = {
+    # 'some_condition',
+}
+
 EXCLUDED_CONDITIONS = {
     # 'some_condition',
 }

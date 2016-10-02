@@ -254,6 +254,26 @@ class HistoricalFact(models.Model):
     class Meta:
         ordering = ['fact_name', 'fact_recorded']
 
+class Ohai(models.Model):
+    machine = models.ForeignKey(Machine, related_name='ohaiattributes')
+    ohaiattribute_name = models.TextField(db_index=True)
+    ohaiattribute_data = models.TextField(db_index=True)
+    def __unicode__(self):
+        return '%s: %s' % (self.ohaiattribute_name, self.ohaiattribute_data)
+    class Meta:
+        ordering = ['ohaiattribute_name']
+
+class HistoricalOhai(models.Model):
+    machine = models.ForeignKey(Machine,
+                                related_name='historical_ohaiattributes')
+    ohaiattribute_name = models.CharField(db_index=True, max_length=255)
+    ohaiattribute_data = models.TextField()
+    ohaiattribute_recorded = models.DateTimeField(db_index=True)
+    def __unicode__(self):
+        return self.ohaiattribute_name
+    class Meta:
+        ordering = ['ohaiattribute_name', 'ohaiattribute_recorded']
+
 class Condition(models.Model):
     machine = models.ForeignKey(Machine, related_name='conditions')
     condition_name = models.CharField(max_length=255,db_index=True)
@@ -350,6 +370,7 @@ class PendingAppleUpdate(models.Model):
 class Plugin(models.Model):
     PLUGIN_TYPES = (
         ('facter', 'Facter'),
+        ('ohaiatrribute', 'Ohai'),
         ('munkicondition', 'Munki Condition'),
         ('builtin', 'Built In'),
         ('custom', 'Custom Script'),
@@ -366,6 +387,7 @@ class Plugin(models.Model):
 class MachineDetailPlugin(models.Model):
     PLUGIN_TYPES = (
         ('facter', 'Facter'),
+        ('ohaiatrribute', 'Ohai'),
         ('munkicondition', 'Munki Condition'),
         ('builtin', 'Built In'),
         ('custom', 'Custom Script'),

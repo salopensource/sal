@@ -28,6 +28,14 @@ def csvrelated(header_item, facts, kind):
                     return fact['fact_data']
             except:
                 pass
+    elif kind == 'ohaiattribute':
+        for ohaiattribute in ohaiattributes:
+            try:
+                if header_item == 'Ohai: '+ohaiattribute['ohaiattribute_name']:
+                    found = True
+                    return ohaiattribute['ohaiattribute_data']
+            except:
+                pass
     elif kind == 'condition':
         for condition in facts:
             try:
@@ -464,3 +472,4 @@ def display_time(seconds, granularity=2):
                 name = name.rstrip('s')
             result.append("{} {}".format(value, name))
     return ', '.join(result[:granularity])
+

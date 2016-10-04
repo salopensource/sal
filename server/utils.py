@@ -200,7 +200,22 @@ def reloadPluginsModel():
     plugin_objects = Plugin.objects.all().count()
     if plugin_objects == 0:
         order = 0
-        PLUGIN_ORDER = ['Activity','Status','OperatingSystem', 'MunkiVersion', 'Uptime', 'Memory', 'DiskSpace', 'PendingAppleUpdates', 'Pending3rdPartyUpdates']
+        PLUGIN_ORDER = [
+            'Activity',
+            'Status',
+            'OperatingSystem',
+            'MunkiVersion',
+            'Uptime',
+            'Memory',
+            'DiskSpace',
+            'PendingAppleUpdates',
+            'Pending3rdPartyUpdates',
+            'Encryption',
+            'Gatekeeper',
+            'Sip',
+            'XprotectVersion'
+            ]
+            
         for item in PLUGIN_ORDER:
             order = order + 1
             plugin = Plugin(name=item, order=order)

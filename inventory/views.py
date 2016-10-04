@@ -487,7 +487,7 @@ def inventory_hash(request, serial):
             inventory_meta = Inventory.objects.get(machine=machine)
             sha256hash = inventory_meta.sha256hash
         except (Machine.DoesNotExist, Inventory.DoesNotExist):
-            pass
+            return HttpResponse("NOT FOUND")
     else:
         return HttpResponse("MACHINE NOT FOUND")
     return HttpResponse(sha256hash)

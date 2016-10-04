@@ -30,15 +30,5 @@ if [ "$DOCKER_SAL_DEBUG" = "true" ] || [ "$DOCKER_SAL_DEBUG" = "True" ] || [ "$D
     echo "RUNNING IN DEBUG MODE"
     python manage.py runserver 0.0.0.0:8000
 else
-  # # Catch signals
-  # trap "/home/app/sal/monit_stop_all_wait.sh ; exit" EXIT
-  #
-  # # Monit will start all apps
-  # service monit start
-  # tail -n 0 -f /var/log/gunicorn/gunicorn*.log & tail -n 0 -f $APP_DIR/sal.log & tail -n 0 -f /var/log/monit.log &
-  # # Stay up for container to stay alive
-  # while [ 1 ] ; do
-  #  sleep 1d
-  # done
   supervisord --nodaemon -c $APP_DIR/supervisord.conf
 fi

@@ -95,6 +95,6 @@ def catalog_hash(request):
                     found_catalog = Catalog.objects.get(name=name, machine_group=machine_group)
                     output.append({'name': name, 'sha256hash':found_catalog.sha256hash})
                 except Catalog.DoesNotExist:
-                    output.append({'name': name, 'sha256hash': ''})
+                    output.append({'name': name, 'sha256hash': 'NOT FOUND'})
 
     return HttpResponse(plistlib.writePlistToString(output))

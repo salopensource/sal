@@ -40,9 +40,6 @@ RUN easy_install pip && \
     pip install setproctitle && \
     rm /requirements.txt && \
     update-rc.d -f postgresql remove && \
-    mkdir -p /usr/local/bin && \
-    wget -O /usr/local/bin/dumb-init https://github.com/Yelp/dumb-init/releases/download/v1.1.3/dumb-init_1.1.3_amd64 && \
-    chmod +x /usr/local/bin/dumb-init && \
     mkdir -p /home/app && \
     mkdir -p /home/backup
 ADD / $APP_DIR

@@ -428,7 +428,7 @@ def plugin_machines(request, pluginName, data, page='front', theID=None, get_mac
             # only get machines for that BU
             # Need to make sure the user is allowed to see this
             business_unit = get_object_or_404(BusinessUnit, pk=theID)
-            machine_groups = MachineGroup.objects.filter(business_unit=business_unit).prefetch_related('machine_set').all()
+            machine_groups = MachineGroup.objects.filter(business_unit=business_unit).all()
 
             if machine_groups.count() != 0:
                 machines_unsorted = machine_groups[0].machine_set.all()
@@ -554,7 +554,7 @@ def plugin_load(request, pluginName, page='front', theID=None):
         # only get machines for that BU
         # Need to make sure the user is allowed to see this
         business_unit = get_object_or_404(BusinessUnit, pk=theID)
-        machine_groups = MachineGroup.objects.filter(business_unit=business_unit).prefetch_related('machine_set').all()
+        machine_groups = MachineGroup.objects.filter(business_unit=business_unit).all()
 
         machines = Machine.objects.filter(machine_group=machine_groups)
 
@@ -600,7 +600,7 @@ def report_load(request, pluginName, page='front', theID=None):
         # only get machines for that BU
         # Need to make sure the user is allowed to see this
         business_unit = get_object_or_404(BusinessUnit, pk=theID)
-        machine_groups = MachineGroup.objects.filter(business_unit=business_unit).prefetch_related('machine_set').all()
+        machine_groups = MachineGroup.objects.filter(business_unit=business_unit).all()
 
         machines = Machine.objects.filter(machine_group=machine_groups)
 
@@ -988,7 +988,7 @@ def overview_list_all(request, req_type, data, bu_id=None):
 
     if bu_id != None:
         business_units = get_object_or_404(BusinessUnit, pk=bu_id)
-        machine_groups = MachineGroup.objects.filter(business_unit=business_units).prefetch_related('machine_set').all()
+        machine_groups = MachineGroup.objects.filter(business_unit=business_units).all()
 
         machines_unsorted = machine_groups[0].machine_set.all()
         for machine_group in machine_groups[1:]:
@@ -1393,6 +1393,8 @@ def machine_detail(request, machine_id):
             uptime_seconds = PluginScriptRow.objects.get(submission=plugin_script_submission, pluginscript_name__exact='UptimeSeconds').pluginscript_data
         except:
             uptime_seconds = '0'
+    else:
+        uptime_seconds=0
 
     uptime = utils.display_time(int(uptime_seconds))
     if 'managed_uninstalls_list' in report:
@@ -1971,11 +1973,10 @@ def checkin(request):
     if 'os_family' in report_data:
         machine.os_family = report_data['os_family']
 
-    machine.save()
-
     if not machine.machine_model_friendly:
         machine.machine_model_friendly = utils.friendly_machine_model(machine.serial)
-        machine.save()
+
+    machine.save()
 
     # If Plugin_Results are in the report, handle them
     try:
@@ -1987,8 +1988,7 @@ def checkin(request):
     if 'Plugin_Results' in report_data:
         utils.process_plugin_script(report_data.get('Plugin_Results'), machine)
     # Remove existing PendingUpdates for the machine
-    updates = machine.pending_updates.all()
-    updates.delete()
+    updates = machine.pending_updates.all().delete()
     now = django.utils.timezone.now()
     if 'ItemsToInstall' in report_data:
         for update in report_data.get('ItemsToInstall'):
@@ -2012,8 +2012,7 @@ def checkin(request):
                     update_history.pending_recorded = True
                     update_history.save()
 
-    updates = machine.installed_updates.all()
-    updates.delete()
+    updates = machine.installed_updates.all().delete()
     if 'ManagedInstalls' in report_data:
         for update in report_data.get('ManagedInstalls'):
             display_name = update.get('display_name', update['name'])
@@ -2025,8 +2024,7 @@ def checkin(request):
                 installed_update.save()
 
     # Remove existing PendingAppleUpdates for the machine
-    updates = machine.pending_apple_updates.all()
-    updates.delete()
+    updates = machine.pending_apple_updates.all().delete()
     if 'AppleUpdates' in report_data:
         for update in report_data.get('AppleUpdates'):
             display_name = update.get('display_name', update['name'])
@@ -2053,110 +2051,175 @@ def checkin(request):
 
 
     # if Facter data is submitted, we need to first remove any existing facts for this machine
-    if 'Facter' in report_data:
-        facts = machine.facts.all()
-        for fact in facts:
-            skip = False
-            if hasattr(settings, 'IGNORE_FACTS'):
-                for prefix in settings.IGNORE_FACTS:
+    if utils.is_postgres():
+        # If we are using postgres, we can just dump them all and do a bulk create
+        if 'Facter' in report_data:
+            facts = machine.facts.all().delete()
+            try:
+                datelimit = django.utils.timezone.now() - timedelta(days=historical_days)
+                HistoricalFact.objects.filter(fact_recorded__lt=datelimit).delete()
+            except Exception:
+                pass
+            try:
+                historical_facts = settings.HISTORICAL_FACTS
+            except Exception:
+                historical_facts = []
+                pass
 
-                    if fact.fact_name.startswith(prefix):
-                        skip = True
-                        fact.delete()
+            facts_to_be_created = []
+            historical_facts_to_be_created = []
+            for fact_name, fact_data in report_data['Facter'].iteritems():
+                skip = False
+                if hasattr(settings, 'IGNORE_FACTS'):
+                    for prefix in settings.IGNORE_FACTS:
+                        if fact.fact_name.startswith(prefix):
+                            skip = True
+                if skip == True:
+                    continue
+                facts_to_be_created.append(
+                            Fact(
+                                machine=machine,
+                                fact_data=fact_data,
+                                fact_name=fact_name
+                                )
+                            )
+                if fact_name in historical_facts:
+                    historical_facts_to_be_created.append(
+                        HistoricalFact(
+                            machine=machine,
+                            fact_data=fact_data,
+                            fact_name=fact_name
+                            )
+                    )
+            Fact.objects.bulk_create(facts_to_be_created)
+            if len(historical_facts_to_be_created) != 0:
+                HistoricalFact.objects.bulk_create(historical_facts_to_be_created)
+
+    else:
+        if 'Facter' in report_data:
+            facts = machine.facts.all()
+            for fact in facts:
+                skip = False
+                if hasattr(settings, 'IGNORE_FACTS'):
+                    for prefix in settings.IGNORE_FACTS:
+
+                        if fact.fact_name.startswith(prefix):
+                            skip = True
+                            fact.delete()
+                            break
+                if skip == False:
+                    continue
+                found = False
+                for fact_name, fact_data in report_data['Facter'].iteritems():
+
+                    if fact.fact_name == fact_name:
+                        found = True
                         break
-            if skip == False:
-                continue
-            found = False
+                if found == False:
+                    fact.delete()
+
+            # Delete old historical facts
+
+            try:
+                datelimit = django.utils.timezone.now() - timedelta(days=historical_days)
+                HistoricalFact.objects.filter(fact_recorded__lt=datelimit).delete()
+            except Exception:
+                pass
+            try:
+                historical_facts = settings.HISTORICAL_FACTS
+            except Exception:
+                historical_facts = []
+                pass
+            # now we need to loop over the submitted facts and save them
+            facts = machine.facts.all()
             for fact_name, fact_data in report_data['Facter'].iteritems():
 
-                if fact.fact_name == fact_name:
-                    found = True
-                    break
-            if found == False:
-                fact.delete()
+                # does fact exist already?
+                found = False
+                skip = False
+                if hasattr(settings, 'IGNORE_FACTS'):
+                    for prefix in settings.IGNORE_FACTS:
 
-        # Delete old historical facts
+                        if fact_name.startswith(prefix):
+                            skip = True
+                            break
+                if skip == True:
+                    continue
+                for fact in facts:
+                    if fact_name == fact.fact_name:
+                        # it exists, make sure it's got the right info
+                        found = True
+                        if fact_data == fact.fact_data:
+                            # it's right, break
+                            break
+                        else:
+                            fact.fact_data = fact_data
+                            fact.save()
+                            break
+                if found == False:
 
-        try:
-            datelimit = django.utils.timezone.now() - timedelta(days=historical_days)
-            HistoricalFact.objects.filter(fact_recorded__lt=datelimit).delete()
-        except Exception:
-            pass
-        try:
-            historical_facts = settings.HISTORICAL_FACTS
-        except Exception:
-            historical_facts = []
-            pass
-        # now we need to loop over the submitted facts and save them
-        facts = machine.facts.all()
-        for fact_name, fact_data in report_data['Facter'].iteritems():
+                    fact = Fact(machine=machine, fact_data=fact_data, fact_name=fact_name)
+                    fact.save()
 
-            # does fact exist already?
-            found = False
-            skip = False
-            if hasattr(settings, 'IGNORE_FACTS'):
-                for prefix in settings.IGNORE_FACTS:
+                if fact_name in historical_facts:
+                    fact = HistoricalFact(machine=machine, fact_name=fact_name, fact_data=fact_data, fact_recorded=datetime.now())
+                    fact.save()
 
-                    if fact_name.startswith(prefix):
-                        skip = True
-                        break
-            if skip == True:
-                continue
-            for fact in facts:
-                if fact_name == fact.fact_name:
-                    # it exists, make sure it's got the right info
-                    found = True
-                    if fact_data == fact.fact_data:
-                        # it's right, break
-                        break
-                    else:
-                        fact.fact_data = fact_data
-                        fact.save()
-                        break
-            if found == False:
-
-                fact = Fact(machine=machine, fact_data=fact_data, fact_name=fact_name)
-                fact.save()
-
-            if fact_name in historical_facts:
-                fact = HistoricalFact(machine=machine, fact_name=fact_name, fact_data=fact_data, fact_recorded=datetime.now())
-                fact.save()
-
-    if 'Conditions' in report_data:
-        conditions = machine.conditions.all()
-        for condition in conditions:
-            found = False
+    if utils.is_postgres():
+        if 'Conditions' in report_data:
+            machine.conditions.all().delete()
+            conditions_to_be_created = []
             for condition_name, condition_data in report_data['Conditions'].iteritems():
-                if condition.condition_name == condition_name:
-                    found = True
-                    break
-            if found == False:
-                condition.delete()
+                # Skip the conditions that come from facter
+                if 'Facter' in report_data and condition_name.startswith('facter_'):
+                    continue
 
-        conditions = machine.conditions.all()
-        for condition_name, condition_data in report_data['Conditions'].iteritems():
-            # Skip the condtions that come from facter
-            if 'Facter' in report_data and condition_name.startswith('facter_'):
-                continue
+                condition_data = utils.listify_condition_data(condition_data)
+                conditions_to_be_created.append(
+                    Condition(
+                        machine=machine,
+                        condition_name=condition_name,
+                        condition_data=utils.safe_unicode(condition_data)
+                    )
+                )
 
-            # if it's a list (more than one result), we're going to conacetnate it into one comma separated string
-            condition_data = utils.listify_condition_data(condition_data)
-
-            found = False
+            Condition.objects.bulk_create(conditions_to_be_created)
+    else:
+        if 'Conditions' in report_data:
+            conditions = machine.conditions.all()
             for condition in conditions:
-                if condition_name == condition.condition_name:
-                    # it exists, make sure it's got the right info
-                    found = True
-                    if condition_data == condition.condition_data:
-                        # it's right, break
+                found = False
+                for condition_name, condition_data in report_data['Conditions'].iteritems():
+                    if condition.condition_name == condition_name:
+                        found = True
                         break
-                    else:
-                        condition.condition_data = condition_data
-                        condition.save()
-                        break
-            if found == False:
-                condition = Condition(machine=machine, condition_name=condition_name, condition_data=utils.safe_unicode(condition_data))
-                condition.save()
+                if found == False:
+                    condition.delete()
+
+            conditions = machine.conditions.all()
+            for condition_name, condition_data in report_data['Conditions'].iteritems():
+                # Skip the conditions that come from facter
+                if 'Facter' in report_data and condition_name.startswith('facter_'):
+                    continue
+
+                # if it's a list (more than one result), we're going to conacetnate it into one comma separated string
+                condition_data = utils.listify_condition_data(condition_data)
+
+                found = False
+                for condition in conditions:
+                    if condition_name == condition.condition_name:
+                        # it exists, make sure it's got the right info
+                        found = True
+                        if condition_data == condition.condition_data:
+                            # it's right, break
+                            break
+                        else:
+                            condition.condition_data = condition_data
+                            condition.save()
+                            break
+                if found == False:
+                    condition = Condition(machine=machine, condition_name=condition_name, condition_data=utils.safe_unicode(condition_data))
+                    condition.save()
 
     utils.get_version_number()
     return HttpResponse("Sal report submmitted for %s"

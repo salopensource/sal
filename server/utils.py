@@ -49,6 +49,7 @@ def csvrelated(header_item, facts, kind):
 
 
 def process_plugin_script(results, machine):
+    rows_to_create = []
     for plugin in results:
         if 'plugin' not in plugin or 'data' not in plugin:
             # Make sure what we need has been sent to the server
@@ -64,7 +65,12 @@ def process_plugin_script(results, machine):
         data = plugin.get('data')
         for key, value in data.items():
             plugin_row = PluginScriptRow(submission=safe_unicode(plugin_script), pluginscript_name=safe_unicode(key), pluginscript_data=safe_unicode(value), submission_and_script_name=(safe_unicode(plugin_name + ': ' + key)))
-            plugin_row.save()
+            if is_postgres():
+                rows_to_create.append(plugin_row)
+            else:
+                plugin_row.save()
+    if len(rows_to_create) != 0:
+        PluginScriptRow.objects.bulk_create(rows_to_create)
 
 def get_version_number():
     # See if we're sending data
@@ -160,7 +166,7 @@ def send_report():
         return r.text
     else:
         return 'Error'
-        
+
 def listify_condition_data(condition_data):
     if type(condition_data) == list:
         result = None

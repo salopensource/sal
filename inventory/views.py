@@ -249,7 +249,7 @@ class ApplicationListView(LegacyDatatableView, GroupMixin):
         apple_cruft_pattern = (r'com.apple.(?!iPhoto)(?!iWork)(?!Aperture)'
             r'(?!iDVD)(?!garageband)(?!iMovieApp)(?!Server)(?!dt\.Xcode).*')
         queryset = queryset.exclude(bundleid__regex=crufty_pattern)
-        queryset = queryset.exclude(bundleid__regex=apple_cruft_pattern)
+        # queryset = queryset.exclude(bundleid__regex=apple_cruft_pattern)
 
         return queryset
 

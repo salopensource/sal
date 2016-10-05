@@ -193,7 +193,8 @@ class InventoryListView(LegacyDatatableView, GroupMixin):
         return instance.machine.last_checkin.strftime("%Y-%m-%d %H:%M:%S")
 
     def get_machine_link(self, instance, *args, **kwargs):
-        machine = instance.machine
+        # machine = instance.machine
+        machine = instance
         url = reverse(
             "machine_detail", kwargs={"machine_id": machine.pk})
 

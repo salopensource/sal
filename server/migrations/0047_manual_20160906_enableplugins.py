@@ -19,12 +19,13 @@ def enable_plugins(apps, schema_editor):
 
     Plugin = apps.get_model("server", "Plugin")
     new_plugins = ['Encryption', 'Gatekeeper', 'Sip', 'XprotectVersion']
-    for plugin_name in new_plugins:
-        try:
-            plugin = Plugin.objects.get(name=plugin_name)
-        except Plugin.DoesNotExist:
-            plugin = Plugin(name=plugin_name, order=utils.UniquePluginOrder())
-            plugin.save()
+    if Plugin.objects.all().count() != 0:
+        for plugin_name in new_plugins:
+            try:
+                plugin = Plugin.objects.get(name=plugin_name)
+            except Plugin.DoesNotExist:
+                plugin = Plugin(name=plugin_name, order=utils.UniquePluginOrder())
+                plugin.save()
 
 class Migration(migrations.Migration):
 

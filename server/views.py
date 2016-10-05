@@ -2072,7 +2072,7 @@ def checkin(request):
                 skip = False
                 if hasattr(settings, 'IGNORE_FACTS'):
                     for prefix in settings.IGNORE_FACTS:
-                        if fact.fact_name.startswith(prefix):
+                        if fact_name.startswith(prefix):
                             skip = True
                 if skip == True:
                     continue

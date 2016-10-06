@@ -25,7 +25,7 @@ from django.views.generic import DetailView, View
 from datatableview.views.legacy import LegacyDatatableView
 
 # local Django
-from models import Application, Inventory, InventoryItem
+from models import Application, Inventory, InventoryItem, Machine
 from server import utils
 from sal.decorators import class_login_required, class_access_required
 from server.models import BusinessUnit, MachineGroup, Machine
@@ -47,6 +47,10 @@ class GroupMixin(object):
             BusinessUnit: "machine__machine_group__business_unit",
             MachineGroup: "machine__machine_group",
             Machine: "machine",},
+        Machine: {
+            BusinessUnit: "machine_group__business_unit",
+            MachineGroup: "machine_group",
+            Machine: "",},
         Inventory: {},}
 
     model = None
@@ -101,8 +105,10 @@ class GroupMixin(object):
             filter_path = self.access_filter[queryset.model]\
                 [self.classes[self.kwargs["group_type"]]]
 
-            kwargs = {filter_path: self.group_instance}
-            queryset = queryset.filter(**kwargs)
+            # If filter_path is Machine there is nothing to filter on.
+            if filter_path:
+                kwargs = {filter_path: self.group_instance}
+                queryset = queryset.filter(**kwargs)
 
         return queryset
 
@@ -138,15 +144,15 @@ class CSVResponseMixin(object):
 @class_login_required
 @class_access_required
 class InventoryListView(LegacyDatatableView, GroupMixin):
-    model = InventoryItem
+    model = Machine
     template_name = "inventory/inventory_list.html"
     csv_filename = "sal_inventory_list.csv"
     datatable_options = {
         'structure_template': 'bootstrap_structure.html',
-        'columns': [('Machine', 'machine__hostname', "get_machine_link"),
-                    ("Serial Number", "machine__serial"),
+        'columns': [('Machine', 'hostname', "get_machine_link"),
+                    ("Serial Number", "serial"),
                     ("Last Checkin", 'last_checkin', 'format_date'),
-                    ("User", "machine__console_user"),
+                    ("User", "console_user"),
                     ("Installed Copies", None, "get_install_count")]}
 
     def get_queryset(self):
@@ -155,27 +161,18 @@ class InventoryListView(LegacyDatatableView, GroupMixin):
         # Filter based on Application.
         self.application = get_object_or_404(
             Application, pk=self.kwargs["application_id"])
-        queryset = queryset.filter(application=self.application)
+        queryset = queryset.filter(inventoryitem__application=self.application)
 
         # Filter again based on criteria.
         field_type = self.kwargs["field_type"]
         if field_type == "path":
-            queryset = queryset.filter(path=self.kwargs["field_value"])
+            queryset = queryset.filter(
+                inventoryitem__path=self.kwargs["field_value"])
         elif field_type == "version":
-            queryset = queryset.filter(version=self.kwargs["field_value"])
+            queryset = queryset.filter(
+                inventoryitem__version=self.kwargs["field_value"])
 
-        # Get a queryset of all of the unique Machines with this
-        # Application.
-        # This is basically changing the model for this class, which is
-        # suspect.
-        if is_postgres():
-            queryset = queryset.order_by().distinct("machine")
-        else:
-            machines = queryset.order_by().values_list(
-                "machine", flat=True).distinct()
-            queryset = Machine.objects.filter(id__in=machines)
-
-        return queryset
+        return queryset.distinct()
 
     def get_context_data(self, **kwargs):
         context = super(InventoryListView, self).get_context_data(**kwargs)
@@ -190,18 +187,16 @@ class InventoryListView(LegacyDatatableView, GroupMixin):
         return context
 
     def format_date(self, instance, *args, **kwargs):
-        return instance.machine.last_checkin.strftime("%Y-%m-%d %H:%M:%S")
+        return instance.last_checkin.strftime("%Y-%m-%d %H:%M:%S")
 
     def get_machine_link(self, instance, *args, **kwargs):
-        # machine = instance.machine
-        machine = instance
         url = reverse(
-            "machine_detail", kwargs={"machine_id": machine.pk})
+            "machine_detail", kwargs={"machine_id": instance.pk})
 
-        return '<a href="{}">{}</a>'.format(url, machine.hostname)
+        return '<a href="{}">{}</a>'.format(url, instance.hostname)
 
     def get_install_count(self, instance, *args, **kwargs):
-        queryset = instance.machine.inventoryitem_set.filter(
+        queryset = instance.inventoryitem_set.filter(
             application=self.application)
         field_type = self.kwargs["field_type"]
         if field_type == "path":
@@ -315,8 +310,10 @@ class ApplicationDetailView(DetailView, GroupMixin):
     def _get_unique_items(self, details):
         """Use optimized DB methods for getting unique items if possible."""
         if is_postgres():
-            versions = list(self.object.inventoryitem_set.order_by("version").distinct("version").values_list("version", flat=True))
-            paths = list(self.object.inventoryitem_set.order_by("path").distinct("path").values_list("path", flat=True))
+            versions = details.order_by("version").distinct(
+                "version").values_list("version", flat=True)
+            paths = details.order_by("path").distinct("path").values_list(
+                "path", flat=True)
         else:
             details = details.values()
             versions = {item["version"] for item in details}
@@ -345,8 +342,13 @@ class ApplicationDetailView(DetailView, GroupMixin):
         # Add in access data.
         context["group_type"] = self.kwargs["group_type"]
         context["group_id"] = self.kwargs["group_id"]
-        context["group_name"] = (self.group_instance.name if hasattr(
-            self.group_instance, "name") else None)
+        if hasattr(self.group_instance, "name"):
+            group_name = self.group_instance.name
+        elif hasattr(self.group_instance, "hostname"):
+            group_name = self.group_instance.hostname
+        else:
+            group_name = None
+        context["group_name"] = group_name
 
         return context
 

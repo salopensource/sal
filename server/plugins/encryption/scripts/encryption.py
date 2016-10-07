@@ -7,10 +7,6 @@ from munkilib import FoundationPlist
 import os
 import platform
 
-def mac_version():
-    v, _, _ = platform.mac_ver()
-    return float('.'.join(v.split('.')[:2]))
-
 def get_status(cmd, checkstring):
     try:
         output = subprocess.check_output(cmd, stderr=subprocess.STDOUT)
@@ -27,8 +23,7 @@ def fv_status():
 
 def main():
 
-    mac_ver = mac_version()
-    if mac_ver <= 10.8:
+    if os.path.exists('/usr/bin/fdesetup'):
         filevault = fv_status()
     else:
         filevault = 'Not Supported'

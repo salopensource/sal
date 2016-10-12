@@ -33,5 +33,3 @@ class InventoryItem(models.Model):
 
     class Meta:
         ordering = ['application', '-version']
-
-watson.register(InventoryItem)

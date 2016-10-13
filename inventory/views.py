@@ -460,6 +460,7 @@ def inventory_submit(request):
                 # clear existing inventoryitems
                 machine.inventoryitem_set.all().delete()
                 # insert current inventory items
+                inventory_items_to_be_created = []
                 for item in inventory_list:
                     app, _ = Application.objects.get_or_create(
                         bundleid=item.get("bundleid", ""),
@@ -467,11 +468,21 @@ def inventory_submit(request):
                         bundlename=item.get("CFBundleName", ""))
                     # skip items in bundleid_ignorelist.
                     if not item.get('bundleid') in bundleid_ignorelist:
-                        i_item = machine.inventoryitem_set.create(
-                            application=app, version=item.get("version", ""),
-                            path=item.get('path', ''))
+                        i_item = InventoryItem(
+                            application=app,
+                            version=item.get("version", ""),
+                            path=item.get('path', ''),
+                            machine=machine
+                        )
+                        if is_postgres():
+                            inventory_items_to_be_created.append(i_item)
+                        else:
+                            i_item.save()
                 machine.last_inventory_update = timezone.now()
                 inventory_meta.save()
+
+                if is_postgres():
+                    InventoryItem.objects.bulk_create(inventory_items_to_be_created)
             machine.save()
             return HttpResponse(
                 "Inventory submmitted for %s.\n" %

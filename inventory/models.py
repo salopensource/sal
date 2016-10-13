@@ -17,7 +17,7 @@ class Application(models.Model):
 
 
 class Inventory(models.Model):
-    machine = models.ForeignKey(Machine)
+    machine = models.OneToOneField(Machine)
     datestamp = models.DateTimeField(auto_now=True)
     sha256hash = models.CharField(max_length=64)
 

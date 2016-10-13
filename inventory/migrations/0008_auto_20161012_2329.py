@@ -18,7 +18,6 @@ def clean_inventory(apps, schema_editor):
         all_inventory = Inventory.objects.all().filter(machine=machine)
         if all_inventory.count() != 0:
             first_inventory = Inventory.objects.all().filter(machine=machine)[:1].values_list("id", flat=True)
-            print first_inventory
             Inventory.objects.all().filter(machine=machine).exclude(pk__in=list(first_inventory)).delete()
 
 

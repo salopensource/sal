@@ -69,7 +69,7 @@ def process_plugin_script(results, machine):
                 rows_to_create.append(plugin_row)
             else:
                 plugin_row.save()
-    if len(rows_to_create) != 0:
+    if is_postgres():
         PluginScriptRow.objects.bulk_create(rows_to_create)
 
 def get_version_number():
@@ -215,7 +215,7 @@ def reloadPluginsModel():
             'Sip',
             'XprotectVersion'
             ]
-            
+
         for item in PLUGIN_ORDER:
             order = order + 1
             plugin = Plugin(name=item, order=order)

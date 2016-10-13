@@ -1991,13 +1991,18 @@ def checkin(request):
     updates = machine.pending_updates.all().delete()
     now = django.utils.timezone.now()
     if 'ItemsToInstall' in report_data:
+        pending_update_to_save = []
+        update_history_item_to_save = []
         for update in report_data.get('ItemsToInstall'):
             display_name = update.get('display_name', update['name'])
             update_name = update.get('name')
             version = str(update['version_to_install'])
             if version:
                 pending_update = PendingUpdate(machine=machine, display_name=display_name, update_version=version, update=update_name)
-                pending_update.save()
+                if utils.is_postgres():
+                    pending_update_to_save.append(pending_update)
+                else:
+                    pending_update.save()
                 # Let's handle some of those lovely pending installs into the UpdateHistory Model
                 try:
                     update_history = UpdateHistory.objects.get(name=update_name,
@@ -2010,10 +2015,18 @@ def checkin(request):
                     update_history_item = UpdateHistoryItem(update_history=update_history, status='pending', recorded=now, uuid=uuid)
                     update_history_item.save()
                     update_history.pending_recorded = True
-                    update_history.save()
+                    if utils.is_postgres():
+                        update_history_item_to_save.append(update_history_item)
+                    else:
+                        update_history.save()
+        if utils.is_postgres():
+            PendingUpdate.objects.bulk_create(pending_update_to_save)
+            UpdateHistoryItem.objects.bulk_create(update_history_item_to_save)
 
     updates = machine.installed_updates.all().delete()
+
     if 'ManagedInstalls' in report_data:
+        installed_updates_to_save = []
         for update in report_data.get('ManagedInstalls'):
             display_name = update.get('display_name', update['name'])
             update_name = update.get('name')
@@ -2021,7 +2034,12 @@ def checkin(request):
             installed = update.get('installed')
             if version != 'UNKNOWN' and version != None and len(version) != 0:
                 installed_update = InstalledUpdate(machine=machine, display_name=display_name, update_version=version, update=update_name, installed=installed)
-                installed_update.save()
+                if utils.is_postgres():
+                    installed_updates_to_save.append(installed_update)
+                else:
+                    installed_update.save()
+        if utils.is_postgres():
+            InstalledUpdate.objects.bulk_create(installed_updates_to_save)
 
     # Remove existing PendingAppleUpdates for the machine
     updates = machine.pending_apple_updates.all().delete()

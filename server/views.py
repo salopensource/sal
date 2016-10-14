@@ -32,6 +32,7 @@ import django.utils.timezone
 import dateutil.parser
 import hashlib
 import time
+from sal.decorators import *
 # This will only work if BRUTE_PROTECT == True
 try:
     import axes.utils
@@ -1791,6 +1792,7 @@ def delete_api_key(request, key_id):
 
 # preflight
 @csrf_exempt
+@key_auth_required
 def preflight(request):
     # osquery plugins aren't a thing anymore.
     # This is just to stop old clients from barfing.
@@ -1801,6 +1803,7 @@ def preflight(request):
 
 # It's the new preflight (woo)
 @csrf_exempt
+@key_auth_required
 def preflight_v2(request):
     # find plugins that have embedded preflight scripts
     # Load in the default plugins if needed
@@ -1822,7 +1825,7 @@ def preflight_v2(request):
 
                 break
     enabled_machine_detail_plugins = MachineDetailPlugin.objects.all()
-    print enabled_machine_detail_plugins
+    # print enabled_machine_detail_plugins
     for enabled_machine_detail_plugin in enabled_machine_detail_plugins:
         for plugin in manager.getAllPlugins():
             if enabled_machine_detail_plugin.name == plugin.name:
@@ -1846,6 +1849,7 @@ def preflight_v2(request):
 
 # Get script for plugin
 @csrf_exempt
+@key_auth_required
 def preflight_v2_get_script(request, pluginName, scriptName):
     # Build the manager
     manager = PluginManager()
@@ -1863,6 +1867,7 @@ def preflight_v2_get_script(request, pluginName, scriptName):
     return HttpResponse(json.dumps(output))
 # checkin
 @csrf_exempt
+@key_auth_required
 def checkin(request):
     if request.method != 'POST':
         print 'not post data'
@@ -2244,6 +2249,7 @@ def checkin(request):
                         % data.get('name'))
 
 @csrf_exempt
+@key_auth_required
 def install_log_hash(request, serial):
     sha256hash = ''
     machine = None
@@ -2299,6 +2305,7 @@ def process_update_item(name, version, update_type, action, recorded, machine, u
             update_history.save()
 
 @csrf_exempt
+@key_auth_required
 def install_log_submit(request):
     if request.method != 'POST':
         return HttpResponseNotFound('No POST data sent')

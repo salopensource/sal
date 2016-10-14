@@ -20,6 +20,7 @@ import bz2
 
 from models import *
 from server.models import *
+from sal.decorators import *
 
 # Create your views here.
 
@@ -32,6 +33,7 @@ def decode_to_string(base64bz2data):
         return ''
 
 @csrf_exempt
+@key_auth_required
 def submit_catalog(request):
     if request.method != 'POST':
         raise Http404
@@ -66,7 +68,9 @@ def submit_catalog(request):
                 catalog.content = catalog_str
                 catalog.save()
     return HttpResponse("Catalogs submitted.")
+
 @csrf_exempt
+@key_auth_required
 def catalog_hash(request):
     if request.method != 'POST':
         print 'method not post'

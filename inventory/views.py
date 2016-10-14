@@ -27,7 +27,7 @@ from datatableview.views.legacy import LegacyDatatableView
 # local Django
 from models import Application, Inventory, InventoryItem, Machine
 from server import utils
-from sal.decorators import class_login_required, class_access_required
+from sal.decorators import *
 from server.models import BusinessUnit, MachineGroup, Machine
 
 
@@ -425,6 +425,7 @@ class CSVExportView(CSVResponseMixin, GroupMixin, View):
 
 
 @csrf_exempt
+@key_auth_required
 def inventory_submit(request):
     if request.method != 'POST':
         return HttpResponseNotFound('No POST data sent')
@@ -492,6 +493,7 @@ def inventory_submit(request):
 
 
 @csrf_exempt
+@key_auth_required
 def inventory_hash(request, serial):
     sha256hash = ""
     machine = None

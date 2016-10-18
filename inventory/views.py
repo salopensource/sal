@@ -193,7 +193,7 @@ class InventoryListView(LegacyDatatableView, GroupMixin):
         url = reverse(
             "machine_detail", kwargs={"machine_id": instance.pk})
 
-        return '<a href="{}">{}</a>'.format(url, instance.hostname)
+        return '<a href="{}">{}</a>'.format(url, instance.hostname.encode("utf-8"))
 
     def get_install_count(self, instance, *args, **kwargs):
         queryset = instance.inventoryitem_set.filter(

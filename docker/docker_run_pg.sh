@@ -9,7 +9,7 @@ docker run -d \
     -e DB_USER=admin \
     -e DB_PASS=password \
     -e DOCKER_SAL_BRUTE_PROTECT="false" \
-    -e DOCKER_SAL_DEBUG="false" \
+    -e DOCKER_SAL_DEBUG="true" \
     --link postgres-sal:db \
     --name=sal \
     --restart="always" \

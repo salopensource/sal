@@ -5,6 +5,7 @@ ADMIN_PASS=${ADMIN_PASS:-}
 # service monit stop
 python manage.py migrate --noinput
 python manage.py collectstatic --noinput
+python manage.py installwatson
 python manage.py friendly_model_name
 
 if [ ! -z "$ADMIN_PASS" ] ; then

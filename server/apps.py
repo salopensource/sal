@@ -7,6 +7,15 @@ class ServerAppConfig(AppConfig):
         Machine = self.get_model("Machine")
         Fact = self.get_model("Fact")
         Condition = self.get_model("Condition")
-        watson.register(Machine, exclude=("report", "errors", "warnings",))
+        watson.register(Machine, exclude=(
+                                "report",
+                                "errors",
+                                "warnings",
+                                "activity",
+                                "puppet_errors",
+                                "install_log_hash",
+                                "install_log"
+                                )
+                    )
         watson.register(Fact)
         watson.register(Condition)

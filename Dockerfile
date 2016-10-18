@@ -49,7 +49,6 @@ ADD docker/settings_import.py $APP_DIR/sal/
 ADD docker/brute_settings.py $APP_DIR/sal/
 ADD docker/wsgi.py $APP_DIR/
 ADD docker/gunicorn_config.py $APP_DIR/
-ADD docker/django/management/ $APP_DIR/sal/management/
 ADD docker/run.sh /run.sh
 ADD docker/nginx/nginx-env.conf /etc/nginx/main.d/
 ADD docker/nginx/sal.conf /etc/nginx/sites-enabled/sal.conf
@@ -62,7 +61,7 @@ RUN chmod 755 /run.sh && \
 
 WORKDIR $APP_DIR
 EXPOSE 8000
-# ENTRYPOINT ["/usr/local/bin/dumb-init", "--"]
+
 CMD ["/run.sh"]
 
 VOLUME ["$APP_DIR/plugins"]

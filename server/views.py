@@ -1979,7 +1979,7 @@ def checkin(request):
         machine.os_family = report_data['os_family']
 
     if not machine.machine_model_friendly:
-        machine.machine_model_friendly = utils.friendly_machine_model(machine.serial)
+        machine.machine_model_friendly = utils.friendly_machine_model(machine)
 
     machine.save()
 

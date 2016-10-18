@@ -3,7 +3,7 @@ from django.conf import settings
 from server.models import *
 from django.shortcuts import get_object_or_404
 from yapsy.PluginManager import PluginManager
-from django.db.models import Max
+from django.db.models import Max, Count
 import time
 import os
 import logging
@@ -460,13 +460,31 @@ def decode_to_string(base64bz2data):
         return ''
 
 
-def friendly_machine_model(serial):
-    payload = {'cc': serial[-4:]}
-    try:
-        r = requests.get('http://support-sp.apple.com/sp/product', params=payload)
-        return ET.fromstring(r.text).find('configCode').text
-    except:
-        return None
+def friendly_machine_model(machine):
+    # See if the machine's model already has one (and only one) friendly name
+    output = None
+    friendly_names = Machine.objects.filter(machine_model=machine.machine_model).values('machine_model_friendly').annotate(num_models=Count('machine_model_friendly',
+                                         distinct=True)).distinct()
+    for name in friendly_names:
+        if name['num_models'] == 1:
+            output = name['machine_model_friendly']
+            break
+    if output is None and not machine.serial.startswith('VM'):
+        payload = {'cc': machine.serial[-4:]}
+        output = None
+        try:
+            r = requests.get('http://support-sp.apple.com/sp/product', params=payload)
+        except requests.exceptions.RequestException as e:
+            print machine.serial
+            print e
+
+        try:
+            output = ET.fromstring(r.text).find('configCode').text
+        except:
+            print 'Did not receive a model name for %s, %s. Error:' % (machine.serial, machine.machine_model)
+            print r.text
+
+    return output
 
 def display_time(seconds, granularity=2):
     result = []

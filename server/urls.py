@@ -16,7 +16,7 @@ urlpatterns = [
     # preflight v2
     url(r'^preflight-v2/$', preflight_v2, name='preflight_v2'),
     # Search
-    url(r'^search/', search, name='search'),
+    # url(r'^search/', search, name='search'),
     # BU Dashboard
     url(r'^dashboard/(?P<bu_id>.+)/', bu_dashboard, name='bu_dashboard'),
     # pluginload (front page)

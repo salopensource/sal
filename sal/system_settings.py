@@ -154,7 +154,8 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.auth.middleware.SessionAuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'server.middleware.AddToBU.AddToBU'
+    'server.middleware.AddToBU.AddToBU',
+    'search.current_user.CurrentUserMiddleware',
 )
 
 LOGIN_URL='/login'
@@ -185,6 +186,7 @@ INSTALLED_APPS = (
     'bootstrap3',
     'watson',
     'datatableview',
+    'search',
 )
 
 LOGGING = {

@@ -23,6 +23,7 @@ urlpatterns = [
     url(r'^admin/', include(admin.site.urls)),
     url(r'^api/', include('api.urls')),
     url(r'^inventory/', include('inventory.urls')),
+    url(r'^search/', include('search.urls')),
     url(r'^licenses/', include('licenses.urls')),
     url(r'^catalog/', include('catalog.urls')),
 

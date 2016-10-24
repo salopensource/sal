@@ -26,7 +26,7 @@ from yapsy.PluginManager import PluginManager
 from django.core.exceptions import PermissionDenied
 import utils
 import pytz
-from watson import search as watson
+# from watson import search as watson
 import unicodecsv as csv
 import django.utils.timezone
 import dateutil.parser
@@ -43,42 +43,42 @@ if settings.DEBUG:
     import logging
     logging.basicConfig(level=logging.INFO)
 
-@csrf_exempt
-@login_required
-def search(request):
-    user = request.user
-    user_level = user.userprofile.level
-    if ('q' in request.GET) and request.GET['q'].strip():
-        query_string = request.GET['q']
-    else:
-        raise Http404
-    # Make sure we're searching across Machines the user has access to:
-    machines = Machine.objects.all()
-    if user_level == 'GA':
-        machines = machines
-    else:
-        for business_unit in BusinessUnit.objects.all():
-            if business_unit not in user.businessunit_set.all():
-                machines = machines.exclude(machine_group__business_unit = business_unit)
-    if query_string.lower().startswith('facter:'):
-        query_string = query_string.replace('facter:','').replace('Facter:', '').strip()
-        machines = Fact.objects.filter(machine=machines)
-        template = 'server/search_facter.html'
-    elif query_string.lower().startswith('condition:'):
-        query_string = query_string.replace('condition:','').replace('Condition:', '').strip()
-        machines = Condition.objects.filter(machine=machines)
-        template = 'server/search_condition.html'
-    elif query_string.lower().startswith('inventory:'):
-        query_string = query_string.replace('inventory:','').replace('Inventory:', '').strip()
-        machines = InventoryItem.objects.filter(machine=machines)
-        template = 'server/search_inventory.html'
-    else:
-        template = 'server/search_machines.html'
-    search_results = watson.filter(machines, query_string)
-
-    title = "Search results for %s" % query_string
-    c = {'user': request.user, 'search_results': search_results, 'title':title, 'request':request}
-    return render(request, template, c)
+# @csrf_exempt
+# @login_required
+# def search(request):
+#     user = request.user
+#     user_level = user.userprofile.level
+#     if ('q' in request.GET) and request.GET['q'].strip():
+#         query_string = request.GET['q']
+#     else:
+#         raise Http404
+#     # Make sure we're searching across Machines the user has access to:
+#     machines = Machine.objects.all()
+#     if user_level == 'GA':
+#         machines = machines
+#     else:
+#         for business_unit in BusinessUnit.objects.all():
+#             if business_unit not in user.businessunit_set.all():
+#                 machines = machines.exclude(machine_group__business_unit = business_unit)
+#     if query_string.lower().startswith('facter:'):
+#         query_string = query_string.replace('facter:','').replace('Facter:', '').strip()
+#         machines = Fact.objects.filter(machine=machines)
+#         template = 'server/search_facter.html'
+#     elif query_string.lower().startswith('condition:'):
+#         query_string = query_string.replace('condition:','').replace('Condition:', '').strip()
+#         machines = Condition.objects.filter(machine=machines)
+#         template = 'server/search_condition.html'
+#     elif query_string.lower().startswith('inventory:'):
+#         query_string = query_string.replace('inventory:','').replace('Inventory:', '').strip()
+#         machines = InventoryItem.objects.filter(machine=machines)
+#         template = 'server/search_inventory.html'
+#     else:
+#         template = 'server/search_machines.html'
+#     search_results = watson.filter(machines, query_string)
+#
+#     title = "Search results for %s" % query_string
+#     c = {'user': request.user, 'search_results': search_results, 'title':title, 'request':request}
+#     return render(request, template, c)
 
 @login_required
 def index(request):
@@ -656,17 +656,6 @@ def get_csv_row(machine, facter_headers, condition_headers, plugin_script_header
             except:
                 row.append('')
 
-    # facts = machine.facts.all().values('fact_name', 'fact_data').order_by('fact_name')
-    # for header_item in facter_headers:
-    #     row.append(utils.safe_unicode(utils.csvrelated(header_item, facts, 'facter')))
-    #
-    # conditions = machine.conditions.all().values('condition_name', 'condition_data').order_by('condition_name')
-    # for header_item in condition_headers:
-    #     row.append(utils.safe_unicode(utils.csvrelated(header_item, conditions, 'condition')))
-    #
-    # pluginscript_rows = PluginScriptRow.objects.filter(submission__machine=machine).values('submission_and_script_name', 'pluginscript_name', 'pluginscript_data')
-    # for header_item in plugin_script_headers:
-    #     row.append(utils.safe_unicode(utils.csvrelated(header_item, pluginscript_rows, 'pluginscript')))
     row.append(machine.machine_group.business_unit.name)
     row.append(machine.machine_group.name)
     return row

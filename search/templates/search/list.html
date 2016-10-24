@@ -18,14 +18,14 @@
 {% endblock %}
 
 {% block nav %}
-<li><a href="{{ request.META.HTTP_REFERER }}"><i class="fa fa-fw fa-chevron-left"></i> Back</a></li>
+{% include "search/nav.html" %}
 {% endblock %}
 {% block content %}
 
 <div class="panel panel-default">
 {% if title %}
     <div class="panel-heading">
-        {{ title }}
+        Saved Searches
     </div>
 {% endif %}
 <div class="panel-body">
@@ -33,26 +33,23 @@
         <table class="groupList table table-striped table-condensed">
             <thead>
                 <tr>
-                  <th>Machine</th>
-                  <th>User</th>
-                  <th>Latest Run</th>
+                  <th>Search</th>
+
+                  <th></th>
+                  <th></th>
                 </tr>
             </thead>
             <tbody>
-                {% for result in search_results %}
+                {% for search in saved_searches %}
                 <tr>
                     <td>
-                        <a href="{% url 'machine_detail' result.id %}">
-                        {% if result.hostname %}
-                            {{ result.hostname }}
-                        {% else %}
-                            {{ result.serial }}
-                        {% endif %}
+                        <a href="{% url 'search_run' search.id %}">
+                        {{search.name}}
                         </a>
                     </td>
 
-                    <td>{{ result.console_user }}</td>
-                    <td>{{ result.last_checkin|date:"Y-m-d H:i" }}</td>
+                    <td><a href="{% url 'search_build' search.id %}" class="btn btn-info btn-mini">Edit</a></td>
+                    <td>Delete</td>
                 </tr>
                 {% endfor %}
             </tbody>

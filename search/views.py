@@ -31,7 +31,7 @@ def index(request):
     machines = Machine.objects.all()
     if user_level != 'GA':
         for business_unit in BusinessUnit.objects.all():
-            if business_unit not in user.businessunit_set.all():
+            if business_unit not in request.user.businessunit_set.all():
                 machines = machines.exclude(machine_group__business_unit = business_unit)
 
     template = 'search/search_machines.html'
@@ -192,7 +192,7 @@ def run_search(request, search_id):
     machines = Machine.objects.all()
     if user_level != 'GA':
         for business_unit in BusinessUnit.objects.all():
-            if business_unit not in user.businessunit_set.all():
+            if business_unit not in request.user.businessunit_set.all():
                 machines = machines.exclude(
                     machine_group__business_unit = business_unit
                     )

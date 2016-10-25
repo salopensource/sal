@@ -239,6 +239,8 @@ def save_search(request, search_id):
 # Build search
 @login_required
 def build_search(request, search_id):
+    user = request.user
+    user_level = user.userprofile.level
     new_search = get_object_or_404(SavedSearch, pk=search_id)
     search_groups = SearchGroup.objects.filter(saved_search=new_search)
     c = {
@@ -261,7 +263,10 @@ def delete_search(request, search_id):
 @login_required
 def edit_search(request, search_id):
         saved_search = get_object_or_404(SavedSearch, pk=search_id)
-
+        user = request.user
+        user_level = user.userprofile.level
+        if user_level != 'GA' or saved_search.created_by != user:
+            return redirect(search.views.list)
         if request.method == 'POST':
             form = SearchRowForm(request.POST, instance=search_row)
             if form.is_valid():

@@ -107,7 +107,7 @@ def search_machines(search_id, machines):
                 '<': '__lt',
                 '<=': '__lte',
                 '>': '__gt',
-                '>': '__gte',
+                '>=': '__gte',
             }
             for display_operator, actual_operator in operators.iteritems():
                 if search_row.operator == display_operator:

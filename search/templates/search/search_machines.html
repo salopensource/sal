@@ -19,6 +19,9 @@
 
 {% block nav %}
 {% include "search/nav.html" %}
+<li>
+    <a href="{% url 'search_export_csv' search.id %}"><i class="fa fa-fw fa-file-excel-o"></i> Export CSV</a>
+</li>
 {% endblock %}
 {% block content %}
 

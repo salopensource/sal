@@ -58,6 +58,11 @@ urlpatterns = [
         views.save_search,
         name='search_save'),
 
+    # Export CSV
+    url(r'^csv/(?P<search_id>.+)/',
+        views.export_csv,
+        name='search_export_csv'),
+
     # Get field names
     url(r'^get_fields/(?P<model>.+)/',
         views.get_fields,

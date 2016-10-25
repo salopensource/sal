@@ -3,16 +3,19 @@ from django.contrib.auth.decorators import login_required
 from django.views.decorators.csrf import csrf_exempt, csrf_protect
 from django.template.context_processors import csrf
 from django.db.models import CharField, Q
-from django.http import JsonResponse
+from django.http import JsonResponse, StreamingHttpResponse
+import sal.settings as settings
 
 import search.utils as utils
 from server.models import *
 from search.models import *
 from search.forms import *
 import search.views
+import server.utils
 
 import json
 import re
+import unicodecsv as csv
 
 # Create your views here.
 @login_required
@@ -75,18 +78,7 @@ def list(request):
         }
     return render(request, 'search/list.html', c)
 
-# Show search
-def run_search(request, search_id):
-    # Placeholder
-    user_level = request.user.userprofile.level
-    machines = Machine.objects.all()
-    if user_level != 'GA':
-        for business_unit in BusinessUnit.objects.all():
-            if business_unit not in user.businessunit_set.all():
-                machines = machines.exclude(
-                    machine_group__business_unit = business_unit
-                    )
-
+def search_machines(search_id, machines):
     saved_search = get_object_or_404(SavedSearch, pk=search_id)
     search_groups = saved_search.searchgroup_set.all()
     queries = Q()
@@ -179,52 +171,34 @@ def run_search(request, search_id):
                 # row_queries.add(q_object, Q.AND)
                 row_queries = q_object
 
-            # the_dict = {}
-            # the_dict['q'] = q_object
-            # the_dict['operator'] = row_operator
-            # row_queries_list.append(the_dict)
-            # print row_queries_list
-
-
-
         if group_operator != None:
             if group_operator == 'AND':
                 queries.add(row_queries, Q.AND)
             elif group_operator == 'OR':
                 queries.add(row_queries, Q.OR)
         else:
-            # queries.add(row_queries, Q.AND)
-            queries = row_queries
 
-        # add_dict = {}
-        # add_dict['group'] = row_queries_list
-        # add_dict['operator'] = group_operator
-        # queries_list.append(add_dict)
+            queries = row_queries
 
         search_group_counter = search_group_counter + 1
 
-    # for group in queries_list:
-    #     # Build out each row and add to a temp Q object
-    #     group_q = Q()
-    #     for row in group:
-    #         print row
-    #         if row['operator'] is None:
-    #             group_q = row['q']
-    #         elif row['operator'] == 'OR':
-    #             group_q = group_q | row['q']
-    #         elif row['operator'] == 'AND':
-    #             group_q = group_q & row['q']
-    #
-    #     if group['operator'] is None:
-    #         queries = group_q
-    #     elif group['operator'] == 'OR':
-    #         queries = queries | group_q
-    #     elif group['operator'] == 'AND':
-    #         queries = queries & group_q
-
-    print queries
-    # queries = "console_user__icontains='graham'"
     machines = machines.filter(queries).distinct()
+    return machines
+
+# Show search
+def run_search(request, search_id):
+    # Placeholder
+    user_level = request.user.userprofile.level
+    machines = Machine.objects.all()
+    if user_level != 'GA':
+        for business_unit in BusinessUnit.objects.all():
+            if business_unit not in user.businessunit_set.all():
+                machines = machines.exclude(
+                    machine_group__business_unit = business_unit
+                    )
+
+    machines = search_machines(search_id, machines)
+    saved_search = get_object_or_404(SavedSearch, pk=search_id)
     c = {'request': request, 'user': request.user, 'search': saved_search, 'machines':machines}
     return render(request, 'search/search_machines.html', c)
 
@@ -454,3 +428,73 @@ def get_fields(request, model):
     output = {}
     output['fields'] = sorted(search_fields)
     return JsonResponse(output)
+
+class Echo(object):
+    """An object that implements just the write method of the file-like interface.
+    """
+    def write(self, value):
+        """Write the value by returning it, instead of storing in a buffer."""
+        return value
+
+def get_csv_row(machine, facter_headers, condition_headers, plugin_script_headers):
+    row = []
+    for name, value in machine.get_fields():
+        if name != 'id' and name !='machine_group' and name != 'report' and name != 'activity' and name != 'os_family' and name != 'install_log' and name != 'install_log_hash':
+            try:
+                row.append(server.utils.safe_unicode(value))
+            except:
+                row.append('')
+
+    row.append(machine.machine_group.business_unit.name)
+    row.append(machine.machine_group.name)
+    return row
+
+def stream_csv(header_row, machines, facter_headers, condition_headers, plugin_script_headers): # Helper function to inject headers
+    if header_row:
+        yield header_row
+    for machine in machines:
+        yield get_csv_row(machine, facter_headers, condition_headers, plugin_script_headers)
+
+@login_required
+def export_csv(request, search_id):
+    user = request.user
+    title = None
+    machines = Machine.objects.all().defer('report','activity','os_family','install_log', 'install_log_hash')
+
+    machines = search_machines(search_id, machines)
+
+    saved_search = get_object_or_404(SavedSearch, pk=search_id)
+    pseudo_buffer = Echo()
+    writer = csv.writer(pseudo_buffer)
+
+    # Fields
+    header_row = []
+    fields = Machine._meta.get_fields()
+    for field in fields:
+        if not field.is_relation and field.name != 'id' and field.name != 'report' and field.name != 'activity' and field.name != 'os_family' and field.name != 'install_log' and field.name != 'install_log_hash':
+            header_row.append(field.name)
+
+
+    facter_headers = []
+    condition_headers = []
+    plugin_script_headers = []
+
+    header_row.append('business_unit')
+    header_row.append('machine_group')
+
+    response = StreamingHttpResponse(
+            (writer.writerow(row) for row in stream_csv(
+                                            header_row=header_row,
+                                            machines=machines,
+                                            facter_headers=facter_headers,
+                                            condition_headers=condition_headers,
+                                            plugin_script_headers=plugin_script_headers)),
+            content_type="text/csv")
+    # Create the HttpResponse object with the appropriate CSV header.
+    if getattr(settings, 'DEBUG_CSV', False):
+        pass
+    else:
+        response['Content-Disposition'] = 'attachment; filename="%s.csv"' % saved_search.name
+
+
+    return response

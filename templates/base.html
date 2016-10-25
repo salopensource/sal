@@ -133,6 +133,11 @@
                         </form>
                             <!-- /input-group -->
                         </li>
+                        {% if 'search' not in request.path %}
+                        <li>
+                            <a href="{% url 'search_index' %}"><i class="fa fa-fw fa-magic"></i> Advanced Search</a>
+                        </li>
+                        {% endif %}
                         {% block nav %}
                         {% endblock %}
 

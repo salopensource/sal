@@ -34,7 +34,7 @@ def index(request):
             if business_unit not in request.user.businessunit_set.all():
                 machines = machines.exclude(machine_group__business_unit = business_unit)
 
-    template = 'search/search_machines.html'
+    template = 'search/basic_search.html'
 
     skip_fields = [
         'id',
@@ -59,10 +59,10 @@ def index(request):
     for query in queries:
         qs = qs | query
 
-    search_results = machines.filter(qs)
+    machines = machines.filter(qs)
 
     title = "Search results for %s" % query_string
-    c = {'user': request.user, 'search_results': search_results, 'title':title, 'request':request}
+    c = {'user': request.user, 'machines': machines, 'title':title, 'request':request}
     return render(request, template, c)
 
 # All saved searches

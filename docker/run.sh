@@ -7,7 +7,7 @@ python manage.py migrate --noinput
 python manage.py collectstatic --noinput
 python manage.py installwatson
 python manage.py friendly_model_name
-python manage.py search_maintenance
+# python manage.py search_maintenance
 
 cron
 

@@ -4,3 +4,4 @@ from search.models import *
 admin.site.register(SavedSearch)
 admin.site.register(SearchGroup)
 admin.site.register(SearchRow)
+admin.site.register(SearchFieldCache)

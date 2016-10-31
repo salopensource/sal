@@ -399,36 +399,24 @@ def delete_row(request, search_row_id):
 def get_fields(request, model):
     search_fields = []
     if model.lower() == 'machine':
-        skip_fields = [
-            'id',
-            'machine_group',
-            'report',
-            'activity',
-            'errors',
-            'warnings',
-            'install_log',
-            'puppet_errors',
-            'install_log_hash'
-        ]
-        for f in Machine._meta.fields:
-            if f.name not in skip_fields:
-                search_fields.append(f.name)
+        cache_items = SearchFieldCache.objects.filter(search_model='Machine')
+        for cache_item in cache_items:
+            search_fields.append(cache_item.search_field)
 
     elif model.lower() == 'facter':
-        facts = Fact.objects.values('fact_name').distinct()
-        for fact in facts:
-            search_fields.append(fact['fact_name'])
+        cache_items = SearchFieldCache.objects.filter(search_model='Facter')
+        for cache_item in cache_items:
+            search_fields.append(cache_item.search_field)
 
     elif model.lower() == 'condition':
-        conditions = Condition.objects.values('condition_name').distinct()
-        for condition in conditions:
-            search_fields.append(condition['condition_name'])
+        cache_items = SearchFieldCache.objects.filter(search_model='Condition')
+        for cache_item in cache_items:
+            search_fields.append(cache_item.search_field)
 
     elif model.lower() == 'external script':
-        plugin_sript_rows = PluginScriptRow.objects.values('pluginscript_name', 'submission__plugin').distinct()
-        for row in plugin_sript_rows:
-            string = '%s=>%s' %(row['submission__plugin'], row['pluginscript_name'])
-            search_fields.append(string)
+        cache_items = SearchFieldCache.objects.filter(search_model='External Script')
+        for cache_item in cache_items:
+            search_fields.append(cache_item.search_field)
 
     output = {}
     output['fields'] = sorted(search_fields)

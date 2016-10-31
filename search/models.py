@@ -56,3 +56,13 @@ class SearchRow(models.Model):
     position = models.IntegerField()
     class Meta:
         ordering = ['position']
+
+class SearchFieldCache(models.Model):
+    SEARCH_MODEL_CHOICES = (
+        ('Machine', 'Machine'),
+        ('Facter', 'Facter'),
+        ('Condition', 'Condition'),
+        ('External Script', 'External Script'),
+    )
+    search_model = models.CharField(choices=SEARCH_MODEL_CHOICES, default='AND', max_length=254, verbose_name='Search item')
+    search_field = models.CharField(max_length=254)

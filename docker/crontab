@@ -1,2 +1,1 @@
-#*/5 * * * * root echo "Hello world" >> /var/log/cron.log 2>&1
-* * * * * root /usr/local/bin/search_maint.sh >> /var/log/cron.log 2>&1
+*/5 * * * * root /usr/local/bin/search_maint.sh > /dev/null 2>&1

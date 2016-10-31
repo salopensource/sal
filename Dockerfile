@@ -54,12 +54,14 @@ ADD docker/nginx/nginx-env.conf /etc/nginx/main.d/
 ADD docker/nginx/sal.conf /etc/nginx/sites-enabled/sal.conf
 ADD docker/nginx/nginx.conf /etc/nginx/nginx.conf
 ADD docker/crontab /etc/cron.d/search-maint
+ADD docker/search_maint.sh /usr/local/bin/search_maint.sh
 
 RUN chmod 755 /run.sh && \
     update-rc.d -f nginx remove && \
     rm -f /etc/nginx/sites-enabled/default && \
     ln -s $APP_DIR /home/app/sal && \
-    chmod 644 /etc/cron.d/search-maint
+    chmod 644 /etc/cron.d/search-maint &&\
+    chmod 755 /usr/local/bin/search_maint.sh
 
 WORKDIR $APP_DIR
 EXPOSE 8000

@@ -2,7 +2,7 @@
 
 cd $APP_DIR
 ADMIN_PASS=${ADMIN_PASS:-}
-# service monit stop
+
 python manage.py migrate --noinput
 python manage.py collectstatic --noinput
 python manage.py installwatson
@@ -29,6 +29,7 @@ tail -n 0 -f /var/log/gunicorn/gunicorn*.log & tail -n 0 -f $APP_DIR/sal.log &
 export PYTHONPATH=$PYTHONPATH:$APP_DIR
 export DJANGO_SETTINGS_MODULE='sal.settings'
 
+printenv | sed 's/^\(.*\)$/export \1/g' > /env_vars.sh
 
 if [ "$DOCKER_SAL_DEBUG" = "true" ] || [ "$DOCKER_SAL_DEBUG" = "True" ] || [ "$DOCKER_SAL_DEBUG" = "TRUE" ] ; then
     service nginx stop

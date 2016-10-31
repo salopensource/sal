@@ -1,2 +1,2 @@
 #*/5 * * * * root echo "Hello world" >> /var/log/cron.log 2>&1
-* * * * * root /home/docker/sal/manage.py search_maintenance >> /var/log/cron.log 2>&1
+* * * * * root /usr/local/bin/search_maint.sh >> /var/log/cron.log 2>&1

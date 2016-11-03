@@ -1981,6 +1981,7 @@ def checkin(request):
 
     if 'Plugin_Results' in report_data:
         utils.process_plugin_script(report_data.get('Plugin_Results'), machine)
+
     # Remove existing PendingUpdates for the machine
     updates = machine.pending_updates.all().delete()
     now = django.utils.timezone.now()
@@ -2233,6 +2234,7 @@ def checkin(request):
                     condition = Condition(machine=machine, condition_name=condition_name, condition_data=utils.safe_unicode(condition_data))
                     condition.save()
 
+    utils.run_plugin_processing(machine, report_data)
     utils.get_version_number()
     return HttpResponse("Sal report submmitted for %s"
                         % data.get('name'))

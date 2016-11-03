@@ -136,6 +136,44 @@ def get_plugin_scripts(plugin, hash_only=False, script_name=None):
         script_output['hash'] = hashlib.sha256(script_content).hexdigest()
         return script_output
 
+def run_plugin_processing(machine, report_data):
+    # Build the manager
+    manager = PluginManager()
+    # Tell it the default place(s) where to find plugins
+    manager.setPluginPlaces([settings.PLUGIN_DIR, os.path.join(settings.PROJECT_DIR, 'server/plugins')])
+    # Load all plugins
+    manager.collectPlugins()
+
+    enabled_reports = Report.objects.all()
+    for enabled_report in enabled_reports:
+        for plugin in manager.getAllPlugins():
+            if enabled_report.name == plugin.name:
+                # Not all plugins will have a checkin_processor
+                try:
+                    plugin.plugin_object.checkin_processor(machine, report_data)
+                except:
+                    pass
+    # Get all the enabled plugins
+    enabled_plugins = Plugin.objects.all()
+    for enabled_plugin in enabled_plugins:
+        # Loop round the plugins and print their names.
+        for plugin in manager.getAllPlugins():
+            # Not all plugins will have a checkin_processor
+            try:
+                plugin.plugin_object.checkin_processor(machine, report_data)
+            except:
+                pass
+
+    # Get all the enabled plugins
+    enabled_plugins = MachineDetailPlugin.objects.all()
+    for enabled_plugin in enabled_plugins:
+        # Loop round the plugins and print their names.
+        for plugin in manager.getAllPlugins():
+            # Not all plugins will have a checkin_processor
+            try:
+                plugin.plugin_object.checkin_processor(machine, report_data)
+            except:
+                pass
 
 def send_report():
     output = {}

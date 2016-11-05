@@ -15,28 +15,28 @@
 
     <link href='//fonts.googleapis.com/css?family=Lato' rel='stylesheet' type='text/css'>
     <!-- LESS Compiler -->
-    <script src="{{ STATIC_URL }}js/less-1.4.2.min.js"></script>
+    <script src="/static/js/less-1.4.2.min.js"></script>
 
     <!-- Bootstrap Core CSS -->
-    <link href="{{ STATIC_URL }}css/bootstrap.min.css" rel="stylesheet">
+    <link href="/static/css/bootstrap.min.css" rel="stylesheet">
 
     <!-- MetisMenu CSS -->
-    <link href="{{ STATIC_URL }}css/plugins/metisMenu/metisMenu.min.css" rel="stylesheet">
+    <link href="/static/css/plugins/metisMenu/metisMenu.min.css" rel="stylesheet">
 
     <!-- Timeline CSS -->
-    <link href="{{ STATIC_URL }}css/plugins/timeline.css" rel="stylesheet">
+    <link href="/static/css/plugins/timeline.css" rel="stylesheet">
 
     <!-- DataTables CSS -->
-    <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}DataTables-1.10.11/css/dataTables.bootstrap.min.css"/>
+    <link rel="stylesheet" type="text/css" href="/static/DataTables-1.10.11/css/dataTables.bootstrap.min.css"/>
 
     <!-- Custom CSS -->
-    <link href="{{ STATIC_URL }}css/sb-admin-2.css" rel="stylesheet">
+    <link href="/static/css/sb-admin-2.css" rel="stylesheet">
 
     <!-- Morris Charts CSS -->
-    <link href="{{ STATIC_URL }}css/plugins/morris.css" rel="stylesheet">
+    <link href="/static/css/plugins/morris.css" rel="stylesheet">
 
     <!-- Custom Fonts -->
-    <link href="{{ STATIC_URL }}font-awesome-4.1.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+    <link href="/static/font-awesome-4.1.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
 
     <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
     <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
@@ -46,23 +46,23 @@
     <![endif]-->
 
     <!-- jQuery Version 1.11.0 -->
-    <script src="{{ STATIC_URL }}js/jquery-1.11.0.js"></script>
+    <script src="/static/js/jquery-1.11.0.js"></script>
 
     <!-- Bootstrap Core JavaScript -->
-    <script src="{{ STATIC_URL }}js/bootstrap.min.js"></script>
+    <script src="/static/js/bootstrap.min.js"></script>
 
     <!-- Metis Menu Plugin JavaScript -->
-    <script src="{{ STATIC_URL }}js/plugins/metisMenu/metisMenu.min.js"></script>
+    <script src="/static/js/plugins/metisMenu/metisMenu.min.js"></script>
 
 
     <!-- Custom Theme JavaScript -->
-    <script src="{{ STATIC_URL }}js/sb-admin-2.js"></script>
+    <script src="/static/js/sb-admin-2.js"></script>
 
     <!-- DataTables JavaScript -->
-    <script type="text/javascript" src="{{ STATIC_URL }}DataTables-1.10.11/js/jquery.dataTables.min.js"></script>
-    <script type="text/javascript" src="{{ STATIC_URL }}DataTables-1.10.11/js/dataTables.bootstrap.min.js"></script>
+    <script type="text/javascript" src="/static/DataTables-1.10.11/js/jquery.dataTables.min.js"></script>
+    <script type="text/javascript" src="/static/DataTables-1.10.11/js/dataTables.bootstrap.min.js"></script>
 
-    <script src="{{ STATIC_URL }}js/retryAjax.js"></script>
+    <script src="/static/js/retryAjax.js"></script>
     {% block script %}
     {% endblock %}
 
@@ -92,7 +92,7 @@
                     </a>
                     <ul class="dropdown-menu dropdown-user">
                         {% if user.has_usable_password %}
-                        <li><a href="{% url 'django.contrib.auth.views.password_change' %}"><i class="fa fa-user fa-fw"></i> {% trans "Change password" %}</a>
+                        <li><a href="{% url 'password_change' %}"><i class="fa fa-user fa-fw"></i> {% trans "Change password" %}</a>
                         </li>
                         {% endif %}
                         <li>{{user.userlevel}}</li>
@@ -104,7 +104,7 @@
 
                         {% endif %}
                         <li class="divider"></li>
-                        <li><a href="{% url 'django.contrib.auth.views.logout_then_login' %}"><i class="fa fa-sign-out fa-fw"></i> Logout</a>
+                        <li><a href="{% url 'logout_then_login' %}"><i class="fa fa-sign-out fa-fw"></i> Logout</a>
                         </li>
                     </ul>
                     <!-- /.dropdown-user -->
@@ -133,6 +133,11 @@
                         </form>
                             <!-- /input-group -->
                         </li>
+                        {% if 'search' not in request.path %}
+                        <li>
+                            <a href="{% url 'search_index' %}"><i class="fa fa-fw fa-magic"></i> Advanced Search</a>
+                        </li>
+                        {% endif %}
                         {% block nav %}
                         {% endblock %}
 
@@ -159,9 +164,9 @@
 {% block modal %}
 {% endblock %}
 <!-- Morris Charts JavaScript -->
-<script src="{{STATIC_URL}}js/plugins/morris/raphael.min.js"></script>
-<script src="{{STATIC_URL}}js/plugins/morris/morris.min.js"></script>
-<script src="{{ STATIC_URL }}bootstrap-list-filter.min.js"></script>
+<script src="/static/js/plugins/morris/raphael.min.js"></script>
+<script src="/static/js/plugins/morris/morris.min.js"></script>
+<script src="/static/bootstrap-list-filter.min.js"></script>
 </body>
 
 </html>

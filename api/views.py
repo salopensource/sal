@@ -53,7 +53,35 @@ def machine_detail(request, serial):
         machine.delete()
         return HttpResponse(status=204)
 
+@csrf_exempt
 @validate_api_key
+def machine_full_detail(request, serial):
+    """
+    Retrieve, update or delete a machine.
+    """
+    try:
+        machine = Machine.objects.get(serial=serial)
+    except Machine.DoesNotExist:
+        return HttpResponse(status=404)
+
+    if request.method == 'GET':
+        serializer = FullMachineSerializer(machine)
+        return JSONResponse(serializer.data)
+
+    elif request.method == 'PUT':
+        data = JSONParser().parse(request)
+        serializer = FullMachineSerializer(machine, data=data)
+        if serializer.is_valid():
+            serializer.save()
+            return JSONResponse(serializer.data)
+        return JSONResponse(serializer.errors, status=400)
+
+    elif request.method == 'DELETE':
+        machine.delete()
+        return HttpResponse(status=204)
+
+@validate_api_key
+@csrf_exempt
 def machine_inventory(request, serial):
     """
     Retrieve machine inventory.
@@ -65,6 +93,38 @@ def machine_inventory(request, serial):
 
     serializer = InventoryItemSerializer(machine.inventoryitem_set.all(), many=True)
     return JSONResponse(serializer.data)
+
+@validate_api_key
+@csrf_exempt
+def pending_apple_updates(request, serial):
+    """
+    Retrieves pending apple updates for a given machine.
+    """
+    try:
+        machine = Machine.objects.get(serial=serial)
+    except Machine.DoesNotExist:
+        return HttpResponse(status=404)
+
+    updates = PendingAppleUpdate.objects.filter(machine=machine)
+    if request.method == 'GET':
+        serializer = PendingAppleUpdateSerializer(updates, many=True)
+        return JSONResponse(serializer.data)
+
+@validate_api_key
+@csrf_exempt
+def pending_updates(request, serial):
+    """
+    Retrieves pending updates for a given machine.
+    """
+    try:
+        machine = Machine.objects.get(serial=serial)
+    except Machine.DoesNotExist:
+        return HttpResponse(status=404)
+
+    updates = PendingUpdate.objects.filter(machine=machine)
+    if request.method == 'GET':
+        serializer = PendingpdateSerializer(updates, many=True)
+        return JSONResponse(serializer.data)
 
 @validate_api_key
 @csrf_exempt

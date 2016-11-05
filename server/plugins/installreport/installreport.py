@@ -55,7 +55,7 @@ class InstallReport(IPlugin):
 
         output = []
         # Get the install reports for the machines we're looking for
-        installed_updates = InstalledUpdate.objects.filter(machine=machines).values('update', 'display_name', 'update_version').distinct()
+        installed_updates = InstalledUpdate.objects.filter(machine__in=machines).values('update', 'display_name', 'update_version').order_by().distinct()
         for catalog in catalog_objects:
             catalog.content = plistlib.readPlistFromString(self.safe_unicode(catalog.content))
         for installed_update in installed_updates:
@@ -83,9 +83,9 @@ class InstallReport(IPlugin):
 
                 item['version'] = installed_update['update_version']
                 item['name'] = installed_update['update']
-                item['install_count'] = InstalledUpdate.objects.filter(machine=machines, update=installed_update['update'], update_version=installed_update['update_version'], installed=True).count()
+                item['install_count'] = InstalledUpdate.objects.filter(machine__in=machines, update=installed_update['update'], update_version=installed_update['update_version'], installed=True).count()
 
-                item['pending_count'] = PendingUpdate.objects.filter(machine=machines, update=installed_update['update'], update_version=installed_update['update_version']).count()
+                item['pending_count'] = PendingUpdate.objects.filter(machine__in=machines, update=installed_update['update'], update_version=installed_update['update_version']).count()
                 item['installed_url'] = 'Installed?VERSION=%s&&NAME=%s' % (item['version'], item['name'])
                 item['pending_url'] = 'Pending?VERSION=%s&&NAME=%s' % (item['version'], item['name'])
                 item = self.replace_dots(item)

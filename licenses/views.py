@@ -1,9 +1,9 @@
 from django.http import HttpResponse, HttpRequest, HttpResponseRedirect
 from django.template import RequestContext, Template, Context
-from django.shortcuts import render_to_response, get_object_or_404, redirect
+from django.shortcuts import render, get_object_or_404, redirect
 from django.http import Http404
 from django.contrib.auth.decorators import login_required, permission_required
-from django.core.context_processors import csrf
+from django.template.context_processors import csrf
 from forms import *
 
 import plistlib
@@ -24,8 +24,8 @@ def index(request):
         'licenses': all_licenses,
          'user': request.user,
          'page': 'licenses'}
-    return render_to_response('licenses/index.html', c, context_instance=RequestContext(request))
-    
+    return render(request, 'licenses/index.html', c)
+
 
 @login_required
 def new_license(request):
@@ -44,8 +44,8 @@ def new_license(request):
     else:
         form = LicenseForm()
     c = {'form': form}
-    
-    return render_to_response('forms/new_license.html', c, context_instance=RequestContext(request))
+
+    return render(request, 'forms/new_license.html', c)
 
 @login_required
 def edit_license(request, license_id):
@@ -69,7 +69,7 @@ def edit_license(request, license_id):
     user_level = user.userprofile.level
     if user_level != 'GA':
         return redirect(server.views.index)
-    return render_to_response('forms/edit_license.html', c, context_instance=RequestContext(request))
+    return render(request, 'forms/edit_license.html', c)
 
 @login_required
 def delete_license(request, license_id):
@@ -109,7 +109,7 @@ def available(request, key, item_name=''):
         licenses = License.objects.all().filter(business_unit=business_unit)
         for license in licenses:
             info[license.item_name] = license.available()
-            
+
     if output_style == 'json':
         return HttpResponse(json.dumps(info), content_type='application/json')
     else:

@@ -1,0 +1,5 @@
+<li><a href="{{ request.META.HTTP_REFERER }}"><i class="fa fa-fw fa-chevron-left"></i> Back</a></li>
+<li>
+    <a href="{% url 'search_list' %}"><i class="fa fa-fw fa-search"></i> Saved Searches</a>
+    <a href="{% url 'search_new' %}"><i class="fa fa-fw fa-search-plus"></i> New Search</a>
+</li>

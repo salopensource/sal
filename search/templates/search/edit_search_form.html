@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% load dashboard_extras %}
+{% load bootstrap3 %}
+{% block script %}
+<script type="text/javascript" charset="utf-8">
+    $(document).ready(function() {
+        $('.groupList').dataTable({
+            //"sDom": "<'row'<'span6'l><'span6'f>r>t<'row'<'span6'i><'span6'p>>",
+            // "iDisplayLength": 20,
+            "lengthMenu": [[20, 50, -1], [20, 50, "All"]],
+            // "sPaginationType": "bootstrap",
+            "bFilter": false,
+            // "aaSorting": [[1,'asc']]
+        });
+        $( "#id_search_models" ).change(function() {
+          //alert( "Handler for .change() called." );
+          $.ajax({
+            url:'/search/get_fields/'+$(this).val(),
+            type:'GET',
+            dataType: 'json',
+            success: function( json ) {
+                $('#id_search_field').empty();
+                $("#id_search_field").select2({
+                  data: json['fields']
+                })
+            }
+        });
+        });
+    } );
+</script>
+<!--link rel="stylesheet" href="/static/css/select2.css"-->
+<link rel="stylesheet" href="/static/css/select2-bootstrap.css">
+<!--script src="/static/js/vendor/select2.min.js"></script-->
+<link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.3/css/select2.min.css" rel="stylesheet" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.3/js/select2.min.js"></script>
+<script src="/static/js/main.js"></script>
+{% endblock %}
+
+{% block nav %}
+{% include "search/nav.html" %}
+{% endblock %}
+{% block content %}
+
+<div class="panel panel-default">
+{% if title %}
+    <div class="panel-heading">
+        New row
+    </div>
+{% endif %}
+    <div class="panel-body">
+        <form action="{% url 'search_row_edit' search_row.id %}" method="post">
+            {% csrf_token %}
+            {% bootstrap_form form %}
+            <p><button type="submit" class="btn btn-primary">Save</button></p>
+        </form>
+    </div>
+</div>
+{% endblock %}

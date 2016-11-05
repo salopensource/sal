@@ -4,7 +4,9 @@ Sal is a multi-tenanted reporting dashboard for [Munki](https://github.com/munki
 
 With Sal, you are able to allow access to reports on certain sets of machines to certain people - for example, giving a manager access to the reports on the machines in their department.
 
-![Sal](assets/Sal.png)
+Sal also features powerful search capabilities and application inventory and support for Munki's license tracking.
+
+![Sal](https://github.com/salopensource/sal/raw/master/assets/Sal.png)
 
 ## Getting Started
 
@@ -18,6 +20,8 @@ If you would like a demo of setting up Sal along with some of the features pleas
 
 Sal has full search across machines, Facts and Munki conditions. For more information, see [it's documentation](https://github.com/salopensource/sal/wiki/Search).
 
+![Search](https://github.com/salopensource/sal/raw/master/assets/Built Search.png)
+
 ## Plugins
 
 You can enable, disable and re-order your plugins from the Settings page, under the 'person' menu in the main menu bar. For more information on using and installing your own plugins, visit the [Using Plugins](https://github.com/salopensource/sal/wiki/Installing-and-using-plugins) page.
@@ -28,28 +32,18 @@ After re-ordering and hiding plugins from some screens, you might even want to m
 
 Sal has built in brute force protection. See it's [documentation](https://github.com/salopensource/sal/wiki/Brute-force-protection) for more details or if you're using Docker, see how to turn it on in the [Readme](https://github.com/salopensource/sal/blob/master/docker/README.md).
 
-## LDAP Authentication
+## External Authentication
 
-There is a variant of Sal that supports LDAP authenctication. At this time, only using the [sal-ldap Docker image](https://hub.docker.com/r/macadmins/sal-ldap) is supported.
+There are variants of Sal that support both [SAML](https://hub.docker.com/r/macadmins/sal-saml/) and [LDAP](https://hub.docker.com/r/macadmins/sal-ldap/) authentication.
 
 ## Having problems?
 
-You should check out the [troubleshooting](https://github.com/salopensource/sal/wiki/Troubleshooting) page.
+You should check out the [troubleshooting](https://github.com/salopensource/sal/wiki/Troubleshooting) page, consider getting in touch via the [Google group](http://groups.google.com/group/sal-discuss), or heading over the the #slack channel on the [macadmins.org Slack](http://macadmins.org).
 
 ## API
 
 There is a simple API available for Sal. Documentation can be found at [docs/Api.md](https://github.com/salopensource/sal/wiki/API)
 
-## Discussion
-
-Discussion on the use and development of Sal is [available on the Google Group](http://groups.google.com/group/sal-discuss).
-
 ## Why Sal?
 
 It's the Internet's fault! I asked on Twitter what I should call it, and Peter Bukowinski ([@pmbuko](https://twitter.com/pmbuko)) [suggested the name](https://twitter.com/pmbuko/status/377155523726290944), based on a Monkey puppet called [Sal Minella](http://muppet.wikia.com/wiki/Sal_Minella).
-
-## Thank yous
-
-First off, thanks to Greg Neagle and the rest of the Munki Project. Munki is an amazing product, and managing OS X at any scale would be miserable without it.
-
-Thanks to Puppet Labs for basically giving away the crown jewels for nothing.

@@ -7,7 +7,8 @@ from xml.parsers.expat import ExpatError
 import base64
 import bz2
 from datetime import datetime
-import watson
+from watson import search as watson
+from dateutil.parser import *
 
 def GenerateKey():
     key = ''.join(random.choice(string.ascii_lowercase + string.digits) for x in range(128))
@@ -79,11 +80,11 @@ class Machine(models.Model):
     hd_total = models.CharField(db_index=True, max_length=256, null=True, blank=True)
     hd_percent = models.CharField(max_length=256, null=True, blank=True)
     console_user = models.CharField(max_length=256, null=True, blank=True)
-    machine_model = models.CharField(max_length=256, null=True, blank=True)
-    machine_model_friendly = models.CharField(max_length=256, null=True, blank=True)
+    machine_model = models.CharField(db_index=True,max_length=256, null=True, blank=True)
+    machine_model_friendly = models.CharField(db_index=True,max_length=256, null=True, blank=True)
     cpu_type = models.CharField(max_length=256, null=True, blank=True)
     cpu_speed = models.CharField(max_length=256, null=True, blank=True)
-    os_family = models.CharField(max_length=256, choices=OS_CHOICES, verbose_name="OS Family", default="Darwin")
+    os_family = models.CharField(db_index=True,max_length=256, choices=OS_CHOICES, verbose_name="OS Family", default="Darwin")
     last_checkin = models.DateTimeField(db_index=True, blank=True,null=True)
     first_checkin = models.DateTimeField(db_index=True, blank=True,null=True, auto_now_add=True)
     report = models.TextField(editable=True, null=True)
@@ -210,7 +211,7 @@ class UpdateHistory(models.Model):
     version = models.CharField(max_length=254, db_index=True)
     pending_recorded = models.BooleanField(default=False)
     def __unicode__(self):
-        return "%s: %s %s" % (self.machine, self.name, self.version)
+        return u"%s: %s %s" % (self.machine, self.name, self.version)
     class Meta:
         ordering = ['name']
         unique_together = (("machine", "name", "version", "update_type"),)
@@ -228,7 +229,7 @@ class UpdateHistoryItem(models.Model):
     status = models.CharField(max_length=254, choices=UPDATE_STATUS, verbose_name="Status")
     extra = models.TextField(blank=True, null=True)
     def __unicode__(self):
-        return "%s: %s %s %s %s" % (self.update_history.machine, self.update_history.name, self.update_history.version, self.status, self.recorded)
+        return u"%s: %s %s %s %s" % (self.update_history.machine, self.update_history.name, self.update_history.version, self.status, self.recorded)
     class Meta:
         ordering = ['-recorded']
         unique_together = (("update_history", "recorded", "status"),)
@@ -236,10 +237,10 @@ class UpdateHistoryItem(models.Model):
 
 class Fact(models.Model):
     machine = models.ForeignKey(Machine, related_name='facts')
-    fact_name = models.TextField()
-    fact_data = models.TextField()
+    fact_name = models.TextField(db_index=True)
+    fact_data = models.TextField(db_index=True)
     def __unicode__(self):
-        return '%s: %s' % (self.fact_name, self.fact_data)
+        return u'%s: %s' % (self.fact_name, self.fact_data)
     class Meta:
         ordering = ['fact_name']
 
@@ -255,47 +256,62 @@ class HistoricalFact(models.Model):
 
 class Condition(models.Model):
     machine = models.ForeignKey(Machine, related_name='conditions')
-    condition_name = models.CharField(max_length=255)
-    condition_data = models.TextField()
+    condition_name = models.CharField(max_length=255,db_index=True)
+    condition_data = models.TextField(db_index=True)
     def __unicode__(self):
         return self.condition_name
     class Meta:
         ordering = ['condition_name']
 
-class OSQueryResult(models.Model):
-    machine = models.ForeignKey(Machine, related_name='osquery_results')
-    name = models.CharField(db_index=True, max_length=255)
-    hostidentifier = models.CharField(db_index=True, max_length=255, null=True, blank=True)
-    unix_time = models.IntegerField(db_index=True)
-    def __unicode__(self):
-        return self.name
-    class Meta:
-        ordering = ['unix_time']
-
-class OSQueryColumn(models.Model):
-    osquery_result = models.ForeignKey(OSQueryResult, related_name='osquery_columns')
-    column_name = models.CharField(db_index=True, max_length=255)
-    column_data = models.TextField(null=True, blank=True)
-    action = models.CharField(max_length=255, null=True, blank=True)
-    def __unicode__(self):
-        return self.column_name
-
 class PluginScriptSubmission(models.Model):
     machine = models.ForeignKey(Machine)
-    plugin = models.CharField(max_length=255)
+    plugin = models.CharField(db_index=True, max_length=255)
     historical = models.BooleanField(default=False)
     recorded = models.DateTimeField(auto_now_add=True)
     def __unicode__(self):
-        return '%s: %s' % (self.machine, self.plugin)
+        return u'%s: %s' % (self.machine, self.plugin)
     class Meta:
         ordering = ['recorded', 'plugin']
 
 class PluginScriptRow(models.Model):
     submission = models.ForeignKey(PluginScriptSubmission)
-    pluginscript_name = models.TextField()
-    pluginscript_data = models.TextField(blank=True, null=True)
+    pluginscript_name = models.TextField(db_index=True)
+    pluginscript_data = models.TextField(blank=True, null=True, db_index=True)
+    pluginscript_data_string = models.TextField(blank=True, null=True, db_index=True)
+    pluginscript_data_int = models.IntegerField(default=0)
+    pluginscript_data_date = models.DateTimeField(blank=True, null=True)
+    submission_and_script_name = models.TextField(db_index=True)
+    def save(self):
+        try:
+            self.pluginscript_data_int = int(self.pluginscript_data)
+        except:
+            self.pluginscript_data_int = 0
+
+        try:
+            self.pluginscript_data_string = str(self.pluginscript_data)
+        except:
+            self.pluginscript_data_string = ""
+
+        try:
+            self.pluginscript_data_date = parse(self.pluginscript_data)
+        except:
+            # Try converting it to an int if we're here
+            try:
+                if int(self.pluginscript_data) != 0:
+
+                    try:
+                        self.pluginscript_data_date = datetime.fromtimestamp(int(self.pluginscript_data))
+                    except:
+                        self.pluginscript_data_date = None
+                else:
+                    self.pluginscript_data_date = None
+            except:
+                self.pluginscript_data_date = None
+
+
+        super(PluginScriptRow, self).save()
     def __unicode__(self):
-        return '%s: %s' % (self.pluginscript_name, self.pluginscript_data)
+        return u'%s: %s' % (self.pluginscript_name, self.pluginscript_data)
     class Meta:
         ordering = ['pluginscript_name']
 
@@ -392,7 +408,3 @@ class ApiKey(models.Model):
     class Meta:
         ordering = ['name']
         unique_together = ("public_key", "private_key")
-
-watson.register(Machine, exclude=("report", "errors", "warnings",))
-watson.register(Fact)
-watson.register(Condition)

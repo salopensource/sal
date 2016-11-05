@@ -27,6 +27,15 @@ try:
 except:
     BRUTE_COOLOFF = 3
 
+# Read the BASIC_AUTH setting from env var
+try:
+    if getenv('DOCKER_SAL_BASIC_AUTH').lower() == 'true':
+        DEBUG = True
+    else:
+        DEBUG = False
+except:
+    DEBUG = True
+
 # Read the Brute force protection limit setting from env var
 try:
     BRUTE_LIMIT = int(getenv('DOCKER_SAL_BRUTE_LIMIT'))

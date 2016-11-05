@@ -1,11 +1,11 @@
 import os
 DEBUG = False
-TEMPLATE_DEBUG = DEBUG
 APPEND_SLASH=True
 BRUTE_PROTECT = False
 BRUTE_COOLOFF = 3
 BRUTE_LIMIT = 3
 PROJECT_DIR = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), os.path.pardir))
+PLUGIN_DIR = os.path.join(PROJECT_DIR, 'plugins')
 ADMINS = (
     # ('Your Name', 'your_email@example.com'),
 )
@@ -13,6 +13,30 @@ ADMINS = (
 AUTH_PROFILE_MODULE = "sal.UserProfile"
 DISPLAY_NAME = 'Sal'
 MANAGERS = ADMINS
+
+TEMPLATES = [
+    {
+        'BACKEND': 'django.template.backends.django.DjangoTemplates',
+        'DIRS': [
+            os.path.join(PROJECT_DIR, 'templates'),
+            os.path.join(PROJECT_DIR, 'server', 'plugins'),
+            PLUGIN_DIR,
+        ],
+        'APP_DIRS': True,
+        'OPTIONS': {
+            'context_processors': [
+                 'django.template.context_processors.debug',
+                 'django.template.context_processors.request',
+                'django.contrib.auth.context_processors.auth',
+                'django.contrib.messages.context_processors.messages',
+                'sal.context_processors.display_name',
+                'sal.context_processors.sal_version',
+            ],
+            'debug': DEBUG,
+            'autoescape': False,
+        },
+    },
+]
 
 # The order plugins (if they're able to be shown on that particular page) will be displayed in. If not listed here, will be listed alphabetically after.
 PLUGIN_ORDER = ['Activity','Status','OperatingSystem', 'MunkiVersion', 'Uptime', 'Memory', 'DiskSpace', 'PendingAppleUpdates', 'Pending3rdPartyUpdates', 'PuppetStatus']
@@ -32,8 +56,6 @@ HIDE_PLUGIN_FROM_BUSINESS_UNIT = {
 HIDE_PLUGIN_FROM_MACHINE_GROUP = {
     # 'DiskSpace':['1']
 }
-
-PLUGIN_DIR = os.path.join(PROJECT_DIR, 'plugins')
 
 # If you want to have a default machine group, define this to the key of
 # that group.
@@ -123,36 +145,17 @@ STATICFILES_FINDERS = (
 # Make this unique, and don't share it with anybody.
 SECRET_KEY = 'ppf%ls0f)mzkf#2dl-nbf^8f&=84py=y^u8^z-f559*d36y_@v'
 
-# List of callables that know how to import templates from various sources.
-TEMPLATE_LOADERS = (
-    'django.template.loaders.filesystem.Loader',
-    'django.template.loaders.app_directories.Loader',
-#     'django.template.loaders.eggs.Loader',
-)
-TEMPLATE_CONTEXT_PROCESSORS = (
-    "django.contrib.auth.context_processors.auth",
-    "django.core.context_processors.debug",
-    "django.core.context_processors.i18n",
-    "django.core.context_processors.media",
-    "django.core.context_processors.static",
-    "django.core.context_processors.tz",
-    "django.contrib.messages.context_processors.messages",
-    "sal.context_processors.display_name",
-    "sal.context_processors.config_installed",
-    "sal.context_processors.sal_version",
-    "django.core.context_processors.request",
-
-)
-
 MIDDLEWARE_CLASSES = (
-    'django.middleware.common.CommonMiddleware',
+    'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'django.contrib.auth.middleware.SessionAuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
-    # Uncomment the next line for simple clickjacking protection:
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'server.middleware.AddToBU.AddToBU'
+    'server.middleware.AddToBU.AddToBU',
+    'search.current_user.CurrentUserMiddleware',
 )
 
 LOGIN_URL='/login'
@@ -162,16 +165,6 @@ ROOT_URLCONF = 'sal.urls'
 
 # Python dotted path to the WSGI application used by Django's runserver.
 WSGI_APPLICATION = 'sal.wsgi.application'
-
-TEMPLATE_DIRS = (
-    # Put strings here, like "/home/html/django_templates" or "C:/www/django/templates".
-    # Always use forward slashes, even on Windows.
-    # Don't forget to use absolute paths, not relative paths.
-    os.path.join(PROJECT_DIR, 'templates'),
-    os.path.join(PROJECT_DIR, 'server', 'plugins'),
-    PLUGIN_DIR,
-)
-
 
 INSTALLED_APPS = (
     'django.contrib.auth',
@@ -192,6 +185,8 @@ INSTALLED_APPS = (
     'licenses',
     'bootstrap3',
     'watson',
+    'datatableview',
+    'search',
 )
 
 LOGGING = {

@@ -3,7 +3,7 @@ from django.conf import settings
 from server.models import *
 from django.shortcuts import get_object_or_404
 from yapsy.PluginManager import PluginManager
-from django.db.models import Max
+from django.db.models import Max, Count
 import time
 import os
 import logging
@@ -18,7 +18,38 @@ def safe_unicode(s):
     else:
         return s
 
+def csvrelated(header_item, facts, kind):
+    found = False
+    if kind == 'facter':
+        for fact in facts:
+            try:
+                if header_item == 'Facter: '+fact['fact_name']:
+                    found = True
+                    return fact['fact_data']
+            except:
+                pass
+    elif kind == 'condition':
+        for condition in facts:
+            try:
+                if header_item == 'Munki Condition: '+condition['condition_name']:
+                    found = True
+                    return condition['condition_data']
+            except:
+                pass
+    elif kind == 'pluginscript':
+        for pluginscriptrow in facts:
+            try:
+                if header_item == pluginscriptrow['submission_and_script_name']:
+                    found = True
+                    return pluginscriptrow['pluginscript_data']
+            except:
+                pass
+    if found == False:
+        return ''
+
+
 def process_plugin_script(results, machine):
+    rows_to_create = []
     for plugin in results:
         if 'plugin' not in plugin or 'data' not in plugin:
             # Make sure what we need has been sent to the server
@@ -33,8 +64,13 @@ def process_plugin_script(results, machine):
         plugin_script.save()
         data = plugin.get('data')
         for key, value in data.items():
-            plugin_row = PluginScriptRow(submission=safe_unicode(plugin_script), pluginscript_name=safe_unicode(key), pluginscript_data=safe_unicode(value))
-            plugin_row.save()
+            plugin_row = PluginScriptRow(submission=safe_unicode(plugin_script), pluginscript_name=safe_unicode(key), pluginscript_data=safe_unicode(value), submission_and_script_name=(safe_unicode(plugin_name + ': ' + key)))
+            if is_postgres():
+                rows_to_create.append(plugin_row)
+            else:
+                plugin_row.save()
+    if is_postgres():
+        PluginScriptRow.objects.bulk_create(rows_to_create)
 
 def get_version_number():
     # See if we're sending data
@@ -100,6 +136,44 @@ def get_plugin_scripts(plugin, hash_only=False, script_name=None):
         script_output['hash'] = hashlib.sha256(script_content).hexdigest()
         return script_output
 
+def run_plugin_processing(machine, report_data):
+    # Build the manager
+    manager = PluginManager()
+    # Tell it the default place(s) where to find plugins
+    manager.setPluginPlaces([settings.PLUGIN_DIR, os.path.join(settings.PROJECT_DIR, 'server/plugins')])
+    # Load all plugins
+    manager.collectPlugins()
+
+    enabled_reports = Report.objects.all()
+    for enabled_report in enabled_reports:
+        for plugin in manager.getAllPlugins():
+            if enabled_report.name == plugin.name:
+                # Not all plugins will have a checkin_processor
+                try:
+                    plugin.plugin_object.checkin_processor(machine, report_data)
+                except:
+                    pass
+    # Get all the enabled plugins
+    enabled_plugins = Plugin.objects.all()
+    for enabled_plugin in enabled_plugins:
+        # Loop round the plugins and print their names.
+        for plugin in manager.getAllPlugins():
+            # Not all plugins will have a checkin_processor
+            try:
+                plugin.plugin_object.checkin_processor(machine, report_data)
+            except:
+                pass
+
+    # Get all the enabled plugins
+    enabled_plugins = MachineDetailPlugin.objects.all()
+    for enabled_plugin in enabled_plugins:
+        # Loop round the plugins and print their names.
+        for plugin in manager.getAllPlugins():
+            # Not all plugins will have a checkin_processor
+            try:
+                plugin.plugin_object.checkin_processor(machine, report_data)
+            except:
+                pass
 
 def send_report():
     output = {}
@@ -131,6 +205,21 @@ def send_report():
     else:
         return 'Error'
 
+def listify_condition_data(condition_data):
+    if type(condition_data) == list:
+        result = None
+        for item in condition_data:
+            # is this the first loop? If so, no need for a comma
+            if result:
+                result = result + ', '+str(item)
+            else:
+                result = item
+        if result == None:
+            # Handle empty arrays
+            result = '{EMPTY}'
+        condition_data = result
+    return condition_data
+
 def loadDefaultPlugins():
     # Are there any plugin objects? If not, add in the defaults
     plugin_objects = Plugin.objects.all().count()
@@ -149,7 +238,22 @@ def reloadPluginsModel():
     plugin_objects = Plugin.objects.all().count()
     if plugin_objects == 0:
         order = 0
-        PLUGIN_ORDER = ['Activity','Status','OperatingSystem', 'MunkiVersion', 'Uptime', 'Memory', 'DiskSpace', 'PendingAppleUpdates', 'Pending3rdPartyUpdates']
+        PLUGIN_ORDER = [
+            'Activity',
+            'Status',
+            'OperatingSystem',
+            'MunkiVersion',
+            'Uptime',
+            'Memory',
+            'DiskSpace',
+            'PendingAppleUpdates',
+            'Pending3rdPartyUpdates',
+            'Encryption',
+            'Gatekeeper',
+            'Sip',
+            'XprotectVersion'
+            ]
+
         for item in PLUGIN_ORDER:
             order = order + 1
             plugin = Plugin(name=item, order=order)
@@ -227,6 +331,12 @@ def reloadPluginsModel():
                     pass
                 dbplugin.save()
 
+def is_postgres():
+    if settings.DATABASES['default']['ENGINE'] == 'django.db.backends.postgresql_psycopg2':
+        return True
+    else:
+        return False
+
 def disabled_plugins(plugin_kind='main'):
     enabled_plugins = Plugin.objects.all()
     # Build the manager
@@ -243,7 +353,7 @@ def disabled_plugins(plugin_kind='main'):
                 plugin_type = plugin.plugin_object.plugin_type()
             except:
                 plugin_type = 'builtin'
-            if plugin_type != 'report':
+            if plugin_type == 'builtin':
                 try:
                     item = Plugin.objects.get(name=plugin.name)
                 except Plugin.DoesNotExist:
@@ -388,14 +498,32 @@ def decode_to_string(base64bz2data):
         return ''
 
 
-def friendly_machine_model(serial):
-    payload = {'cc': serial[-4:]}
-    try:
-        r = requests.get('http://support-sp.apple.com/sp/product', params=payload)
-        return ET.fromstring(r.text).find('configCode').text
-    except:
-        return None
-        
+def friendly_machine_model(machine):
+    # See if the machine's model already has one (and only one) friendly name
+    output = None
+    friendly_names = Machine.objects.filter(machine_model=machine.machine_model).values('machine_model_friendly').annotate(num_models=Count('machine_model_friendly',
+                                         distinct=True)).distinct()
+    for name in friendly_names:
+        if name['num_models'] == 1:
+            output = name['machine_model_friendly']
+            break
+    if output is None and not machine.serial.startswith('VM'):
+        payload = {'cc': machine.serial[-4:]}
+        output = None
+        try:
+            r = requests.get('http://support-sp.apple.com/sp/product', params=payload)
+        except requests.exceptions.RequestException as e:
+            print machine.serial
+            print e
+
+        try:
+            output = ET.fromstring(r.text).find('configCode').text
+        except:
+            print 'Did not receive a model name for %s, %s. Error:' % (machine.serial, machine.machine_model)
+            print r.text
+
+    return output
+
 def display_time(seconds, granularity=2):
     result = []
     intervals = (

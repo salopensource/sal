@@ -63,3 +63,6 @@ test-pg-db
 sal.log
 
 .idea
+
+setup/Vagrantfile
+setup/.vagrant

@@ -103,7 +103,7 @@ def search_machines(search_id, machines):
             operators = {
                 'Contains': '__icontains',
                 '=': '__exact',
-                '!=': '!=', # We negate this later on
+                '!=': '', # We negate this later on
                 '<': '__lt',
                 '<=': '__lte',
                 '>': '__gt',
@@ -136,7 +136,7 @@ def search_machines(search_id, machines):
                 }
 
             if model != None:
-                if operator != '!=':
+                if operator != '':
                     q_object = Q(**querystring)
 
                 else:
@@ -152,7 +152,7 @@ def search_machines(search_id, machines):
                     'pluginscriptsubmission__pluginscriptrow__submission_and_script_name': submission_and_script_name,
                     'pluginscriptsubmission__pluginscriptrow__pluginscript_data%s'% (operator): search_row.search_term
                 }
-                if operator != '!=':
+                if operator != '':
                     q_object = Q(**querystring)
 
                 else:

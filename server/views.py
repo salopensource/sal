@@ -107,7 +107,7 @@ def index(request):
         business_units = user.businessunit_set.all()
         if user.businessunit_set.count() == 0:
             c = {'user': request.user, }
-            return render('server/no_access.html', c)
+            return render(request, 'server/no_access.html', c)
         if user.businessunit_set.count() == 1:
             # user only has one BU, redirect to it
             for bu in user.businessunit_set.all():
@@ -824,7 +824,7 @@ def edit_business_unit(request, bu_id):
     user_level = user.userprofile.level
     if user_level != 'GA':
         return redirect(index)
-    return render('forms/edit_business_unit.html', c)
+    return render(request, 'forms/edit_business_unit.html', c)
 
 @login_required
 def delete_business_unit(request, bu_id):

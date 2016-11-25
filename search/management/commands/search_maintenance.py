@@ -14,7 +14,7 @@ class Command(BaseCommand):
     help = 'Cleans up old searches and rebuilds search fields cache'
 
     def handle(self, *args, **options):
-        old_searches = SavedSearch.objects.filter(created__lt=datetime.datetime.today()-datetime.timedelta(days=30))
+        old_searches = SavedSearch.objects.filter(created__lt=datetime.datetime.today()-datetime.timedelta(days=30), save_search=False)
         old_searches.delete()
 
         search_fields = []

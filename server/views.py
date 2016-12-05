@@ -614,6 +614,7 @@ def report_load(request, pluginName, page='front', theID=None):
     if page =='machine_detail':
         machines = Machine.objects.get(pk=theID)
 
+    output = ''
     # send the machines and the data to the plugin
     for plugin in manager.getAllPlugins():
         if plugin.name == pluginName:

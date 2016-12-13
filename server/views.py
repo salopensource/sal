@@ -1559,26 +1559,17 @@ def settings_machine_detail_plugins(request):
 
 @login_required
 def plugin_plus(request, plugin_id):
-    user = request.user
-    profile = UserProfile.objects.get(user=user)
-    user_level = profile.level
-    if user_level != 'GA':
-        return redirect('server.views.index')
-
-    # get current plugin order
-    current_plugin = get_object_or_404(Plugin, pk=plugin_id)
-
-    # get 'old' next one
-    old_plugin = get_object_or_404(Plugin, order=(int(current_plugin.order)+1))
-    current_plugin.order = current_plugin.order + 1
-    current_plugin.save()
-
-    old_plugin.order = old_plugin.order - 1
-    old_plugin.save()
+    _swap_plugin(request, plugin_id, 1)
     return redirect('plugins_page')
+
 
 @login_required
 def plugin_minus(request, plugin_id):
+    _swap_plugin(request, plugin_id, -1)
+    return redirect('plugins_page')
+
+
+def _swap_plugin(request, plugin_id, direction):
     user = request.user
     profile = UserProfile.objects.get(user=user)
     user_level = profile.level
@@ -1587,16 +1578,27 @@ def plugin_minus(request, plugin_id):
 
     # get current plugin order
     current_plugin = get_object_or_404(Plugin, pk=plugin_id)
-    #print current_plugin
-    # get 'old' previous one
 
-    old_plugin = get_object_or_404(Plugin, order=(int(current_plugin.order)-1))
-    current_plugin.order = current_plugin.order - 1
+	# Since it is sorted by order, we can swap the order attribute
+    # of the selected plugin with the adjacent object in the queryset.
+
+	# get all plugins (ordered by their order attribute).
+    plugins = Plugin.objects.all()
+
+    # Find the index in the query of the moving plugin.
+    index = 0
+    for plugin in plugins:
+        if plugin.id == int(plugin_id):
+            break
+        index += 1
+
+	# Perform the swap.
+    temp_id = current_plugin.order
+    current_plugin.order = plugins[index + direction].order
     current_plugin.save()
+    plugins[index + direction].order = temp_id
+    plugins[index + direction].save()
 
-    old_plugin.order = old_plugin.order + 1
-    old_plugin.save()
-    return redirect('plugins_page')
 
 @login_required
 def plugin_disable(request, plugin_id):

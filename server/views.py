@@ -557,7 +557,7 @@ def plugin_load(request, pluginName, page='front', theID=None):
         business_unit = get_object_or_404(BusinessUnit, pk=theID)
         machine_groups = MachineGroup.objects.filter(business_unit=business_unit).all()
 
-        machines = Machine.objects.filter(machine_group=machine_groups)
+        machines = Machine.objects.filter(machine_group__in=machine_groups)
 
     if page == 'group_dashboard':
         # only get machines from that group

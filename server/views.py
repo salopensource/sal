@@ -1422,7 +1422,20 @@ def machine_detail(request, machine_id):
 
     output = utils.orderPluginOutput(output)
 
-    c = {'user':user, 'machine_group': machine_group, 'business_unit': business_unit, 'report': report, 'install_results': install_results, 'removal_results': removal_results, 'machine': machine, 'facts':facts, 'conditions':conditions, 'ip_address':ip_address, 'uptime_enabled':uptime_enabled, 'uptime':uptime,'output':output }
+    c = {'user':user,
+         'machine_group': machine_group,
+         'business_unit': business_unit,
+         'report': report,
+         'install_results': install_results,
+         'removal_results': removal_results,
+         'machine': machine,
+         'facts': facts,
+         'conditions': conditions,
+         'ip_address': ip_address,
+         'uptime_enabled': uptime_enabled,
+         'uptime': uptime,
+         'output': output,
+         "ssh_account": settings.SSH_ACCOUNT}
     return render(request, 'server/machine_detail.html', c)
 
 # Edit Machine

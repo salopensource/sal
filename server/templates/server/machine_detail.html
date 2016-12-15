@@ -57,6 +57,14 @@ $( document ).ready(function() {
       <img src='https://km.support.apple.com.edgekey.net/kb/securedImage.jsp?configcode={{machine.serial|slice:"8:" }}&size=120x120'>
       <br>
       <h2 style="text-align:center">{{ machine.hostname }}</h2>
+      <span style="display: block; margin: 0px auto; text-align: center;" title="Remote Connections">
+					<button type="button" class="btn btn-default">
+						<span class="glyphicon glyphicon-log-in" aria-hidden="true"></span><a href="vnc://{{ ip_address }}"> VNC</a>
+					</button>
+					<button type="button" class="btn btn-default">
+						<span class="glyphicon glyphicon-log-in" aria-hidden="true"></span><a href="ssh://{% if ssh_account %}{{ ssh_account}}{% endif %}{{ ip_address }}"> SSH</a>
+					</button>
+      </span>
       <span style="display: block; margin: 0px auto; text-align: center;" title="Last report date">
         <b>Report</b> :: {{ machine.last_checkin|date:"Y-m-d H:i" }}
       </span>

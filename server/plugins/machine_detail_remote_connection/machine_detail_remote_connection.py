@@ -3,14 +3,10 @@
 
 
 from django.conf import settings
-from django.db.models import Count
-from django.shortcuts import get_object_or_404
 from django.template import loader, Context
 from yapsy.IPlugin import IPlugin
-from yapsy.PluginManager import PluginManager
 
-from server.models import *
-import server.utils as utils
+from server.models import Machine
 
 
 class RemoteConnection(IPlugin):
@@ -42,7 +38,7 @@ class RemoteConnection(IPlugin):
             except Machine.DoesNotExist:
                 pass
 
-        if hasattr(settings,  "SSH_ACCOUNT") and settings.SSH_ACCOUNT:
+        if hasattr(settings, "SSH_ACCOUNT") and settings.SSH_ACCOUNT:
             ssh_account = settings.SSH_ACCOUNT + "@"
         else:
             ssh_account = ""

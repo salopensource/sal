@@ -42,7 +42,7 @@ class RemoteConnection(IPlugin):
             except Machine.DoesNotExist:
                 pass
 
-        if hasattr(settings,  "SSH_ACCOUNT"):
+        if hasattr(settings,  "SSH_ACCOUNT") and settings.SSH_ACCOUNT:
             ssh_account = settings.SSH_ACCOUNT + "@"
         else:
             ssh_account = ""

@@ -8,7 +8,7 @@
 			<button type="button" class="btn btn-default">
 				<span class="glyphicon glyphicon-log-in" aria-hidden="true"></span><a href="{{ ssh_url }}"> SSH</a>
 			</button>
-			<span style="padding: 6px 12px;"><a class="btn btn-info">Account</a> {% if ssh_account %}{{ ssh_account }}{% else %}your username{% endif %}</span>
+			{% if ssh_account %}<span style="padding: 6px 12px;"><a class="btn btn-info">Account</a> {{ ssh_account }}</span>{% endif %}
     </dl>
   </div>
 </div>

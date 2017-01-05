@@ -1,0 +1,21 @@
+<div class="panel panel-default">
+  <div class="panel-body">
+    <dl class="dl-horizontal">
+      <legend><h5 class"text-uppercase">FileVault Escrow</h5></legend>
+      {% if escrowed == None %}
+      <dt>Escrow Status</dt>
+      <dd>Unknown</dd>
+      {% endif %}
+      {% if escrowed == True %}
+      <dt>Escrow Status</dt>
+      <dd>Escrowed</dd>
+      <dt>Escrow Date</dt>
+      <dd>{{date_escrowed}}</dd>
+      {% endif %}
+      {% if escrowed == False %}
+      <dt>Escrow Status</dt>
+      <dd>Not Escrowed</dd>
+      {% endif %}
+    </dl>
+  </div>
+</div>

@@ -116,8 +116,8 @@ try:
 except:
     CRYPT_URL = None
 
-# elif locale.getdefaultlocale():
-#     LANGUAGE_CODE = locale.getdefaultlocale()[0]
+elif locale.getdefaultlocale():
+    LANGUAGE_CODE = locale.getdefaultlocale()[0]
 else:
     LANGUAGE_CODE = 'en_US'
 

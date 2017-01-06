@@ -116,11 +116,6 @@ try:
 except:
     CRYPT_URL = None
 
-elif locale.getdefaultlocale():
-    LANGUAGE_CODE = locale.getdefaultlocale()[0]
-else:
-    LANGUAGE_CODE = 'en_US'
-
 if BRUTE_PROTECT == True:
     ###############
     # Max number of login attemts within the ``AXES_COOLOFF_TIME``

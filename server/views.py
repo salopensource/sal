@@ -2008,13 +2008,18 @@ def checkin(request):
                     update_history.save()
 
                 if update_history.pending_recorded == False:
-                    update_history_item = UpdateHistoryItem(update_history=update_history, status='pending', recorded=now, uuid=uuid)
-                    update_history_item.save()
+                    update_history_item = UpdateHistoryItem(
+                        update_history=update_history, status='pending',
+                        recorded=now, uuid=uuid)
+
                     update_history.pending_recorded = True
+                    update_history.save()
+
                     if utils.is_postgres():
                         update_history_item_to_save.append(update_history_item)
                     else:
-                        update_history.save()
+                        update_history_item.save()
+
         if utils.is_postgres():
             PendingUpdate.objects.bulk_create(pending_update_to_save)
             UpdateHistoryItem.objects.bulk_create(update_history_item_to_save)

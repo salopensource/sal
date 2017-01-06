@@ -1987,8 +1987,6 @@ def checkin(request):
     if 'Plugin_Results' in report_data:
         utils.process_plugin_script(report_data.get('Plugin_Results'), machine)
 
-    # Let's only call this method once, and just use the value.
-
     # Remove existing PendingUpdates for the machine
     updates = machine.pending_updates.all().delete()
     now = django.utils.timezone.now()

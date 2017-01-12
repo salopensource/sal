@@ -1,22 +1,25 @@
-import operator
-from django.conf import settings
-from server.models import *
-from django.shortcuts import get_object_or_404
-from yapsy.PluginManager import PluginManager
-from django.db.models import Max, Count
-import time
-import os
-import logging
-import requests
-import plistlib
 import hashlib
+import logging
+import os
+import plistlib
+import time
 import xml.etree.ElementTree as ET
+
+from django.conf import settings
+from django.db.models import Max, Count
+from django.shortcuts import get_object_or_404
+import requests
+from yapsy.PluginManager import PluginManager
+
+from server.models import *
+
 
 def safe_unicode(s):
     if isinstance(s, unicode):
         return s.encode('utf-8', errors='replace')
     else:
         return s
+
 
 def csvrelated(header_item, facts, kind):
     found = False
@@ -50,12 +53,11 @@ def csvrelated(header_item, facts, kind):
 
 def process_plugin_script(results, machine):
     rows_to_create = []
+
+    results = get_newest_plugin_results(results)
+
     for plugin in results:
-        if 'plugin' not in plugin or 'data' not in plugin:
-            # Make sure what we need has been sent to the server
-            print 'required fields are not in plugin'
-            break
-        plugin_name = plugin.get('plugin')
+        plugin_name = plugin['plugin']
         historical = plugin.get('historical', False)
         if historical == False:
             deleted_sub = PluginScriptSubmission.objects.filter(machine=machine, plugin=safe_unicode(plugin_name)).delete()
@@ -69,8 +71,31 @@ def process_plugin_script(results, machine):
                 rows_to_create.append(plugin_row)
             else:
                 plugin_row.save()
+
     if is_postgres():
         PluginScriptRow.objects.bulk_create(rows_to_create)
+
+
+def get_newest_plugin_results(results):
+    """Get the newest, correct results from plugin scripts.
+
+    If the sal scripts fail to complete the plugin process, duplicate
+    entries can be introduced into the results. Filter out all but the
+    newest result for each plugin.
+    Drop any results that don't have the required keys.
+    """
+    results = [result for result in results if is_valid_plugin_result(result)]
+
+    # Since the last write to each dictionary key in this comprehension is
+    # also the newest, (the sal_postflight appends results to the end), we can
+    # then use just the `values()` method to get back a list of plugin results
+    # dicts.
+    return {result['plugin']: result for result in results}.values()
+
+
+def is_valid_plugin_result(result):
+    return not any(key not in result for key in ('plugin', 'data'))
+
 
 def get_version_number():
     # See if we're sending data
@@ -105,11 +130,13 @@ def get_version_number():
                 current_version.value = r.text
                 current_version.save()
 
+
 def get_install_type():
     if os.path.exists('/home/docker'):
         return 'docker'
     else:
         return 'bare'
+
 
 def get_plugin_scripts(plugin, hash_only=False, script_name=None):
     # Try to get all files in the plugins 'scripts' dir
@@ -135,6 +162,7 @@ def get_plugin_scripts(plugin, hash_only=False, script_name=None):
         script_output['filename'] = script
         script_output['hash'] = hashlib.sha256(script_content).hexdigest()
         return script_output
+
 
 def run_plugin_processing(machine, report_data):
     # Build the manager
@@ -175,6 +203,7 @@ def run_plugin_processing(machine, report_data):
             except:
                 pass
 
+
 def send_report():
     output = {}
     # get total number of machines
@@ -205,6 +234,7 @@ def send_report():
     else:
         return 'Error'
 
+
 def listify_condition_data(condition_data):
     if type(condition_data) == list:
         result = None
@@ -220,6 +250,7 @@ def listify_condition_data(condition_data):
         condition_data = result
     return condition_data
 
+
 def loadDefaultPlugins():
     # Are there any plugin objects? If not, add in the defaults
     plugin_objects = Plugin.objects.all().count()
@@ -230,6 +261,7 @@ def loadDefaultPlugins():
             order = order + 1
             plugin = Plugin(name=item, order=order)
             plugin.save()
+
 
 def reloadPluginsModel():
     if settings.DEBUG:
@@ -331,11 +363,13 @@ def reloadPluginsModel():
                     pass
                 dbplugin.save()
 
+
 def is_postgres():
     if settings.DATABASES['default']['ENGINE'] == 'django.db.backends.postgresql_psycopg2':
         return True
     else:
         return False
+
 
 def disabled_plugins(plugin_kind='main'):
     enabled_plugins = Plugin.objects.all()
@@ -387,6 +421,7 @@ def disabled_plugins(plugin_kind='main'):
 
     return output
 
+
 def UniquePluginOrder(plugin_type='builtin'):
     if plugin_type == 'builtin':
         plugins = Plugin.objects.all()
@@ -399,6 +434,7 @@ def UniquePluginOrder(plugin_type='builtin'):
     id_max = plugins.aggregate(Max('order'))['order__max']
     id_next = id_max + 1 if id_max else 1
     return id_next
+
 
 def orderPlugins(output):
     # Sort by name initially
@@ -414,6 +450,7 @@ def orderPlugins(output):
     lookup = {s: i for i, s in enumerate(search_items)}
     output = sorted(output, key=lambda o: lookup[o['name']])
     return output
+
 
 def orderPluginOutput(pluginOutput, page='front', theID=None):
     #output = orderPlugins(pluginOutput)
@@ -483,11 +520,13 @@ def orderPluginOutput(pluginOutput, page='front', theID=None):
             # print item['name']+' total: '+str(total_width)
     return output
 
+
 def getBUmachines(theid):
     business_unit = get_object_or_404(BusinessUnit, pk=theid)
     machines = Machine.objects.filter(machine_group__business_unit=business_unit)
 
     return machines
+
 
 def decode_to_string(base64bz2data):
     '''Decodes an string compressed via bz2 and base64 encoded.'''
@@ -523,6 +562,7 @@ def friendly_machine_model(machine):
             print r.text
 
     return output
+
 
 def display_time(seconds, granularity=2):
     result = []

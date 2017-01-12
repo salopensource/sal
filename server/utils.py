@@ -50,12 +50,11 @@ def csvrelated(header_item, facts, kind):
 
 def process_plugin_script(results, machine):
     rows_to_create = []
+
+    results = get_newest_plugin_results(results)
+
     for plugin in results:
-        if 'plugin' not in plugin or 'data' not in plugin:
-            # Make sure what we need has been sent to the server
-            print 'required fields are not in plugin'
-            break
-        plugin_name = plugin.get('plugin')
+        plugin_name = plugin['plugin']
         historical = plugin.get('historical', False)
         if historical == False:
             deleted_sub = PluginScriptSubmission.objects.filter(machine=machine, plugin=safe_unicode(plugin_name)).delete()
@@ -69,8 +68,31 @@ def process_plugin_script(results, machine):
                 rows_to_create.append(plugin_row)
             else:
                 plugin_row.save()
+
     if is_postgres():
         PluginScriptRow.objects.bulk_create(rows_to_create)
+
+
+def get_newest_plugin_results(results):
+    """Get the newest, correct results from plugin scripts.
+
+    If the sal scripts fail to complete the plugin process, duplicate
+    entries can be introduced into the results. Filter out all but the
+    newest result for each plugin.
+    Drop any results that don't have the required keys.
+    """
+    results = [result for result in results if is_valid_plugin_result(result)]
+
+    # Since the last write to each dictionary key in this comprehension is
+    # also the newest, (the sal_postflight appends results to the end), we can
+    # then use just the `values()` method to get back a list of plugin results
+    # dicts.
+    return {result['plugin']: result for result in results}.values()
+
+
+def is_valid_plugin_result(result):
+    return not any(key not in result for key in ('plugin', 'data'))
+
 
 def get_version_number():
     # See if we're sending data

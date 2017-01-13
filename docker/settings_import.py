@@ -121,3 +121,12 @@ if BRUTE_PROTECT == True:
     # Max number of login attemts within the ``AXES_COOLOFF_TIME``
     AXES_LOGIN_FAILURE_LIMIT = BRUTE_LIMIT
     AXES_COOLOFF_TIME=BRUTE_COOLOFF
+
+# Read the SSH_ACCOUNT setting from env var
+try:
+    if getenv('DOCKER_SAL_SSH_ACCOUNT'):
+        SSH_ACCOUNT = getenv('DOCKER_SAL_SSH_ACCOUNT')
+    else:
+        SSH_ACCOUNT = None
+except:
+    SSH_ACCOUNT = None

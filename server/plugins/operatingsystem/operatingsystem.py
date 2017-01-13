@@ -1,3 +1,5 @@
+from distutils.version import LooseVersion
+
 from yapsy.IPlugin import IPlugin
 from yapsy.PluginManager import PluginManager
 from django.template import loader, Context
@@ -29,10 +31,16 @@ class OperatingSystem(IPlugin):
         if page == 'group_dashboard':
             t = loader.get_template('operatingsystem/templates/os_id.html')
 
-        try:
-            os_info = machines.values('operating_system').annotate(count=Count('operating_system')).order_by('operating_system')
-        except:
-            os_info = []
+        # Remove invalid versions, then count and sort the results.
+        os_info = machines.exclude(
+            operating_system__isnull=True, operating_system__exact="").values(
+                'operating_system').annotate(
+                    count=Count('operating_system')).order_by(
+                        'operating_system')
+        os_info = sorted(
+            os_info,
+            key=lambda x: LooseVersion(x["operating_system"]),
+            reverse=True)
 
         c = Context({
             'title': 'Operating Systems',
@@ -43,7 +51,10 @@ class OperatingSystem(IPlugin):
         return t.render(c)
 
     def filter_machines(self, machines, data):
-        # You will be passed a QuerySet of machines, you then need to perform some filtering based on the 'data' part of the url from the show_widget output. Just return your filtered list of machines and the page title.
+        # You will be passed a QuerySet of machines, you then need to perform
+        # some filtering based on the 'data' part of the url from the
+        # show_widget output. Just return your filtered list of machines and
+        # the page title.
 
         machines = machines.filter(operating_system__exact=data)
 

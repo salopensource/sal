@@ -13,6 +13,7 @@ ADMINS = (
 AUTH_PROFILE_MODULE = "sal.UserProfile"
 DISPLAY_NAME = 'Sal'
 MANAGERS = ADMINS
+CRYPT_URL = None
 
 TEMPLATES = [
     {

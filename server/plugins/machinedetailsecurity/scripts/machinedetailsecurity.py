@@ -62,7 +62,7 @@ def main():
         plist = []
     result = {}
     result['plugin'] = 'MachineDetailSecurity'
-    result['historical'] = True
+    result['historical'] = False
     data = {}
 
     data['Filevault'] = filevault

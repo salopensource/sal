@@ -557,7 +557,7 @@ def plugin_load(request, pluginName, page='front', theID=None):
         business_unit = get_object_or_404(BusinessUnit, pk=theID)
         machine_groups = MachineGroup.objects.filter(business_unit=business_unit).all()
 
-        machines = Machine.objects.filter(machine_group=machine_groups)
+        machines = Machine.objects.filter(machine_group__in=machine_groups)
 
     if page == 'group_dashboard':
         # only get machines from that group
@@ -1420,7 +1420,7 @@ def machine_detail(request, machine_id):
                 output.append(data)
                 break
 
-    output = utils.orderPluginOutput(output)
+    output = utils.orderPluginOutput(output, page="machine_detail")
 
     c = {'user':user, 'machine_group': machine_group, 'business_unit': business_unit, 'report': report, 'install_results': install_results, 'removal_results': removal_results, 'machine': machine, 'facts':facts, 'conditions':conditions, 'ip_address':ip_address, 'uptime_enabled':uptime_enabled, 'uptime':uptime,'output':output }
     return render(request, 'server/machine_detail.html', c)
@@ -1559,26 +1559,17 @@ def settings_machine_detail_plugins(request):
 
 @login_required
 def plugin_plus(request, plugin_id):
-    user = request.user
-    profile = UserProfile.objects.get(user=user)
-    user_level = profile.level
-    if user_level != 'GA':
-        return redirect('server.views.index')
-
-    # get current plugin order
-    current_plugin = get_object_or_404(Plugin, pk=plugin_id)
-
-    # get 'old' next one
-    old_plugin = get_object_or_404(Plugin, order=(int(current_plugin.order)+1))
-    current_plugin.order = current_plugin.order + 1
-    current_plugin.save()
-
-    old_plugin.order = old_plugin.order - 1
-    old_plugin.save()
+    _swap_plugin(request, plugin_id, 1)
     return redirect('plugins_page')
+
 
 @login_required
 def plugin_minus(request, plugin_id):
+    _swap_plugin(request, plugin_id, -1)
+    return redirect('plugins_page')
+
+
+def _swap_plugin(request, plugin_id, direction):
     user = request.user
     profile = UserProfile.objects.get(user=user)
     user_level = profile.level
@@ -1587,16 +1578,27 @@ def plugin_minus(request, plugin_id):
 
     # get current plugin order
     current_plugin = get_object_or_404(Plugin, pk=plugin_id)
-    #print current_plugin
-    # get 'old' previous one
 
-    old_plugin = get_object_or_404(Plugin, order=(int(current_plugin.order)-1))
-    current_plugin.order = current_plugin.order - 1
+	# Since it is sorted by order, we can swap the order attribute
+    # of the selected plugin with the adjacent object in the queryset.
+
+	# get all plugins (ordered by their order attribute).
+    plugins = Plugin.objects.all()
+
+    # Find the index in the query of the moving plugin.
+    index = 0
+    for plugin in plugins:
+        if plugin.id == int(plugin_id):
+            break
+        index += 1
+
+	# Perform the swap.
+    temp_id = current_plugin.order
+    current_plugin.order = plugins[index + direction].order
     current_plugin.save()
+    plugins[index + direction].order = temp_id
+    plugins[index + direction].save()
 
-    old_plugin.order = old_plugin.order + 1
-    old_plugin.save()
-    return redirect('plugins_page')
 
 @login_required
 def plugin_disable(request, plugin_id):

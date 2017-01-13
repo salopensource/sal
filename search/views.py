@@ -182,7 +182,7 @@ def search_machines(search_id, machines):
 
         search_group_counter = search_group_counter + 1
 
-    machines = machines.filter(queries).distinct()
+    machines = machines.filter(queries).values('id','serial', 'hostname', 'console_user', 'last_checkin').distinct()
     return machines
 
 # Show search

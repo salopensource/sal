@@ -1,0 +1,14 @@
+<div class="panel panel-default">
+  <div class="panel-body">
+    <dl class="dl-horizontal">
+      <legend><h5 class"text-uppercase">Remote Connections</h5></legend>
+			<button type="button" class="btn btn-default">
+				<span class="glyphicon glyphicon-log-in" aria-hidden="true"></span><a href="{{ vnc_url }}"> VNC</a>
+			</button>
+			<button type="button" class="btn btn-default">
+				<span class="glyphicon glyphicon-log-in" aria-hidden="true"></span><a href="{{ ssh_url }}"> SSH</a>
+			</button>
+			{% if ssh_account %}<span style="padding: 6px 12px;"><a class="btn btn-info">Account</a> {{ ssh_account }}</span>{% endif %}
+    </dl>
+  </div>
+</div>

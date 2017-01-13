@@ -43,6 +43,10 @@ if settings.DEBUG:
     import logging
     logging.basicConfig(level=logging.INFO)
 
+
+# The database probably isn't going to change while this is loaded.
+IS_POSTGRES = utils.is_postgres()
+
 # @csrf_exempt
 # @login_required
 # def search(request):
@@ -1997,7 +2001,7 @@ def checkin(request):
             version = str(update['version_to_install'])
             if version:
                 pending_update = PendingUpdate(machine=machine, display_name=display_name, update_version=version, update=update_name)
-                if utils.is_postgres():
+                if IS_POSTGRES:
                     pending_update_to_save.append(pending_update)
                 else:
                     pending_update.save()
@@ -2010,14 +2014,19 @@ def checkin(request):
                     update_history.save()
 
                 if update_history.pending_recorded == False:
-                    update_history_item = UpdateHistoryItem(update_history=update_history, status='pending', recorded=now, uuid=uuid)
-                    update_history_item.save()
+                    update_history_item = UpdateHistoryItem(
+                        update_history=update_history, status='pending',
+                        recorded=now, uuid=uuid)
+
                     update_history.pending_recorded = True
-                    if utils.is_postgres():
+                    update_history.save()
+
+                    if IS_POSTGRES:
                         update_history_item_to_save.append(update_history_item)
                     else:
-                        update_history.save()
-        if utils.is_postgres():
+                        update_history_item.save()
+
+        if IS_POSTGRES:
             PendingUpdate.objects.bulk_create(pending_update_to_save)
             UpdateHistoryItem.objects.bulk_create(update_history_item_to_save)
 
@@ -2032,11 +2041,11 @@ def checkin(request):
             installed = update.get('installed')
             if version != 'UNKNOWN' and version != None and len(version) != 0:
                 installed_update = InstalledUpdate(machine=machine, display_name=display_name, update_version=version, update=update_name, installed=installed)
-                if utils.is_postgres():
+                if IS_POSTGRES:
                     installed_updates_to_save.append(installed_update)
                 else:
                     installed_update.save()
-        if utils.is_postgres():
+        if IS_POSTGRES:
             InstalledUpdate.objects.bulk_create(installed_updates_to_save)
 
     # Remove existing PendingAppleUpdates for the machine
@@ -2067,7 +2076,7 @@ def checkin(request):
 
 
     # if Facter data is submitted, we need to first remove any existing facts for this machine
-    if utils.is_postgres():
+    if IS_POSTGRES:
         # If we are using postgres, we can just dump them all and do a bulk create
         if 'Facter' in report_data:
             facts = machine.facts.all().delete()
@@ -2181,7 +2190,7 @@ def checkin(request):
                     fact = HistoricalFact(machine=machine, fact_name=fact_name, fact_data=fact_data, fact_recorded=datetime.now())
                     fact.save()
 
-    if utils.is_postgres():
+    if IS_POSTGRES:
         if 'Conditions' in report_data:
             machine.conditions.all().delete()
             conditions_to_be_created = []

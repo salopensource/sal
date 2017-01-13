@@ -9,4 +9,4 @@ docker run -d --name="postgres-sal" \
     -p 5432:5432 \
     grahamgilbert/postgres:9.4.5
 
-sleep 5
+sleep 30

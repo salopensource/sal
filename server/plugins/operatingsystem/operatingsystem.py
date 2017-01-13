@@ -1,4 +1,5 @@
 from distutils.version import LooseVersion
+from operator import itemgetter
 
 from yapsy.IPlugin import IPlugin
 from yapsy.PluginManager import PluginManager
@@ -36,15 +37,16 @@ class OperatingSystem(IPlugin):
         if page == 'group_dashboard':
             t = loader.get_template('operatingsystem/templates/os_id.html')
 
-        try:
-            os_info = machines.values('operating_system').annotate(
-                count=Count('operating_system')).order_by(
-                    'operating_system')
-            os_info = sorted(
-                os_info,
-                key=lambda x: LooseVersion(x["operating_system"]))
-        except:
-            os_info = []
+        # Remove invalid versions, then count and sort the results.
+        os_info = machines.exclude(
+            operating_system__isnull=True, operating_system__exact="").values(
+                'operating_system').annotate(
+                    count=Count('operating_system')).order_by(
+                        'operating_system')
+        os_info = sorted(
+            os_info,
+            key=lambda x: LooseVersion(x["operating_system"]),
+            reverse=True)
 
         c = Context({
             'title': 'Operating Systems',

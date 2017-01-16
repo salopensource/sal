@@ -235,17 +235,15 @@ class ApplicationListView(LegacyDatatableView, GroupMixin):
     def get_queryset(self):
         queryset = self.filter_queryset_by_group(self.model.objects).distinct()
 
-        # For now, remove cruft from results (until we can add prefs):
+        if hasattr(settings, "INVENTORY_EXCLUSIONS"):
+            exclusion_pattern = settings.INVENTORY_EXCLUSIONS
+        else:
+            exclusion_pattern = r''
 
-        # Virtualization proxied apps
-        crufty_bundles = ["com.vmware.proxyApp", "com.parallels.winapp"]
-        crufty_pattern = r"({}).*".format("|".join(crufty_bundles))
-
-        # Apple apps that are not generally used by users.
-        apple_cruft_pattern = (r'com.apple.(?!iPhoto)(?!iWork)(?!Aperture)'
-            r'(?!iDVD)(?!garageband)(?!iMovieApp)(?!Server)(?!dt\.Xcode).*')
-        queryset = queryset.exclude(bundleid__regex=crufty_pattern)
-        # queryset = queryset.exclude(bundleid__regex=apple_cruft_pattern)
+        # An empty pattern, i.e. r'', will exclude ALL apps, which is not
+        # desired.
+        if exclusion_pattern:
+            queryset = queryset.exclude(bundleid__regex=exclusion_pattern)
 
         return queryset
 

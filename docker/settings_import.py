@@ -131,10 +131,7 @@ try:
 except:
     SSH_ACCOUNT = None
 
-try:
-    if getenv('DOCKER_SAL_INVENTORY_EXCLUSIONS'):
-        INVENTORY_EXCLUSIONS = getenv('DOCKER_SAL_INVENTORY_EXCLUSIONS')
-    else:
-        INVENTORY_EXCLUSIONS = None
-except:
-    INVENTORY_EXCLUSIONS = None
+# If an exclusion pattern is provided as an env, use it. Otherwise,
+# just use the default specified in system_settings.
+if getenv('DOCKER_SAL_INVENTORY_EXCLUSIONS'):
+    INVENTORY_EXCLUSIONS = getenv('DOCKER_SAL_INVENTORY_EXCLUSIONS')

@@ -1,0 +1,8 @@
+[Core]
+Name = ARDInfo
+Module = ard_info
+
+[Documentation]
+Author = Shea Craig
+Version = 1.0
+Website = http://www.sheagcraig.com

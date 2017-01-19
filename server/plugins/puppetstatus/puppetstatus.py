@@ -45,10 +45,13 @@ class PuppetStatus(IPlugin):
                 checked_in_this_month = machines.filter(last_puppet_run__lte=month_ago, last_checkin__gte=month_ago).count()
             else:
                 checked_in_this_month = 0
+
+            success = machines.filter(last_puppet_run__isnull=False).filter(puppet_errors__exact=0).count()
         except:
             puppet_error = 0
             last_checkin = 0
             checked_in_this_month = 0
+            success = 0
 
 
         if last_checkin > 0:
@@ -64,6 +67,8 @@ class PuppetStatus(IPlugin):
             'month_count': checked_in_this_month,
             'plugin': 'PuppetStatus',
             'last_checkin_count': last_checkin,
+            'success_count': success,
+            'success_label': 'Successful',
             'theid': theid,
             'page': page
         })
@@ -78,6 +83,10 @@ class PuppetStatus(IPlugin):
         elif data =='1month':
             machines = machines.filter(last_puppet_run__lte=month_ago)
             title = 'Machines that haven\'t run Puppet for more than 1 Month'
+
+        elif data =='success':
+            machines = machines.filter(last_puppet_run__isnull=False).filter(puppet_errors__exact=0)
+            title = 'Machines that have run Puppet succesfully'
 
         else:
             machines = None

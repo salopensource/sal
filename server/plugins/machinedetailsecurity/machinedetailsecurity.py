@@ -14,7 +14,7 @@ class MachineDetailSecurity(IPlugin):
         return 4
 
     def get_description(self):
-        return 'Security relarted information'
+        return 'Security related information'
 
     def widget_content(self, page, machines=None, theid=None):
 

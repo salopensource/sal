@@ -186,6 +186,7 @@ def search_machines(search_id, machines):
     return machines
 
 # Show search
+@login_required
 def run_search(request, search_id):
     # Placeholder
     user_level = request.user.userprofile.level

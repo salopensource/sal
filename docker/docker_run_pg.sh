@@ -12,6 +12,5 @@ docker run -d \
     -e DOCKER_SAL_DEBUG="true" \
     --link postgres-sal:db \
     --name=sal \
-    --restart="always" \
     -p 8000:8000 \
     macadmins/sal

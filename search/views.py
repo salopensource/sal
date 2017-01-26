@@ -78,7 +78,7 @@ def list(request):
         }
     return render(request, 'search/list.html', c)
 
-def search_machines(search_id, machines):
+def search_machines(search_id, machines, full=False):
     saved_search = get_object_or_404(SavedSearch, pk=search_id)
     search_groups = saved_search.searchgroup_set.all()
     queries = Q()
@@ -182,7 +182,10 @@ def search_machines(search_id, machines):
 
         search_group_counter = search_group_counter + 1
 
-    machines = machines.filter(queries).values('id','serial', 'hostname', 'console_user', 'last_checkin').distinct()
+    if full == True:
+        machines = machines.filter(queries).distinct()
+    else:
+        machines = machines.filter(queries).values('id','serial', 'hostname', 'console_user', 'last_checkin').distinct()
     return machines
 
 # Show search
@@ -455,7 +458,7 @@ def export_csv(request, search_id):
     title = None
     machines = Machine.objects.all().defer('report','activity','os_family','install_log', 'install_log_hash')
 
-    machines = search_machines(search_id, machines)
+    machines = search_machines(search_id, machines, full=True)
 
     saved_search = get_object_or_404(SavedSearch, pk=search_id)
     pseudo_buffer = Echo()

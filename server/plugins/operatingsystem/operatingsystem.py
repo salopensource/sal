@@ -33,7 +33,8 @@ class OperatingSystem(IPlugin):
 
         # Remove invalid versions, then count and sort the results.
         os_info = machines.exclude(
-            operating_system__isnull=True, operating_system__exact="").values(
+            operating_system__isnull=True).exclude(
+                operating_system__exact='').values(
                 'operating_system').annotate(
                     count=Count('operating_system')).order_by(
                         'operating_system')

@@ -12,6 +12,7 @@ from search.models import *
 from search.forms import *
 import search.views
 import server.utils
+from inventory.models import *
 
 import json
 import re
@@ -130,6 +131,14 @@ def search_machines(search_id, machines, full=False):
 
             elif search_row.search_models == 'Condition':
                 model = Condition
+                querystring = {
+                    'conditions__condition_name': search_row.search_field,
+                    'conditions__condition_data%s' % (operator): search_row.search_term
+                }
+
+
+            elif search_row.search_models == 'Inventory':
+                model = Inventory
                 querystring = {
                     'conditions__condition_name': search_row.search_field,
                     'conditions__condition_data%s' % (operator): search_row.search_term

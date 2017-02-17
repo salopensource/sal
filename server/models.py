@@ -238,7 +238,7 @@ class UpdateHistoryItem(models.Model):
 class Fact(models.Model):
     machine = models.ForeignKey(Machine, related_name='facts')
     fact_name = models.TextField(db_index=True)
-    fact_data = models.TextField(db_index=True)
+    fact_data = models.TextField()
     def __unicode__(self):
         return u'%s: %s' % (self.fact_name, self.fact_data)
     class Meta:

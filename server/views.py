@@ -1429,8 +1429,6 @@ def machine_detail(request, machine_id):
     c = {'user':user, 'machine_group': machine_group, 'business_unit': business_unit, 'report': report, 'install_results': install_results, 'removal_results': removal_results, 'machine': machine, 'facts':facts, 'conditions':conditions, 'ip_address':ip_address, 'uptime_enabled':uptime_enabled, 'uptime':uptime,'output':output }
     return render(request, 'server/machine_detail.html', c)
 
-# Edit Machine
-
 # Delete Machine
 @login_required
 def delete_machine(request, machine_id):

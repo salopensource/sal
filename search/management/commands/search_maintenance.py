@@ -5,7 +5,7 @@ Cleans up old searches and rebuilds search fields cache
 from django.core.management.base import BaseCommand, CommandError
 from server.models import *
 from search.models import *
-from django.db.models import Q
+from inventory.models import *
 import server.utils as utils
 import datetime
 import server.utils
@@ -30,17 +30,26 @@ class Command(BaseCommand):
             'puppet_errors',
             'install_log_hash'
         ]
+
+        inventory_fields = [
+            'Name',
+            'Bundle ID',
+            'Bundle Name',
+            'Path'
+        ]
+
         facts = Fact.objects.values('fact_name').distinct()
         conditions = Condition.objects.values('condition_name').distinct()
         plugin_sript_rows = PluginScriptRow.objects.values('pluginscript_name', 'submission__plugin').distinct()
+        app_versions = Application.objects.values('name', 'bundleid').distinct()
 
         # force evaluation so we can safely delete the existing data
-        if facts:
-            pass
-        if conditions:
-            pass
-        if plugin_sript_rows:
-            pass
+        # if facts:
+        #     pass
+        # if conditions:
+        #     pass
+        # if plugin_sript_rows:
+        #     pass
 
         old_cache = SearchFieldCache.objects.all()
         old_cache.delete()
@@ -66,6 +75,19 @@ class Command(BaseCommand):
         for row in plugin_sript_rows:
             string = '%s=>%s' %(row['submission__plugin'], row['pluginscript_name'])
             cached_item = SearchFieldCache(search_model='External Script', search_field=string)
+            search_fields.append(cached_item)
+            if server.utils.is_postgres() == False:
+                cached_item.save()
+
+        for inventory_field in inventory_fields:
+            cached_item = SearchFieldCache(search_model='Application Inventory', search_field=inventory_field)
+            search_fields.append(cached_item)
+            if server.utils.is_postgres() == False:
+                cached_item.save()
+
+        for app in app_versions:
+            string = '%s=>%s' %(app['name'], app['bundleid'])
+            cached_item = SearchFieldCache(search_model='Application Version', search_field=string)
             search_fields.append(cached_item)
             if server.utils.is_postgres() == False:
                 cached_item.save()

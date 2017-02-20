@@ -30,11 +30,11 @@ except:
 # Read the BASIC_AUTH setting from env var
 try:
     if getenv('DOCKER_SAL_BASIC_AUTH').lower() == 'true':
-        DEBUG = True
+        BASIC_AUTH = True
     else:
-        DEBUG = False
+        BASIC_AUTH = False
 except:
-    DEBUG = True
+    BASIC_AUTH = True
 
 # Read the Brute force protection limit setting from env var
 try:

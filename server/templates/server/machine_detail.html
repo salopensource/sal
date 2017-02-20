@@ -38,12 +38,9 @@ $( document ).ready(function() {
 {% endblock %}
 
 {% block nav %}
-<li><a href="{% url 'group_dashboard' machine_group.id %}"><i class="fa fa-chevron-left fa-fw"></i> Back</a></li>
-<li><a href="{% url 'application_list' group_type='machine' group_id=machine.id %}"><i class="fa fa-list-alt fa-fw"></i> Application Inventory</a></li>
+{% include 'server/machine_detail_nav.html' %}
   <li><a href="#myModal" data-toggle="modal"><i class="fa fa-times fa-fw"></i> Computer</a></i>
-
-
-{% endif %}
+}
 
 {% endblock %}
 {% block content %}
@@ -132,8 +129,10 @@ $( document ).ready(function() {
           <dt>Hostname:</dt>
           <dd>{{ report.MachineInfo.hostname }}</dd>
           <dt>OS version:</dt>
-          <dd>{% if report.os_family == 'Darwin' %}
-            OS X {% endif %}
+          <dd>
+            {% if report.os_family == 'Darwin' %}
+            {{ report.MachineInfo.os_vers|macos }}
+            {% endif %}
             {{ report.MachineInfo.os_vers }}
             {{ report.MachineInfo.arch }}
           </dd>
@@ -237,12 +236,6 @@ $( document ).ready(function() {
             {% if report.managed_uninstalls_list|length %}
             <li role="presentation"><a data-toggle="tab" href="#tab2-2">Managed Uninstalls</a></li>
             {% endif %}
-            {% if facts|length %}
-            <li role="presentation"><a data-toggle="tab" href="#tab2-3">Facter</a></li>
-            {% endif %}
-            {% if conditions|length %}
-            <li role="presentation"><a data-toggle="tab" href="#tab2-4">MSC Conditions</a></li>
-            {% endif %}
           </ul>
           <!-- Tab panes -->
           <div class="tab-content">
@@ -288,50 +281,6 @@ $( document ).ready(function() {
                     {% else %}
                     <td class='error'>installed</td>
                     {% endif %}
-                  </tr>
-                  {% endfor %}
-                </tbody>
-              </table>
-            </div>
-            <div class="tab-pane fade" id="tab2-3">
-              <table class="client_info table table-striped table-condensed">
-                <thead>
-                  <tr>
-                    <th>Fact</th>
-                    <th>Value</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {% for fact in facts %}
-                  <tr>
-                    <td>
-                      {{ fact.fact_name }}
-                    </td>
-                    <td>
-                      {{ fact.fact_data }}
-                    </td>
-                  </tr>
-                  {% endfor %}
-                </tbody>
-              </table>
-            </div>
-            <div class="tab-pane fade" id="tab2-4">
-              <table class="client_info table table-striped table-condensed">
-                <thead>
-                  <tr>
-                    <th>Condition</th>
-                    <th>Value</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {% for condition in conditions %}
-                  <tr>
-                    <td>
-                      {{ condition.condition_name }}
-                    </td>
-                    <td>
-                      {{ condition.condition_data }}
-                    </td>
                   </tr>
                   {% endfor %}
                 </tbody>

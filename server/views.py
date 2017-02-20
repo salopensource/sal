@@ -47,43 +47,6 @@ if settings.DEBUG:
 # The database probably isn't going to change while this is loaded.
 IS_POSTGRES = utils.is_postgres()
 
-# @csrf_exempt
-# @login_required
-# def search(request):
-#     user = request.user
-#     user_level = user.userprofile.level
-#     if ('q' in request.GET) and request.GET['q'].strip():
-#         query_string = request.GET['q']
-#     else:
-#         raise Http404
-#     # Make sure we're searching across Machines the user has access to:
-#     machines = Machine.objects.all()
-#     if user_level == 'GA':
-#         machines = machines
-#     else:
-#         for business_unit in BusinessUnit.objects.all():
-#             if business_unit not in user.businessunit_set.all():
-#                 machines = machines.exclude(machine_group__business_unit = business_unit)
-#     if query_string.lower().startswith('facter:'):
-#         query_string = query_string.replace('facter:','').replace('Facter:', '').strip()
-#         machines = Fact.objects.filter(machine=machines)
-#         template = 'server/search_facter.html'
-#     elif query_string.lower().startswith('condition:'):
-#         query_string = query_string.replace('condition:','').replace('Condition:', '').strip()
-#         machines = Condition.objects.filter(machine=machines)
-#         template = 'server/search_condition.html'
-#     elif query_string.lower().startswith('inventory:'):
-#         query_string = query_string.replace('inventory:','').replace('Inventory:', '').strip()
-#         machines = InventoryItem.objects.filter(machine=machines)
-#         template = 'server/search_inventory.html'
-#     else:
-#         template = 'server/search_machines.html'
-#     search_results = watson.filter(machines, query_string)
-#
-#     title = "Search results for %s" % query_string
-#     c = {'user': request.user, 'search_results': search_results, 'title':title, 'request':request}
-#     return render(request, template, c)
-
 @login_required
 def index(request):
     # Get the current user's Business Units
@@ -1269,27 +1232,16 @@ def machine_detail(request, machine_id):
             return redirect(index)
 
     report = machine.get_report()
-    if machine.facts.count() != 0:
-        facts = machine.facts.all()
-        if settings.EXCLUDED_FACTS:
-            for excluded in settings.EXCLUDED_FACTS:
-                facts = facts.exclude(fact_name=excluded)
-    else:
-        facts = None
 
     if machine.conditions.count() != 0:
-        conditions = machine.conditions.all()
         # get the IP address(es) from the condition
         try:
             ip_address = conditions.get(machine=machine, condition_name__exact='ipv4_address')
             ip_address = ip_address.condition_data
         except:
             ip_address = None
-        if settings.EXCLUDED_CONDITIONS:
-            for excluded in settings.EXCLUDED_CONDITIONS:
-                conditions = conditions.exclude(condition_name=excluded)
+
     else:
-        conditions = None
         ip_address = None
 
     install_results = {}
@@ -1426,8 +1378,70 @@ def machine_detail(request, machine_id):
 
     output = utils.orderPluginOutput(output, page="machine_detail")
 
-    c = {'user':user, 'machine_group': machine_group, 'business_unit': business_unit, 'report': report, 'install_results': install_results, 'removal_results': removal_results, 'machine': machine, 'facts':facts, 'conditions':conditions, 'ip_address':ip_address, 'uptime_enabled':uptime_enabled, 'uptime':uptime,'output':output }
+    c = {'user':user, 'machine_group': machine_group, 'business_unit': business_unit, 'report': report, 'install_results': install_results, 'removal_results': removal_results, 'machine': machine, 'ip_address':ip_address, 'uptime_enabled':uptime_enabled, 'uptime':uptime,'output':output }
     return render(request, 'server/machine_detail.html', c)
+
+@login_required
+def machine_detail_facter(request, machine_id):
+    machine = get_object_or_404(Machine, pk=machine_id)
+    table_data = []
+    if machine.facts.count() != 0:
+        facts = machine.facts.all()
+        if settings.EXCLUDED_FACTS:
+            for excluded in settings.EXCLUDED_FACTS:
+                facts = facts.exclude(fact_name=excluded)
+    else:
+        facts = None
+
+    if facts:
+        for fact in facts:
+            item = {}
+            item['key'] = fact.fact_name
+            item['value'] = fact.fact_data
+            table_data.append(item)
+    key_header = 'Fact'
+    value_header = 'Data'
+    title = 'Facter data for %s' % machine.hostname
+    c = {
+        'user': request.user, 
+        'machine': machine, 
+        'table_data': table_data, 
+        'title': title,
+        'key_header': key_header,
+        'value_header': value_header 
+        }
+    return render(request, 'server/machine_detail_table.html', c)
+
+def machine_detail_conditions(request, machine_id):
+    machine = get_object_or_404(Machine, pk=machine_id)
+    table_data = []
+    if machine.conditions.count() != 0:
+        conditions = machine.conditions.all()
+        if settings.EXCLUDED_CONDITIONS:
+            for excluded in settings.EXCLUDED_CONDITIONS:
+                conditions = conditions.exclude(condition_name=excluded)
+    else:
+        conditions = None
+
+    if conditions:
+        for condition in conditions:
+            item = {}
+            item['key'] = condition.condition_name
+            item['value'] = condition.condition_data
+            table_data.append(item)
+    key_header = 'Condition'
+    value_header = 'Data'
+    title = 'Munki conditions data for %s' % machine.hostname
+    c = {
+        'user': request.user, 
+        'machine': machine, 
+        'table_data': table_data, 
+        'title': title,
+        'key_header': key_header,
+        'value_header': value_header 
+        }
+    return render(request, 'server/machine_detail_table.html', c)
+
 
 # Delete Machine
 @login_required

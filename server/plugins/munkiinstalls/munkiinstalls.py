@@ -68,20 +68,29 @@ class MunkiInstalls(IPlugin):
             the_min = datetime.combine(time_range, time.min)
             the_max = datetime.combine(time_range, time.max)
 
-            installs = UpdateHistoryItem.objects.filter(
-                status__iexact='install', recorded__range=(the_min, the_max),
-                update_history__machine__in=machines,
-                update_history__update_type='third_party').count()
+            try:
+                installs = UpdateHistoryItem.objects.filter(
+                    status__iexact='install', recorded__range=(the_min, the_max),
+                    update_history__machine__in=machines,
+                    update_history__update_type='third_party').count()
+            except:
+                installs = 0
 
-            errors = UpdateHistoryItem.objects.filter(
-                status='error', recorded__range=(the_min, the_max),
-                update_history__machine__in=machines,
-                update_history__update_type='third_party').count()
+            try:
+                errors = UpdateHistoryItem.objects.filter(
+                    status='error', recorded__range=(the_min, the_max),
+                    update_history__machine__in=machines,
+                    update_history__update_type='third_party').count()
+            except:
+                errors = 0
 
-            pending = UpdateHistoryItem.objects.filter(
-                status='pending', update_history__machine__in=machines,
-                recorded__range=(the_min, the_max),
-                update_history__update_type='third_party').count()
+            try:
+                pending = UpdateHistoryItem.objects.filter(
+                    status='pending', update_history__machine__in=machines,
+                    recorded__range=(the_min, the_max),
+                    update_history__update_type='third_party').count()
+            except:
+                pending = 0
 
             my_dict['installs'] = installs
             my_dict['pending'] = pending

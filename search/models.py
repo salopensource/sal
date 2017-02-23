@@ -37,6 +37,8 @@ class SearchRow(models.Model):
         ('Facter', 'Facter'),
         ('Condition', 'Condition'),
         ('External Script', 'External Script'),
+        ('Application Inventory', 'Application Inventory'),
+        ('Application Version', 'Application Version'),
     )
     SEARCH_OPERATOR_CHOICES = (
         ('Contains', 'Contains'),
@@ -63,6 +65,10 @@ class SearchFieldCache(models.Model):
         ('Facter', 'Facter'),
         ('Condition', 'Condition'),
         ('External Script', 'External Script'),
+        ('Application Inventory', 'Application Inventory'),
+        ('Application Version', 'Application Version'),
     )
     search_model = models.CharField(choices=SEARCH_MODEL_CHOICES, default='AND', max_length=254, verbose_name='Search item')
     search_field = models.CharField(max_length=254)
+    def __unicode__(self):
+        return '%s: %s' % (self.search_model, self.search_field)

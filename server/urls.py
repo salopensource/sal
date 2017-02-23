@@ -41,6 +41,10 @@ urlpatterns = [
     url(r'^id_csv/(?P<pluginName>.+)/(?P<data>.+)/(?P<page>.+)/(?P<theID>.+)/$', export_csv, name='export_csv_id'),
     # Group Dashboard
     url(r'^machinegroup/(?P<group_id>.+)/', group_dashboard, name='group_dashboard'),
+    # Machine detail facter
+    url(r'^machine_detail/facter/(?P<machine_id>.+)/', machine_detail_facter, name='machine_detail_facter'),
+    # Machine detail facter
+    url(r'^machine_detail/conditions/(?P<machine_id>.+)/', machine_detail_conditions, name='machine_detail_conditions'),
     # Machine detail
     url(r'^machine_detail/(?P<machine_id>.+)/', machine_detail, name='machine_detail'),
     # Delete Machine

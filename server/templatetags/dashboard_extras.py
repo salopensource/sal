@@ -8,6 +8,7 @@ from django.template.defaultfilters import date
 from django.utils.timezone import utc
 import pytz
 from django.conf import settings
+from distutils.version import LooseVersion
 
 register = template.Library()
 
@@ -26,6 +27,13 @@ def humanreadablesize(kbytes):
         else:
             return str(round(kbytes/float(limit/2**10), 1)) + suffix
 humanreadablesize.is_safe = True
+
+@register.filter
+def macos(os_version):
+    if LooseVersion(os_version) > LooseVersion('10.11.99'):
+        return 'macOS'
+    else:
+        return 'OS X'
 
 @register.filter
 def bu_machine_count(bu_id):

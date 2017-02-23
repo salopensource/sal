@@ -18,3 +18,8 @@ try:
         loglevel = 'info'
 except:
     pass
+
+# Protect against memory leaks by restarting each worker every 1000
+# requests, with a randomized jitter of 0-50 requests.
+max_requests = 1000
+max_requests_jitter = 50

@@ -18,7 +18,6 @@ import json
 import re
 import unicodecsv as csv
 
-# Create your views here.
 @login_required
 @csrf_exempt
 def index(request):
@@ -137,11 +136,14 @@ def search_machines(search_id, machines, full=False):
                 }
 
 
-            elif search_row.search_models == 'Inventory':
-                model = Inventory
+            elif search_row.search_models == 'Application Inventory':
+                model = Application
+                if search_row.search_field == 'Name':
+                    search_field = 'name'
+                elif search_row.search_field == 'Bundle ID':
+                    search_field = 'bundleid'
                 querystring = {
-                    'conditions__condition_name': search_row.search_field,
-                    'conditions__condition_data%s' % (operator): search_row.search_term
+                    'inventoryitem__application__%s%s' % (search_field, operator): search_row.search_term
                 }
 
             if model != None:
@@ -150,7 +152,7 @@ def search_machines(search_id, machines, full=False):
 
                 else:
                     q_object = ~Q(**querystring)
-            else:
+            elif search_row.search_models == 'External Script':
                 # It must be an exernal thingie if we're here
                 model = PluginScriptRow
                 # get the name of the plugin and row
@@ -160,6 +162,21 @@ def search_machines(search_id, machines, full=False):
 
                     'pluginscriptsubmission__pluginscriptrow__submission_and_script_name': submission_and_script_name,
                     'pluginscriptsubmission__pluginscriptrow__pluginscript_data%s'% (operator): search_row.search_term
+                }
+                if operator != '':
+                    q_object = Q(**querystring)
+
+                else:
+                    q_object = ~Q(**querystring)
+
+            elif search_row.search_models == 'Application Version':
+
+                model = InventoryItem
+                app_name, bundleid = search_row.search_field.split('=>')
+                querystring = {
+                    'inventoryitem__application__name': app_name,
+                    'inventoryitem__application__bundleid': bundleid,
+                    'inventoryitem__version%s' % (operator): search_row.search_term
                 }
                 if operator != '':
                     q_object = Q(**querystring)
@@ -373,20 +390,22 @@ def edit_search_row(request, search_row_id):
         form = SearchRowForm(instance=search_row)
         search_fields = []
         if search_row.search_models.lower() == 'facter':
-            facts = Fact.objects.values('fact_name').distinct()
-            for fact in facts:
-                search_fields.append((fact['fact_name'], fact['fact_name'],))
+            rows = SearchFieldCache.objects.filter(search_model='Facter').distinct()
 
         elif search_row.search_models.lower() == 'condition':
-            conditions = Condition.objects.values('condition_name').distinct()
-            for condition in conditions:
-                search_fields.append((condition['condition_name'], condition['condition_name'],))
+            rows = SearchFieldCache.objects.filter(search_model='Condition').distinct()
 
         elif search_row.search_models.lower() == 'external script':
-            plugin_sript_rows = PluginScriptRow.objects.values('pluginscript_name', 'submission__plugin').distinct()
-            for row in plugin_sript_rows:
-                string = '%s=>%s' %(row['submission__plugin'], row['pluginscript_name'])
-                search_fields.append((string, string,))
+            rows = SearchFieldCache.objects.filter(search_model='External Script').distinct()
+
+        elif search_row.search_models.lower() == 'application inventory':
+            rows = SearchFieldCache.objects.filter(search_model='Application Inventory').distinct()
+
+        elif search_row.search_models.lower() == 'application version':
+            rows = SearchFieldCache.objects.filter(search_model='Application Version').distinct()
+            
+        for row in rows:
+            search_fields.append((row.search_field, row.search_field,))
 
         if len(search_fields) != 0:
             form.fields['search_field'].choices = sorted(search_fields)
@@ -428,6 +447,16 @@ def get_fields(request, model):
 
     elif model.lower() == 'external script':
         cache_items = SearchFieldCache.objects.filter(search_model='External Script')
+        for cache_item in cache_items:
+            search_fields.append(cache_item.search_field)
+
+    elif model.lower() == 'application inventory':
+        cache_items = SearchFieldCache.objects.filter(search_model='Application Inventory')
+        for cache_item in cache_items:
+            search_fields.append(cache_item.search_field)
+
+    elif model.lower() == 'application version':
+        cache_items = SearchFieldCache.objects.filter(search_model='Application Version')
         for cache_item in cache_items:
             search_fields.append(cache_item.search_field)
 

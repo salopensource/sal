@@ -36,7 +36,7 @@ class SearchRowForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         self.search_group = kwargs.pop('search_group', None)
-        super(SearchRowForm, self).__init__(*args, **kwargs) # Make sure to change "YourForm" to your form's class name
+        super(SearchRowForm, self).__init__(*args, **kwargs)
         try:
             search_group_count = self.search_group.searchrow_set.count()
         except:

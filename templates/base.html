@@ -1,5 +1,5 @@
 {% load i18n %} {% load bootstrap3 %}
-
+{% load static from staticfiles %}
 <!DOCTYPE html>
 <html lang="en">
 
@@ -15,28 +15,28 @@
 
     <link href='//fonts.googleapis.com/css?family=Lato' rel='stylesheet' type='text/css'>
     <!-- LESS Compiler -->
-    <script src="/static/js/less-1.4.2.min.js"></script>
+    <script src="{% static 'js/less-1.4.2.min.js' %}"></script>
 
     <!-- Bootstrap Core CSS -->
-    <link href="/static/css/bootstrap.min.css" rel="stylesheet">
+    <link href="{% static 'css/bootstrap.min.css' %}" rel="stylesheet">
 
     <!-- MetisMenu CSS -->
-    <link href="/static/css/plugins/metisMenu/metisMenu.min.css" rel="stylesheet">
+    <link href="{% static 'css/plugins/metisMenu/metisMenu.min.css' %}" rel="stylesheet">
 
     <!-- Timeline CSS -->
-    <link href="/static/css/plugins/timeline.css" rel="stylesheet">
+    <link href="{% static 'css/plugins/timeline.css' %}" rel="stylesheet">
 
     <!-- DataTables CSS -->
-    <link rel="stylesheet" type="text/css" href="/static/DataTables-1.10.11/css/dataTables.bootstrap.min.css"/>
+    <link rel="stylesheet" type="text/css" href="{% static 'DataTables-1.10.11/css/dataTables.bootstrap.min.css' %}"/>
 
     <!-- Custom CSS -->
-    <link href="/static/css/sb-admin-2.css" rel="stylesheet">
+    <link href="{% static 'css/sb-admin-2.css' %}" rel="stylesheet">
 
     <!-- Morris Charts CSS -->
-    <link href="/static/css/plugins/morris.css" rel="stylesheet">
+    <link href="{% static 'css/plugins/morris.css' %}" rel="stylesheet">
 
     <!-- Custom Fonts -->
-    <link href="/static/font-awesome-4.1.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+    <link href="{% static 'font-awesome-4.1.0/css/font-awesome.min.css' %}" rel="stylesheet" type="text/css">
 
     <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
     <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
@@ -46,23 +46,23 @@
     <![endif]-->
 
     <!-- jQuery Version 1.11.0 -->
-    <script src="/static/js/jquery-1.11.0.js"></script>
+    <script src="{% static 'js/jquery-1.11.0.js' %}"></script>
 
     <!-- Bootstrap Core JavaScript -->
-    <script src="/static/js/bootstrap.min.js"></script>
+    <script src="{% static 'js/bootstrap.min.js' %}"></script>
 
     <!-- Metis Menu Plugin JavaScript -->
-    <script src="/static/js/plugins/metisMenu/metisMenu.min.js"></script>
+    <script src="{% static 'js/plugins/metisMenu/metisMenu.min.js' %}"></script>
 
 
     <!-- Custom Theme JavaScript -->
-    <script src="/static/js/sb-admin-2.js"></script>
+    <script src="{% static 'js/sb-admin-2.js' %}"></script>
 
     <!-- DataTables JavaScript -->
-    <script type="text/javascript" src="/static/DataTables-1.10.11/js/jquery.dataTables.min.js"></script>
-    <script type="text/javascript" src="/static/DataTables-1.10.11/js/dataTables.bootstrap.min.js"></script>
+    <script type="text/javascript" src="{% static 'DataTables-1.10.11/js/jquery.dataTables.min.js' %}"></script>
+    <script type="text/javascript" src="{% static 'DataTables-1.10.11/js/dataTables.bootstrap.min.js' %}"></script>
 
-    <script src="/static/js/retryAjax.js"></script>
+    <script src="{% static 'js/retryAjax.js' %}"></script>
     {% block script %}
     {% endblock %}
 
@@ -164,9 +164,9 @@
 {% block modal %}
 {% endblock %}
 <!-- Morris Charts JavaScript -->
-<script src="/static/js/plugins/morris/raphael.min.js"></script>
-<script src="/static/js/plugins/morris/morris.min.js"></script>
-<script src="/static/bootstrap-list-filter.min.js"></script>
+<script src="{% static 'js/plugins/morris/raphael.min.js' %}"></script>
+<script src="{% static 'js/plugins/morris/morris.min.js' %}"></script>
+<script src="{% static 'bootstrap-list-filter.min.js' %}"></script>
 </body>
 
 </html>

@@ -1233,16 +1233,12 @@ def machine_detail(request, machine_id):
 
     report = machine.get_report()
 
-    if machine.conditions.count() != 0:
-        # get the IP address(es) from the condition
-        try:
-            ip_address = conditions.get(machine=machine, condition_name__exact='ipv4_address')
-            ip_address = ip_address.condition_data
-        except:
-            ip_address = None
-
-    else:
-        ip_address = None
+    ip_address = None
+    try:
+        ip_address = machine.conditions.get(condition_name='ipv4_address')
+        ip_address = ip_address.condition_data
+    except (Condition.MultipleObjectsReturned, Condition.DoesNotExist):
+        pass
 
     install_results = {}
     for result in report.get('InstallResults', []):
@@ -1403,12 +1399,12 @@ def machine_detail_facter(request, machine_id):
     value_header = 'Data'
     title = 'Facter data for %s' % machine.hostname
     c = {
-        'user': request.user, 
-        'machine': machine, 
-        'table_data': table_data, 
+        'user': request.user,
+        'machine': machine,
+        'table_data': table_data,
         'title': title,
         'key_header': key_header,
-        'value_header': value_header 
+        'value_header': value_header
         }
     return render(request, 'server/machine_detail_table.html', c)
 
@@ -1433,12 +1429,12 @@ def machine_detail_conditions(request, machine_id):
     value_header = 'Data'
     title = 'Munki conditions data for %s' % machine.hostname
     c = {
-        'user': request.user, 
-        'machine': machine, 
-        'table_data': table_data, 
+        'user': request.user,
+        'machine': machine,
+        'table_data': table_data,
         'title': title,
         'key_header': key_header,
-        'value_header': value_header 
+        'value_header': value_header
         }
     return render(request, 'server/machine_detail_table.html', c)
 

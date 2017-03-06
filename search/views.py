@@ -403,6 +403,9 @@ def edit_search_row(request, search_row_id):
 
         elif search_row.search_models.lower() == 'application version':
             rows = SearchFieldCache.objects.filter(search_model='Application Version').distinct()
+
+        elif search_row.search_models.lower() == 'machine':
+            rows = SearchFieldCache.objects.filter(search_model='Machine').distinct()
             
         for row in rows:
             search_fields.append((row.search_field, row.search_field,))

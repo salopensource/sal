@@ -8,14 +8,16 @@ import os
 import platform
 
 def get_status(cmd, checkstring):
+    status = 'Disabled'
     try:
         output = subprocess.check_output(cmd, stderr=subprocess.STDOUT)
     except subprocess.CalledProcessError as e:
         output = str(e.output)
-    if checkstring in output:
-        return 'Enabled'
-    else:
-        return 'Disabled'
+
+    for line in output.split('\n'):
+        if checkstring in line:
+            status = 'Enabled'
+            break
 
 def fv_status():
     cmd = ['/usr/bin/fdesetup', 'status']

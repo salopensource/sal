@@ -14,15 +14,17 @@ def mac_version():
     return v
 
 def get_status(cmd, checkstring):
+    status = 'Disabled'
     try:
         output = subprocess.check_output(cmd, stderr=subprocess.STDOUT)
     except subprocess.CalledProcessError as e:
         output = str(e.output)
 
-    if checkstring in output:
-        return 'Enabled'
-    else:
-        return 'Disabled'
+    for line in output.split('\n'):
+        if checkstring in line:
+            status = 'Enabled'
+            break
+    return status
 
 def fv_status():
     cmd = ['/usr/bin/fdesetup', 'status']
@@ -70,6 +72,7 @@ def main():
     data['Gatekeeper'] = gatekeeper
     result['data'] = data
     plist.append(result)
+    print plist
     FoundationPlist.writePlist(plist, plist_path)
 
 if __name__ == '__main__':

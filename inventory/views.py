@@ -1,9 +1,9 @@
 # standard library
+from datetime import datetime
+from urllib import quote
 import hashlib
 import plistlib
-from datetime import datetime
-from django.utils import timezone
-from urllib import quote
+import re
 
 # third-party
 import unicodecsv as csv
@@ -16,6 +16,7 @@ from django.http import (HttpResponse, HttpResponseNotFound,
                          HttpResponseBadRequest)
 from django.shortcuts import get_object_or_404, render_to_response
 from django.template import RequestContext
+from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import DetailView, View
 # TODO: For new django-datatables-view interface
@@ -235,17 +236,26 @@ class ApplicationListView(LegacyDatatableView, GroupMixin):
     def get_queryset(self):
         queryset = self.filter_queryset_by_group(self.model.objects).distinct()
 
-        # For now, remove cruft from results (until we can add prefs):
+        if hasattr(settings, "INVENTORY_EXCLUSIONS"):
+            exclusion_pattern = settings.INVENTORY_EXCLUSIONS
+        else:
+            exclusion_pattern = r''
 
-        # Virtualization proxied apps
-        crufty_bundles = ["com.vmware.proxyApp", "com.parallels.winapp"]
-        crufty_pattern = r"({}).*".format("|".join(crufty_bundles))
-
-        # Apple apps that are not generally used by users.
-        apple_cruft_pattern = (r'com.apple.(?!iPhoto)(?!iWork)(?!Aperture)'
-            r'(?!iDVD)(?!garageband)(?!iMovieApp)(?!Server)(?!dt\.Xcode).*')
-        queryset = queryset.exclude(bundleid__regex=crufty_pattern)
-        # queryset = queryset.exclude(bundleid__regex=apple_cruft_pattern)
+        # An empty pattern, i.e. r'', will exclude ALL apps, which is not
+        # desired.
+        if exclusion_pattern:
+            # It makes sense to just try to exclude in a try/except and
+            # handle django.db.DataError. For some reason that exception
+            # never gets caught, so we test to see if re.compile works.
+            try:
+                pattern = re.compile(exclusion_pattern)
+            except re.error:
+                # It would be nice to log the message from this
+                # exception so the admin would know it's broken and why.
+                # However, the error never gets printed.
+                pattern = None
+            if pattern:
+                queryset = queryset.exclude(bundleid__regex=exclusion_pattern)
 
         return queryset
 

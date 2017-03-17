@@ -81,6 +81,24 @@ EXCLUDED_FACTS = {
 EXCLUDED_CONDITIONS = {
     # 'some_condition',
 }
+
+# Regular expression pattern to use to exclude applications by bundle
+# ID from Inventory views.
+crufty_bundles = ["com.vmware.proxyApp", "com.parallels.winapp"]
+# Just to avoid the potential for mistakes, build a pattern from the
+# list above.
+INVENTORY_EXCLUSIONS = r"({}).*".format("|".join(crufty_bundles))
+# # Virtualization proxied apps
+
+# The following  pattern is an example of a negative lookahead
+# assertion... It matches, and thus excludes, all apps that have a bundle
+# ID that starts with 'com.apple' and DOES NOT include "iPhoto", "iWork",
+# etc.  Effectively, this means exclude all Apple apps EXCEPT those
+# listed. Make sure to OR this with any other exclusions desired.
+
+# (r'com.apple.(?!iPhoto)(?!iWork)(?!Aperture)'
+# r'(?!iDVD)(?!garageband)(?!iMovieApp)(?!Server)(?!dt\.Xcode).*'))
+
 # Hosts/domain names that are valid for this site; required if DEBUG is False
 # See https://docs.djangoproject.com/en/1.5/ref/settings/#allowed-hosts
 ALLOWED_HOSTS = ['*']

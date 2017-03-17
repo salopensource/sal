@@ -122,7 +122,6 @@ if BRUTE_PROTECT == True:
     AXES_LOGIN_FAILURE_LIMIT = BRUTE_LIMIT
     AXES_COOLOFF_TIME=BRUTE_COOLOFF
 
-
 # Read the SSH_ACCOUNT setting from env var
 try:
     if getenv('DOCKER_SAL_SSH_ACCOUNT'):
@@ -131,3 +130,8 @@ try:
         SSH_ACCOUNT = None
 except:
     SSH_ACCOUNT = None
+
+# If an exclusion pattern is provided as an env, use it. Otherwise,
+# just use the default specified in system_settings.
+if getenv('DOCKER_SAL_INVENTORY_EXCLUSIONS'):
+    INVENTORY_EXCLUSIONS = getenv('DOCKER_SAL_INVENTORY_EXCLUSIONS')

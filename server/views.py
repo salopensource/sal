@@ -33,11 +33,6 @@ import dateutil.parser
 import hashlib
 import time
 from sal.decorators import *
-# This will only work if BRUTE_PROTECT == True
-try:
-    import axes.utils
-except:
-    pass
 
 if settings.DEBUG:
     import logging
@@ -251,26 +246,6 @@ def manage_users(request):
     c = {'user':request.user, 'users':users, 'request':request, 'brute_protect':brute_protect}
     return render(request, 'server/manage_users.html', c)
 
-# Unlock account
-@login_required
-def brute_unlock(request):
-    user = request.user
-    user_level = user.userprofile.level
-    if user_level != 'GA':
-        return redirect(index)
-
-    try:
-        brute_protect = settings.BRUTE_PROTECT
-    except:
-        brute_protect = False
-    if brute_protect == False:
-        return redirect(index)
-    # We require you to be staff to manage users
-    if user.is_staff != True:
-        return redirect(index)
-    axes.utils.reset()
-    c = {'user':request.user, 'request':request, 'brute_protect':brute_protect}
-    return render(request, 'server/brute_unlock.html', c)
 
 # New User
 @login_required
@@ -386,12 +361,12 @@ def plugin_machines(request, pluginName, data, page='front', theID=None, get_mac
         if page == 'front':
             # get all machines
             if user.userprofile.level == 'GA':
-                machines = Machine.objects.all()
+                machines = Machine.deployed_objects.all()
             else:
                 machines = Machine.objects.none()
                 for business_unit in user.businessunit_set.all():
                     for group in business_unit.machinegroup_set.all():
-                        machines = machines | group.machine_set.all()
+                        machines = machines | group.machine_set.all().filter(deployed=True)
         if page == 'bu_dashboard':
             # only get machines for that BU
             # Need to make sure the user is allowed to see this
@@ -399,9 +374,9 @@ def plugin_machines(request, pluginName, data, page='front', theID=None, get_mac
             machine_groups = MachineGroup.objects.filter(business_unit=business_unit).all()
 
             if machine_groups.count() != 0:
-                machines_unsorted = machine_groups[0].machine_set.all()
+                machines_unsorted = machine_groups[0].machine_set.all().filter(deployed=True)
                 for machine_group in machine_groups[1:]:
-                    machines_unsorted = machines_unsorted | machine_group.machine_set.all()
+                    machines_unsorted = machines_unsorted | machine_group.machine_set.all().filter(deployed=True)
             else:
                 machines_unsorted = None
             machines=machines_unsorted
@@ -410,7 +385,7 @@ def plugin_machines(request, pluginName, data, page='front', theID=None, get_mac
             # only get machines from that group
             machine_group = get_object_or_404(MachineGroup, pk=theID)
             # check that the user has access to this
-            machines = Machine.objects.filter(machine_group=machine_group)
+            machines = Machine.deployed_objects.filter(machine_group=machine_group)
     else:
         machines = Machine.objects.none()
     # send the machines and the data to the plugin
@@ -512,25 +487,25 @@ def plugin_load(request, pluginName, page='front', theID=None):
     if page == 'front':
         # get all machines
         if user.userprofile.level == 'GA':
-            machines = Machine.objects.all()
+            machines = Machine.deployed_objects.all()
         else:
             machines = Machine.objects.none()
             for business_unit in user.businessunit_set.all():
                 for group in business_unit.machinegroup_set.all():
-                    machines = machines | group.machine_set.all()
+                    machines = machines | group.machine_set.all().filter(deployed=True)
     if page == 'bu_dashboard':
         # only get machines for that BU
         # Need to make sure the user is allowed to see this
         business_unit = get_object_or_404(BusinessUnit, pk=theID)
         machine_groups = MachineGroup.objects.filter(business_unit=business_unit).all()
 
-        machines = Machine.objects.filter(machine_group__in=machine_groups)
+        machines = Machine.deployed_objects.filter(machine_group__in=machine_groups)
 
     if page == 'group_dashboard':
         # only get machines from that group
         machine_group = get_object_or_404(MachineGroup, pk=theID)
         # check that the user has access to this
-        machines = Machine.objects.filter(machine_group=machine_group)
+        machines = Machine.deployed_objects.filter(machine_group=machine_group)
 
     if page =='machine_detail':
         machines = Machine.objects.get(pk=theID)
@@ -558,25 +533,25 @@ def report_load(request, pluginName, page='front', theID=None):
     if page == 'front':
         # get all machines
         if user.userprofile.level == 'GA':
-            machines = Machine.objects.all()
+            machines = Machine.deployed_objects.all()
         else:
             machines = Machine.objects.none()
             for business_unit in user.businessunit_set.all():
                 for group in business_unit.machinegroup_set.all():
-                    machines = machines | group.machine_set.all()
+                    machines = machines | group.machine_set.all().filter(deployed=True)
     if page == 'bu_dashboard':
         # only get machines for that BU
         # Need to make sure the user is allowed to see this
         business_unit = get_object_or_404(BusinessUnit, pk=theID)
         machine_groups = MachineGroup.objects.filter(business_unit=business_unit).all()
 
-        machines = Machine.objects.filter(machine_group=machine_groups)
+        machines = Machine.deployed_objects.filter(machine_group=machine_groups)
 
     if page == 'group_dashboard':
         # only get machines from that group
         machine_group = get_object_or_404(MachineGroup, pk=theID)
         # check that the user has access to this
-        machines = Machine.objects.filter(machine_group=machine_group)
+        machines = Machine.deployed_objects.filter(machine_group=machine_group)
 
     if page =='machine_detail':
         machines = Machine.objects.get(pk=theID)
@@ -649,13 +624,12 @@ def export_csv(request, pluginName, data, page='front', theID=None):
         # get all machines
         if user.userprofile.level == 'GA':
             # machines = Machine.objects.all().prefetch_related('facts','conditions','pluginscriptsubmission_set','pluginscriptsubmission_set__pluginscriptrow_set')
-            machines = Machine.objects.all().defer('report','activity','os_family','install_log', 'install_log_hash')
+            machines = Machine.deployed_objects.all().defer('report','activity','os_family','install_log', 'install_log_hash')
         else:
-            # machines = Machine.objects.none().prefetch_related('facts','conditions','pluginscriptsubmission_set','pluginscriptsubmission_set__pluginscriptrow_set')
             machines = Machine.objects.none().defer('report','activity','os_family','install_log', 'install_log_hash')
             for business_unit in user.businessunit_set.all():
                 for group in business_unit.machinegroup_set.all():
-                    machines = machines | group.machine_set.all()
+                    machines = machines | group.machine_set.all().filter(deployed=True)
     if page == 'bu_dashboard':
         # only get machines for that BU
         # Need to make sure the user is allowed to see this
@@ -671,14 +645,14 @@ def export_csv(request, pluginName, data, page='front', theID=None):
         # machines=machines_unsorted
 
         # machines = Machine.objects.filter(machine_group=business_unit.machinegroup_set.all()).prefetch_related('facts','conditions','pluginscriptsubmission_set','pluginscriptsubmission_set__pluginscriptrow_set')
-        machines = Machine.objects.filter(machine_group=business_unit.machinegroup_set.all()).defer('report','activity','os_family','install_log', 'install_log_hash')
+        machines = Machine.deployed_objects.filter(machine_group=business_unit.machinegroup_set.all()).defer('report','activity','os_family','install_log', 'install_log_hash')
 
     if page == 'group_dashboard':
         # only get machines from that group
         machine_group = get_object_or_404(MachineGroup, pk=theID)
         # check that the user has access to this
         # machines = Machine.objects.filter(machine_group=machine_group).prefetch_related('facts','conditions','pluginscriptsubmission_set','pluginscriptsubmission_set__pluginscriptrow_set')
-        machines = Machine.objects.filter(machine_group=machine_group).defer('report','activity','os_family','install_log', 'install_log_hash')
+        machines = Machine.deployed_objects.filter(machine_group=machine_group).defer('report','activity','os_family','install_log', 'install_log_hash')
 
     if page =='machine_detail':
         machines = Machine.objects.get(pk=theID)
@@ -805,7 +779,7 @@ def delete_business_unit(request, bu_id):
     machine_groups = business_unit.machinegroup_set.all()
     machines = []
 
-    machines = Machine.objects.filter(machine_group__business_unit=business_unit)
+    machines = Machine.deployed_objects.filter(machine_group__business_unit=business_unit)
 
     c = {'user': user, 'business_unit':business_unit, 'machine_groups': machine_groups, 'machines':machines}
     return render(request, 'server/business_unit_delete_confirm.html', c)
@@ -966,13 +940,13 @@ def overview_list_all(request, req_type, data, bu_id=None):
         for business_unit in business_units:
             for machine_group in business_unit.machinegroup_set.all():
                 #print machines_unsorted
-                machines_unsorted = machines_unsorted | machine_group.machine_set.all()
+                machines_unsorted = machines_unsorted | machine_group.machine_set.all().filter(deployed=True)
             #machines_unsorted = machines_unsorted | machine_group.machines.all()
         #machines = user.businessunit_set.select_related('machine_group_set').order_by('machine')
         all_machines = machines_unsorted
         if user_level == 'GA':
             business_units = BusinessUnit.objects.all()
-            all_machines = Machine.objects.all()
+            all_machines = Machine.deployed_objects.all()
 
     if req_type == 'errors':
         machines = all_machines.filter(errors__gt=0)
@@ -1047,7 +1021,7 @@ def delete_machine_group(request, group_id):
     # for machine_group in machine_groups:
     #     machines.append(machine_group.machine_set.all())
 
-    machines = Machine.objects.filter(machine_group=machine_group)
+    machines = Machine.deployed_objects.filter(machine_group=machine_group)
 
     c = {'user': user, 'machine_group': machine_group, 'machines':machines}
     return render(request, 'server/machine_group_delete_confirm.html', c)
@@ -1078,7 +1052,7 @@ def group_dashboard(request, group_id):
         is_editor = True
     else:
         is_editor = False
-    machines = machine_group.machine_set.all()
+    machines = machine_group.machine_set.all().filter(deployed=True)
     # Build the manager
     manager = PluginManager()
     # Tell it the default place(s) where to find plugins
@@ -1903,6 +1877,11 @@ def checkin(request):
     else:
         machine = get_object_or_404(Machine, serial=serial)
 
+    try:
+        deployed_on_checkin = settings.DEPLOYED_ON_CHECKIN
+    except:
+        deployed_on_checkin = True
+
     if key is None or key == 'None':
         try:
             key = settings.DEFAULT_MACHINE_GROUP_KEY
@@ -1984,6 +1963,9 @@ def checkin(request):
 
     if not machine.machine_model_friendly:
         machine.machine_model_friendly = utils.friendly_machine_model(machine)
+
+    if deployed_on_checkin is True:
+        machine.deployed = True
 
     machine.save()
 

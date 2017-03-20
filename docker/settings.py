@@ -47,7 +47,3 @@ if host and port:
             'PORT': port,
         }
     }
-
-if BRUTE_PROTECT==True:
-    INSTALLED_APPS+= ('axes',)
-    MIDDLEWARE_CLASSES+=('axes.middleware.FailedLoginMiddleware',)

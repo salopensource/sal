@@ -19,9 +19,6 @@
 {% block nav %}
         <li><a href="{% url 'settings_page' %}"><i class="fa-chevron-left fa fa-fw"></i> Back</a></li>
         <li><a href="{% url 'new_user' %}"><i class="fa-plus fa fa-fw"></i>  User</i></a></li>
-        {% if brute_protect %}
-        <li><a href="{% url 'brute_unlock' %}"><i class="fa-unlock fa fa-fw"></i>  Unlock Brute Force Protection</i></a></li>
-        {% endif %}
 
 {% endblock %}
 
@@ -34,7 +31,6 @@
         <tr>
           <th>Username</th>
           <th>User Level</th>
-          <th></th>
           <th></th>
         </tr>
     </thead>

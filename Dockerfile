@@ -46,7 +46,6 @@ ADD / $APP_DIR
 ADD docker/settings.py $APP_DIR/sal/
 ADD docker/supervisord.conf $APP_DIR/supervisord.conf
 ADD docker/settings_import.py $APP_DIR/sal/
-ADD docker/brute_settings.py $APP_DIR/sal/
 ADD docker/wsgi.py $APP_DIR/
 ADD docker/gunicorn_config.py $APP_DIR/
 ADD docker/run.sh /run.sh

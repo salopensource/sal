@@ -3,6 +3,9 @@ Cleans up old searches and rebuilds search fields cache
 '''
 
 from django.core.management.base import BaseCommand, CommandError
+from django.conf import settings
+from datetime import datetime, timedelta, date
+import django.utils.timezone
 from server.models import *
 from search.models import *
 from inventory.models import *
@@ -42,14 +45,6 @@ class Command(BaseCommand):
         conditions = Condition.objects.values('condition_name').distinct()
         plugin_sript_rows = PluginScriptRow.objects.values('pluginscript_name', 'submission__plugin').distinct()
         app_versions = Application.objects.values('name', 'bundleid').distinct()
-
-        # force evaluation so we can safely delete the existing data
-        # if facts:
-        #     pass
-        # if conditions:
-        #     pass
-        # if plugin_sript_rows:
-        #     pass
 
         old_cache = SearchFieldCache.objects.all()
         old_cache.delete()
@@ -94,3 +89,16 @@ class Command(BaseCommand):
 
         if server.utils.is_postgres() == True:
             SearchFieldCache.objects.bulk_create(search_fields)
+
+        # make sure this in an int:
+        try:
+            int(settings.INACTIVE_UNDEPLOYED)
+
+            if settings.INACTIVE_UNDEPLOYED > 0:
+                now = django.utils.timezone.now()
+                inactive_days = now - timedelta(days=settings.INACTIVE_UNDEPLOYED)
+                machines_to_inactive = Machines.deployed_objects.all().
+                                        filter(last_checkin__gte=inactive_days).
+                                        update(deployed=False)
+        except:
+            pass

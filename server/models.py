@@ -62,6 +62,10 @@ class MachineGroup(models.Model):
     class Meta:
         ordering = ['name']
 
+class DeployedManager(models.Manager):
+    def get_queryset(self):
+        return super(DeployedManager, self).get_queryset().filter(deployed=True)
+
 class Machine(models.Model):
     OS_CHOICES = (
         ('Darwin', 'OS X'),
@@ -97,6 +101,10 @@ class Machine(models.Model):
     puppet_errors = models.IntegerField(db_index=True, default=0)
     install_log_hash = models.CharField(max_length=200, blank=True, null=True)
     install_log = models.TextField(null=True, blank=True)
+    deployed = models.BooleanField(default=True)
+
+    objects = models.Manager() # The default manager.
+    deployed_objects = DeployedManager()
 
     def get_fields(self):
         return [(field.name, field.value_to_string(self)) for field in Machine._meta.fields]

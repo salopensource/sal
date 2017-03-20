@@ -12,20 +12,6 @@ try:
 except:
     DEBUG = False
 
-# Read the Brute force protection setting from env var
-try:
-    if getenv('DOCKER_SAL_BRUTE_PROTECT').lower() == 'true':
-        BRUTE_PROTECT = True
-    else:
-        BRUTE_PROTECT = False
-except:
-    BRUTE_PROTECT = False
-
-# Read the Brute force protection timeout setting from env var
-try:
-    BRUTE_COOLOFF = int(getenv('DOCKER_SAL_BRUTE_COOLOFF'))
-except:
-    BRUTE_COOLOFF = 3
 
 # Read the BASIC_AUTH setting from env var
 try:
@@ -35,12 +21,6 @@ try:
         BASIC_AUTH = False
 except:
     BASIC_AUTH = True
-
-# Read the Brute force protection limit setting from env var
-try:
-    BRUTE_LIMIT = int(getenv('DOCKER_SAL_BRUTE_LIMIT'))
-except:
-    BRUTE_LIMIT = 3
 
 # Read list of admins from $DOCKER_SAL_ADMINS env var
 admin_list = []
@@ -116,12 +96,6 @@ try:
 except:
     CRYPT_URL = None
 
-if BRUTE_PROTECT == True:
-    ###############
-    # Max number of login attemts within the ``AXES_COOLOFF_TIME``
-    AXES_LOGIN_FAILURE_LIMIT = BRUTE_LIMIT
-    AXES_COOLOFF_TIME=BRUTE_COOLOFF
-
 
 # Read the SSH_ACCOUNT setting from env var
 try:
@@ -131,3 +105,18 @@ try:
         SSH_ACCOUNT = None
 except:
     SSH_ACCOUNT = None
+
+# Do machines turn to 'deployed' when they check in?
+try:
+    if getenv('DOCKER_SAL_DEPLOYED_ON_CHECKIN').lower() == 'true':
+        DEPLOYED_ON_CHECKIN = True
+    else:
+        DEPLOYED_ON_CHECKIN = False
+except:
+    DEPLOYED_ON_CHECKIN = False
+
+# How long until machines are inactive before they are considered undeployed?
+try:
+    INACTIVE_UNDEPLOYED = int(getenv('DOCKER_SAL_INACTIVE_UNDEPLOYED'))
+except:
+    INACTIVE_UNDEPLOYED = 0

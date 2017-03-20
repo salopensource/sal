@@ -1,9 +1,6 @@
 import os
 DEBUG = False
 APPEND_SLASH=True
-BRUTE_PROTECT = False
-BRUTE_COOLOFF = 3
-BRUTE_LIMIT = 3
 PROJECT_DIR = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), os.path.pardir))
 PLUGIN_DIR = os.path.join(PROJECT_DIR, 'plugins')
 ADMINS = (
@@ -14,6 +11,8 @@ AUTH_PROFILE_MODULE = "sal.UserProfile"
 DISPLAY_NAME = 'Sal'
 MANAGERS = ADMINS
 CRYPT_URL = None
+DEPLOYED_ON_CHECKIN = False
+INACTIVE_UNDEPLOYED = 0
 
 TEMPLATES = [
     {

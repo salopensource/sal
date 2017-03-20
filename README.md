@@ -28,10 +28,6 @@ You can enable, disable and re-order your plugins from the Settings page, under 
 
 After re-ordering and hiding plugins from some screens, you might even want to make your own plugins. You can base your plugin off of one of the included ones, or one of mine in the [repository of optional plugins](https://github.com/salopensource/grahamgilbert-plugins). For more information on writing plugins, check out the [wiki](https://github.com/salopensource/sal/wiki).
 
-## Brute force protection
-
-Sal has built in brute force protection. See it's [documentation](https://github.com/salopensource/sal/wiki/Brute-force-protection) for more details or if you're using Docker, see how to turn it on in the [Readme](https://github.com/salopensource/sal/blob/master/docker/README.md).
-
 ## External Authentication
 
 There are variants of Sal that support both [SAML](https://hub.docker.com/r/macadmins/sal-saml/) and [LDAP](https://hub.docker.com/r/macadmins/sal-ldap/) authentication.

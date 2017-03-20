@@ -83,8 +83,6 @@ urlpatterns = [
 
     # Delete User Staff
     url(r'^settings/users/delete/(?P<user_id>.+)/', delete_user, name='delete_user'),
-    # unlock user
-    url(r'^settings/users/unlock/', brute_unlock, name='brute_unlock'),
     # Manage Users
     url(r'^settings/users/', manage_users, name='manage_users'),
 

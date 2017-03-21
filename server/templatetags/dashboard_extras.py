@@ -44,7 +44,15 @@ def bu_machine_count(bu_id):
     machine_groups = business_unit.machinegroup_set.all()
     count = 0
     for machinegroup in machine_groups:
-        count = count + machinegroup.machine_set.count()
+        count = count + machinegroup.machine_set.filter(deployed=True).count()
+    return count
+
+@register.filter
+def machine_group_count(group_id):
+    """Returns the number of machines contained within the Machine Group.
+    Input is machineGroup.id"""
+    machine_group = get_object_or_404(MachineGroup, pk=group_id)
+    count = machine_group.machine_set.filter(deployed=True).count()
     return count
 
 @register.filter

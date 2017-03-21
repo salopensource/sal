@@ -59,7 +59,7 @@ $( document ).ready(function() {
             {% for group in business_unit.machinegroup_set.all %}
                 <li class="active"><a href="{% url 'group_dashboard' group.id %}">{{ group.name }}
                     <span class="badge badge-info pull-right">
-                        {{ group.machine_set.count }}
+                        {{ group.id|machine_group_count }}
                     </span>
                     </a>
                 </li>

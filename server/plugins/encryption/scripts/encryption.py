@@ -18,6 +18,7 @@ def get_status(cmd, checkstring):
         if checkstring in line:
             status = 'Enabled'
             break
+    return status
 
 def fv_status():
     cmd = ['/usr/bin/fdesetup', 'status']

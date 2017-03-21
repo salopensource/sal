@@ -1,7 +1,11 @@
 import os
 DEBUG = False
-APPEND_SLASH=True
-PROJECT_DIR = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), os.path.pardir))
+APPEND_SLASH = True
+PROJECT_DIR = os.path.abspath(
+    os.path.join(
+        os.path.dirname(
+            os.path.abspath(__file__)
+            ), os.path.pardir))
 PLUGIN_DIR = os.path.join(PROJECT_DIR, 'plugins')
 ADMINS = (
     # ('Your Name', 'your_email@example.com'),

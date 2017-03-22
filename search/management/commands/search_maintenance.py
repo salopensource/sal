@@ -97,8 +97,6 @@ class Command(BaseCommand):
             if settings.INACTIVE_UNDEPLOYED > 0:
                 now = django.utils.timezone.now()
                 inactive_days = now - timedelta(days=settings.INACTIVE_UNDEPLOYED)
-                machines_to_inactive = Machines.deployed_objects.all().
-                                        filter(last_checkin__gte=inactive_days).
-                                        update(deployed=False)
+                machines_to_inactive = Machines.deployed_objects.all().filter(last_checkin__gte=inactive_days).update(deployed=False)
         except:
             pass

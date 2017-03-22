@@ -36,12 +36,12 @@ class Status(IPlugin):
             t = loader.get_template('status/templates/id.html')
             business_unit = get_object_or_404(BusinessUnit, pk=theid)
             machine_groups = MachineGroup.objects.filter(business_unit=business_unit).all()
-            undeployed_machines = Machine.objects.filter(machine_group__in=machine_groups).filter(deployed=False)
+            undeployed_machines = Machine.objects.filter(machine_group__in=machine_groups).filter(deployed=False).count()
 
         if page == 'group_dashboard':
             t = loader.get_template('status/templates/id.html')
             machine_group = get_object_or_404(MachineGroup, pk=theid)
-            undeployed_machines = Machine.objects.filter(machine_group=machine_group).filter(deployed=False)
+            undeployed_machines = Machine.objects.filter(machine_group=machine_group).filter(deployed=False).count()
 
         errors = machines.filter(errors__gt=0).count()
         warnings = machines.filter(warnings__gt=0).count()

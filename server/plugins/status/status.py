@@ -34,13 +34,13 @@ class Status(IPlugin):
 
         if page == 'bu_dashboard':
             t = loader.get_template('status/templates/id.html')
-            business_unit = get_object_or_404(BusinessUnit, pk=theID)
+            business_unit = get_object_or_404(BusinessUnit, pk=theid)
             machine_groups = MachineGroup.objects.filter(business_unit=business_unit).all()
             undeployed_machines = Machine.objects.filter(machine_group__in=machine_groups).filter(deployed=False)
 
         if page == 'group_dashboard':
             t = loader.get_template('status/templates/id.html')
-            machine_group = get_object_or_404(MachineGroup, pk=theID)
+            machine_group = get_object_or_404(MachineGroup, pk=theid)
             undeployed_machines = Machine.objects.filter(machine_group=machine_group).filter(deployed=False)
 
         errors = machines.filter(errors__gt=0).count()

@@ -70,6 +70,15 @@
                 </a>
             </td>
         </tr>
+        <tr>
+            <td><a href="{% url 'machine_list_front' 'Status' 'undeployed_machines' %}">
+                Undeployed machines
+                <span class="badge badge-info pull-right">
+                    {{ undeployed_machines }}
+                </span>
+                </a>
+            </td>
+        </tr>
     </table>
     </div>
 </div>

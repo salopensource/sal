@@ -70,6 +70,15 @@
                 </a>
             </td>
         </tr>
+        <tr>
+            <td><a href="{% url 'machine_list_id' 'Status' 'undeployed_machines' page theid %}">
+                Undeployed machines
+                <span class="badge badge-info pull-right">
+                    {{ undeployed_machines }}
+                </span>
+                </a>
+            </td>
+        </tr>
     </table>
     </div>
     </div>

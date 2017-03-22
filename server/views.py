@@ -356,17 +356,21 @@ def plugin_machines(request, pluginName, data, page='front', theID=None, get_mac
     manager.setPluginPlaces([settings.PLUGIN_DIR, os.path.join(settings.PROJECT_DIR, 'server/plugins')])
     # Load all plugins
     manager.collectPlugins()
+    if pluginName == 'Status' and data == 'undeployed_machines':
+        deployed = False
+    else:
+        deployed = True
     # get a list of machines (either from the BU or the group)
     if get_machines:
         if page == 'front':
             # get all machines
             if user.userprofile.level == 'GA':
-                machines = Machine.deployed_objects.all()
+                machines = Machine.objects.all().filter(deployed=deployed)
             else:
                 machines = Machine.objects.none()
                 for business_unit in user.businessunit_set.all():
                     for group in business_unit.machinegroup_set.all():
-                        machines = machines | group.machine_set.all().filter(deployed=True)
+                        machines = machines | group.machine_set.all().filter(deployed=deployed)
         if page == 'bu_dashboard':
             # only get machines for that BU
             # Need to make sure the user is allowed to see this
@@ -374,9 +378,9 @@ def plugin_machines(request, pluginName, data, page='front', theID=None, get_mac
             machine_groups = MachineGroup.objects.filter(business_unit=business_unit).all()
 
             if machine_groups.count() != 0:
-                machines_unsorted = machine_groups[0].machine_set.all().filter(deployed=True)
+                machines_unsorted = machine_groups[0].machine_set.all().filter(deployed=deployed)
                 for machine_group in machine_groups[1:]:
-                    machines_unsorted = machines_unsorted | machine_group.machine_set.all().filter(deployed=True)
+                    machines_unsorted = machines_unsorted | machine_group.machine_set.all().filter(deployed=deployed)
             else:
                 machines_unsorted = None
             machines=machines_unsorted
@@ -385,7 +389,7 @@ def plugin_machines(request, pluginName, data, page='front', theID=None, get_mac
             # only get machines from that group
             machine_group = get_object_or_404(MachineGroup, pk=theID)
             # check that the user has access to this
-            machines = Machine.deployed_objects.filter(machine_group=machine_group)
+            machines = Machine.objects.filter(machine_group=machine_group).filter(deployed=deployed)
     else:
         machines = Machine.objects.none()
     # send the machines and the data to the plugin
@@ -421,8 +425,12 @@ def tableajax(request, pluginName, data, page='front', theID=None):
             order_name = column['name']
             break
 
-
+    if pluginName == 'Status' and data == 'undeployed_machines':
+        deployed = False
+    else:
+        deployed = True
     (machines, title) = plugin_machines(request, pluginName, data, page, theID)
+    # machines = machines.filter(deployed=deployed)
     if len(order_name) != 0:
         if order_direction == 'desc':
             order_string = "-%s" % order_name
@@ -619,40 +627,33 @@ def export_csv(request, pluginName, data, page='front', theID=None):
     manager.setPluginPlaces([settings.PLUGIN_DIR, os.path.join(settings.PROJECT_DIR, 'server/plugins')])
     # Load all plugins
     manager.collectPlugins()
+    if pluginName == 'Status' and data == 'undeployed_machines':
+        deployed = False
+    else:
+        deployed = True
     # get a list of machines (either from the BU or the group)
     if page == 'front':
         # get all machines
         if user.userprofile.level == 'GA':
             # machines = Machine.objects.all().prefetch_related('facts','conditions','pluginscriptsubmission_set','pluginscriptsubmission_set__pluginscriptrow_set')
-            machines = Machine.deployed_objects.all().defer('report','activity','os_family','install_log', 'install_log_hash')
+            machines = Machine.objects.all().filter(deployed=deployed).defer('report','activity','os_family','install_log', 'install_log_hash')
         else:
             machines = Machine.objects.none().defer('report','activity','os_family','install_log', 'install_log_hash')
             for business_unit in user.businessunit_set.all():
                 for group in business_unit.machinegroup_set.all():
-                    machines = machines | group.machine_set.all().filter(deployed=True)
+                    machines = machines | group.machine_set.all().filter(deployed=deployed)
     if page == 'bu_dashboard':
         # only get machines for that BU
         # Need to make sure the user is allowed to see this
         business_unit = get_object_or_404(BusinessUnit, pk=theID)
-        # machine_groups = MachineGroup.objects.filter(business_unit=business_unit).prefetch_related('machine_set').all()
-        #
-        # if machine_groups.count() != 0:
-        #     machines_unsorted = machine_groups[0].machine_set.all()
-        #     for machine_group in machine_groups[1:]:
-        #         machines_unsorted = machines_unsorted | machine_group.machine_set.all().prefetch_related('facts','conditions','pluginscriptsubmission_set','pluginscriptsubmission_set__pluginscriptrow_set')
-        # else:
-        #     machines_unsorted = None
-        # machines=machines_unsorted
-
-        # machines = Machine.objects.filter(machine_group=business_unit.machinegroup_set.all()).prefetch_related('facts','conditions','pluginscriptsubmission_set','pluginscriptsubmission_set__pluginscriptrow_set')
-        machines = Machine.deployed_objects.filter(machine_group=business_unit.machinegroup_set.all()).defer('report','activity','os_family','install_log', 'install_log_hash')
+        machines = Machine.objects.filter(machine_group=business_unit.machinegroup_set.all()).filter(deployed=deployed).defer('report','activity','os_family','install_log', 'install_log_hash')
 
     if page == 'group_dashboard':
         # only get machines from that group
         machine_group = get_object_or_404(MachineGroup, pk=theID)
         # check that the user has access to this
         # machines = Machine.objects.filter(machine_group=machine_group).prefetch_related('facts','conditions','pluginscriptsubmission_set','pluginscriptsubmission_set__pluginscriptrow_set')
-        machines = Machine.deployed_objects.filter(machine_group=machine_group).defer('report','activity','os_family','install_log', 'install_log_hash')
+        machines = Machine.objects.filter(machine_group=machine_group).filter(deployed=deployed).defer('report','activity','os_family','install_log', 'install_log_hash')
 
     if page =='machine_detail':
         machines = Machine.objects.get(pk=theID)
@@ -674,23 +675,10 @@ def export_csv(request, pluginName, data, page='front', theID=None):
     # distinct_facts = Fact.objects.values('fact_name').distinct().order_by('fact_name')
 
     facter_headers = []
-    # for distinct_fact in distinct_facts:
-    #     facter_headers.append('Facter: '+ distinct_fact['fact_name'])
-    #     header_row.append('Facter: '+ distinct_fact['fact_name'])
-    # distinct_conditions = Condition.objects.values('condition_name').distinct().order_by('condition_name')
 
     condition_headers = []
-    # for distinct_condition in distinct_conditions:
-    #     condition_headers.append('Munki Condition: '+ distinct_condition['condition_name'])
-    #     header_row.append('Munki Condition: '+ distinct_condition['condition_name'])
-
 
     plugin_script_headers = []
-
-    # distinct_pluginscript_rows = PluginScriptRow.objects.values('submission_and_script_name').order_by('submission_and_script_name').distinct()
-    # for distinct_pluginscript_row in distinct_pluginscript_rows:
-    #     plugin_script_headers.append(distinct_pluginscript_row['submission_and_script_name'])
-    #     header_row.append(distinct_pluginscript_row['submission_and_script_name'])
 
     header_row.append('business_unit')
     header_row.append('machine_group')

@@ -9,10 +9,10 @@ from forms import *
 import plistlib
 import json
 from server.models import *
-from models import License
+from licenses.models import *
 
 @login_required
-def index(request):
+def license_index(request):
     '''Sal index page for licenses.'''
     all_licenses = License.objects.all()
     user = request.user
@@ -40,7 +40,7 @@ def new_license(request):
         form = LicenseForm(request.POST)
         if form.is_valid():
             new_license = form.save()
-            return redirect(index)
+            return redirect(license_index)
     else:
         form = LicenseForm()
     c = {'form': form}
@@ -61,7 +61,7 @@ def edit_license(request, license_id):
         form = LicenseForm(request.POST, instance=license)
         if form.is_valid():
             license = form.save()
-            return redirect(index)
+            return redirect(license_index)
     else:
         form = LicenseForm(instance=license)
     c = {'form': form, 'license':license}
@@ -79,7 +79,7 @@ def delete_license(request, license_id):
         return redirect(index)
     license = get_object_or_404(License, pk=license_id)
     license.delete()
-    return redirect(index)
+    return redirect(license_index)
 
 def available(request, key, item_name=''):
     '''Returns license seat availability for item_name in plist format.

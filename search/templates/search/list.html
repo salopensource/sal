@@ -52,10 +52,10 @@
                         {% if request.user.userprofile.level == 'GA' or search.created_by == request.user %}
                         <a href="{% url 'search_build' search.id %}" class="btn btn-info btn-mini">Edit</a>
                         {% else %}
-                        <a href="#" class="btn btn-info btn-mini disabled">Edit</a>
+                        <a href="{% url 'search_build' search.id %}" class="btn btn-info btn-mini">View Criteria</a>
                         {% endif %}
                     </td>
-            
+
                 </tr>
                 {% endfor %}
             </tbody>

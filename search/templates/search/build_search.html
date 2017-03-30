@@ -100,8 +100,9 @@
                         <tr><td>&nbsp;</td>
                             <td>{% if request.user.userprofile.level == 'GA' or search.created_by == request.user %}
                             <a href="#myModaldeletesearchrow{{search_row.id}}" data-toggle="modal" class="pull-right btn btn-danger"><i class="fa fa-times"></i></a>
+                            <a href="{% url 'search_row_edit' search_row.id %}" class="pull-right btn btn-info"><i class="fa fa-pencil"></i></a>
                             {% endif %}
-                                <a href="{% url 'search_row_edit' search_row.id %}" class="pull-right btn btn-info"><i class="fa fa-pencil"></i></a>
+
                             </td>
                         </tr>
                         </table>
@@ -110,9 +111,10 @@
                 {% endfor %}
 
                 <p>
-                    <a href="{% url 'search_row_new' search_group.id%}" class="pull-left btn btn-info"><i class="fa fa-plus"></i></a>
+
 
                     {% if request.user.userprofile.level == 'GA' or search.created_by == request.user %}
+                    <a href="{% url 'search_row_new' search_group.id%}" class="pull-left btn btn-info"><i class="fa fa-plus"></i></a>
                     <a href="#myModaldeletesearchgroup{{search_group.id}}" data-toggle="modal" class="pull-right btn btn-danger"><i class="fa fa-times"></i> group</a>
                     {% endif %}
                 </p>
@@ -120,7 +122,9 @@
         </div>
         {% endfor %}
         <p>
+            {% if request.user.userprofile.level == 'GA' or search.created_by == request.user %}
             <a href="{% url 'search_group_new' search.id %}" class="btn btn-info">New Group</a>
+            {% endif %}
             <a class="btn btn-info pull-right" href="{% url 'search_run' search.id %}">
             Run Search
             </a>

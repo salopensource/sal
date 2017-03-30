@@ -60,9 +60,16 @@
                 {% endfor %}
             </tbody>
         </table>
+        {% if request.user.userprofile.level == 'GA' or search.created_by == request.user %}
         <p>
             <a href="{% url 'search_build' search.id %}" class="btn btn-info btn-mini">Edit</a>
         </p>
+        {% else %}
+        <p>
+            <a href="{% url 'search_build' search.id %}" class="btn btn-info btn-mini">View Criteria</a>
+        </p>
+        {% endif %}
+
     </div>
     </div>
 </div>

@@ -295,7 +295,7 @@ def edit_search(request, search_id):
         saved_search = get_object_or_404(SavedSearch, pk=search_id)
         user = request.user
         user_level = user.userprofile.level
-        if user_level != 'GA' or saved_search.created_by != user:
+        if user_level != 'GA' and saved_search.created_by != user:
             return redirect(search.views.list)
         if request.method == 'POST':
             form = SearchRowForm(request.POST, instance=search_row)
@@ -358,7 +358,8 @@ def delete_group(request, search_group_id):
 @login_required
 def new_search_row(request, search_group_id):
     search_group = get_object_or_404(SearchGroup, pk=search_group_id)
-
+    if request.user.userprofile.level != 'GA' and search_group.saved_search.created_by != user:
+        return redirect(search.views.list)
     if request.method == 'POST':
         form = SearchRowForm(request.POST)
         if form.is_valid():
@@ -406,7 +407,7 @@ def edit_search_row(request, search_row_id):
 
         elif search_row.search_models.lower() == 'machine':
             rows = SearchFieldCache.objects.filter(search_model='Machine').distinct()
-            
+
         for row in rows:
             search_fields.append((row.search_field, row.search_field,))
 

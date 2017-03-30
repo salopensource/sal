@@ -20,5 +20,4 @@ def next_position(search_object, model='search_group'):
         #     if search_group.position > position:
         #         position = search_group.position
         # return position
-        print search_groups.aggregate(Max('position'))['position__max'] + 1
         return search_groups.aggregate(Max('position'))['position__max'] + 1

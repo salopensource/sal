@@ -19,7 +19,6 @@ def license_index(request):
     user_level = user.userprofile.level
     if user_level != 'GA':
         return redirect(server.views.index)
-
     c = {'request':request,
         'licenses': all_licenses,
          'user': request.user,
@@ -52,10 +51,11 @@ def edit_license(request, license_id):
     user = request.user
     user_level = user.userprofile.level
     if user_level != 'GA':
-        return redirect(server.views.index)
+        raise Http404
     license = get_object_or_404(License, pk=license_id)
     c = {}
     c.update(csrf(request))
+
     if request.method == 'POST':
 
         form = LicenseForm(request.POST, instance=license)
@@ -65,10 +65,7 @@ def edit_license(request, license_id):
     else:
         form = LicenseForm(instance=license)
     c = {'form': form, 'license':license}
-    user = request.user
-    user_level = user.userprofile.level
-    if user_level != 'GA':
-        return redirect(server.views.index)
+
     return render(request, 'forms/edit_license.html', c)
 
 @login_required

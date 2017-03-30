@@ -23,7 +23,36 @@
 {% endblock %}
 
 {% block content %}
-  {% with license_list=licenses list_title='Licenses' %}
-    {% include 'licenses/licensetable.html' %}
-  {% endwith %}
+ <h3>Licenses</h3>
+
+<div class="panel panel-default">
+<div class="panel-body">
+   <div class="table-responsive">
+       <table class="groupList table table-striped table-condensed">
+     <thead>
+         <tr>
+           <th>Item           </th>
+           <th>Licensed Seats </th>
+           <th>Installed Seats</th>
+           <th>Available Seats</th>
+           <th>Business Unit</th>
+           <th></th>
+         </tr>
+         </tr>
+     </thead>
+     <tbody>
+     {% for license in licenses %}
+         <tr>
+             <td{% if license.available < 0 %} class='error'{% endif %}>{{ license.item_name }}</td>
+             <td>{{ license.total }}</td>
+             <td><a href=#>{{ license.used }}</a></td>
+             <td{% if license.available < 0 %} class='text-error'{% endif %}>{{ license.available }}</td>
+             <td>{{ license.business_unit }}</td>
+             <td><a href="{% url 'edit_license' license.item_name %}" class="btn btn-mini btn-info">Edit</a></td>
+         </tr>
+     {% endfor %}
+     </tbody>
+ </table>
+ </div>
+ </div>
 {% endblock %}

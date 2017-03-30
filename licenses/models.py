@@ -15,7 +15,7 @@ class License(models.Model):
     inventory_path = models.CharField(max_length=1024, blank=True)
     business_unit = models.ForeignKey(BusinessUnit)
     notes = models.TextField(blank=True)
-    
+
     def used(self):
         # query inventory items to determine how many licenses have been used.
         items = InventoryItem.objects.all()
@@ -28,7 +28,7 @@ class License(models.Model):
             else:
                 items = items.filter(version__exact=self.inventory_version)
         if self.inventory_bundleid:
-            items = items.filter(bundleid__exact=self.inventory_bundleid)
+            items = items.filter(application__bundleid__exact=self.inventory_bundleid)
         if self.inventory_bundlename:
             items = items.filter(
                 bundlename__exact=self.inventory_bundlename)
@@ -36,10 +36,10 @@ class License(models.Model):
             items = items.filter(path__exact=self.inventory_path)
         if self.business_unit:
             items = items.filter(machine__machine_group__business_unit__exact=self.business_unit)
-        # return a count of distinct machines 
+        # return a count of distinct machines
         # that have the item we are looking for
         return items.values('machine').distinct().count()
-        
+
     def inventory_query_string(self):
         '''Returns a web query string for use in building URLs that link to
         the inventory objects being counted'''
@@ -58,9 +58,9 @@ class License(models.Model):
             return quote_plus('?%s' % '&'.join(parts), safe='?&=')
         else:
             return ''
-        
+
     def available(self):
         return self.total - self.used()
-        
+
     class Meta:
         ordering = ['item_name']

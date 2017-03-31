@@ -3,6 +3,12 @@
 cd $APP_DIR
 ADMIN_PASS=${ADMIN_PASS:-}
 
+if [ ! -z "$DB_HOST" ] ; then
+  echo "Waiting for database to come up"
+  /usr/local/bin/dockerize -wait tcp://$DB_HOST:5432
+  echo "Database is up, continuing"
+fi
+
 python manage.py migrate --noinput
 python manage.py collectstatic --noinput
 # python manage.py installwatson
@@ -17,14 +23,6 @@ else
   python manage.py update_admin_user --username=admin --password=password
 fi
 
-
-chown -R www-data:www-data $APP_DIR
-chmod go+x $APP_DIR
-mkdir -p /var/log/gunicorn
-touch /var/log/gunicorn/gunicorn-error.log
-touch /var/log/gunicorn/gunicorn-access.log
-touch $APP_DIR/sal.log
-chmod 777 $APP_DIR/sal.log
 tail -n 0 -f /var/log/gunicorn/gunicorn*.log & tail -n 0 -f $APP_DIR/sal.log &
 export PYTHONPATH=$PYTHONPATH:$APP_DIR
 export DJANGO_SETTINGS_MODULE='sal.settings'

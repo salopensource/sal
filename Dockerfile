@@ -13,6 +13,7 @@ ENV DOCKER_SAL_ADMINS Docker User, docker@localhost
 ENV DOCKER_SAL_LANG en_GB
 ENV DOCKER_SAL_DISPLAY_NAME Sal
 ENV DOCKER_SAL_DEBUG false
+ENV DOCKERIZE_VERSION v0.3.0
 
 RUN apt-get update && \
     apt-get install -y libc-bin && \
@@ -31,8 +32,11 @@ RUN apt-get update && \
     supervisor \
     libffi-dev && \
     apt-get clean && \
+   wget https://github.com/jwilder/dockerize/releases/download/$DOCKERIZE_VERSION/dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz \
+       && tar -C /usr/local/bin -xzvf dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz \
+       && rm dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz &&\
     rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
-ADD setup/requirements.txt /requirements.txt
+COPY setup/requirements.txt /requirements.txt
 RUN easy_install pip && \
     pip install -r /requirements.txt && \
     pip install psycopg2==2.6.2 && \
@@ -40,27 +44,34 @@ RUN easy_install pip && \
     pip install setproctitle && \
     rm /requirements.txt && \
     update-rc.d -f postgresql remove && \
+    update-rc.d -f nginx remove && \
     mkdir -p /home/app && \
     mkdir -p /home/backup
-ADD / $APP_DIR
-ADD docker/settings.py $APP_DIR/sal/
-ADD docker/supervisord.conf $APP_DIR/supervisord.conf
-ADD docker/settings_import.py $APP_DIR/sal/
-ADD docker/wsgi.py $APP_DIR/
-ADD docker/gunicorn_config.py $APP_DIR/
-ADD docker/run.sh /run.sh
-ADD docker/nginx/nginx-env.conf /etc/nginx/main.d/
-ADD docker/nginx/sal.conf /etc/nginx/sites-enabled/sal.conf
-ADD docker/nginx/nginx.conf /etc/nginx/nginx.conf
-ADD docker/crontab /etc/cron.d/search-maint
-ADD docker/search_maint.sh /usr/local/bin/search_maint.sh
+COPY / $APP_DIR
+COPY docker/settings.py $APP_DIR/sal/
+COPY docker/supervisord.conf $APP_DIR/supervisord.conf
+COPY docker/settings_import.py $APP_DIR/sal/
+COPY docker/wsgi.py $APP_DIR/
+COPY docker/gunicorn_config.py $APP_DIR/
+COPY docker/run.sh /run.sh
+COPY docker/nginx/nginx-env.conf /etc/nginx/main.d/
+COPY docker/nginx/sal.conf /etc/nginx/sites-enabled/sal.conf
+COPY docker/nginx/nginx.conf /etc/nginx/nginx.conf
+COPY docker/crontab /etc/cron.d/search-maint
+COPY docker/search_maint.sh /usr/local/bin/search_maint.sh
 
 RUN chmod 755 /run.sh && \
-    update-rc.d -f nginx remove && \
     rm -f /etc/nginx/sites-enabled/default && \
     ln -s $APP_DIR /home/app/sal && \
     chmod 644 /etc/cron.d/search-maint &&\
-    chmod 755 /usr/local/bin/search_maint.sh
+    chmod 755 /usr/local/bin/search_maint.sh &&\
+    mkdir -p /var/log/gunicorn &&\
+    touch /var/log/gunicorn/gunicorn-error.log &&\
+    touch /var/log/gunicorn/gunicorn-access.log &&\
+    chown -R www-data:www-data $APP_DIR &&\
+    chmod go+x $APP_DIR &&\
+    touch $APP_DIR/sal.log &&\
+    chmod 777 $APP_DIR/sal.log
 
 WORKDIR $APP_DIR
 EXPOSE 8000

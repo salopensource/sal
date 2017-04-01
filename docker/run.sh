@@ -24,7 +24,7 @@ DB_PORT_5432_TCP_ADDR=${DB_PORT_5432_TCP_ADDR:-}
 DB_NAME=${DB_NAME:-}
 DB_USER=${DB_USER:-}
 DB_PASS=${DB_PASS:-}
-PGPASSWORD=$DB_PASS
+export PGPASSWORD=$DB_PASS
 setBoolean WAIT_FOR_POSTGRES "${WAIT_FOR_POSTGRES:-}"
 
 if [ "$WAIT_FOR_POSTGRES" = true ] ; then
@@ -32,7 +32,7 @@ if [ "$WAIT_FOR_POSTGRES" = true ] ; then
   if [ ! -z "$DB_HOST" ] ; then
     echo "Waiting for database to come up"
     while true; do
-        psql -U $DB_USER -h db -d $DB_NAME < /dev/null
+        psql -U $DB_USER -h $DB_HOST -d $DB_NAME < /dev/null
         if [ $? -eq 0 ]; then
             break
         fi
@@ -42,7 +42,7 @@ if [ "$WAIT_FOR_POSTGRES" = true ] ; then
   elif [ ! -z "$DB_PORT_5432_TCP_ADDR" ] ; then
     echo "Waiting for database to come up"
     while true; do
-        psql -U $DB_USER -h db -d $DB_NAME < /dev/null
+        psql -U $DB_USER -h $DB_PORT_5432_TCP_ADDR -d $DB_NAME < /dev/null
         if [ $? -eq 0 ]; then
             break
         fi

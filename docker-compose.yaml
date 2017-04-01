@@ -2,6 +2,13 @@ version: '3'
 # volumes:
 #   - ./db
 services:
+  caddy:
+    image: abiosoft/caddy
+    depends_on:
+      - sal
+    ports:
+      - "80:80"
+      - "443:443"
   sal:
     # image: macadmins/sal
     build: .

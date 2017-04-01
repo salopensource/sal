@@ -2,7 +2,7 @@
 
 cd $APP_DIR
 ADMIN_PASS=${ADMIN_PASS:-}
-
+DB_HOST=${DB_HOST:-}
 if [ ! -z "$DB_HOST" ] ; then
   echo "Waiting for database to come up"
   /usr/local/bin/dockerize -wait tcp://$DB_HOST:5432

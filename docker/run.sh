@@ -1,32 +1,66 @@
 #!/bin/bash
 
+function setBoolean() {
+  local v
+  if (( $# != 2 )); then
+     echo "Err: setBoolean usage" 1>&2; exit 1 ;
+  fi
+
+  case "$2" in
+    TRUE) v=true ;;
+    FALSE) v=false ;;
+    true) v=true ;;
+    false) v=false ;;
+    *) echo "Err: Unknown boolean value \"$2\"" 1>&2; exit 1 ;;
+   esac
+
+   eval $1=$v
+}
+
 cd $APP_DIR
 ADMIN_PASS=${ADMIN_PASS:-}
 DB_HOST=${DB_HOST:-}
 DB_PORT_5432_TCP_ADDR=${DB_PORT_5432_TCP_ADDR:-}
 DB_NAME=${DB_NAME:-}
-if [ ! -z "$DB_HOST" ] ; then
-  echo "Waiting for database to come up"
-  while ! curl http://$DB_HOST:5432/ 2>&1 | grep '52'
-  do
-    sleep 1
-  done
-  echo "Database is up, continuing"
-elif [ ! -z "$DB_PORT_5432_TCP_ADDR" ] ; then
-  echo "Waiting for database to come up"
-  while ! curl http://$DB_PORT_5432_TCP_ADDR:5432/ 2>&1 | grep '52'
-  do
-    sleep 1
-  done
-  echo "Database is up, continuing"
-elif [ ! -z "$DB_NAME" ] ; then
-  # Assume they've followed directions...
-  echo "Waiting for database to come up"
-  while ! curl http://db:5432/ 2>&1 | grep '52'
-  do
-    sleep 1
-  done
-  echo "Database is up, continuing"
+DB_USER=${DB_USER:-}
+DB_PASS=${DB_PASS:-}
+PGPASSWORD=$DB_PASS
+setBoolean WAIT_FOR_POSTGRES "${WAIT_FOR_POSTGRES:-}"
+
+if [ "$WAIT_FOR_POSTGRES" = true ] ; then
+
+  if [ ! -z "$DB_HOST" ] ; then
+    echo "Waiting for database to come up"
+    while true; do
+        psql -U $DB_USER -h db -d $DB_NAME < /dev/null
+        if [ $? -eq 0 ]; then
+            break
+        fi
+        sleep 1
+    done
+    echo "Database is up, continuing"
+  elif [ ! -z "$DB_PORT_5432_TCP_ADDR" ] ; then
+    echo "Waiting for database to come up"
+    while true; do
+        psql -U $DB_USER -h db -d $DB_NAME < /dev/null
+        if [ $? -eq 0 ]; then
+            break
+        fi
+        sleep 1
+    done
+    echo "Database is up, continuing"
+  elif [ ! -z "$DB_NAME" ] ; then
+    # Assume they've followed directions...
+    echo "Waiting for database to come up"
+    while true; do
+        psql -U $DB_USER -h db -d $DB_NAME < /dev/null
+        if [ $? -eq 0 ]; then
+            break
+        fi
+        sleep 1
+    done
+    echo "Database is up, continuing"
+  fi
 fi
 
 python manage.py migrate --noinput

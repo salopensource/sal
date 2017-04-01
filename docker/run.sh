@@ -8,14 +8,20 @@ DB_NAME=${DB_NAME:-}
 if [ ! -z "$DB_HOST" ] ; then
   echo "Waiting for database to come up"
   /usr/local/bin/dockerize -timeout 60s -wait tcp://$DB_HOST:5432
+  sleep 2
+  /usr/local/bin/dockerize -timeout 60s -wait tcp://$DB_HOST:5432
   echo "Database is up, continuing"
 elif [ ! -z "$DB_PORT_5432_TCP_ADDR" ] ; then
   echo "Waiting for database to come up"
+  /usr/local/bin/dockerize -timeout 60s -wait tcp://$DB_PORT_5432_TCP_ADDR:5432
+  sleep 2
   /usr/local/bin/dockerize -timeout 60s -wait tcp://$DB_PORT_5432_TCP_ADDR:5432
   echo "Database is up, continuing"
 elif [ ! -z "$DB_NAME" ] ; then
   # Assume they've followed directions...
   echo "Waiting for database to come up"
+  /usr/local/bin/dockerize -timeout 60s -wait tcp://db:5432
+  sleep 2
   /usr/local/bin/dockerize -timeout 60s -wait tcp://db:5432
   echo "Database is up, continuing"
 fi

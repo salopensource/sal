@@ -13,7 +13,7 @@ ENV DOCKER_SAL_ADMINS Docker User, docker@localhost
 ENV DOCKER_SAL_LANG en_GB
 ENV DOCKER_SAL_DISPLAY_NAME Sal
 ENV DOCKER_SAL_DEBUG false
-ENV DOCKERIZE_VERSION v0.3.0
+# ENV DOCKERIZE_VERSION v0.3.0
 
 RUN apt-get update && \
     apt-get install -y libc-bin && \
@@ -28,14 +28,15 @@ RUN apt-get update && \
     postgresql-contrib \
     libpq-dev \
     python-dev \
-    wget \
+    curl \
     supervisor \
     libffi-dev && \
     apt-get clean && \
-   wget https://github.com/jwilder/dockerize/releases/download/$DOCKERIZE_VERSION/dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz \
-       && tar -C /usr/local/bin -xzvf dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz \
-       && rm dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz &&\
     rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+# && \
+# wget https://github.com/jwilder/dockerize/releases/download/$DOCKERIZE_VERSION/dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz \
+#    && tar -C /usr/local/bin -xzvf dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz \
+#    && rm dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz &&\
 COPY setup/requirements.txt /requirements.txt
 RUN easy_install pip && \
     pip install -r /requirements.txt && \

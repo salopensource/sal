@@ -22,6 +22,7 @@ services:
       - DB_USER=admin
       - DB_PASS=password
       - DOCKER_SAL_DEBUG=true
+      - WAIT_FOR_POSTGRES=true
   db:
     image: grahamgilbert/postgres:9.4.5
     volumes:

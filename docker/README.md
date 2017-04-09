@@ -8,6 +8,8 @@ This Docker image runs [Sal](https://github.com/salopensource/sal). The containe
 Several options, such as the timezone and admin password are customizable using environment variables.
 
 * ``ADMIN_PASS``: The default admin's password. This is only set if there are no other superusers, so if you choose your own admin username and password later on, this won't be created.
+* ``DB_HOST``: Sets the hostname of the database sal will connect to. Defaults to ``db``.
+* ``DB_PORT``: Sets the port sal will connect to on the host specified in ``DB_HOST``. Defaults to ``5432``.
 * ``DOCKER_SAL_DISPLAY_NAME``: This sets the name that appears in the title bar of the window. Defaults to ``Sal``.
 * ``DOCKER_SAL_TZ``: The desired [timezone](http://en.wikipedia.org/wiki/List_of_tz_database_time_zones). Defaults to ``Europe/London``.
 * ``DOCKER_SAL_ADMINS``: The admin user's details. Defaults to ``Docker User, docker@localhost``.

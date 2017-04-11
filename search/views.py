@@ -295,7 +295,7 @@ def edit_search(request, search_id):
         saved_search = get_object_or_404(SavedSearch, pk=search_id)
         user = request.user
         user_level = user.userprofile.level
-        if user_level != 'GA' and saved_search.created_by != user:
+        if user_level != 'GA' and saved_search.created_by != request.user:
             return redirect(search.views.list)
         if request.method == 'POST':
             form = SearchRowForm(request.POST, instance=search_row)

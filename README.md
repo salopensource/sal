@@ -20,7 +20,7 @@ If you would like a demo of setting up Sal along with some of the features pleas
 
 Sal has full search across machines, Facts and Munki conditions. For more information, see [it's documentation](https://github.com/salopensource/sal/wiki/Search).
 
-![Search](https://github.com/salopensource/sal/raw/master/assets/Built search.png)
+![Search](https://github.com/salopensource/sal/raw/master/assets/Built%20search.png)
 
 ## Plugins
 

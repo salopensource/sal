@@ -559,7 +559,6 @@ def friendly_machine_model(machine):
             output = ET.fromstring(r.text).find('configCode').text
         except:
             print 'Did not receive a model name for %s, %s. Error:' % (machine.serial, machine.machine_model)
-            print r.text
 
     return output
 

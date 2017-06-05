@@ -1950,7 +1950,10 @@ def checkin(request):
         machine.os_family = report_data['os_family']
 
     if not machine.machine_model_friendly:
-        machine.machine_model_friendly = utils.friendly_machine_model(machine)
+        try:
+            machine.machine_model_friendly = utils.friendly_machine_model(machine)
+        except:
+            machine.machine_model_friendly = machine.machine_model
 
     if deployed_on_checkin is True:
         machine.deployed = True

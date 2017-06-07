@@ -646,7 +646,14 @@ def export_csv(request, pluginName, data, page='front', theID=None):
         # only get machines for that BU
         # Need to make sure the user is allowed to see this
         business_unit = get_object_or_404(BusinessUnit, pk=theID)
-        machines = Machine.objects.filter(machine_group=business_unit.machinegroup_set.all()).filter(deployed=deployed).defer('report','activity','os_family','install_log', 'install_log_hash')
+        machine_groups = MachineGroup.objects.filter(business_unit=business_unit).prefetch_related('machine_set').all()
+
+        if machine_groups.count() != 0:
+            machines = machine_groups[0].machine_set.all()
+            for machine_group in machine_groups[1:]:
+                machines = machines | machine_group.machine_set.all().filter(deployed=deployed).defer('report','activity','os_family','install_log', 'install_log_hash')
+        else:
+            machines = None
 
     if page == 'group_dashboard':
         # only get machines from that group

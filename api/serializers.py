@@ -6,7 +6,7 @@ from server.models import *
 class InventoryItemSerializer(serializers.ModelSerializer):
     class Meta:
         model = InventoryItem
-        exclude = ('machine',)
+        # exclude = ('machine',)
 
 class BusinessUnitSerializer(serializers.ModelSerializer):
     class Meta:

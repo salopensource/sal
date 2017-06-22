@@ -15,6 +15,9 @@ urlpatterns = [
     url(r'^business_units/$', views.BusinessUnitList.as_view()),
     url(r'^machine_groups/(?P<pk>.+)/$', views.MachineGroupView.as_view()),
     url(r'^machine_groups/$', views.MachineGroupList.as_view()),
+    url(r'^plugin_script_submissions/(?P<serial>.+)/$', views.PluginScriptSubmissionMachine.as_view()),
+    url(r'^plugin_script_submissions/$', views.PluginScriptSubmissionList.as_view()),
+    url(r'^plugin_script_rows/(?P<serial>.+)/$', views.PluginScriptRowMachine.as_view()),
 ]
 
 urlpatterns = format_suffix_patterns(urlpatterns)

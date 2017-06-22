@@ -17,6 +17,14 @@ class MachineGroupSerializer(serializers.ModelSerializer):
     class Meta:
         model = MachineGroup
 
+class PluginScriptSubmissionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PluginScriptSubmission
+
+class PluginScriptRowSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PluginScriptRow
+
 class FactSerializer(serializers.ModelSerializer):
     class Meta:
         model = Fact

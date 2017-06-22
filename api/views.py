@@ -142,4 +142,35 @@ class BusinessUnitList(generics.ListCreateAPIView):
     lookup_field = 'pk'
     serializer_class = BusinessUnitSerializer
 
+class PluginScriptSubmissionMachine(generics.ListAPIView):
+    """
+    Get the plugin script submissions for a machine
+    """
+    authentication_classes = (ApiKeyAuthentication,)
+    serializer_class = PluginScriptSubmissionSerializer
+    def get_queryset(self):
+        """
+        Get all of the PluginScriptSubmissions for the machine
+        """
+        serial = self.kwargs['serial']
+        machine = Machine.objects.get(serial=serial)
+        return PluginScriptSubmission.objects.filter(machine=machine)
+
+class PluginScriptSubmissionList(generics.ListAPIView):
+    """
+    List all plugin script submissions
+    """
+    authentication_classes = (ApiKeyAuthentication,)
+    queryset = PluginScriptSubmission.objects.all()
+    serializer_class = PluginScriptSubmissionSerializer
+
+class PluginScriptRowMachine(generics.ListAPIView):
+    """
+    Get the pluginscriptrows for a submission
+    """
+    authentication_classes = (ApiKeyAuthentication,)
+    queryset = PluginScriptRow.objects.all()
+    lookup_field = 'pk'
+    serializer_class = PluginScriptRowSerializer
+
 # Retrieve all machines with a particular Fact value

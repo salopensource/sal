@@ -31,6 +31,9 @@
                 <tr>
                   <th>Name</th>
                   <th>Public Key</th>
+                  <th>
+                     Read / Write
+                  </th>
                   <th></th>
                 </tr>
             </thead>
@@ -39,6 +42,9 @@
                 <tr>
                     <td>{{ api_key.name}}</td>
                     <td>{{ api_key.public_key }}</td>
+                    <td>
+                        {{ api_key.read_write }}
+                    </td>
                     <td><a href="{% url 'edit_api_key' api_key.id %}" class="btn btn-mini btn-info">Edit</a></td>
                 </tr>
                 {% endfor %}

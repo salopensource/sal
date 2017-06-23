@@ -18,6 +18,8 @@ urlpatterns = [
     url(r'^plugin_script_submissions/(?P<serial>.+)/$', views.PluginScriptSubmissionMachine.as_view()),
     url(r'^plugin_script_submissions/$', views.PluginScriptSubmissionList.as_view()),
     url(r'^plugin_script_rows/(?P<serial>.+)/$', views.PluginScriptRowMachine.as_view()),
+    url(r'^search/(?P<pk>.+)$', views.SearchID.as_view()),
+    url(r'^search/$', views.BasicSearch.as_view())
 ]
 
 urlpatterns = format_suffix_patterns(urlpatterns)

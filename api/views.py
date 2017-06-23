@@ -5,6 +5,7 @@ sys.setdefaultencoding('utf8')
 from server.models import *
 from api.serializers import *
 from auth import *
+from search.views import *
 from django.http import Http404
 from rest_framework.views import APIView
 from rest_framework import generics
@@ -192,4 +193,39 @@ class PluginScriptRowMachine(generics.ListAPIView):
     lookup_field = 'pk'
     serializer_class = PluginScriptRowSerializer
 
+class SearchID(generics.ListAPIView):
+    """
+    Retrieve a saved search
+    """
+    authentication_classes = (ApiKeyAuthentication,)
+    permission_classes = (HasRWPermission,)
+    serializer_class = MachineSerializer
+    def get_queryset(self):
+        """
+        Run the saved search
+        """
+        search_id = self.kwargs['pk']
+        if search_id.endswith('/'):
+            search_id = search_id[:-1]
+        machines = Machine.objects.all()
+        print search_machines(search_id, machines)
+        return search_machines(search_id, machines, full=True)
+
+class BasicSearch(generics.ListAPIView):
+    """
+    Perform a basic search
+    """
+    authentication_classes = (ApiKeyAuthentication,)
+    permission_classes = (HasRWPermission,)
+    serializer_class = MachineSerializer
+    def get_queryset(self):
+        """
+        Run the basic search
+        """
+        query = self.request.query_params.get('query', None)
+        machines = Machine.objects.all()
+        if query is not None:
+            machines = quick_search(machines, query)
+
+        return machines
 # Retrieve all machines with a particular Fact value

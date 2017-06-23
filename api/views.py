@@ -11,6 +11,7 @@ from rest_framework.views import APIView
 from rest_framework import generics
 from rest_framework.response import Response
 from rest_framework import status
+from rest_framework.renderers import JSONRenderer
 from rest_framework.pagination import PageNumberPagination
 
 class MachineList(generics.ListCreateAPIView):
@@ -88,7 +89,7 @@ class PendingUpdates(generics.ListAPIView):
         machine = Machine.objects.get(serial=serial)
         return PendingUpdate.objects.filter(machine=machine)
 
-class Facts(generics.ListAPIView):
+class FactsMachine(generics.ListAPIView):
     """
     Retrieve facts for a machine
     """
@@ -103,6 +104,24 @@ class Facts(generics.ListAPIView):
         machine = Machine.objects.get(serial=serial)
         return Fact.objects.filter(machine=machine)
 
+"""
+This will let you get a list of facts for all machines out at some point.
+
+
+But not today. It eluded my tiny little mind.
+"""
+# class Facts(generics.APIView):
+#     """
+#     Retrieve specific facts for all machines
+#     """
+#     authentication_classes = (ApiKeyAuthentication,)
+#     permission_classes = (HasRWPermission,)
+#     renderer_classes = (JSONRenderer,)
+#     def get(self, request, format=None):
+#         machines = Machine.objects.all()
+#
+#         content = {'user_count': user_count}
+#         return Response(content)
 
 class Conditions(generics.ListAPIView):
     """

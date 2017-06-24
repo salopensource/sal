@@ -11,7 +11,6 @@ from rest_framework.views import APIView
 from rest_framework import generics
 from rest_framework.response import Response
 from rest_framework import status
-from rest_framework.renderers import JSONRenderer
 from rest_framework.pagination import PageNumberPagination
 
 class MachineList(generics.ListCreateAPIView):
@@ -104,26 +103,21 @@ class FactsMachine(generics.ListAPIView):
         machine = Machine.objects.get(serial=serial)
         return Fact.objects.filter(machine=machine)
 
-"""
-This will let you get a list of facts for all machines out at some point.
+class Facts(generics.ListAPIView):
+    """
+    Retrieve a specific fact for all machines
+    """
+    authentication_classes = (ApiKeyAuthentication,)
+    permission_classes = (HasRWPermission,)
+    serializer_class = FactWithSerialSerializer
+    def get_queryset(self):
+        fact_to_find = self.request.query_params.get('fact', None)
+        if fact_to_find is not None:
+            fact_to_find = fact_to_find.strip()
 
+        return Fact.objects.filter(fact_name=fact_to_find)
 
-But not today. It eluded my tiny little mind.
-"""
-# class Facts(generics.APIView):
-#     """
-#     Retrieve specific facts for all machines
-#     """
-#     authentication_classes = (ApiKeyAuthentication,)
-#     permission_classes = (HasRWPermission,)
-#     renderer_classes = (JSONRenderer,)
-#     def get(self, request, format=None):
-#         machines = Machine.objects.all()
-#
-#         content = {'user_count': user_count}
-#         return Response(content)
-
-class Conditions(generics.ListAPIView):
+class ConditionsMachine(generics.ListAPIView):
     """
     Retrieve conditions for a machine
     """
@@ -137,6 +131,20 @@ class Conditions(generics.ListAPIView):
         serial = self.kwargs['serial']
         machine = Machine.objects.get(serial=serial)
         return Condition.objects.filter(machine=machine)
+
+class Conditions(generics.ListAPIView):
+    """
+    Retrieve a specific condition for all machines
+    """
+    authentication_classes = (ApiKeyAuthentication,)
+    permission_classes = (HasRWPermission,)
+    serializer_class = ConditionWithSerialSerializer
+    def get_queryset(self):
+        condition_to_find = self.request.query_params.get('condition', None)
+        if condition_to_find is not None:
+            condition_to_find = condition_to_find.strip()
+
+        return Condition.objects.filter(condition_name=condition_to_find)
 
 class MachineGroupView(generics.RetrieveUpdateDestroyAPIView):
     """

@@ -30,11 +30,27 @@ class FactSerializer(serializers.ModelSerializer):
         model = Fact
         exclude = ('machine',)
 
+class SerialSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Machine
+        fields = ('id','serial',)
+
+
+class FactWithSerialSerializer(serializers.ModelSerializer):
+    machine = SerialSerializer()
+    class Meta:
+        model = Fact
+
 class ConditionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Condition
         exclude = ('machine',)
 
+class ConditionWithSerialSerializer(serializers.ModelSerializer):
+    # serial = serializers.CharField()
+    machine = SerialSerializer()
+    class Meta:
+        model = Condition
 
 class PendingAppleUpdateSerializer(serializers.ModelSerializer):
     class Meta:

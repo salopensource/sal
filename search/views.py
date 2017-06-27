@@ -36,6 +36,13 @@ def index(request):
 
     template = 'search/basic_search.html'
 
+    machines = quick_search(machines, query_string)
+
+    title = "Search results for %s" % query_string
+    c = {'user': request.user, 'machines': machines, 'title':title, 'request':request}
+    return render(request, template, c)
+
+def quick_search(machines, query_string):
     skip_fields = [
         'id',
         'machine_group',
@@ -59,11 +66,7 @@ def index(request):
     for query in queries:
         qs = qs | query
 
-    machines = machines.filter(qs)
-
-    title = "Search results for %s" % query_string
-    c = {'user': request.user, 'machines': machines, 'title':title, 'request':request}
-    return render(request, template, c)
+    return machines.filter(qs)
 
 # All saved searches
 @login_required

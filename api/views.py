@@ -1,252 +1,258 @@
-from django.http import HttpResponse
-from django.views.decorators.csrf import csrf_exempt
-from rest_framework.renderers import JSONRenderer
-from rest_framework.parsers import JSONParser
+# encoding=utf8
+import sys
+reload(sys)
+sys.setdefaultencoding('utf8')
 from server.models import *
 from api.serializers import *
 from auth import *
-from json_response import *
+from search.views import *
+from django.http import Http404
+from rest_framework.views import APIView
+from rest_framework import generics
+from rest_framework.response import Response
+from rest_framework import status
+from rest_framework.pagination import PageNumberPagination
 
-@csrf_exempt
-@validate_api_key
-def machine_list(request):
+class MachineList(generics.ListCreateAPIView):
     """
     List all machines, or create a new machine.
     """
-    if request.method == 'GET':
-        machines = Machine.objects.all()
-        serializer = MachineSerializer(machines, many=True)
-        return JSONResponse(serializer.data)
+    authentication_classes = (ApiKeyAuthentication,)
+    permission_classes = (HasRWPermission,)
+    queryset = Machine.objects.all()
+    serializer_class = MachineSerializer
 
-    elif request.method == 'POST':
-        data = JSONParser().parse(request)
-        serializer = MachineSerializer(data=data)
-        if serializer.is_valid():
-            serializer.save()
-            return JSONResponse(serializer.data, status=201)
-        return JSONResponse(serializer.errors, status=400)
 
-@csrf_exempt
-@validate_api_key
-def machine_detail(request, serial):
+class MachineDetail(generics.RetrieveUpdateDestroyAPIView):
     """
     Retrieve, update or delete a machine.
     """
-    try:
-        machine = Machine.objects.get(serial=serial)
-    except Machine.DoesNotExist:
-        return HttpResponse(status=404)
+    authentication_classes = (ApiKeyAuthentication,)
+    permission_classes = (HasRWPermission,)
+    queryset = Machine.objects.all()
+    lookup_field = 'serial'
+    serializer_class = MachineSerializer
 
-    if request.method == 'GET':
-        serializer = MachineSerializer(machine)
-        return JSONResponse(serializer.data)
-
-    elif request.method == 'PUT':
-        data = JSONParser().parse(request)
-        serializer = MachineSerializer(machine, data=data)
-        if serializer.is_valid():
-            serializer.save()
-            return JSONResponse(serializer.data)
-        return JSONResponse(serializer.errors, status=400)
-
-    elif request.method == 'DELETE':
-        machine.delete()
-        return HttpResponse(status=204)
-
-@csrf_exempt
-@validate_api_key
-def machine_full_detail(request, serial):
+class MachineFullDetail(generics.RetrieveUpdateDestroyAPIView):
     """
-    Retrieve, update or delete a machine.
+    Retrieve full details, update or delete a machine.
     """
-    try:
-        machine = Machine.objects.get(serial=serial)
-    except Machine.DoesNotExist:
-        return HttpResponse(status=404)
+    authentication_classes = (ApiKeyAuthentication,)
+    permission_classes = (HasRWPermission,)
+    queryset = Machine.objects.all()
+    lookup_field = 'serial'
+    serializer_class = FullMachineSerializer
 
-    if request.method == 'GET':
-        serializer = FullMachineSerializer(machine)
-        return JSONResponse(serializer.data)
-
-    elif request.method == 'PUT':
-        data = JSONParser().parse(request)
-        serializer = FullMachineSerializer(machine, data=data)
-        if serializer.is_valid():
-            serializer.save()
-            return JSONResponse(serializer.data)
-        return JSONResponse(serializer.errors, status=400)
-
-    elif request.method == 'DELETE':
-        machine.delete()
-        return HttpResponse(status=204)
-
-@validate_api_key
-@csrf_exempt
-def machine_inventory(request, serial):
+class MachineInventory(generics.ListAPIView):
     """
     Retrieve machine inventory.
     """
-    try:
+    authentication_classes = (ApiKeyAuthentication,)
+    permission_classes = (HasRWPermission,)
+    serializer_class = InventoryItemSerializer
+
+    def get_queryset(self):
+        """
+        Get all of the inventory items for the machine
+        """
+        serial = self.kwargs['serial']
+        return Machine.objects.get(serial=serial).inventoryitem_set.all()
+
+class PendingAppleUpdates(generics.ListAPIView):
+    """
+    Retrieve pending apple updates for a machine.
+    """
+    authentication_classes = (ApiKeyAuthentication,)
+    permission_classes = (HasRWPermission,)
+    serializer_class = PendingAppleUpdateSerializer
+    def get_queryset(self):
+        """
+        Get all of the update items for the machine
+        """
+        serial = self.kwargs['serial']
         machine = Machine.objects.get(serial=serial)
-    except Machine.DoesNotExist:
-        return HttpResponse(status=404)
+        return PendingAppleUpdate.objects.filter(machine=machine)
 
-    serializer = InventoryItemSerializer(machine.inventoryitem_set.all(), many=True)
-    return JSONResponse(serializer.data)
-
-@validate_api_key
-@csrf_exempt
-def pending_apple_updates(request, serial):
+class PendingUpdates(generics.ListAPIView):
     """
-    Retrieves pending apple updates for a given machine.
+    Retrieve pending third party updates for a machine
     """
-    try:
+    authentication_classes = (ApiKeyAuthentication,)
+    permission_classes = (HasRWPermission,)
+    serializer_class = PendingUpdateSerializer
+    def get_queryset(self):
+        """
+        Get all of the update items for the machine
+        """
+        serial = self.kwargs['serial']
         machine = Machine.objects.get(serial=serial)
-    except Machine.DoesNotExist:
-        return HttpResponse(status=404)
+        return PendingUpdate.objects.filter(machine=machine)
 
-    updates = PendingAppleUpdate.objects.filter(machine=machine)
-    if request.method == 'GET':
-        serializer = PendingAppleUpdateSerializer(updates, many=True)
-        return JSONResponse(serializer.data)
-
-@validate_api_key
-@csrf_exempt
-def pending_updates(request, serial):
+class FactsMachine(generics.ListAPIView):
     """
-    Retrieves pending updates for a given machine.
+    Retrieve facts for a machine
     """
-    try:
+    authentication_classes = (ApiKeyAuthentication,)
+    permission_classes = (HasRWPermission,)
+    serializer_class = FactSerializer
+    def get_queryset(self):
+        """
+        Get all of the facts for the machine
+        """
+        serial = self.kwargs['serial']
         machine = Machine.objects.get(serial=serial)
-    except Machine.DoesNotExist:
-        return HttpResponse(status=404)
+        return Fact.objects.filter(machine=machine)
 
-    updates = PendingUpdate.objects.filter(machine=machine)
-    if request.method == 'GET':
-        serializer = PendingpdateSerializer(updates, many=True)
-        return JSONResponse(serializer.data)
+class Facts(generics.ListAPIView):
+    """
+    Retrieve a specific fact for all machines
+    """
+    authentication_classes = (ApiKeyAuthentication,)
+    permission_classes = (HasRWPermission,)
+    serializer_class = FactWithSerialSerializer
+    def get_queryset(self):
+        fact_to_find = self.request.query_params.get('fact', None)
+        if fact_to_find is not None:
+            fact_to_find = fact_to_find.strip()
 
-@validate_api_key
-@csrf_exempt
-def facts(request, serial):
+        return Fact.objects.filter(fact_name=fact_to_find)
+
+class ConditionsMachine(generics.ListAPIView):
     """
-    Retrieves facts for a given machine.
+    Retrieve conditions for a machine
     """
-    try:
+    authentication_classes = (ApiKeyAuthentication,)
+    permission_classes = (HasRWPermission,)
+    serializer_class = ConditionSerializer
+    def get_queryset(self):
+        """
+        Get all of the conditions for the machine
+        """
+        serial = self.kwargs['serial']
         machine = Machine.objects.get(serial=serial)
-    except Machine.DoesNotExist:
-        return HttpResponse(status=404)
+        return Condition.objects.filter(machine=machine)
 
-    facts = Fact.objects.filter(machine=machine)
-    if request.method == 'GET':
-        serializer = FactSerializer(facts, many=True)
-        return JSONResponse(serializer.data)
-
-
-@validate_api_key
-@csrf_exempt
-def conditions(request, serial):
+class Conditions(generics.ListAPIView):
     """
-    Retrieves conditions for a given machine.
+    Retrieve a specific condition for all machines
     """
-    try:
+    authentication_classes = (ApiKeyAuthentication,)
+    permission_classes = (HasRWPermission,)
+    serializer_class = ConditionWithSerialSerializer
+    def get_queryset(self):
+        condition_to_find = self.request.query_params.get('condition', None)
+        if condition_to_find is not None:
+            condition_to_find = condition_to_find.strip()
+
+        return Condition.objects.filter(condition_name=condition_to_find)
+
+class MachineGroupView(generics.RetrieveUpdateDestroyAPIView):
+    """
+    Retrieve details, update or remove a machine group
+    """
+    authentication_classes = (ApiKeyAuthentication,)
+    permission_classes = (HasRWPermission,)
+    queryset = MachineGroup.objects.all()
+    lookup_field = 'pk'
+    serializer_class = MachineGroupSerializer
+
+class MachineGroupList(generics.ListCreateAPIView):
+    """
+    List all machine groups, or create a new machine group.
+    """
+    authentication_classes = (ApiKeyAuthentication,)
+    permission_classes = (HasRWPermission,)
+    queryset = MachineGroup.objects.all()
+    lookup_field = 'pk'
+    serializer_class = MachineGroupSerializer
+
+class BusinessUnitView(generics.RetrieveUpdateDestroyAPIView):
+    """
+    Retrieve details, update or remove a business unit
+    """
+    authentication_classes = (ApiKeyAuthentication,)
+    permission_classes = (HasRWPermission,)
+    queryset = BusinessUnit.objects.all()
+    lookup_field = 'pk'
+    serializer_class = BusinessUnitSerializer
+
+class BusinessUnitList(generics.ListCreateAPIView):
+    """
+    List all machine groups, or create a new business unit
+    """
+    authentication_classes = (ApiKeyAuthentication,)
+    permission_classes = (HasRWPermission,)
+    queryset = BusinessUnit.objects.all()
+    lookup_field = 'pk'
+    serializer_class = BusinessUnitSerializer
+
+class PluginScriptSubmissionMachine(generics.ListAPIView):
+    """
+    Get the plugin script submissions for a machine
+    """
+    authentication_classes = (ApiKeyAuthentication,)
+    permission_classes = (HasRWPermission,)
+    serializer_class = PluginScriptSubmissionSerializer
+    def get_queryset(self):
+        """
+        Get all of the PluginScriptSubmissions for the machine
+        """
+        serial = self.kwargs['serial']
         machine = Machine.objects.get(serial=serial)
-    except Machine.DoesNotExist:
-        return HttpResponse(status=404)
+        return PluginScriptSubmission.objects.filter(machine=machine)
 
-    conditions = Condition.objects.filter(machine=machine)
-    if request.method == 'GET':
-        serializer = ConditionSerializer(conditions, many=True)
-        return JSONResponse(serializer.data)
-
-@csrf_exempt
-@validate_api_key
-def machine_group(request, pk):
+class PluginScriptSubmissionList(generics.ListAPIView):
     """
-    Retrieve, update or delete a machine group.
+    List all plugin script submissions
     """
-    try:
-        machine_group = MachineGroup.objects.get(pk=pk)
-    except MachineGroup.DoesNotExist:
-        return HttpResponse(status=404)
+    authentication_classes = (ApiKeyAuthentication,)
+    permission_classes = (HasRWPermission,)
+    queryset = PluginScriptSubmission.objects.all()
+    serializer_class = PluginScriptSubmissionSerializer
 
-    if request.method == 'GET':
-        serializer = MachineGroupSerializer(machine_group)
-        return JSONResponse(serializer.data)
-
-    elif request.method == 'PUT':
-        data = JSONParser().parse(request)
-        serializer = MachineGroupSerializer(machine_group, data=data)
-        if serializer.is_valid():
-            serializer.save()
-            return JSONResponse(serializer.data)
-        return JSONResponse(serializer.errors, status=400)
-
-    elif request.method == 'DELETE':
-        machine_group.delete()
-        return HttpResponse(status=204)
-
-@csrf_exempt
-@validate_api_key
-def machine_group_list(request):
+class PluginScriptRowMachine(generics.ListAPIView):
     """
-    List all machine groupss, or create a new machine group.
+    Get the pluginscriptrows for a submission
     """
-    if request.method == 'GET':
-        machine_groups = MachineGroup.objects.all()
-        serializer = MachineGroupSerializer(machine_groups, many=True)
-        return JSONResponse(serializer.data)
+    authentication_classes = (ApiKeyAuthentication,)
+    permission_classes = (HasRWPermission,)
+    queryset = PluginScriptRow.objects.all()
+    lookup_field = 'pk'
+    serializer_class = PluginScriptRowSerializer
 
-    elif request.method == 'POST':
-        data = JSONParser().parse(request)
-        serializer = MachineGroupSerializer(data=data)
-        if serializer.is_valid():
-            serializer.save()
-            return JSONResponse(serializer.data, status=201)
-        return JSONResponse(serializer.errors, status=400)
-
-@csrf_exempt
-@validate_api_key
-def business_unit(request, pk):
+class SearchID(generics.ListAPIView):
     """
-    Retrieve, update or delete a business unit.
+    Retrieve a saved search
     """
-    try:
-        business_unit = BusinessUnit.objects.get(pk=pk)
-    except BusinessUnit.DoesNotExist:
-        return HttpResponse(status=404)
+    authentication_classes = (ApiKeyAuthentication,)
+    permission_classes = (HasRWPermission,)
+    serializer_class = MachineSerializer
+    def get_queryset(self):
+        """
+        Run the saved search
+        """
+        search_id = self.kwargs['pk']
+        if search_id.endswith('/'):
+            search_id = search_id[:-1]
+        machines = Machine.objects.all()
+        print search_machines(search_id, machines)
+        return search_machines(search_id, machines, full=True)
 
-    if request.method == 'GET':
-        serializer = BusinessUnitSerializer(business_unit)
-        return JSONResponse(serializer.data)
-
-    elif request.method == 'PUT':
-        data = JSONParser().parse(request)
-        serializer = BusinessUnitSerializer(business_unit, data=data)
-        if serializer.is_valid():
-            serializer.save()
-            return JSONResponse(serializer.data)
-        return JSONResponse(serializer.errors, status=400)
-
-    elif request.method == 'DELETE':
-        business_unit.delete()
-        return HttpResponse(status=204)
-
-@csrf_exempt
-@validate_api_key
-def business_unit_list(request):
+class BasicSearch(generics.ListAPIView):
     """
-    List all business units, or create a new business unit.
+    Perform a basic search
     """
-    if request.method == 'GET':
-        business_units = BusinessUnit.objects.all()
-        serializer = BusinessUnitSerializer(business_units, many=True)
-        return JSONResponse(serializer.data)
+    authentication_classes = (ApiKeyAuthentication,)
+    permission_classes = (HasRWPermission,)
+    serializer_class = MachineSerializer
+    def get_queryset(self):
+        """
+        Run the basic search
+        """
+        query = self.request.query_params.get('query', None)
+        machines = Machine.objects.all()
+        if query is not None:
+            machines = quick_search(machines, query)
 
-    elif request.method == 'POST':
-        data = JSONParser().parse(request)
-        serializer = BusinessUnitSerializer(data=data)
-        if serializer.is_valid():
-            serializer.save()
-            return JSONResponse(serializer.data, status=201)
-        return JSONResponse(serializer.errors, status=400)
+        return machines
+# Retrieve all machines with a particular Fact value

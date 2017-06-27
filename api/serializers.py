@@ -6,7 +6,7 @@ from server.models import *
 class InventoryItemSerializer(serializers.ModelSerializer):
     class Meta:
         model = InventoryItem
-        exclude = ('machine',)
+        # exclude = ('machine',)
 
 class BusinessUnitSerializer(serializers.ModelSerializer):
     class Meta:
@@ -17,16 +17,40 @@ class MachineGroupSerializer(serializers.ModelSerializer):
     class Meta:
         model = MachineGroup
 
+class PluginScriptSubmissionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PluginScriptSubmission
+
+class PluginScriptRowSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PluginScriptRow
+
 class FactSerializer(serializers.ModelSerializer):
     class Meta:
         model = Fact
         exclude = ('machine',)
+
+class SerialSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Machine
+        fields = ('id','serial',)
+
+
+class FactWithSerialSerializer(serializers.ModelSerializer):
+    machine = SerialSerializer()
+    class Meta:
+        model = Fact
 
 class ConditionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Condition
         exclude = ('machine',)
 
+class ConditionWithSerialSerializer(serializers.ModelSerializer):
+    # serial = serializers.CharField()
+    machine = SerialSerializer()
+    class Meta:
+        model = Condition
 
 class PendingAppleUpdateSerializer(serializers.ModelSerializer):
     class Meta:

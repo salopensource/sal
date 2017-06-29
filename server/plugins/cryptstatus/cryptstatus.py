@@ -29,22 +29,25 @@ class CryptStatus(IPlugin):
             crypt_url = crypt_url.rstrip('/')
         except:
             crypt_url = None
-        
+
         serial = machines.serial
         output = {}
         date_escrowed = None
         escrowed = None
         request_url = crypt_url + '/verify/'+ serial + '/recovery_key/'
         if crypt_url:
-            r = requests.get(request_url)
-            if r.status_code == requests.codes.ok:
-                output = r.json()
+            try:
+                r = requests.get(request_url)
+                if r.status_code == requests.codes.ok:
+                    output = r.json()
+            except:
+                pass
 
         if output != {}:
             escrowed = output['escrowed']
             if output['escrowed'] == True:
                 date_escrowed = parse_datetime(output['date_escrowed'])
-        
+
         c = Context({
             'title': 'FileVault Escrow',
             'date_escrowed': date_escrowed,

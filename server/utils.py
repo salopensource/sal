@@ -125,10 +125,13 @@ def get_version_number():
             current_version.value = version
             current_version.save()
         else:
-            r = requests.get('https://version.salopensource.com')
-            if r.status_code == 200:
-                current_version.value = r.text
-                current_version.save()
+            try:
+                r = requests.get('https://version.salopensource.com')
+                if r.status_code == 200:
+                    current_version.value = r.text
+                    current_version.save()
+            except:
+                return True
 
 
 def get_install_type():

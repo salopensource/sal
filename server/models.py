@@ -72,6 +72,7 @@ class Machine(models.Model):
         ('Windows', 'Windows'),
         ('Linux', 'Linux'),
     )
+    id = models.BigAutoField(primary_key=True)
     machine_group = models.ForeignKey(MachineGroup)
     serial = models.CharField(db_index=True, max_length=100, unique=True)
     hostname = models.CharField(max_length=256, null=True, blank=True)
@@ -209,6 +210,7 @@ class Machine(models.Model):
         super(Machine, self).save()
 
 class UpdateHistory(models.Model):
+    id = models.BigAutoField(primary_key=True)
     UPDATE_TYPE = (
         ('third_party', '3rd Party'),
         ('apple', 'Apple'),
@@ -225,6 +227,7 @@ class UpdateHistory(models.Model):
         unique_together = (("machine", "name", "version", "update_type"),)
 
 class UpdateHistoryItem(models.Model):
+    id = models.BigAutoField(primary_key=True)
     UPDATE_STATUS = (
         ('pending', 'Pending'),
         ('error', 'Error'),
@@ -244,6 +247,7 @@ class UpdateHistoryItem(models.Model):
 
 
 class Fact(models.Model):
+    id = models.BigAutoField(primary_key=True)
     machine = models.ForeignKey(Machine, related_name='facts')
     fact_name = models.TextField(db_index=True)
     fact_data = models.TextField()
@@ -253,6 +257,7 @@ class Fact(models.Model):
         ordering = ['fact_name']
 
 class HistoricalFact(models.Model):
+    id = models.BigAutoField(primary_key=True)
     machine = models.ForeignKey(Machine, related_name='historical_facts')
     fact_name = models.CharField(db_index=True, max_length=255)
     fact_data = models.TextField()
@@ -263,6 +268,7 @@ class HistoricalFact(models.Model):
         ordering = ['fact_name', 'fact_recorded']
 
 class Condition(models.Model):
+    id = models.BigAutoField(primary_key=True)
     machine = models.ForeignKey(Machine, related_name='conditions')
     condition_name = models.CharField(max_length=255,db_index=True)
     condition_data = models.TextField(db_index=True)
@@ -272,6 +278,7 @@ class Condition(models.Model):
         ordering = ['condition_name']
 
 class PluginScriptSubmission(models.Model):
+    id = models.BigAutoField(primary_key=True)
     machine = models.ForeignKey(Machine)
     plugin = models.CharField(db_index=True, max_length=255)
     historical = models.BooleanField(default=False)
@@ -282,6 +289,7 @@ class PluginScriptSubmission(models.Model):
         ordering = ['recorded', 'plugin']
 
 class PluginScriptRow(models.Model):
+    id = models.BigAutoField(primary_key=True)
     submission = models.ForeignKey(PluginScriptSubmission)
     pluginscript_name = models.TextField(db_index=True)
     pluginscript_data = models.TextField(blank=True, null=True, db_index=True)
@@ -324,6 +332,7 @@ class PluginScriptRow(models.Model):
         ordering = ['pluginscript_name']
 
 class PendingUpdate(models.Model):
+    id = models.BigAutoField(primary_key=True)
     machine = models.ForeignKey(Machine, related_name='pending_updates')
     update = models.CharField(db_index=True, max_length=255, null=True, blank=True)
     update_version = models.CharField(db_index=True, max_length=255, null=True, blank=True)
@@ -334,6 +343,7 @@ class PendingUpdate(models.Model):
         ordering = ['display_name']
 
 class InstalledUpdate(models.Model):
+    id = models.BigAutoField(primary_key=True)
     machine = models.ForeignKey(Machine, related_name='installed_updates')
     update = models.CharField(db_index=True, max_length=255, null=True, blank=True)
     update_version = models.CharField(db_index=True, max_length=255, null=True, blank=True)
@@ -346,6 +356,7 @@ class InstalledUpdate(models.Model):
         unique_together = ("machine", "update", "update_version")
 
 class PendingAppleUpdate(models.Model):
+    id = models.BigAutoField(primary_key=True)
     machine = models.ForeignKey(Machine, related_name='pending_apple_updates')
     update = models.CharField(db_index=True, max_length=255, null=True, blank=True)
     update_version = models.CharField(db_index=True, max_length=256, null=True, blank=True)

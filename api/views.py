@@ -58,6 +58,15 @@ class MachineInventory(generics.ListAPIView):
         serial = self.kwargs['serial']
         return Machine.objects.get(serial=serial).inventoryitem_set.all()
 
+class AllInventory(generics.ListAPIView):
+    """
+    Retrieve all the inventory items
+    """
+    authentication_classes = (ApiKeyAuthentication,)
+    permission_classes = (HasRWPermission,)
+    serializer_class = InventoryItemSerializer
+    queryset = InventoryItem.objects.all()
+
 class PendingAppleUpdates(generics.ListAPIView):
     """
     Retrieve pending apple updates for a machine.

@@ -11,6 +11,9 @@ class XprotectVersion(IPlugin):
     def widget_width(self):
         return 4
 
+    def get_description(self):
+        return 'Xprotect version'
+
     def widget_content(self, page, machines=None, theid=None):
 
 

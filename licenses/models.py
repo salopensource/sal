@@ -31,7 +31,7 @@ class License(models.Model):
             items = items.filter(application__bundleid__exact=self.inventory_bundleid)
         if self.inventory_bundlename:
             items = items.filter(
-                bundlename__exact=self.inventory_bundlename)
+                application__bundlename__exact=self.inventory_bundlename)
         if self.inventory_path:
             items = items.filter(path__exact=self.inventory_path)
         if self.business_unit:

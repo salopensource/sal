@@ -12,6 +12,7 @@ AND_OR_CHOICES = (
     ('OR', 'OR'),
 )
 class SavedSearch(models.Model):
+    id = models.BigAutoField(primary_key=True)
     now = django.utils.timezone.now()
     default = 'Unsaved Search %s' % str(now)
     name = models.CharField(max_length=100, default=default)
@@ -25,6 +26,7 @@ class SavedSearch(models.Model):
         ordering = ['name']
 
 class SearchGroup(models.Model):
+    id = models.BigAutoField(primary_key=True)
     saved_search = models.ForeignKey(SavedSearch)
     and_or = models.CharField(choices=AND_OR_CHOICES, default='AND', max_length=3)
     position = models.IntegerField(default=0)
@@ -49,6 +51,7 @@ class SearchRow(models.Model):
         ('>','>'),
         ('>=', '>='),
     )
+    id = models.BigAutoField(primary_key=True)
     search_group = models.ForeignKey(SearchGroup)
     search_models = models.CharField(choices=SEARCH_MODEL_CHOICES, default='AND', max_length=254, verbose_name='Search item')
     search_field = models.CharField(max_length=254)
@@ -68,6 +71,7 @@ class SearchFieldCache(models.Model):
         ('Application Inventory', 'Application Inventory'),
         ('Application Version', 'Application Version'),
     )
+    id = models.BigAutoField(primary_key=True)
     search_model = models.CharField(choices=SEARCH_MODEL_CHOICES, default='AND', max_length=254, verbose_name='Search item')
     search_field = models.CharField(max_length=254)
     def __unicode__(self):

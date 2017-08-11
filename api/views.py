@@ -23,6 +23,16 @@ class MachineList(generics.ListCreateAPIView):
     serializer_class = MachineSerializer
 
 
+class MachineListFullDetail(generics.ListCreateAPIView):
+    """
+    List all machines in full details, or create a new machine.
+    """
+    authentication_classes = (ApiKeyAuthentication,)
+    permission_classes = (HasRWPermission,)
+    queryset = Machine.objects.all()
+    serializer_class = FullMachineSerializer
+
+
 class MachineDetail(generics.RetrieveUpdateDestroyAPIView):
     """
     Retrieve, update or delete a machine.

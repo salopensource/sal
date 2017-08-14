@@ -550,7 +550,7 @@ def friendly_machine_model(machine):
             output = name['machine_model_friendly']
             break
         
-    if output is None and not machine.serial.startswith('VM'):
+    if not output and not machine.serial.startswith('VM'):
         if len(machine.serial) == 12:
             serial_snippet = machine.serial[-4:]
         else:

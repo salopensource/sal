@@ -549,8 +549,14 @@ def friendly_machine_model(machine):
         if name['num_models'] == 1:
             output = name['machine_model_friendly']
             break
+        
     if output is None and not machine.serial.startswith('VM'):
-        payload = {'cc': machine.serial[-4:]}
+        if len(machine.serial) == 12:
+            serial_snippet = machine.serial[-4:]
+        else:
+            # older models product code is the last three characters of the serial
+            serial_snippet = machine.serial[-3:]
+        payload = {'cc': serial_snippet}
         output = None
         try:
             r = requests.get('http://support-sp.apple.com/sp/product', params=payload)

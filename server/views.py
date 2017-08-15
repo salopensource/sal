@@ -2024,18 +2024,32 @@ def checkin(request):
     updates = machine.installed_updates.all().delete()
 
     if 'ManagedInstalls' in report_data:
+        # Due to a quirk in how Munki 3 processes updates with dependencies,
+        # it's possible to have multiple entries in the ManagedInstalls list
+        # that share an update_name and installed_version. This causes an
+        # IntegrityError in Django since (machine_id, update, update_version)
+        # must be unique.Until/(unless!) this is addressed in Munki, we need to
+        # be careful to not add multiple items with the same name and version.
+        # We'll store each (update_name, version) combo as we see them.
+        seen_names_and_versions = []
         installed_updates_to_save = []
         for update in report_data.get('ManagedInstalls'):
             display_name = update.get('display_name', update['name'])
             update_name = update.get('name')
             version = str(update.get('installed_version', 'UNKNOWN'))
             installed = update.get('installed')
-            if version != 'UNKNOWN' and version != None and len(version) != 0:
-                installed_update = InstalledUpdate(machine=machine, display_name=display_name, update_version=version, update=update_name, installed=installed)
-                if IS_POSTGRES:
-                    installed_updates_to_save.append(installed_update)
-                else:
-                    installed_update.save()
+            if (update_name, version) not in seen_names_and_versions:
+                seen_names_and_versions.append((update_name, version))
+                if (version != 'UNKNOWN' and version != None and
+                        len(version) != 0):
+                    installed_update = InstalledUpdate(
+                        machine=machine, display_name=display_name,
+                        update_version=version, update=update_name,
+                        installed=installed)
+                    if IS_POSTGRES:
+                        installed_updates_to_save.append(installed_update)
+                    else:
+                        installed_update.save()
         if IS_POSTGRES:
             InstalledUpdate.objects.bulk_create(installed_updates_to_save)
 

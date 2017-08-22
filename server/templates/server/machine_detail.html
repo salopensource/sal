@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 {% load i18n %}
 {% load dashboard_extras %}
+{% load static from staticfiles %}
 {% block title %}Sal - {{ machine.hostname }}{% endblock %}
 {% block script %}
 <script>
@@ -46,7 +47,11 @@ $( document ).ready(function() {
 <div class="row">
   <div class="col-md-5">
     <p style="text-align: center;">
+        {% if machine.os_family == 'Darwin' %}
       <img src='https://km.support.apple.com.edgekey.net/kb/securedImage.jsp?configcode={{machine.serial|slice:"8:" }}&size=120x120'>
+      {% else %}
+      <img src="{% static 'img/generic_pc.png' %}" height="120" width="120" alt="Generic PC"/>
+      {% endif %}
       <br>
       <h2 style="text-align:center">{{ machine.hostname }}</h2>
       <span style="display: block; margin: 0px auto; text-align: center;" title="Last report date">
@@ -129,7 +134,7 @@ $( document ).ready(function() {
           <dd>{{ report.MachineInfo.hostname }}</dd>
           <dt>OS version:</dt>
           <dd>
-            {% if report.os_family == 'Darwin' %}
+            {% if machine.os_family == 'Darwin' %}
             {{ report.MachineInfo.os_vers|macos }}
             {% endif %}
             {{ report.MachineInfo.os_vers }}

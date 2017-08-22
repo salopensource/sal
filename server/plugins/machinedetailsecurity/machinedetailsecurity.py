@@ -10,6 +10,9 @@ class MachineDetailSecurity(IPlugin):
     def plugin_type(self):
         return 'machine_detail'
 
+    def supported_os_families(self):
+        return ['Darwin']
+        
     def widget_width(self):
         return 4
 

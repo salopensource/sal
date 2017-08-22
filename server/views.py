@@ -1333,8 +1333,15 @@ def machine_detail(request, machine_id):
                 plugin_type = plugin.plugin_object.plugin_type()
             except:
                 plugin_type = 'widget'
+
+            # If we can't get supported OS Families, assume it's for all
+            try:
+                supported_os_families = plugin.plugin_object.supported_os_families()
+            except:
+                supported_os_families = ['Darwin', 'Windows', 'Linux']
             if plugin.name == enabled_plugin.name and \
-            plugin_type != 'builtin' and plugin_type != 'report':
+            plugin_type != 'builtin' and plugin_type != 'report' and \
+            machine.os_family in supported_os_families:
                 data = {}
                 data['name'] = plugin.name
                 data['html'] = '<div id="plugin-%s"><img class="center-block blue-spinner" src="%s"/></div>' % (data['name'], static('img/blue-spinner.gif'))

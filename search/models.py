@@ -13,12 +13,17 @@ AND_OR_CHOICES = (
 )
 class SavedSearch(models.Model):
     id = models.BigAutoField(primary_key=True)
-    now = django.utils.timezone.now()
-    default = 'Unsaved Search %s' % str(now)
-    name = models.CharField(max_length=100, default=default)
+    name = models.CharField(max_length=100, blank=True, null=True)
     created = models.DateTimeField(auto_now_add=True)
     save_search = models.BooleanField(default=False)
     created_by = models.ForeignKey(User, default=get_current_user)
+
+    def __getattribute__(self, name):
+        attr = models.Model.__getattribute__(self, name)
+        now = django.utils.timezone.now()
+        if name == 'name' and not attr:
+            return 'Unsaved Search %s' % str(now)
+        return attr
 
     def __unicode__(self):
         return self.name

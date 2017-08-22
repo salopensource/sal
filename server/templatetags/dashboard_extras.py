@@ -73,6 +73,18 @@ def print_timestamp(timestamp):
     return time.strftime("%Y-%m-%d", time.gmtime(ts))
 
 @register.filter
+def flatten_and_sort_list(the_list):
+    output = ''
+    counter = 1
+    for item in sorted(the_list):
+        if counter == 1:
+            output = item
+        else:
+            output = output + ', ' + item
+        counter += 1
+    return output
+
+@register.filter
 def next(value, arg):
     try:
         return value[int(arg)+1]

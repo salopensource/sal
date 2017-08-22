@@ -207,6 +207,7 @@ def run_plugin_processing(machine, report_data):
                 pass
 
 
+
 def send_report():
     output = {}
     # get total number of machines
@@ -383,18 +384,25 @@ def disabled_plugins(plugin_kind='main'):
     # Load all plugins
     manager.collectPlugins()
     output = []
-
+    default_families = ['Darwin', 'Windows', 'Linux']
     if plugin_kind == 'main':
         for plugin in manager.getAllPlugins():
             try:
                 plugin_type = plugin.plugin_object.plugin_type()
             except:
                 plugin_type = 'builtin'
+            try:
+                supported_os_families = plugin.plugin_object.supported_os_families()
+            except:
+                supported_os_families = default_families
             if plugin_type == 'builtin':
                 try:
-                    item = Plugin.objects.get(name=plugin.name)
+                    _ = Plugin.objects.get(name=plugin.name)
                 except Plugin.DoesNotExist:
-                    output.append(plugin.name)
+                    item = {}
+                    item['name'] = plugin.name
+                    item['os_families'] = supported_os_families
+                    output.append(item)
 
     if plugin_kind == 'report':
         for plugin in manager.getAllPlugins():
@@ -403,11 +411,19 @@ def disabled_plugins(plugin_kind='main'):
             except:
                 plugin_type = 'builtin'
 
+            try:
+                supported_os_families = plugin.plugin_object.supported_os_families()
+            except:
+                supported_os_families = default_families
+
             if plugin_type == 'report':
                 try:
-                    item = Report.objects.get(name=plugin.name)
+                    _ = Report.objects.get(name=plugin.name)
                 except Report.DoesNotExist:
-                    output.append(plugin.name)
+                    item = {}
+                    item['name'] = plugin.name
+                    item['os_families'] = supported_os_families
+                    output.append(item)
 
     if plugin_kind == 'machine_detail':
         for plugin in manager.getAllPlugins():
@@ -416,14 +432,32 @@ def disabled_plugins(plugin_kind='main'):
             except:
                 plugin_type = 'builtin'
 
+            try:
+                supported_os_families = plugin.plugin_object.supported_os_families()
+            except:
+                supported_os_families = default_families
+
             if plugin_type == 'machine_detail':
                 try:
-                    item = MachineDetailPlugin.objects.get(name=plugin.name)
+                    _ = MachineDetailPlugin.objects.get(name=plugin.name)
                 except MachineDetailPlugin.DoesNotExist:
-                    output.append(plugin.name)
-
+                    item = {}
+                    item['name'] = plugin.name
+                    item['os_families'] = supported_os_families
+                    output.append(item)
     return output
 
+
+def flatten_and_sort_list(the_list):
+    output = ''
+    counter = 1
+    for item in sorted(the_list):
+        if counter == 1:
+            output = item
+        else:
+            output = output + ', ' + item
+        counter += 1
+    return output
 
 def UniquePluginOrder(plugin_type='builtin'):
     if plugin_type == 'builtin':
@@ -549,7 +583,7 @@ def friendly_machine_model(machine):
         if name['num_models'] == 1:
             output = name['machine_model_friendly']
             break
-        
+
     if not output and not machine.serial.startswith('VM'):
         if len(machine.serial) == 12:
             serial_snippet = machine.serial[-4:]

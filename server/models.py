@@ -393,6 +393,7 @@ class MachineDetailPlugin(models.Model):
     name = models.CharField(max_length=255, unique=True)
     description = models.TextField(blank=True, null=True)
     order = models.IntegerField()
+    os_families = models.CharField(db_index=True,max_length=256, verbose_name="OS Family", default="Darwin")
     type = models.CharField(max_length=255, choices=PLUGIN_TYPES, default='builtin')
     def __unicode__(self):
         return self.name

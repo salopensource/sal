@@ -38,6 +38,9 @@
                         <tr>
                           <th>Order</th>
                           <th>Plugin</th>
+                          <th>
+                              Operating System Family
+                          </th>
                           <th>Description</th>
                           <th></th>
                           <th></th>
@@ -49,6 +52,9 @@
                         <tr>
                             <td>{{ plugin.order}}</td>
                             <td>{{ plugin.name }}</td>
+                            <td>
+                                {{ plugin.os_families}}
+                            </td>
                             <td>{{ plugin.description }}</td>
                             <td><a href="{% url 'machine_detail_plugin_disable' plugin.id %}" class="btn btn-mini btn-info pull-right" title="Disable Machine Detail Plugin"><i class="fa fa-minus"></i></a></td>
                             {% if forloop.first %}
@@ -91,7 +97,10 @@
 
                         {% for plugin in disabled_plugins %}
                         <tr>
-                            <td>{{ plugin }}</td>
+                            <td>{{ plugin.name }}</td>
+                            <td>
+                                {{ plugin.os_families|flatten_and_sort_list}}
+                            </td>
                             <td><a href="{% url 'machine_detail_plugin_enable' plugin %}" title="Enable Plugin" class="btn btn-mini btn-info pull-right"><i class="fa fa-check"></i></a></td>
                         </tr>
                         {% endfor %}

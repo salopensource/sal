@@ -10,6 +10,12 @@ from datetime import datetime
 from watson import search as watson
 from dateutil.parser import *
 
+OS_CHOICES = (
+    ('Darwin', 'macOS'),
+    ('Windows', 'Windows'),
+    ('Linux', 'Linux'),
+)
+
 def GenerateKey():
     key = ''.join(random.choice(string.ascii_lowercase + string.digits) for x in range(128))
     try:
@@ -67,11 +73,6 @@ class DeployedManager(models.Manager):
         return super(DeployedManager, self).get_queryset().filter(deployed=True)
 
 class Machine(models.Model):
-    OS_CHOICES = (
-        ('Darwin', 'OS X'),
-        ('Windows', 'Windows'),
-        ('Linux', 'Linux'),
-    )
     id = models.BigAutoField(primary_key=True)
     machine_group = models.ForeignKey(MachineGroup)
     serial = models.CharField(db_index=True, max_length=100, unique=True)
@@ -392,6 +393,7 @@ class MachineDetailPlugin(models.Model):
     name = models.CharField(max_length=255, unique=True)
     description = models.TextField(blank=True, null=True)
     order = models.IntegerField()
+    os_families = models.CharField(db_index=True,max_length=256, verbose_name="OS Family", default="Darwin")
     type = models.CharField(max_length=255, choices=PLUGIN_TYPES, default='builtin')
     def __unicode__(self):
         return self.name

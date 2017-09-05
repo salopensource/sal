@@ -3,7 +3,7 @@ import hashlib
 import plistlib
 from datetime import datetime
 from django.utils import timezone
-from urllib import quote
+from urllib import quote, urlencode
 
 # third-party
 import unicodecsv as csv
@@ -56,14 +56,14 @@ class GroupMixin(object):
     model = None
 
     @classmethod
-    def get_business_unit(cls, **kwargs):
+    def get_business_unit(cls, request):
         """Return the business unit associated with this request."""
         instance = None
-        group_class = cls.classes[kwargs["group_type"]]
+        group_class = cls.classes[request.GET.get("group_type", 'all')]
 
         if group_class:
             instance = get_object_or_404(
-                group_class, pk=kwargs["group_id"])
+                group_class, pk=request.GET.get("group_id"))
 
         # Implicitly returns BusinessUnit, or None if that is the type.
         # No need for an extra test.
@@ -75,11 +75,18 @@ class GroupMixin(object):
         return instance
 
     def get_group_instance(self):
-        group_type = self.kwargs["group_type"]
+        if 'group_type' in self.kwargs:
+            group_type = self.kwargs['group_type']
+        else:
+            group_type = self.request.GET.get('group_type', 'all')
+        if 'group_id' in self.kwargs:
+            group_id = self.kwargs['group_id']
+        else:
+            group_id = self.request.GET.get('group_id', '0')
         group_class = self.classes[group_type]
         if group_class:
             instance = get_object_or_404(
-                group_class, pk=self.kwargs["group_id"])
+                group_class, pk=group_id)
         else:
             instance = None
 
@@ -88,7 +95,7 @@ class GroupMixin(object):
     def filter_queryset_by_group(self, queryset):
         """Filter queryset to only include group data.
 
-        The filter depends on the instance's group_type kwarg. The
+        The filter depends on the request's group_type value. The
         provided queryset is filtered to include only records matching
         the view's specified BusinessUnit, MachineGroup, Machine (or
         not filtered at all for GA access).
@@ -101,9 +108,14 @@ class GroupMixin(object):
         """
         self.group_instance = self.get_group_instance()
         # No need to filter if group_instance is None.
+        if 'group_type' in self.kwargs:
+            group_type = self.kwargs['group_type']
+        else:
+            group_type = self.request.GET.get('group_type', 'all')
+
         if self.group_instance:
             filter_path = self.access_filter[queryset.model]\
-                [self.classes[self.kwargs["group_type"]]]
+                [self.classes[group_type]]
 
             # If filter_path is Machine there is nothing to filter on.
             if filter_path:
@@ -163,27 +175,32 @@ class InventoryListView(LegacyDatatableView, GroupMixin):
             Application, pk=self.kwargs["application_id"])
         queryset = queryset.filter(inventoryitem__application=self.application)
 
+        # Save request values so we don't have to keep looking them up.
+        self.group_type = self.request.GET.get("group_type", "all")
+        self.group_id = self.request.GET.get("group_id", "0")
+        self.field_type = self.request.GET.get("field_type", "all")
+        self.field_value = self.request.GET.get("field_value", "")
+
         # Filter again based on criteria.
-        field_type = self.kwargs["field_type"]
-        if field_type == "path":
+        if self.field_type == "path":
             queryset = queryset.filter(
-                inventoryitem__path=self.kwargs["field_value"])
-        elif field_type == "version":
+                inventoryitem__path=self.field_value)
+        elif self.field_type == "version":
             queryset = queryset.filter(
-                inventoryitem__version=self.kwargs["field_value"])
+                inventoryitem__version=self.field_value)
 
         return queryset.distinct()
 
     def get_context_data(self, **kwargs):
         context = super(InventoryListView, self).get_context_data(**kwargs)
         context["application_id"] = self.application.id
-        context["group_type"] = self.kwargs["group_type"]
-        context["group_id"] = self.kwargs["group_id"]
+        context["group_type"] = self.group_type
+        context["group_id"] = self.group_id
         context["group_name"] = (self.group_instance.name if hasattr(
             self.group_instance, "name") else None)
         context["app_name"] = self.application.name
-        context["field_type"] = self.kwargs["field_type"]
-        context["field_value"] = self.kwargs["field_value"]
+        context["field_type"] = self.field_type
+        context["field_value"] = self.field_value
         return context
 
     def format_date(self, instance, *args, **kwargs):
@@ -193,16 +210,18 @@ class InventoryListView(LegacyDatatableView, GroupMixin):
         url = reverse(
             "machine_detail", kwargs={"machine_id": instance.pk})
 
-        return '<a href="{}">{}</a>'.format(url, instance.hostname.encode("utf-8"))
+        return '<a href="{}">{}</a>'.format(
+            url, instance.hostname.encode("utf-8"))
 
     def get_install_count(self, instance, *args, **kwargs):
         queryset = instance.inventoryitem_set.filter(
             application=self.application)
-        field_type = self.kwargs["field_type"]
-        if field_type == "path":
-            queryset = queryset.filter(path=self.kwargs["field_value"])
-        elif field_type == "version":
-            queryset = queryset.filter(version=self.kwargs["field_value"])
+        if self.field_type == "path":
+            queryset = queryset.filter(
+                path=self.field_value)
+        elif self.field_type == "version":
+            queryset = queryset.filter(
+                version=self.field_value)
         return queryset.count()
 
 
@@ -251,7 +270,11 @@ class ApplicationListView(LegacyDatatableView, GroupMixin):
 
     def get_name_link(self, instance, *args, **kwargs):
         self.kwargs["pk"] = instance.pk
-        url = reverse("application_detail", kwargs=self.kwargs)
+        url = "{}?{}".format(
+            reverse("application_detail", kwargs={'pk': instance.pk}),
+            urlencode(
+                {'group_type': self.kwargs['group_type'],
+                 'group_id': self.kwargs['group_id']}))
         return '<a href="{}">{}</a>'.format(url, instance.name.encode("utf-8"))
 
     def get_install_count(self, instance, *args, **kwargs):
@@ -261,12 +284,13 @@ class ApplicationListView(LegacyDatatableView, GroupMixin):
 
         # Build a link to InventoryListView for install count badge.
         url_kwargs = {
-            "group_type": self.kwargs["group_type"],
-            "group_id": self.kwargs["group_id"],
-            "application_id": instance.pk,
-            "field_type": "all",
-            "field_value": 0}
-        url = reverse("inventory_list", kwargs=url_kwargs)
+            "application_id": instance.pk}
+        querystring = urlencode(
+            {"group_type": self.kwargs['group_type'], "group_id":
+             self.kwargs['group_id']})
+        url = "{}?{}".format(
+            reverse("inventory_list", kwargs=url_kwargs),
+            querystring)
 
         # Build the link.
         anchor = '<a href="{}"><span class="badge">{}</span></a>'.format(
@@ -276,7 +300,7 @@ class ApplicationListView(LegacyDatatableView, GroupMixin):
     def get_context_data(self, **kwargs):
         context = super(ApplicationListView, self).get_context_data(**kwargs)
         self.group_instance = self.get_group_instance()
-        context["group_type"] = self.kwargs["group_type"]
+        context["group_type"] = self.kwargs['group_type']
         if hasattr(self.group_instance, "name"):
             context["group_name"] = self.group_instance.name
         elif hasattr(self.group_instance, "hostname"):
@@ -340,8 +364,8 @@ class ApplicationDetailView(DetailView, GroupMixin):
         # Get the total number of installations.
         context["install_count"] = details.count()
         # Add in access data.
-        context["group_type"] = self.kwargs["group_type"]
-        context["group_id"] = self.kwargs["group_id"]
+        context["group_type"] = self.request.GET.get("group_type", 'all')
+        context["group_id"] = self.request.GET.get("group_id", '0')
         if hasattr(self.group_instance, "name"):
             group_name = self.group_instance.name
         elif hasattr(self.group_instance, "hostname"):
@@ -362,14 +386,20 @@ class CSVExportView(CSVResponseMixin, GroupMixin, View):
         # Filter data by access level
         queryset = self.filter_queryset_by_group(self.model.objects)
 
-        if kwargs["application_id"] == "0":
+        application_id = self.request.GET.get('pk', '0')
+        group_type = self.request.GET.get('group_type', 'all')
+        group_id = self.request.GET.get('group_id', '0')
+        field_type = self.request.GET.get('field_type', 'all')
+        field_value = self.request.GET.get('field_value', '')
+
+
+        if application_id == "0":
             # All Applications.
             self.set_header(
                 ["Name", "BundleID", "BundleName", "Install Count"])
-            self.components = ["application", "list", "for",
-                               self.kwargs["group_type"]]
-            if self.kwargs["group_type"] != "all":
-                self.components.append(self.kwargs["group_id"])
+            self.components = ['application', 'list', 'for', group_type]
+            if group_type != "all":
+                self.components.append(group_id)
 
             if is_postgres():
                 apps = [self.get_application_entry(item, queryset) for item in
@@ -387,22 +417,19 @@ class CSVExportView(CSVResponseMixin, GroupMixin, View):
             # Inventory List for one application.
             self.set_header(
                 ["Hostname", "Serial Number", "Last Checkin", "Console User"])
-            self.components = ["application", self.kwargs["application_id"],
-                               "for", self.kwargs["group_type"]]
-            if self.kwargs["group_type"] != "all":
-                self.components.append(self.kwargs["group_id"])
-            if self.kwargs["field_type"] != "all":
+            self.components = ["application", application_id,
+                               "for", group_type]
+            if group_type != "all":
+                self.components.append(group_id)
+            if field_type != "all":
                 self.components.extend(
-                    ["where", self.kwargs["field_type"], "is",
-                     quote(self.kwargs["field_value"])])
+                    ["where", field_type, "is", quote(field_value)])
 
-            queryset = queryset.filter(application=kwargs["application_id"])
-            if kwargs["field_type"] == "path":
-                queryset = queryset.filter(
-                    path=kwargs["field_value"])
-            elif kwargs["field_type"] == "version":
-                queryset = queryset.filter(
-                    version=kwargs["field_value"])
+            queryset = queryset.filter(application=application_id)
+            if field_type == "path":
+                queryset = queryset.filter(path=field_value)
+            elif field_type == "version":
+                queryset = queryset.filter(version=field_value)
 
             data = [self.get_machine_entry(item, queryset)
                     for item in queryset.select_related("machine")]
@@ -483,7 +510,8 @@ def inventory_submit(request):
                 inventory_meta.save()
 
                 if is_postgres():
-                    InventoryItem.objects.bulk_create(inventory_items_to_be_created)
+                    InventoryItem.objects.bulk_create(
+                        inventory_items_to_be_created)
             machine.save()
             return HttpResponse(
                 "Inventory submmitted for %s.\n" %

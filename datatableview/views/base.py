@@ -7,23 +7,22 @@ from django.views.generic import ListView, TemplateView
 from django.views.generic.list import MultipleObjectMixin
 from django.http import HttpResponse
 from django.conf import settings
+from django.core.serializers.json import DjangoJSONEncoder
 
 from ..datatables import Datatable, DatatableOptions
+from ..compat import escape_uri_path
 
 log = logging.getLogger(__name__)
 
 
 class DatatableJSONResponseMixin(object):
-    # AJAX response router
-    def get(self, request, *args, **kwargs):
-        """
-        Detects AJAX access and returns appropriate serialized data.  Normal access to the view is
-        unmodified.
-        """
-
-        if request.is_ajax() or request.GET.get('ajax') == 'true':
-            return self.get_ajax(request, *args, **kwargs)
-        return super(DatatableJSONResponseMixin, self).get(request, *args, **kwargs)
+    def dispatch(self, request, *args, **kwargs):
+        if request.is_ajax() or getattr(request, request.method).get('ajax') == 'true':
+            datatable = self.get_datatable()
+            datatable.configure()
+            if request.method == datatable.config['request_method']:
+                return self.get_ajax(request, *args, **kwargs)
+        return super(DatatableJSONResponseMixin, self).dispatch(request, *args, **kwargs)
 
     # Response generation
     def get_json_response_object(self, datatable):
@@ -41,11 +40,14 @@ class DatatableJSONResponseMixin(object):
         # 'total_initial_record_count', and 'unpaged_record_count' values.
         datatable.populate_records()
 
+        draw = getattr(self.request, self.request.method).get('draw', None)
+        if draw is not None:
+            draw = escape_uri_path(draw)
         response_data = {
-            'sEcho': self.request.GET.get('sEcho', None),
-            'iTotalRecords': datatable.total_initial_record_count,
-            'iTotalDisplayRecords': datatable.unpaged_record_count,
-            'aaData': [dict(record, **{
+            'draw': draw,
+            'recordsFiltered': datatable.unpaged_record_count,
+            'recordsTotal': datatable.total_initial_record_count,
+            'data': [dict(record, **{
                 'DT_RowId': record.pop('pk'),
                 'DT_RowData': record.pop('_extra_data'),
             }) for record in datatable.get_records()],
@@ -59,7 +61,9 @@ class DatatableJSONResponseMixin(object):
         if settings.DEBUG:
             indent = 4
 
-        return json.dumps(response_data, indent=indent)
+        # Serialize to JSON with Django's encoder: Adds date/time, decimal,
+        # and UUID support.
+        return json.dumps(response_data, indent=indent, cls=DjangoJSONEncoder)
 
 
 class DatatableMixin(DatatableJSONResponseMixin, MultipleObjectMixin):
@@ -73,11 +77,9 @@ class DatatableMixin(DatatableJSONResponseMixin, MultipleObjectMixin):
 
     # AJAX response handler
     def get_ajax(self, request, *args, **kwargs):
-        """ Called in place of normal ``get()`` when accessed via AJAX. """
+        """ Called when accessed via AJAX on the request method specified by the Datatable. """
 
-        datatable = self.get_datatable()
-        datatable.configure()
-        response_data = self.get_json_response_object(datatable)
+        response_data = self.get_json_response_object(self._datatable)
         response = HttpResponse(self.serialize_to_json(response_data),
                                 content_type="application/json")
 
@@ -86,6 +88,9 @@ class DatatableMixin(DatatableJSONResponseMixin, MultipleObjectMixin):
     # Configuration getters
     def get_datatable(self, **kwargs):
         """ Gathers and returns the final :py:class:`Datatable` instance for processing. """
+        if hasattr(self, '_datatable'):
+            return self._datatable
+
         datatable_class = self.get_datatable_class()
         if datatable_class is None:
             class AutoMeta:
@@ -101,9 +106,11 @@ class DatatableMixin(DatatableJSONResponseMixin, MultipleObjectMixin):
                 setattr(opts, meta_opt, kwargs.pop(meta_opt))
 
         datatable_class = type('%s_Synthesized' % (datatable_class.__name__,), (datatable_class,), {
+            '__module__': datatable_class.__module__,
             'Meta': opts,
         })
-        return datatable_class(**kwargs)
+        self._datatable = datatable_class(**kwargs)
+        return self._datatable
 
     def get_datatable_class(self):
         return self.datatable_class
@@ -116,23 +123,24 @@ class DatatableMixin(DatatableJSONResponseMixin, MultipleObjectMixin):
             'model': self.model or queryset.model,
         })
 
-        # This is provided by default, but if the view is instantiated outside of the request cycle
+        # This is, i.e., request, provided by default, but if the view is instantiated outside of the request cycle
         # (such as for the purposes of embedding that view's datatable elsewhere), the request may
         # not be required, so the user may not have a compelling reason to go through the trouble of
         # putting it on self.
         if hasattr(self, 'request'):
             kwargs['url'] = self.request.path
-            kwargs['query_config'] = self.request.GET
+            kwargs['query_config'] = getattr(self.request, self.request.method)
         else:
             kwargs['query_config'] = {}
 
         settings = ('columns', 'exclude', 'ordering', 'start_offset', 'page_length', 'search',
                     'search_fields', 'unsortable_columns', 'hidden_columns', 'footer',
                     'structure_template', 'result_counter_id')
-        
+
         for k in settings:
-            if hasattr(self, k):
-                kwargs[k] = getattr(self, k)
+            v = getattr(self, k, None)
+            if v is not None:  # MultipleObjectMixin or others might have default attr as None
+                kwargs[k] = v
         return kwargs
 
 
@@ -175,15 +183,25 @@ class MultipleDatatableMixin(DatatableJSONResponseMixin):
     def get_ajax(self, request, *args, **kwargs):
         """ Called in place of normal ``get()`` when accessed via AJAX. """
 
-        datatable = self.get_active_ajax_datatable()
-        datatable.configure()
-        response_data = self.get_json_response_object(datatable)
+        response_data = self.get_json_response_object(self._datatable)
         response = HttpResponse(self.serialize_to_json(response_data),
                                 content_type="application/json")
 
         return response
 
     # Configuration getters
+    def get_datatable(self):
+        if hasattr(self, '_datatable'):
+            return self._datatable
+        self._datatable = self.get_active_ajax_datatable()
+        return self._datatable
+
+    def get_active_ajax_datatable(self):
+        """ Returns a single datatable according to the hint GET variable from an AJAX request. """
+        data = getattr(self.request, self.request.method)
+        datatables_dict = self.get_datatables(only=data['datatable'])
+        return list(datatables_dict.values())[0]
+
     def get_datatables(self, only=None):
         """ Returns a dict of the datatables served by this view. """
         if not hasattr(self, '_datatables'):
@@ -202,24 +220,28 @@ class MultipleDatatableMixin(DatatableJSONResponseMixin):
                 if datatable_class is None:
                     class AutoMeta:
                         model = queryset.model
-                    datatable_class = type('%sDatatable' % (self.__class__.__name__,), (Datatable,), {
-                        'Meta': AutoMeta,
-                    })
-                elif datatable_class._meta.model is None:
+                    opts = AutoMeta()
+                    datatable_class = Datatable
+                else:
                     opts = datatable_class.options_class(datatable_class._meta)
-                    opts.model = queryset.model
-                    datatable_class = type('%s_WithModel' % (datatable_class.__name__,), (datatable_class,), {
-                        'Meta': opts,
-                    })
 
-                default_kwargs = {
-                    'object_list': queryset,
-                }
+                kwargs = self.get_default_datatable_kwargs(object_list=queryset)
                 kwargs_getter_name = 'get_%s_datatable_kwargs' % (name,)
-                kwargs_getter = getattr(self, kwargs_getter_name, self.get_default_datatable_kwargs)
-                kwargs = kwargs_getter(**default_kwargs)
+                kwargs_getter = getattr(self, kwargs_getter_name, None)
+                if kwargs_getter:
+                    kwargs = kwargs_getter(**kwargs)
                 if 'url' in kwargs:
                     kwargs['url'] = kwargs['url'] + "?datatable=%s" % (name,)
+
+                for meta_opt in opts.__dict__:
+                    if meta_opt in kwargs:
+                        setattr(opts, meta_opt, kwargs.pop(meta_opt))
+
+                datatable_class = type('%s_Synthesized' % (datatable_class.__name__,), (datatable_class,), {
+                    '__module__': datatable_class.__module__,
+                    'Meta': opts,
+                })
+
                 self._datatables[name] = datatable_class(**kwargs)
         return self._datatables
 
@@ -245,16 +267,11 @@ class MultipleDatatableMixin(DatatableJSONResponseMixin):
         # putting it on self.
         if hasattr(self, 'request'):
             kwargs['url'] = self.request.path
-            kwargs['query_config'] = self.request.GET
+            kwargs['query_config'] = getattr(self.request, self.request.method)
         else:
             kwargs['query_config'] = {}
 
         return kwargs
-
-    def get_active_ajax_datatable(self):
-        """ Returns a single datatable according to the hint GET variable from an AJAX request. """
-        datatables_dict = self.get_datatables(only=self.request.GET['datatable'])
-        return list(datatables_dict.values())[0]
 
     # Extra getters
     def get_context_data(self, **kwargs):
@@ -269,5 +286,3 @@ class MultipleDatatableMixin(DatatableJSONResponseMixin):
 
 class MultipleDatatableView(MultipleDatatableMixin, TemplateView):
     pass
-
-

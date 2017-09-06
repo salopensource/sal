@@ -1,4 +1,5 @@
 # standard library
+import copy
 import hashlib
 import plistlib
 from datetime import datetime
@@ -12,17 +13,15 @@ import unicodecsv as csv
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.core.urlresolvers import reverse
-from django.http import (HttpResponse, HttpResponseNotFound,
-                         HttpResponseBadRequest)
+from django.http import (
+    HttpResponse, HttpResponseNotFound, HttpResponseBadRequest)
 from django.shortcuts import get_object_or_404, render_to_response
 from django.template import RequestContext
 from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import DetailView, View
-# TODO: For new django-datatables-view interface
-# from datatableview import Datatable, ValuesDatatable
-# from datatableview.columns import TextColumn
-# from datatableview.views import DatatableView
-from datatableview.views.legacy import LegacyDatatableView
+from datatableview import Datatable
+from datatableview.columns import DisplayColumn
+from datatableview.views import DatatableView
 
 # local Django
 from models import Application, Inventory, InventoryItem, Machine
@@ -32,7 +31,14 @@ from server.models import BusinessUnit, MachineGroup, Machine
 
 
 class GroupMixin(object):
-    """Mixin to add get_business_unit method for access decorators."""
+    """Mixin to add get_business_unit method for access decorators.
+
+    The view must have the URL configured so that kwargs for
+    group_type and group_id are present.
+
+    At this time, the classes listed in the classes dict below are
+    supported.
+    """
     classes = {"all": None,
                "business_unit": BusinessUnit,
                "machine": Machine,
@@ -75,14 +81,8 @@ class GroupMixin(object):
         return instance
 
     def get_group_instance(self):
-        if 'group_type' in self.kwargs:
-            group_type = self.kwargs['group_type']
-        else:
-            group_type = self.request.GET.get('group_type', 'all')
-        if 'group_id' in self.kwargs:
-            group_id = self.kwargs['group_id']
-        else:
-            group_id = self.request.GET.get('group_id', '0')
+        group_type = self.kwargs['group_type']
+        group_id = self.kwargs['group_id']
         group_class = self.classes[group_type]
         if group_class:
             instance = get_object_or_404(
@@ -108,10 +108,7 @@ class GroupMixin(object):
         """
         self.group_instance = self.get_group_instance()
         # No need to filter if group_instance is None.
-        if 'group_type' in self.kwargs:
-            group_type = self.kwargs['group_type']
-        else:
-            group_type = self.request.GET.get('group_type', 'all')
+        group_type = self.kwargs['group_type']
 
         if self.group_instance:
             filter_path = self.access_filter[queryset.model]\
@@ -153,19 +150,59 @@ class CSVResponseMixin(object):
         return response
 
 
+class InventoryList(Datatable):
+
+    # Specifying no source means we cannot sort on this column; however
+    # the source value would be the total number of inventoryitem
+    # records, NOT the number returned by the get_install_count
+    # processor which filters by group_type. Without greatly increasing
+    # the processing time for the view, we therefore cannot sort by
+    # install count.
+    install_count = DisplayColumn(
+        "Install Count", source=None, processor='get_install_count')
+
+    class Meta:
+        columns = [
+            'hostname', 'serial', 'last_checkin', 'console_user',
+            'install_count']
+        labels = {
+            'hostname': 'Machine', 'serial': 'Serial Number', 'last_checkin':
+            'Last Checkin', 'console_user': 'User'}
+        processors = {
+            'hostname': 'get_machine_link', 'last_checkin': 'format_date'}
+        structure_template = 'datatableview/bootstrap_structure.html'
+
+    def get_machine_link(self, instance, **kwargs):
+        url = reverse(
+            "machine_detail", kwargs={"machine_id": instance.pk})
+
+        return '<a href="{}">{}</a>'.format(
+            url, instance.hostname.encode("utf-8"))
+
+    def get_install_count(self, instance, **kwargs):
+        queryset = instance.inventoryitem_set.filter(
+            application=kwargs['view'].application)
+        field_type = kwargs['view'].field_type
+        field_value = kwargs['view'].field_value
+        if field_type == "path":
+            queryset = queryset.filter(
+                path=field_value)
+        elif field_type == "version":
+            queryset = queryset.filter(
+                version=field_value)
+        return queryset.count()
+
+    def format_date(self, instance, **kwargs):
+        return instance.last_checkin.strftime("%Y-%m-%d %H:%M:%S")
+
+
 @class_login_required
 @class_access_required
-class InventoryListView(LegacyDatatableView, GroupMixin):
+class InventoryListView(DatatableView, GroupMixin):
     model = Machine
     template_name = "inventory/inventory_list.html"
+    datatable_class = InventoryList
     csv_filename = "sal_inventory_list.csv"
-    datatable_options = {
-        'structure_template': 'bootstrap_structure.html',
-        'columns': [('Machine', 'hostname', "get_machine_link"),
-                    ("Serial Number", "serial"),
-                    ("Last Checkin", 'last_checkin', 'format_date'),
-                    ("User", "console_user"),
-                    ("Installed Copies", None, "get_install_count")]}
 
     def get_queryset(self):
         queryset = self.filter_queryset_by_group(self.model.objects.all())
@@ -203,99 +240,71 @@ class InventoryListView(LegacyDatatableView, GroupMixin):
         context["field_value"] = self.field_value
         return context
 
-    def format_date(self, instance, *args, **kwargs):
-        return instance.last_checkin.strftime("%Y-%m-%d %H:%M:%S")
 
-    def get_machine_link(self, instance, *args, **kwargs):
-        url = reverse(
-            "machine_detail", kwargs={"machine_id": instance.pk})
+class ApplicationList(Datatable):
 
-        return '<a href="{}">{}</a>'.format(
-            url, instance.hostname.encode("utf-8"))
+    # Specifying no source means we cannot sort on this column; however
+    # the source value would be the total number of inventoryitem
+    # records, NOT the number returned by the get_install_count
+    # processor which filters by group_type. Without greatly increasing
+    # the processing time for the view, we therefore cannot sort by
+    # install count.
+    install_count = DisplayColumn(
+        "Install Count", source=None, processor='get_install_count')
 
-    def get_install_count(self, instance, *args, **kwargs):
-        queryset = instance.inventoryitem_set.filter(
-            application=self.application)
-        if self.field_type == "path":
-            queryset = queryset.filter(
-                path=self.field_value)
-        elif self.field_type == "version":
-            queryset = queryset.filter(
-                version=self.field_value)
-        return queryset.count()
+    class Meta:
+        columns = ['name', 'bundleid', 'bundlename', 'install_count']
+        labels = {'bundleid': 'Bundle ID', 'bundlename': 'Bundle Name'}
+        processors = {'name': 'link_to_detail'}
+        structure_template = 'datatableview/bootstrap_structure.html'
 
+    def link_to_detail(self, instance, **kwargs):
+        link_kwargs = copy.copy(kwargs['view'].kwargs)
+        link_kwargs['pk'] = instance.pk
+        url = reverse("application_detail", kwargs=link_kwargs)
+        return '<a href="{}">{}</a>'.format(url, instance.name.encode("utf-8"))
 
-# TODO: For new django-datatables-view interface
-# class ApplicationList(Datatable):
+    def get_install_count(self, instance, **kwargs):
+        """Get the number of app installs filtered by access group"""
+        queryset = kwargs['view'].filter_queryset_by_group(
+            instance.inventoryitem_set)
+        count = queryset.count()
 
-#     class Meta:
-#         columns = ['name', 'bundleid', 'bundlename']
-#         labels = {'bundleid': 'Bundle ID', 'bundlename': 'Bundle Name'}
-#         result_counter_id = ['name']
-#         # processors = {'name': link_to_model}
-#         structure_template = 'datatableview/bootstrap_structure.html'
+        # Build a link to InventoryListView for install count badge.
+        link_kwargs = copy.copy(kwargs['view'].kwargs)
+        link_kwargs['application_id'] = instance.pk
+        url = reverse("inventory_list", kwargs=link_kwargs)
+
+        # Build the link.
+        anchor = '<a href="{}"><span class="badge">{}</span></a>'.format(
+            url, count)
+        return anchor
 
 
 @class_login_required
 @class_access_required
-class ApplicationListView(LegacyDatatableView, GroupMixin):
+class ApplicationListView(DatatableView, GroupMixin):
     model = Application
     template_name = "inventory/application_list.html"
-    # TODO: For new django-datatables-view interface
-    # datatable_class = ApplicationList
-    datatable_options = {
-        'structure_template': 'bootstrap_structure.html',
-        'columns': [('Name', 'name', "get_name_link"),
-                    ("Bundle ID", 'bundleid'),
-                    ("Bundle Name", 'bundlename'),
-                    ("Install Count", None, "get_install_count")],
-        'ordering': ["Name"]}
+    datatable_class = ApplicationList
 
     def get_queryset(self):
         queryset = self.filter_queryset_by_group(self.model.objects).distinct()
 
         # For now, remove cruft from results (until we can add prefs):
 
+        # Apple apps that are not generally used by users; currently
+        # unused, but here for reference.
+        # apple_cruft_pattern = (r'com.apple.(?!iPhoto)(?!iWork)(?!Aperture)'
+        #     r'(?!iDVD)(?!garageband)(?!iMovieApp)(?!Server)(?!dt\.Xcode).*')
+
         # Virtualization proxied apps
         crufty_bundles = ["com.vmware.proxyApp", "com.parallels.winapp"]
         crufty_pattern = r"({}).*".format("|".join(crufty_bundles))
 
-        # Apple apps that are not generally used by users.
-        apple_cruft_pattern = (r'com.apple.(?!iPhoto)(?!iWork)(?!Aperture)'
-            r'(?!iDVD)(?!garageband)(?!iMovieApp)(?!Server)(?!dt\.Xcode).*')
         queryset = queryset.exclude(bundleid__regex=crufty_pattern)
-        # queryset = queryset.exclude(bundleid__regex=apple_cruft_pattern)
 
         return queryset
-
-    def get_name_link(self, instance, *args, **kwargs):
-        self.kwargs["pk"] = instance.pk
-        url = "{}?{}".format(
-            reverse("application_detail", kwargs={'pk': instance.pk}),
-            urlencode(
-                {'group_type': self.kwargs['group_type'],
-                 'group_id': self.kwargs['group_id']}))
-        return '<a href="{}">{}</a>'.format(url, instance.name.encode("utf-8"))
-
-    def get_install_count(self, instance, *args, **kwargs):
-        """Get the number of app installs filtered by access group"""
-        queryset = self.filter_queryset_by_group(instance.inventoryitem_set)
-        count = queryset.count()
-
-        # Build a link to InventoryListView for install count badge.
-        url_kwargs = {
-            "application_id": instance.pk}
-        querystring = urlencode(
-            {"group_type": self.kwargs['group_type'], "group_id":
-             self.kwargs['group_id']})
-        url = "{}?{}".format(
-            reverse("inventory_list", kwargs=url_kwargs),
-            querystring)
-
-        # Build the link.
-        anchor = '<a href="{}"><span class="badge">{}</span></a>'.format(
-            url, count)
-        return anchor
 
     def get_context_data(self, **kwargs):
         context = super(ApplicationListView, self).get_context_data(**kwargs)
@@ -364,8 +373,8 @@ class ApplicationDetailView(DetailView, GroupMixin):
         # Get the total number of installations.
         context["install_count"] = details.count()
         # Add in access data.
-        context["group_type"] = self.request.GET.get("group_type", 'all')
-        context["group_id"] = self.request.GET.get("group_id", '0')
+        context["group_type"] = self.kwargs['group_type']
+        context["group_id"] = self.kwargs['group_id']
         if hasattr(self.group_instance, "name"):
             group_name = self.group_instance.name
         elif hasattr(self.group_instance, "hostname"):
@@ -386,9 +395,12 @@ class CSVExportView(CSVResponseMixin, GroupMixin, View):
         # Filter data by access level
         queryset = self.filter_queryset_by_group(self.model.objects)
 
+        # Group information is in the URL path
+        group_type = self.kwargs['group_type']
+        group_id = self.kwargs['group_id']
+
+        # App id and filters are queries
         application_id = self.request.GET.get('pk', '0')
-        group_type = self.request.GET.get('group_type', 'all')
-        group_id = self.request.GET.get('group_id', '0')
         field_type = self.request.GET.get('field_type', 'all')
         field_value = self.request.GET.get('field_value', '')
 

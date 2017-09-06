@@ -26,6 +26,7 @@ from datatableview.views import DatatableView
 # local Django
 from models import Application, Inventory, InventoryItem, Machine
 from server import utils
+from server.models import SalSetting
 from sal.decorators import *
 from server.models import BusinessUnit, MachineGroup, Machine
 
@@ -291,18 +292,51 @@ class ApplicationListView(DatatableView, GroupMixin):
     def get_queryset(self):
         queryset = self.filter_queryset_by_group(self.model.objects).distinct()
 
-        # For now, remove cruft from results (until we can add prefs):
+        crufty_bundles = []
+
+        # The inventory can be configured to filter bundleids out of
+        # results by setting the 'inventory_exclusion_pattern' setting
+        # in the SalSettings table.
+
+        # The value of this setting should be a regular expression using
+        # the python re module's syntax. You may delimit multiple
+        # patterns with the '|' operator, e.g.:
+        # 'com\.[aA]dobe.*|com\.apple\..*'
+        try:
+            inventory_pattern = SalSetting.objects.get(
+                name='inventory_exclusion_pattern').value
+        except SalSetting.DoesNotExist:
+            inventory_pattern = None
+
+        if inventory_pattern:
+            crufty_bundles.append(inventory_pattern)
+
+        # By default, Sal will filter out the apps proxied through
+        # VMWare and Parallels VMs. If you would like to disable this,
+        # set the SalSetting 'filter_proxied_virtualization_apps' to
+        # 'no' or 'false' (it's a string).
+        try:
+            setting_value  = SalSetting.objects.get(
+                name='filter_proxied_virtualization_apps').value
+        except SalSetting.DoesNotExist:
+            setting_value = ''
+
+        filter_proxy_apps = (
+            setting_value.strip().upper() not in ('NO', 'FALSE'))
+
+        if filter_proxy_apps:
+            # Virtualization proxied apps
+            crufty_bundles.extend([
+                "com\.vmware\.proxyApp\..*", "com\.parallels\.winapp\..*"])
 
         # Apple apps that are not generally used by users; currently
         # unused, but here for reference.
         # apple_cruft_pattern = (r'com.apple.(?!iPhoto)(?!iWork)(?!Aperture)'
         #     r'(?!iDVD)(?!garageband)(?!iMovieApp)(?!Server)(?!dt\.Xcode).*')
 
-        # Virtualization proxied apps
-        crufty_bundles = ["com.vmware.proxyApp", "com.parallels.winapp"]
-        crufty_pattern = r"({}).*".format("|".join(crufty_bundles))
-
-        queryset = queryset.exclude(bundleid__regex=crufty_pattern)
+        crufty_pattern = '|'.join(crufty_bundles)
+        if crufty_pattern:
+            queryset = queryset.exclude(bundleid__regex=crufty_pattern)
 
         return queryset
 

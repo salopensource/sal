@@ -174,7 +174,14 @@ class MachineGroupList(generics.ListCreateAPIView):
 
 class BusinessUnitView(generics.RetrieveUpdateDestroyAPIView):
     """
-    Retrieve details, update or remove a business unit
+    get:
+    Retrieve details on a single business unit.
+
+    put:
+    Update a business unit.
+
+    delete:
+    Delete a business unit.
     """
     queryset = BusinessUnit.objects.all()
     lookup_field = 'pk'
@@ -183,7 +190,11 @@ class BusinessUnitView(generics.RetrieveUpdateDestroyAPIView):
 
 class BusinessUnitList(generics.ListCreateAPIView):
     """
-    List all machine groups, or create a new business unit
+    get:
+    List all business units.
+
+    post:
+    Create a new business unit.
     """
     queryset = BusinessUnit.objects.all()
     lookup_field = 'pk'

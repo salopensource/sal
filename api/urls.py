@@ -14,7 +14,6 @@ urlpatterns = [
     url(r'^machines/(?P<serial>.+)/$', views.MachineDetail.as_view()),
     url(r'^machines/$', views.MachineList.as_view()),
     url(r'^machines_full/$', views.MachineListFullDetail.as_view()),
-    # TODO: Add in Application, InventoryItems
     url(r'^inventory/$', views.AllInventory.as_view()),
     url(r'^facts/(?P<serial>.+)/$', views.FactsMachine.as_view()),
     url(r'^facts/$', views.Facts.as_view()),

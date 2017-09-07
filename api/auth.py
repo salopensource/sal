@@ -25,14 +25,13 @@ class ApiKeyAuthentication(authentication.BaseAuthentication):
 
 
 class HasRWPermission(permissions.BasePermission):
-    """Only allow Users with staff status or RW API keys."""
+    """Only allow Users with 'Global Admin' level or RW API keys."""
 
     def has_permission(self, request, view):
-        # Grant Sal Users access based on 'staff' membership; i.e.
-        # 'Global Admin'.
+        # Grant Sal 'Global Admin' Users access.
         if isinstance(request.user, User):
-            return request.user.is_staff
-        # Otherwise, all API token that has passed auth can perform
+            return request.user.userprofile.level in ('GA',)
+        # Otherwise, all API tokens that have passed auth can perform
         # 'safe' methods.
         elif isinstance(request.user, ApiKey):
             if request.method in permissions.SAFE_METHODS:

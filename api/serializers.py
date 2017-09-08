@@ -29,7 +29,8 @@ class BusinessUnitSerializer(serializers.ModelSerializer):
 
 
 class MachineGroupSerializer(serializers.ModelSerializer):
-    #business_unit = BusinessUnitSerializer()
+    business_unit = serializers.PrimaryKeyRelatedField(
+        queryset=BusinessUnit.objects.all())
 
     class Meta:
         model = MachineGroup
@@ -100,6 +101,11 @@ class PendingUpdateSerializer(serializers.ModelSerializer):
 
 
 class FullMachineSerializer(serializers.ModelSerializer):
+    facts = FactSerializer(many=True, required=False)
+    conditions = ConditionSerializer(many=True, required=False)
+    pending_apple_updates = PendingAppleUpdateSerializer(
+        many=True, required=False)
+    pending_updates = PendingUpdateSerializer(many=True, required=False)
 
     class Meta:
         model = Machine
@@ -107,10 +113,6 @@ class FullMachineSerializer(serializers.ModelSerializer):
 
 
 class MachineSerializer(serializers.ModelSerializer):
-    # facts = FactSerializer(many=True, required=False)
-    # conditions = ConditionSerializer(many=True, required=False)
-    # pending_apple_updates = PendingAppleUpdateSerializer(many=True, required=False)
-    # pending_updates = PendingUpdateSerializer(many=True, required=False)
 
     class Meta:
         model = Machine

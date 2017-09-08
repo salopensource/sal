@@ -6,6 +6,7 @@ sys.setdefaultencoding('utf8')
 from django.http import Http404
 from rest_framework import generics
 from rest_framework import status
+from rest_framework import viewsets
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -16,38 +17,46 @@ from search.views import *
 from server.models import *
 
 
-class MachineList(generics.ListCreateAPIView):
-    """
-    List all machines, or create a new machine.
-    """
+class MachineViewSet(viewsets.ModelViewSet):
     queryset = Machine.objects.all()
     serializer_class = MachineSerializer
 
-
-class MachineListFullDetail(generics.ListCreateAPIView):
-    """
-    List all machines in full details, or create a new machine.
-    """
+class MachineFullViewSet(viewsets.ModelViewSet):
     queryset = Machine.objects.all()
     serializer_class = FullMachineSerializer
 
-
-class MachineDetail(generics.RetrieveUpdateDestroyAPIView):
-    """
-    Retrieve, update or delete a machine.
-    """
-    queryset = Machine.objects.all()
-    lookup_field = 'serial'
-    serializer_class = MachineSerializer
+# class MachineList(generics.ListCreateAPIView):
+#     """
+#     List all machines, or create a new machine.
+#     """
+#     queryset = Machine.objects.all()
+#     serializer_class = MachineSerializer
 
 
-class MachineFullDetail(generics.RetrieveUpdateDestroyAPIView):
-    """
-    Retrieve full details, update or delete a machine.
-    """
-    queryset = Machine.objects.all()
-    lookup_field = 'serial'
-    serializer_class = FullMachineSerializer
+# class MachineListFullDetail(generics.ListCreateAPIView):
+#     """
+#     List all machines in full details, or create a new machine.
+#     """
+#     queryset = Machine.objects.all()
+#     serializer_class = FullMachineSerializer
+
+
+# class MachineDetail(generics.RetrieveUpdateDestroyAPIView):
+#     """
+#     Retrieve, update or delete a machine.
+#     """
+#     queryset = Machine.objects.all()
+#     lookup_field = 'serial'
+#     serializer_class = MachineSerializer
+
+
+# class MachineFullDetail(generics.RetrieveUpdateDestroyAPIView):
+#     """
+#     Retrieve full details, update or delete a machine.
+#     """
+#     queryset = Machine.objects.all()
+#     lookup_field = 'serial'
+#     serializer_class = FullMachineSerializer
 
 
 class MachineInventory(generics.ListAPIView):
@@ -154,50 +163,13 @@ class Conditions(generics.ListAPIView):
         return Condition.objects.filter(condition_name=condition_to_find)
 
 
-class MachineGroupView(generics.RetrieveUpdateDestroyAPIView):
-    """
-    Retrieve details, update or remove a machine group
-    """
+class MachineGroupViewSet(viewsets.ModelViewSet):
     queryset = MachineGroup.objects.all()
-    lookup_field = 'pk'
     serializer_class = MachineGroupSerializer
 
 
-class MachineGroupList(generics.ListCreateAPIView):
-    """
-    List all machine groups, or create a new machine group.
-    """
-    queryset = MachineGroup.objects.all()
-    lookup_field = 'pk'
-    serializer_class = MachineGroupSerializer
-
-
-class BusinessUnitView(generics.RetrieveUpdateDestroyAPIView):
-    """
-    get:
-    Retrieve details on a single business unit.
-
-    put:
-    Update a business unit.
-
-    delete:
-    Delete a business unit.
-    """
+class BusinessUnitViewSet(viewsets.ModelViewSet):
     queryset = BusinessUnit.objects.all()
-    lookup_field = 'pk'
-    serializer_class = BusinessUnitSerializer
-
-
-class BusinessUnitList(generics.ListCreateAPIView):
-    """
-    get:
-    List all business units.
-
-    post:
-    Create a new business unit.
-    """
-    queryset = BusinessUnit.objects.all()
-    lookup_field = 'pk'
     serializer_class = BusinessUnitSerializer
 
 

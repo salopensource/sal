@@ -1,19 +1,25 @@
 from django.conf.urls import include, url
 
 from rest_framework.documentation import include_docs_urls
+from rest_framework.routers import SimpleRouter
 from rest_framework.urlpatterns import format_suffix_patterns
 
 from api import views
 
 
+# TODO: Make this a DefaultRouter when finished moving URLs.
+router = SimpleRouter()
+router.register(r'business_units', views.BusinessUnitViewSet)
+router.register(r'machine_groups', views.MachineGroupViewSet)
+router.register(r'machines', views.MachineViewSet)
+router.register(r'machines_full', views.MachineFullViewSet)
+
+
 urlpatterns = [
-    url(
-        r'^machines/(?P<serial>.+)/inventory/$',
-        views.MachineInventory.as_view()),
-    url(r'^machines/(?P<serial>.+)/full/$', views.MachineFullDetail.as_view()),
-    url(r'^machines/(?P<serial>.+)/$', views.MachineDetail.as_view()),
-    url(r'^machines/$', views.MachineList.as_view()),
-    url(r'^machines_full/$', views.MachineListFullDetail.as_view()),
+    url(r'^', include(router.urls)),
+    # url(
+    #     r'^machines/(?P<serial>.+)/inventory/$',
+    #     views.MachineInventory.as_view()),
     url(r'^inventory/$', views.AllInventory.as_view()),
     url(r'^facts/(?P<serial>.+)/$', views.FactsMachine.as_view()),
     url(r'^facts/$', views.Facts.as_view()),
@@ -23,10 +29,6 @@ urlpatterns = [
         r'^pending_apple_updates/(?P<serial>.+)/$',
         views.PendingAppleUpdates.as_view()),
     url(r'^pending_updates/(?P<serial>.+)/$', views.PendingUpdates.as_view()),
-    url(r'^business_units/(?P<pk>.+)/$', views.BusinessUnitView.as_view()),
-    url(r'^business_units/$', views.BusinessUnitList.as_view()),
-    url(r'^machine_groups/(?P<pk>.+)/$', views.MachineGroupView.as_view()),
-    url(r'^machine_groups/$', views.MachineGroupList.as_view()),
     url(
         r'^plugin_script_submissions/(?P<serial>.+)/$',
         views.PluginScriptSubmissionMachine.as_view()),

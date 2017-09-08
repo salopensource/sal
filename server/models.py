@@ -59,7 +59,7 @@ class MachineGroup(models.Model):
     business_unit = models.ForeignKey(BusinessUnit)
     name = models.CharField(max_length=100)
     key = models.CharField(db_index=True, max_length=255, unique=True, blank=True, null=True, editable=False)
-    def save(self):
+    def save(self, **kwargs):
             if not self.id:
                 self.key = GenerateKey()
             super(MachineGroup, self).save()

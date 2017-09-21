@@ -18,45 +18,20 @@ from server.models import *
 
 
 class MachineViewSet(viewsets.ModelViewSet):
+    """
+    list:
+    Returns a paginated list of all machines in abbreviated form. Accepts
+    querystring arguments for limiting fields.
+
+    - `full` uses the full machine record instead of the abbreviated form.
+        - Example: `/api/machines/?full`
+    - `fields` allows you to specify a list of fields to include or exclude in
+      the response.
+        - Include Example: `/api/machines/?include=console_user,hostname`
+        - Exclude Example: `/api/machines/?include!=report`
+    """
     queryset = Machine.objects.all()
     serializer_class = MachineSerializer
-
-class MachineFullViewSet(viewsets.ModelViewSet):
-    queryset = Machine.objects.all()
-    serializer_class = FullMachineSerializer
-
-# class MachineList(generics.ListCreateAPIView):
-#     """
-#     List all machines, or create a new machine.
-#     """
-#     queryset = Machine.objects.all()
-#     serializer_class = MachineSerializer
-
-
-# class MachineListFullDetail(generics.ListCreateAPIView):
-#     """
-#     List all machines in full details, or create a new machine.
-#     """
-#     queryset = Machine.objects.all()
-#     serializer_class = FullMachineSerializer
-
-
-# class MachineDetail(generics.RetrieveUpdateDestroyAPIView):
-#     """
-#     Retrieve, update or delete a machine.
-#     """
-#     queryset = Machine.objects.all()
-#     lookup_field = 'serial'
-#     serializer_class = MachineSerializer
-
-
-# class MachineFullDetail(generics.RetrieveUpdateDestroyAPIView):
-#     """
-#     Retrieve full details, update or delete a machine.
-#     """
-#     queryset = Machine.objects.all()
-#     lookup_field = 'serial'
-#     serializer_class = FullMachineSerializer
 
 
 class MachineInventory(generics.ListAPIView):

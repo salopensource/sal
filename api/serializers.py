@@ -3,6 +3,7 @@ from django.forms import widgets
 from rest_framework import serializers
 
 from inventory.models import InventoryItem, Application
+from mixins import QueryFieldsMixin
 from server.models import *
 
 
@@ -14,6 +15,7 @@ class InventoryApplicationSerializer(serializers.ModelSerializer):
 
 
 class InventoryItemSerializer(serializers.ModelSerializer):
+
     application = InventoryApplicationSerializer()
 
     class Meta:
@@ -100,20 +102,16 @@ class PendingUpdateSerializer(serializers.ModelSerializer):
         exclude = ('machine',)
 
 
-class FullMachineSerializer(serializers.ModelSerializer):
-    facts = FactSerializer(many=True, required=False)
-    conditions = ConditionSerializer(many=True, required=False)
-    pending_apple_updates = PendingAppleUpdateSerializer(
-        many=True, required=False)
-    pending_updates = PendingUpdateSerializer(many=True, required=False)
+class MachineSerializer(QueryFieldsMixin, serializers.ModelSerializer):
+    simple_fields = (
+        'console_user', 'munki_version', 'hd_space', 'machine_model',
+        'cpu_speed', 'serial', 'id', 'last_puppet_run', 'errors',
+        'puppet_version', 'hostname', 'puppet_errors',
+        'machine_model_friendly', 'memory', 'memory_kb', 'warnings',
+        'first_checkin', 'last_checkin', 'hd_total', 'os_family', 'deployed',
+        'operating_system', 'machine_group', 'sal_version', 'manifest',
+        'hd_percent', 'cpu_type', 'activity')
 
     class Meta:
         model = Machine
         fields = '__all__'
-
-
-class MachineSerializer(serializers.ModelSerializer):
-
-    class Meta:
-        model = Machine
-        exclude = ('report','install_log','install_log_hash')

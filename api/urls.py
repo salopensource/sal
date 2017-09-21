@@ -12,14 +12,10 @@ router = SimpleRouter()
 router.register(r'business_units', views.BusinessUnitViewSet)
 router.register(r'machine_groups', views.MachineGroupViewSet)
 router.register(r'machines', views.MachineViewSet)
-router.register(r'machines_full', views.MachineFullViewSet)
 
 
 urlpatterns = [
     url(r'^', include(router.urls)),
-    # url(
-    #     r'^machines/(?P<serial>.+)/inventory/$',
-    #     views.MachineInventory.as_view()),
     url(r'^inventory/$', views.AllInventory.as_view()),
     url(r'^facts/(?P<serial>.+)/$', views.FactsMachine.as_view()),
     url(r'^facts/$', views.Facts.as_view()),

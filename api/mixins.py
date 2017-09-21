@@ -58,7 +58,8 @@ class QueryFieldsMixin(object):
             include_field_names.update(self.simple_fields)
 
         if not include_field_names and not exclude_field_names:
-            # No user fields filtering was requested, we have nothing to do here.
+            # No user fields filtering was requested, we have nothing to do
+            # here.
             return
 
         serializer_field_names = set(self.fields)

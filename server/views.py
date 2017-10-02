@@ -1923,8 +1923,12 @@ def checkin(request):
     if 'username' in data:
         if data.get('username') != '_mbsetupuser':
             machine.console_user = data.get('username')
+
     if 'base64bz2report' in data:
         machine.update_report(data.get('base64bz2report'))
+
+    if 'base64report' in data:
+        machine.update_report(data.get('base64report'), 'base64')
 
     if 'sal_version' in data:
         machine.sal_version = data.get('sal_version')

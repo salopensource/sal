@@ -1955,12 +1955,14 @@ def checkin(request):
         machine.hd_percent = int(round(((float(machine.hd_total)-float(machine.hd_space))/float(machine.hd_total))*100))
     machine.munki_version = report_data.get('ManagedInstallVersion') or 0
     hwinfo = {}
+    # macOS System Profiler
     if 'SystemProfile' in report_data.get('MachineInfo', []):
         for profile in report_data['MachineInfo']['SystemProfile']:
             if profile['_dataType'] == 'SPHardwareDataType':
                 hwinfo = profile._items[0]
                 break
-
+    if 'HardwareInfo' in report_data.get('MachineInfo', []):
+        hwinfo = report_data['MachineInfo']['HardwareInfo']
     if 'Puppet' in report_data:
         puppet = report_data.get('Puppet')
         if 'time' in puppet:

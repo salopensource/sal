@@ -16,6 +16,11 @@ OS_CHOICES = (
     ('Linux', 'Linux'),
 )
 
+REPORT_CHOICES = (
+    ('base64', 'base64'),
+    ('base64bz2', 'base64bz2'),
+)
+
 def GenerateKey():
     key = ''.join(random.choice(string.ascii_lowercase + string.digits) for x in range(128))
     try:
@@ -94,6 +99,7 @@ class Machine(models.Model):
     last_checkin = models.DateTimeField(db_index=True, blank=True,null=True)
     first_checkin = models.DateTimeField(db_index=True, blank=True,null=True, auto_now_add=True)
     report = models.TextField(editable=True, null=True)
+    report_format = models.CharField(max_length=256, choices=REPORT_CHOICES, default="base64bz2", editable=False)
     errors = models.IntegerField(default=0)
     warnings = models.IntegerField(default=0)
     activity = models.TextField(editable=False, null=True, blank=True)
@@ -129,7 +135,11 @@ class Machine(models.Model):
                 return plist
             except:
                 try:
-                    return self.b64bz_decode(data)
+                    if self.report_format == 'base64bz2':
+                        return self.b64bz_decode(data)
+                    elif self.report_format == 'base64':
+                        return self.b64_decode(data)
+
                 except:
                     return dict()
 
@@ -142,19 +152,31 @@ class Machine(models.Model):
         except Exception:
             return {}
 
+    def b64_decode(self, data):
+        try:
+            string = base64.b64decode(data)
+            plist = plistlib.readPlistFromString(string)
+            return plist
+        except Exception:
+            return {}
+
     def get_report(self):
         return self.decode(self.report)
 
     def get_activity(self):
         return self.decode(self.activity)
 
-    def update_report(self, base64bz2report):
+    def update_report(self, encoded_report, report_format='base64bz2'):
         # Save report.
         try:
-            base64bz2report = base64bz2report.replace(" ", "+")
-            plist = self.b64bz_decode(base64bz2report)
-            #self.report = base64bz2report
+            if report_format == 'base64bz2':
+                base64bz2report = encoded_report.replace(" ", "+")
+                plist = self.b64bz_decode(encoded_report)
+            elif report_format == 'base64':
+                base64report = encoded_report.replace(" ", "+")
+                plist = self.b64_decode(encoded_report)
             self.report = plistlib.writePlistToString(plist)
+            self.report_format = report_format
         except:
             plist = None
             self.report = ''

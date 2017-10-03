@@ -1976,6 +1976,8 @@ def checkin(request):
         machine.cpu_speed = hwinfo.get('current_processor_speed')
         machine.memory = hwinfo.get('physical_memory')
 
+        if hwinfo.get('physical_memory')[-2:] == 'KB':
+            machine.memory_kb = int(hwinfo.get('physical_memory')[:-3])
         if hwinfo.get('physical_memory')[-2:] == 'MB':
             memory_mb = float(hwinfo.get('physical_memory')[:-3])
             machine.memory_kb = int(memory_mb * 1024)

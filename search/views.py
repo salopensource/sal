@@ -123,6 +123,10 @@ def search_machines(search_id, machines, full=False):
                 querystring = {
                     '%s%s' % (search_row.search_field, operator): search_row.search_term
                 }
+                if operator != '':
+                    q_object = Q(**querystring)
+                else:
+                    q_object = ~Q(**querystring)
             elif search_row.search_models == 'Facter':
                 model = Fact
                 prepend = 'facts__'
@@ -130,6 +134,10 @@ def search_machines(search_id, machines, full=False):
                     'facts__fact_name': search_row.search_field,
                     'facts__fact_data%s' % (operator): search_row.search_term
                 }
+                if operator != '':
+                    q_object = Q(**querystring)
+                else:
+                    q_object = ~Q(**querystring)
 
             elif search_row.search_models == 'Condition':
                 model = Condition
@@ -137,6 +145,10 @@ def search_machines(search_id, machines, full=False):
                     'conditions__condition_name': search_row.search_field,
                     'conditions__condition_data%s' % (operator): search_row.search_term
                 }
+                if operator != '':
+                    q_object = Q(**querystring)
+                else:
+                    q_object = ~Q(**querystring)
 
 
             elif search_row.search_models == 'Application Inventory':
@@ -149,12 +161,11 @@ def search_machines(search_id, machines, full=False):
                     'inventoryitem__application__%s%s' % (search_field, operator): search_row.search_term
                 }
 
-            if model != None:
                 if operator != '':
                     q_object = Q(**querystring)
-
                 else:
                     q_object = ~Q(**querystring)
+
             elif search_row.search_models == 'External Script':
                 # It must be an exernal thingie if we're here
                 model = PluginScriptRow
@@ -210,6 +221,7 @@ def search_machines(search_id, machines, full=False):
             queries = row_queries
 
         search_group_counter = search_group_counter + 1
+    print queries
 
     if full == True:
         machines = machines.filter(queries).distinct()

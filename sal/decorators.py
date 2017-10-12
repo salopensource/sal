@@ -40,8 +40,10 @@ def class_access_required(cls):
     """
     def access_required(f):
         def decorator(*args, **kwargs):
-            user = args[0].user
-            business_unit = cls.get_business_unit(**kwargs)
+            # The request object is the first arg to a view
+            request = args[0]
+            user = request.user
+            business_unit = cls.get_business_unit(request)
 
             if is_global_admin(user) or has_access(user, business_unit):
                 return f(*args, **kwargs)

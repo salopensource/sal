@@ -1920,6 +1920,7 @@ def checkin(request):
 
     machine.hostname = data.get('name', '<NO NAME>')
     machine.last_checkin = django.utils.timezone.now()
+
     if 'username' in data:
         if data.get('username') != '_mbsetupuser':
             machine.console_user = data.get('username')
@@ -1941,8 +1942,14 @@ def checkin(request):
         manifest = report_data['ManifestName']
         machine.manifest = manifest
     if 'MachineInfo' in report_data:
-        machine.operating_system = report_data['MachineInfo'].get(
-            'os_vers', 'UNKNOWN')
+        # try and pick up the golang struct first
+        try:
+            machine.operating_system = report_data['MachineInfo'].get(
+                'OSVers', 'UNKNOWN')
+        # fail back to sal scripts
+        except:
+            machine.operating_system = report_data['MachineInfo'].get(
+                'os_vers', 'UNKNOWN')
         # some machines are reporting 10.9, some 10.9.0 - make them the same
         if len(machine.operating_system) <= 4:
             machine.operating_system = machine.operating_system + '.0'
@@ -1971,25 +1978,41 @@ def checkin(request):
             machine.puppet_errors = puppet['events']['failure']
 
     if hwinfo:
-        machine.machine_model = hwinfo.get('machine_model')
-        machine.cpu_type = hwinfo.get('cpu_type')
-        machine.cpu_speed = hwinfo.get('current_processor_speed')
-        machine.memory = hwinfo.get('physical_memory')
+        # setup vars for hash keys we might get sent
+        if 'MachineModel' in hwinfo:
+            var_machine_model = 'MachineModel'
+            var_cpu_type = 'CPUType'
+            var_cpu_speed = 'CurrentProcessorSpeed'
+            var_memory = 'PhysicalMemory'
+        else:
+            var_machine_model = 'machine_model'
+            var_cpu_type = 'cpu_type'
+            var_cpu_speed = 'current_processor_speed'
+            var_memory = 'physical_memory'
 
-        if hwinfo.get('physical_memory')[-2:] == 'KB':
-            machine.memory_kb = int(hwinfo.get('physical_memory')[:-3])
-        if hwinfo.get('physical_memory')[-2:] == 'MB':
-            memory_mb = float(hwinfo.get('physical_memory')[:-3])
+        machine.machine_model = hwinfo.get(var_machine_model)
+        machine.cpu_type = hwinfo.get(var_cpu_type)
+        machine.cpu_speed = hwinfo.get(var_cpu_speed)
+        machine.memory = hwinfo.get(var_memory)
+
+        if hwinfo.get(var_memory)[-2:] == 'KB':
+            machine.memory_kb = int(hwinfo.get(var_memory)[:-3])
+        if hwinfo.get(var_memory)[-2:] == 'MB':
+            memory_mb = float(hwinfo.get(var_memory)[:-3])
             machine.memory_kb = int(memory_mb * 1024)
-        if hwinfo.get('physical_memory')[-2:] == 'GB':
-            memory_gb = float(hwinfo.get('physical_memory')[:-3])
+        if hwinfo.get(var_memory)[-2:] == 'GB':
+            memory_gb = float(hwinfo.get(var_memory)[:-3])
             machine.memory_kb = int(memory_gb * 1024 * 1024)
-        if hwinfo.get('physical_memory')[-2:] == 'TB':
-            memory_tb = float(hwinfo.get('physical_memory')[:-3])
+        if hwinfo.get(var_memory)[-2:] == 'TB':
+            memory_tb = float(hwinfo.get(var_memory)[:-3])
             machine.memory_kb = int(memory_tb * 1024 * 1024 * 1024)
 
     if 'os_family' in report_data:
         machine.os_family = report_data['os_family']
+
+    # support golang strict structure
+    if 'OSFamily' in report_data:
+        machine.os_family = report_data['OSFamily']
 
     if not machine.machine_model_friendly:
         try:

@@ -1923,8 +1923,12 @@ def checkin(request):
     if 'username' in data:
         if data.get('username') != '_mbsetupuser':
             machine.console_user = data.get('username')
+
     if 'base64bz2report' in data:
         machine.update_report(data.get('base64bz2report'))
+
+    if 'base64report' in data:
+        machine.update_report(data.get('base64report'), 'base64')
 
     if 'sal_version' in data:
         machine.sal_version = data.get('sal_version')
@@ -1951,12 +1955,14 @@ def checkin(request):
         machine.hd_percent = int(round(((float(machine.hd_total)-float(machine.hd_space))/float(machine.hd_total))*100))
     machine.munki_version = report_data.get('ManagedInstallVersion') or 0
     hwinfo = {}
+    # macOS System Profiler
     if 'SystemProfile' in report_data.get('MachineInfo', []):
         for profile in report_data['MachineInfo']['SystemProfile']:
             if profile['_dataType'] == 'SPHardwareDataType':
                 hwinfo = profile._items[0]
                 break
-
+    if 'HardwareInfo' in report_data.get('MachineInfo', []):
+        hwinfo = report_data['MachineInfo']['HardwareInfo']
     if 'Puppet' in report_data:
         puppet = report_data.get('Puppet')
         if 'time' in puppet:
@@ -1970,6 +1976,8 @@ def checkin(request):
         machine.cpu_speed = hwinfo.get('current_processor_speed')
         machine.memory = hwinfo.get('physical_memory')
 
+        if hwinfo.get('physical_memory')[-2:] == 'KB':
+            machine.memory_kb = int(hwinfo.get('physical_memory')[:-3])
         if hwinfo.get('physical_memory')[-2:] == 'MB':
             memory_mb = float(hwinfo.get('physical_memory')[:-3])
             machine.memory_kb = int(memory_mb * 1024)

@@ -5,8 +5,6 @@ from collections import namedtuple
 
 from django.views.generic.list import ListView
 
-import six
-
 from .base import DatatableMixin
 from ..datatables import Datatable, LegacyDatatable
 
@@ -92,6 +90,13 @@ class LegacyDatatableMixin(DatatableMixin):
         kwargs['callback_target'] = self
         kwargs.update(self._get_datatable_options())
         return kwargs
+
+    def preload_record_data(self, obj):
+        return {}
+
+    def get_extra_record_data(self, obj):
+        return {}
+
 
 class LegacyDatatableView(LegacyDatatableMixin, ListView):
     """

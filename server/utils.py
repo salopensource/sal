@@ -245,7 +245,10 @@ def listify_condition_data(condition_data):
         for item in condition_data:
             # is this the first loop? If so, no need for a comma
             if result:
-                result = result + ', '+str(item)
+                # convert all results into strings, since it happens at the db
+                # anyway. This fixes multiple dictionary results in an array
+                # from tracing.
+                result = str(result) + ', '+str(item)
             else:
                 result = item
         if result == None:

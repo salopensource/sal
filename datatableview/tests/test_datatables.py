@@ -5,9 +5,8 @@ from .testcase import DatatableViewTestCase
 from .test_app import models
 from ..exceptions import ColumnError
 from ..datatables import Datatable, ValuesDatatable
-from ..views import DatatableJSONResponseMixin
+from ..views import DatatableJSONResponseMixin, DatatableView
 from .. import columns
-from .. import utils
 
 class DatatableTests(DatatableViewTestCase):
     def test_normalize_config(self):
@@ -16,7 +15,7 @@ class DatatableTests(DatatableViewTestCase):
         self.assertEqual(dt.config['hidden_columns'], [])
         self.assertEqual(dt.config['search_fields'], [])
         self.assertEqual(dt.config['unsortable_columns'], [])
-        self.assertEqual(dt.config['search'], '')
+        self.assertEqual(dt.config['search'], set())
         self.assertEqual(dt.config['start_offset'], 0)
         self.assertEqual(dt.config['page_length'], 25)
         self.assertEqual(dt.config['ordering'], None)
@@ -85,23 +84,23 @@ class DatatableTests(DatatableViewTestCase):
                 columns = ['name', 'fake']
 
         # Verify a fake field name ends up separated from the db-backed field
-        dt = DT([], '/', query_config={'iSortingCols': '1', 'iSortCol_0': '0', 'sSortDir_0': 'asc'})
+        dt = DT([], '/', query_config={'order[0][column]': '0', 'order[0][dir]': 'asc'}) # iSortingCols': '1',
         dt.configure()
         self.assertEqual(dt.get_ordering_splits(), (['name'], []))
 
         # Verify ['name', 'fake'] ordering sends 'name' to db sort list, but keeps 'fake' in manual
         # sort list.
-        dt = DT([], '/', query_config={'iSortingCols': '2', 'iSortCol_0': '0', 'sSortDir_0': 'asc', 'iSortCol_1': '1', 'sSortDir_1': 'asc'})
+        dt = DT([], '/', query_config={'order[0][column]': '0', 'order[0][dir]': 'asc', 'order[1][column]': '1', 'order[1][dir]': 'asc'}) # 'iSortingCols': '2',
         dt.configure()
         self.assertEqual(dt.get_ordering_splits(), (['name'], ['fake']))
 
         # Verify a fake field name as the sort column correctly finds no db sort fields
-        dt = DT([], '/', query_config={'iSortingCols': '1', 'iSortCol_0': '1', 'sSortDir_0': 'asc'})
+        dt = DT([], '/', query_config={'order[0][column]': '1', 'order[0][dir]': 'asc'}) # 'iSortingCols': '1',
         dt.configure()
         self.assertEqual(dt.get_ordering_splits(), ([], ['fake']))
 
         # Verify ['fake', 'name'] ordering sends both fields to manual sort list
-        dt = DT([], '/', query_config={'iSortingCols': '2', 'iSortCol_0': '1', 'sSortDir_0': 'asc', 'iSortCol_1': '0', 'sSortDir_1': 'asc'})
+        dt = DT([], '/', query_config={'order[0][column]': '1', 'order[0][dir]': 'asc', 'order[1][column]': '0', 'order[1][dir]': 'asc'}) # 'iSortingCols': '2',
         dt.configure()
         self.assertEqual(dt.get_ordering_splits(), ([], ['fake', 'name']))
 
@@ -135,7 +134,7 @@ class DatatableTests(DatatableViewTestCase):
         self.assertEqual(list(dt._records), list(queryset))
 
         # Verify a search eliminates items from _records
-        dt = DT(queryset, '/', query_config={'sSearch': 'test name 1'})
+        dt = DT(queryset, '/', query_config={'search[value]': 'test name 1'})
         dt.populate_records()
         self.assertIsNotNone(dt._records)
         self.assertEqual(list(dt._records), [obj1])
@@ -157,7 +156,7 @@ class DatatableTests(DatatableViewTestCase):
         self.assertEqual(list(dt._records), list(queryset))
 
         # Verify a sort changes the ordering of the records list
-        dt = DT(queryset, '/', query_config={'iSortingCols': '1', 'iSortCol_0': '0', 'sSortDir_0': 'desc'})
+        dt = DT(queryset, '/', query_config={'order[0][column]': '0', 'order[0][dir]': 'desc'}) # # 'iSortingCols': '1',
         dt.populate_records()
         self.assertIsNotNone(dt._records)
         self.assertEqual(list(dt._records), [obj2, obj1])
@@ -205,6 +204,16 @@ class DatatableTests(DatatableViewTestCase):
         self.assertEqual(dt.get_ordering_splits(), (['name'], []))
         self.assertEqual(list(dt._records), [obj2, obj1])
 
+
+        # this is to keep DatatableView class from overriding the Meta ordering in Datatable
+        class DTV(DatatableView):
+            datatable_class = DT
+            model = models.ExampleModel
+
+        dtv = DTV().get_datatable(url='/')
+        self.assertIn('<th data-name="name" data-config-sortable="true" data-config-sorting="0,0,asc" data-config-visible="true">Name</th>', dtv.__str__())
+
+
         class DT(Datatable):
             name = columns.TextColumn("Name", sources=['name'])
             class Meta:
@@ -230,12 +239,12 @@ class DatatableTests(DatatableViewTestCase):
                 columns = ['name']
                 ordering = ['pk']
 
-        dt = DT(queryset, '/', query_config={'iSortingCols': '1', 'iSortCol_0': '0', 'sSortDir_0': 'asc'})
+        dt = DT(queryset, '/', query_config={'order[0][column]': '0', 'order[0][dir]': 'asc'}) # 'iSortingCols': '1',
         dt.populate_records()
         self.assertEqual(dt.get_ordering_splits(), (['name'], []))
         self.assertEqual(list(dt._records), [obj2, obj1])
 
-        dt = DT(queryset, '/', query_config={'iSortingCols': '1', 'iSortCol_0': '0', 'sSortDir_0': 'desc'})
+        dt = DT(queryset, '/', query_config={'order[0][column]': '0', 'order[0][dir]': 'desc'}) # 'iSortingCols': '1',
         dt.populate_records()
         self.assertEqual(dt.get_ordering_splits(), (['-name'], []))
         self.assertEqual(list(dt._records), [obj1, obj2])
@@ -260,12 +269,12 @@ class DatatableTests(DatatableViewTestCase):
                 model = models.ExampleModel
                 columns = ['my_column']
 
-        dt = DT(queryset, '/', query_config={'iSortingCols': '1', 'iSortCol_0': '0', 'sSortDir_0': 'asc'})
+        dt = DT(queryset, '/', query_config={'order[0][column]': '0', 'order[0][dir]': 'asc'}) # 'iSortingCols': '1',
         dt.populate_records()
         self.assertEqual(dt.get_ordering_splits(), (['my_column'], []))
         self.assertEqual(list(dt._records), [obj2, obj1, obj3])
 
-        dt = DT(queryset, '/', query_config={'iSortingCols': '1', 'iSortCol_0': '0', 'sSortDir_0': 'desc'})
+        dt = DT(queryset, '/', query_config={'order[0][column]': '0', 'order[0][dir]': 'desc'}) # 'iSortingCols': '1',
         dt.populate_records()
         self.assertEqual(dt.get_ordering_splits(), (['-my_column'], []))
         self.assertEqual(list(dt._records), [obj3, obj1, obj2])
@@ -279,12 +288,12 @@ class DatatableTests(DatatableViewTestCase):
                 model = models.ExampleModel
                 columns = ['my_column']
 
-        dt = DT(queryset, '/', query_config={'iSortingCols': '1', 'iSortCol_0': '0', 'sSortDir_0': 'asc'})
+        dt = DT(queryset, '/', query_config={'order[0][column]': '0', 'order[0][dir]': 'asc'}) # 'iSortingCols': '1',
         dt.populate_records()
         self.assertEqual(dt.get_ordering_splits(), (['my_column'], []))
         self.assertEqual(list(dt._records), [obj2, obj3, obj1])
 
-        dt = DT(queryset, '/', query_config={'iSortingCols': '1', 'iSortCol_0': '0', 'sSortDir_0': 'desc'})
+        dt = DT(queryset, '/', query_config={'order[0][column]': '0', 'order[0][dir]': 'desc'}) # 'iSortingCols': '1',
         dt.populate_records()
         self.assertEqual(dt.get_ordering_splits(), (['-my_column'], []))
         self.assertEqual(list(dt._records), [obj1, obj3, obj2])
@@ -303,12 +312,12 @@ class DatatableTests(DatatableViewTestCase):
                 model = models.ExampleModel
                 columns = ['my_column']
 
-        dt = DT(queryset, '/', query_config={'iSortingCols': '1', 'iSortCol_0': '0', 'sSortDir_0': 'asc'})
+        dt = DT(queryset, '/', query_config={'order[0][column]': '0', 'order[0][dir]': 'asc'}) # 'iSortingCols': '1',
         dt.populate_records()
         self.assertEqual(dt.get_ordering_splits(), (['my_column'], []))
         self.assertEqual(list(dt._records), [obj1, obj3, obj2])
 
-        dt = DT(queryset, '/', query_config={'iSortingCols': '1', 'iSortCol_0': '0', 'sSortDir_0': 'desc'})
+        dt = DT(queryset, '/', query_config={'order[0][column]': '0', 'order[0][dir]': 'desc'}) # 'iSortingCols': '1',
         dt.populate_records()
         self.assertEqual(dt.get_ordering_splits(), (['-my_column'], []))
         self.assertEqual(list(dt._records), [obj2, obj1, obj3])  # pk is natural ordering 1,3 here
@@ -324,11 +333,11 @@ class DatatableTests(DatatableViewTestCase):
                 # Return data that would make the sort order wrong if it were consulted for sorting
                 return obj.pk  # tracks with get_absolute_url
 
-        dt = DT(queryset, '/', query_config={'iSortingCols': '1', 'iSortCol_0': '0', 'sSortDir_0': 'asc'})
+        dt = DT(queryset, '/', query_config={'order[0][column]': '0', 'order[0][dir]': 'asc'}) # 'iSortingCols': '1',
         dt.populate_records()
         self.assertEqual(list(dt._records), [obj1, obj3, obj2])
 
-        dt = DT(queryset, '/', query_config={'iSortingCols': '1', 'iSortCol_0': '0', 'sSortDir_0': 'desc'})
+        dt = DT(queryset, '/', query_config={'order[0][column]': '0', 'order[0][dir]': 'desc'}) # 'iSortingCols': '1',
         dt.populate_records()
         self.assertEqual(list(dt._records), [obj2, obj1, obj3])  # pk is natural ordering 1,3 here
 
@@ -346,12 +355,12 @@ class DatatableTests(DatatableViewTestCase):
                 model = models.ExampleModel
                 columns = ['pk']
 
-        dt = DT(queryset, '/', query_config={'iSortingCols': '1', 'iSortCol_0': '0', 'sSortDir_0': 'asc'})
+        dt = DT(queryset, '/', query_config={'order[0][column]': '0', 'order[0][dir]': 'asc'}) # 'iSortingCols': '1',
         dt.populate_records()
         self.assertEqual(dt.get_ordering_splits(), ([], ['pk']))
         self.assertEqual(list(dt._records), [obj3, obj2, obj1])
 
-        dt = DT(queryset, '/', query_config={'iSortingCols': '1', 'iSortCol_0': '0', 'sSortDir_0': 'desc'})
+        dt = DT(queryset, '/', query_config={'order[0][column]': '0', 'order[0][dir]': 'desc'}) # 'iSortingCols': '1',
         dt.populate_records()
         self.assertEqual(dt.get_ordering_splits(), ([], ['-pk']))
         self.assertEqual(list(dt._records), [obj1, obj2, obj3])
@@ -385,15 +394,16 @@ class DatatableTests(DatatableViewTestCase):
                 return {'custom': 'data'}
 
         class FakeRequest(object):
+            method = 'GET'
             GET = {'sEcho': 0}
 
         dt = DT(queryset, '/')
         view = DatatableJSONResponseMixin()
         view.request = FakeRequest()
         data = view.get_json_response_object(dt)
-        self.assertIn('aaData', data)
-        self.assertIn('DT_RowData', data['aaData'][0])
-        self.assertEqual(data['aaData'][0]['DT_RowData'], {'custom': 'data'})
+        self.assertIn('data', data)
+        self.assertIn('DT_RowData', data['data'][0])
+        self.assertEqual(data['data'][0]['DT_RowData'], {'custom': 'data'})
 
     def test_get_column_value_forwards_to_column_class(self):
         class CustomColumn1(columns.Column):
@@ -558,29 +568,57 @@ class DatatableTests(DatatableViewTestCase):
                 model = models.ExampleModel
                 columns = ['name']
 
-        dt = DT(queryset, '/', query_config={'sSearch': 'test'})
+        dt = DT(queryset, '/', query_config={'search[value]': 'test'})
         dt.populate_records()
         self.assertEquals(list(dt._records), [obj1, obj2, obj3])
 
-        dt = DT(queryset, '/', query_config={'sSearch': 'name'})
+        dt = DT(queryset, '/', query_config={'search[value]': 'name'})
         dt.populate_records()
         self.assertEquals(list(dt._records), [obj1, obj2, obj3])
 
-        dt = DT(queryset, '/', query_config={'sSearch': '1'})
+        dt = DT(queryset, '/', query_config={'search[value]': '1'})
         dt.populate_records()
         self.assertEquals(list(dt._records), [obj1, obj3])
 
-        dt = DT(queryset, '/', query_config={'sSearch': '2'})
+        dt = DT(queryset, '/', query_config={'search[value]': '2'})
         dt.populate_records()
         self.assertEquals(list(dt._records), [obj2, obj3])
 
-        dt = DT(queryset, '/', query_config={'sSearch': '12'})
+        dt = DT(queryset, '/', query_config={'search[value]': '12'})
         dt.populate_records()
         self.assertEquals(list(dt._records), [obj3])
 
-        dt = DT(queryset, '/', query_config={'sSearch': '3'})
+        dt = DT(queryset, '/', query_config={'search[value]': '3'})
         dt.populate_records()
         self.assertEquals(list(dt._records), [])
+
+    def test_search_term_boolean(self):
+        obj1 = models.ExampleModel.objects.create(name="test name 1", value=True)
+        obj2 = models.ExampleModel.objects.create(name="test name 2", value=True)
+        obj3 = models.ExampleModel.objects.create(name="test name 12", value=False)
+        queryset = models.ExampleModel.objects.all()
+
+        class DT(Datatable):
+            senior = columns.BooleanColumn('Senior:', 'value')
+            class Meta:
+                model = models.ExampleModel
+                columns = ['name', 'senior']
+
+        dt = DT(queryset, '/', query_config={'search[value]': 'True'})
+        dt.populate_records()
+        self.assertEquals(len(list(dt._records)), 2)
+
+        dt = DT(queryset, '/', query_config={'search[value]': 'false'})
+        dt.populate_records()
+        self.assertEquals(len(list(dt._records)), 1)
+
+        dt = DT(queryset, '/', query_config={'search[value]': 'SENIOR'})
+        dt.populate_records()
+        self.assertEquals(len(list(dt._records)), 2)
+
+        dt = DT(queryset, '/', query_config={'search[value]': 'menior'})
+        dt.populate_records()
+        self.assertEquals(len(list(dt._records)), 0)
 
     def test_search_multiple_terms_use_AND(self):
         obj1 = models.ExampleModel.objects.create(name="test name 1")
@@ -593,23 +631,23 @@ class DatatableTests(DatatableViewTestCase):
                 model = models.ExampleModel
                 columns = ['name']
 
-        dt = DT(queryset, '/', query_config={'sSearch': 'test name'})
+        dt = DT(queryset, '/', query_config={'search[value]': 'test name'})
         dt.populate_records()
         self.assertEquals(list(dt._records), [obj1, obj2, obj3])
 
-        dt = DT(queryset, '/', query_config={'sSearch': 'test 1'})
+        dt = DT(queryset, '/', query_config={'search[value]': 'test 1'})
         dt.populate_records()
         self.assertEquals(list(dt._records), [obj1, obj3])
 
-        dt = DT(queryset, '/', query_config={'sSearch': 'test 2'})
+        dt = DT(queryset, '/', query_config={'search[value]': 'test 2'})
         dt.populate_records()
         self.assertEquals(list(dt._records), [obj2, obj3])
 
-        dt = DT(queryset, '/', query_config={'sSearch': 'test 12'})
+        dt = DT(queryset, '/', query_config={'search[value]': 'test 12'})
         dt.populate_records()
         self.assertEquals(list(dt._records), [obj3])
 
-        dt = DT(queryset, '/', query_config={'sSearch': 'test 3'})
+        dt = DT(queryset, '/', query_config={'search[value]': 'test 3'})
         dt.populate_records()
         self.assertEquals(list(dt._records), [])
 
@@ -627,33 +665,56 @@ class DatatableTests(DatatableViewTestCase):
                 model = models.ExampleModel
                 columns = ['name', 'related']
 
-        dt = DT(queryset, '/', query_config={'sSearch': 'test'})
+        dt = DT(queryset, '/', query_config={'search[value]': 'test'})
         dt.populate_records()
         self.assertEquals(list(dt._records), [obj1, obj2])
 
-        dt = DT(queryset, '/', query_config={'sSearch': 'test name'})
+        dt = DT(queryset, '/', query_config={'search[value]': 'test name'})
         dt.populate_records()
         self.assertEquals(list(dt._records), [obj1, obj2])
 
-        dt = DT(queryset, '/', query_config={'sSearch': 'test 2'})
+        dt = DT(queryset, '/', query_config={'search[value]': 'test 2'})
         dt.populate_records()
         self.assertEquals(list(dt._records), [obj2])
 
-        dt = DT(queryset, '/', query_config={'sSearch': 'related 2'})
+        dt = DT(queryset, '/', query_config={'search[value]': 'related 2'})
         dt.populate_records()
         self.assertEquals(list(dt._records), [obj2])
 
-        dt = DT(queryset, '/', query_config={'sSearch': 'test one'})
+        dt = DT(queryset, '/', query_config={'search[value]': 'test one'})
         dt.populate_records()
         self.assertEquals(list(dt._records), [obj1])
 
-        dt = DT(queryset, '/', query_config={'sSearch': '2 two'})
+        dt = DT(queryset, '/', query_config={'search[value]': '2 two'})
         dt.populate_records()
         self.assertEquals(list(dt._records), [obj2])
 
-        dt = DT(queryset, '/', query_config={'sSearch': 'test three'})
+        dt = DT(queryset, '/', query_config={'search[value]': 'test three'})
         dt.populate_records()
         self.assertEquals(list(dt._records), [])
+
+    def test_search_term_queries_extra_fields(self):
+        r1 = models.RelatedModel.objects.create(name="test related 1 one")
+        r2 = models.RelatedModel.objects.create(name="test related 2 two")
+        obj1 = models.ExampleModel.objects.create(name="test name 1", related=r1)
+        obj2 = models.ExampleModel.objects.create(name="test name 2", related=r2)
+
+        queryset = models.ExampleModel.objects.all()
+
+        class DT(Datatable):
+            related = columns.TextColumn("Related", ['related__name'])
+            class Meta:
+                model = models.ExampleModel
+                columns = ['related']
+                search_fields = ['name']
+
+        dt = DT(queryset, '/', query_config={'search[value]': 'test'})
+        dt.populate_records()
+        self.assertEquals(list(dt._records), [obj1, obj2])
+
+        dt = DT(queryset, '/', query_config={'search[value]': 'test name 2'})
+        dt.populate_records()
+        self.assertEquals(list(dt._records), [obj2])
 
 
 class ValuesDatatableTests(DatatableViewTestCase):

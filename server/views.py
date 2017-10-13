@@ -1978,42 +1978,34 @@ def checkin(request):
             machine.puppet_errors = puppet['events']['failure']
 
     if hwinfo:
-        # we're going to try and pick up the golang struct first
-        try:
-            machine.machine_model = hwinfo.get('MachineModel')
-            machine.cpu_type = hwinfo.get('CPUType')
-            machine.cpu_speed = hwinfo.get('CurrentProcessorSpeed')
-            machine.memory = hwinfo.get('PhysicalMemory')
+        # setup vars for hash keys we might get sent
+        if 'MachineModel' in hwinfo:
+            var_machine_model = 'MachineModel'
+            var_cpu_type = 'CPUType'
+            var_cpu_speed = 'CurrentProcessorSpeed'
+            var_memory = 'PhysicalMemory'
+        else:
+            var_machine_model = 'machine_model'
+            var_cpu_type = 'cpu_type'
+            var_cpu_speed = 'current_processor_speed'
+            var_memory = 'physical_memory'
 
-            if hwinfo.get('PhysicalMemory')[-2:] == 'KB':
-                machine.memory_kb = int(hwinfo.get('PhysicalMemory')[:-3])
-            if hwinfo.get('PhysicalMemory')[-2:] == 'MB':
-                memory_mb = float(hwinfo.get('PhysicalMemory')[:-3])
-                machine.memory_kb = int(memory_mb * 1024)
-            if hwinfo.get('PhysicalMemory')[-2:] == 'GB':
-                memory_gb = float(hwinfo.get('PhysicalMemory')[:-3])
-                machine.memory_kb = int(memory_gb * 1024 * 1024)
-            if hwinfo.get('PhysicalMemory')[-2:] == 'TB':
-                memory_tb = float(hwinfo.get('PhysicalMemory')[:-3])
-                machine.memory_kb = int(memory_tb * 1024 * 1024 * 1024)
-        # we fail back to sal scripts
-        except:
-            machine.machine_model = hwinfo.get('machine_model')
-            machine.cpu_type = hwinfo.get('cpu_type')
-            machine.cpu_speed = hwinfo.get('current_processor_speed')
-            machine.memory = hwinfo.get('physical_memory')
+        machine.machine_model = hwinfo.get(var_machine_model)
+        machine.cpu_type = hwinfo.get(var_cpu_type)
+        machine.cpu_speed = hwinfo.get(var_cpu_speed)
+        machine.memory = hwinfo.get(var_memory)
 
-            if hwinfo.get('physical_memory')[-2:] == 'KB':
-                machine.memory_kb = int(hwinfo.get('physical_memory')[:-3])
-            if hwinfo.get('physical_memory')[-2:] == 'MB':
-                memory_mb = float(hwinfo.get('physical_memory')[:-3])
-                machine.memory_kb = int(memory_mb * 1024)
-            if hwinfo.get('physical_memory')[-2:] == 'GB':
-                memory_gb = float(hwinfo.get('physical_memory')[:-3])
-                machine.memory_kb = int(memory_gb * 1024 * 1024)
-            if hwinfo.get('physical_memory')[-2:] == 'TB':
-                memory_tb = float(hwinfo.get('physical_memory')[:-3])
-                machine.memory_kb = int(memory_tb * 1024 * 1024 * 1024)
+        if hwinfo.get(var_memory)[-2:] == 'KB':
+            machine.memory_kb = int(hwinfo.get(var_memory)[:-3])
+        if hwinfo.get(var_memory)[-2:] == 'MB':
+            memory_mb = float(hwinfo.get(var_memory)[:-3])
+            machine.memory_kb = int(memory_mb * 1024)
+        if hwinfo.get(var_memory)[-2:] == 'GB':
+            memory_gb = float(hwinfo.get(var_memory)[:-3])
+            machine.memory_kb = int(memory_gb * 1024 * 1024)
+        if hwinfo.get(var_memory)[-2:] == 'TB':
+            memory_tb = float(hwinfo.get(var_memory)[:-3])
+            machine.memory_kb = int(memory_tb * 1024 * 1024 * 1024)
 
     if 'os_family' in report_data:
         machine.os_family = report_data['os_family']

@@ -64,7 +64,10 @@ class MachineModels(IPlugin):
     def filter_machines(self, machines, data):
         # You will be passed a QuerySet of machines, you then need to perform some filtering based on the 'data' part of the url from the show_widget output. Just return your filtered list of machines and the page title.
 
-        machines = machines.filter(machine_model__startswith=data)
+        if data == 'MacBook':
+            machines = machines.filter(machine_model__startswith=data).exclude(machine_model__startswith='MacBookPro').exclude(machine_model__startswith='MacBookAir')
+        else:
+            machines = machines.filter(machine_model__startswith=data)
 
 
         title = data

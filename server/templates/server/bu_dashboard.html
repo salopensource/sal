@@ -22,7 +22,7 @@
 <script>
 
 $( document ).ready(function() {
-
+    (function(){
    {% for widget in output %}
 
     $.ajaxWithRetries(
@@ -41,7 +41,8 @@ $( document ).ready(function() {
     }
 );
    {% endfor %}
-
+    setTimeout(arguments.callee, 60000);
+})();
 });
 
 </script>
@@ -53,14 +54,14 @@ $( document ).ready(function() {
     {% if user.userprofile.level == 'GA' %}
             <li><a href="{% url 'home' %}"><i class="fa fa-chevron-left fa-fw"></i> Back</a></li>
     {% endif %}
-    <li><a href="{% url 'inventory.views.bu_inventory' business_unit.id %}"><i class="fa fa-list-alt fa-fw"></i> Application Inventory</a></li>
+    <li><a href="{% url 'application_list' group_type='business_unit' group_id=business_unit.id %}"><i class="fa fa-list-alt fa-fw"></i> Application Inventory</a></li>
     <li class="active">
         <a href="#"><i class="fa fa-building fa-fw"></i> {{business_unit}}<span class="fa arrow"></span></a>
         <ul class="nav nav-second-level">
             {% for machine_group in business_unit.machinegroup_set.all %}
                 <li><a href="{% url 'group_dashboard' machine_group.id %}">{{ machine_group.name }}
                     <span class="badge badge-info pull-right">
-                        {{ machine_group.machine_set.count }}
+                        {{ machine_group.id|machine_group_count }}
                     </span>
                     </a>
                 </li>

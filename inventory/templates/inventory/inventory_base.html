@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+
+{% block script %}
+{% load static %}
+<script type="text/javascript" charset="utf8" src="{% static "js/datatableview.min.js" %}"></script>
+<script type="text/javascript" charset="utf8">
+        $(function(){
+            var datatable = datatableview.initialize($('.datatable'), {});
+        });
+</script>
+{% endblock %}
+
+{% block nav %}
+	<li><a href="{{ request.META.HTTP_REFERER }}"><i class="fa fa-fw fa-chevron-left"></i> Back</a></li>
+	{% block csv_export %}
+	{% endblock %}
+{% endblock %}
+
+{% block content %}
+	<div class="panel panel-default">
+		<div class="panel-heading">
+			{% block heading %}
+				Inventory
+			{% endblock %}
+		</div>
+
+		<div class="panel-body">
+			{% block inventory_data %}
+				<div class="table-responsive">
+					{{ datatable }}
+				</div>
+			{% endblock %}
+		</div>
+	</div>
+{% endblock %}

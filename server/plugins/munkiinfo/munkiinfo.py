@@ -107,7 +107,6 @@ class MunkiInfo(IPlugin):
 
     def filter_machines(self, machines, data):
         # You will be passed a QuerySet of machines, you then need to perform some filtering based on the 'data' part of the url from the show_widget output. Just return your filtered list of machines and the page title.
-        print data
         if data.startswith('http_only?'):
             try:
                 machines = machines.filter(pluginscriptsubmission__plugin='MunkiInfo', pluginscriptsubmission__pluginscriptrow__pluginscript_name='SoftwareRepoURL', pluginscriptsubmission__pluginscriptrow__pluginscript_data__startswith='http://')

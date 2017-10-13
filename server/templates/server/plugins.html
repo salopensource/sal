@@ -19,6 +19,7 @@
 {% block nav %}
         <li><a href="{% url 'settings_page' %}"><i class="fa-chevron-left fa fa-fw"></i> Back</a></li>
         <li><a href="{% url 'plugins_page' %}"><i class="fa-th fa fa-fw"></i> Widgets</a></li>
+        <li><a href="{% url 'settings_machine_detail_plugins' %}"><i class="fa-laptop fa fa-fw"></i> Machine Detail Widgets</a></li>
         <li><a href="{% url 'settings_reports' %}"><i class="fa-th-large fa fa-fw"></i> Reports</a></li>
 
 {% endblock %}
@@ -90,7 +91,7 @@
 
                         {% for plugin in disabled_plugins %}
                         <tr>
-                            <td>{{ plugin }}</td>
+                            <td>{{ plugin.name }}</td>
                             <td><a href="{% url 'plugin_enable' plugin %}" title="Enable Plugin" class="btn btn-mini btn-info pull-right"><i class="fa fa-check"></i></a></td>
                         </tr>
                         {% endfor %}

@@ -1,6 +1,6 @@
 # Django settings for sal project.
 from system_settings import *
-from settings_import import ADMINS, TIME_ZONE, LANGUAGE_CODE, ALLOWED_HOSTS, DISPLAY_NAME, DEFAULT_MACHINE_GROUP_KEY,DEBUG, BRUTE_PROTECT, BRUTE_COOLOFF, BRUTE_LIMIT
+from settings_import import *
 
 DATABASES = {
     'default': {
@@ -25,17 +25,30 @@ if os.environ.has_key('MEMCACHED_PORT_11211_TCP_ADDR'):
     }
 
 # PG Database
-if os.environ.has_key('DB_PORT_5432_TCP_ADDR'):
+host = None
+port = None
+
+if os.environ.has_key('DB_USER'):
+    if os.environ.has_key('DB_HOST'):
+        host = os.environ.get('DB_HOST')
+        port = os.environ.get('DB_PORT', '5432')
+
+    elif os.environ.has_key('DB_PORT_5432_TCP_ADDR'):
+        host = os.environ.get('DB_PORT_5432_TCP_ADDR')
+        port = os.environ.get('DB_PORT_5432_TCP_PORT', '5432')
+
+    else:
+        host = 'db'
+        port = '5432'
+
+if host and port:
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.postgresql_psycopg2',
             'NAME': os.environ['DB_NAME'],
             'USER': os.environ['DB_USER'],
             'PASSWORD': os.environ['DB_PASS'],
-            'HOST': os.environ['DB_PORT_5432_TCP_ADDR'],
-            'PORT': os.environ['DB_PORT_5432_TCP_PORT'],
+            'HOST': host,
+            'PORT': port,
         }
     }
-if BRUTE_PROTECT==True:
-    INSTALLED_APPS+= ('axes',)
-    MIDDLEWARE_CLASSES+=('axes.middleware.FailedLoginMiddleware',)

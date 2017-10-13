@@ -43,19 +43,19 @@ class InstallReport(IPlugin):
             catalog_objects = Catalog.objects.all()
 
         if page == 'bu_dashboard':
-            t = loader.get_template('installreport/templates/front.html')
+            t = loader.get_template('installreport/templates/id.html')
             business_unit = get_object_or_404(BusinessUnit, pk=theid)
             machine_groups = business_unit.machinegroup_set.all()
             catalog_objects = Catalog.objects.filter(machine_group=machine_groups)
 
         if page == 'group_dashboard':
-            t = loader.get_template('installreport/templates/front.html')
+            t = loader.get_template('installreport/templates/id.html')
             machine_group = get_object_or_404(MachineGroup, pk=theid)
             catalog_objects = Catalog.objects.filter(machine_group=machine_group)
 
         output = []
         # Get the install reports for the machines we're looking for
-        installed_updates = InstalledUpdate.objects.filter(machine=machines).values('update', 'display_name', 'update_version').distinct()
+        installed_updates = InstalledUpdate.objects.filter(machine__in=machines).values('update', 'display_name', 'update_version').order_by().distinct()
         for catalog in catalog_objects:
             catalog.content = plistlib.readPlistFromString(self.safe_unicode(catalog.content))
         for installed_update in installed_updates:
@@ -83,9 +83,9 @@ class InstallReport(IPlugin):
 
                 item['version'] = installed_update['update_version']
                 item['name'] = installed_update['update']
-                item['install_count'] = InstalledUpdate.objects.filter(machine=machines, update=installed_update['update'], update_version=installed_update['update_version'], installed=True).count()
+                item['install_count'] = InstalledUpdate.objects.filter(machine__in=machines, update=installed_update['update'], update_version=installed_update['update_version'], installed=True).count()
 
-                item['pending_count'] = PendingUpdate.objects.filter(machine=machines, update=installed_update['update'], update_version=installed_update['update_version']).count()
+                item['pending_count'] = PendingUpdate.objects.filter(machine__in=machines, update=installed_update['update'], update_version=installed_update['update_version']).count()
                 item['installed_url'] = 'Installed?VERSION=%s&&NAME=%s' % (item['version'], item['name'])
                 item['pending_url'] = 'Pending?VERSION=%s&&NAME=%s' % (item['version'], item['name'])
                 item = self.replace_dots(item)
@@ -99,7 +99,7 @@ class InstallReport(IPlugin):
         c = Context({
             'title': 'Install Reports',
             'output': output,
-            'plugin': 'ShardReport',
+            'plugin': 'InstallReport',
             'page': page,
             'theid': theid
         })

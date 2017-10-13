@@ -46,8 +46,6 @@ sal_env/
 # node stuff
 node_modules/
 
-server/management
-
 *.db copy
 
 *.db
@@ -59,5 +57,13 @@ postgres
 sal.dump
 config.codekit
 wip_plugins/
+sal/metadata.xml
+test-pg-db
 
 sal.log
+
+.idea
+
+setup/Vagrantfile
+setup/.vagrant
+db/*

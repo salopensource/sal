@@ -1,30 +1,57 @@
 {% extends "base.html" %}
 {% load i18n %}
 {% load dashboard_extras %}
-
+{% load static from staticfiles %}
+{% block title %}Sal - {{ machine.hostname }}{% endblock %}
 {% block script %}
+<script>
 
+$( document ).ready(function() {
+
+
+
+   {% for widget in output %}
+
+   $.ajaxWithRetries(
+    {
+        url: "{% url 'plugin_load_id' widget.name 'machine_detail' machine.id%}",
+        error: function(){
+            console.log('{{ widget.name }} Failed');
+        },
+        success: function( data ) {
+                $('#plugin-{{ widget.name }}').html(data);
+            },
+    },
+    {
+        retries: 20,
+        backoff: false
+    }
+);
+
+
+   {% endfor %}
+
+
+});
+
+</script>
 
 {% endblock %}
 
 {% block nav %}
-<li><a href="{% url 'group_dashboard' machine_group.id %}"><i class="fa fa-chevron-left fa-fw"></i> Back</a></li>
-<li><a href="{% url 'inventory.views.machine_inventory' machine.id %}"><i class="fa fa-list-alt fa-fw"></i> Application Inventory</a></li>
-{% if user.userprofile.level == 'GA' or user.userprofile.level == 'RW' %}
-  {% if CONFIG_INSTALLED %}
-    <li><a href="{% url 'config_machine_index' machine.id %}"><i class="fa fa-wrench fa-fw"></i> Configure Computer</a></li>
-  {% endif %}
+{% include 'server/machine_detail_nav.html' %}
   <li><a href="#myModal" data-toggle="modal"><i class="fa fa-times fa-fw"></i> Computer</a></i>
-
-
-{% endif %}
 
 {% endblock %}
 {% block content %}
 <div class="row">
   <div class="col-md-5">
     <p style="text-align: center;">
+        {% if machine.os_family == 'Darwin' %}
       <img src='https://km.support.apple.com.edgekey.net/kb/securedImage.jsp?configcode={{machine.serial|slice:"8:" }}&size=120x120'>
+      {% else %}
+      <img src="{% static 'img/generic_pc.png' %}" height="120" width="120" alt="Generic PC"/>
+      {% endif %}
       <br>
       <h2 style="text-align:center">{{ machine.hostname }}</h2>
       <span style="display: block; margin: 0px auto; text-align: center;" title="Last report date">
@@ -76,10 +103,23 @@
               </p>
             </div>
           </div>
+          </dl>
+      </div>
+    </div>
+    <div class="panel panel-default">
+      <div class="panel-body">
+        <dl class="dl-horizontal">
           <legend><h5 class"text-uppercase">Machine Details</h5></legend>
           <dt>Model:</dt>
           <dd>
+            {% if machine.machine_model_friendly %}
+            {{ machine.machine_model_friendly }}
+            {% else %}
             {{ machine.machine_model }}
+            {% endif %}
+          </dd>
+          <dt>Processor:</dt>
+          <dd>
             {{ machine.cpu_type }}
             {{ machine.cpu_speed }}
           </dd>
@@ -93,17 +133,28 @@
           <dt>Hostname:</dt>
           <dd>{{ report.MachineInfo.hostname }}</dd>
           <dt>OS version:</dt>
-          <dd>{% if report.os_family == 'Darwin' %}
-            OS X {% endif %}
+          <dd>
+            {% if machine.os_family == 'Darwin' %}
+            {{ report.MachineInfo.os_vers|macos }}
+            {% endif %}
             {{ report.MachineInfo.os_vers }}
             {{ report.MachineInfo.arch }}
           </dd>
           {% endif %}
           <dt>Free disk space:</dt>
           <dd>{{ report.AvailableDiskSpace|humanreadablesize }} ({{ machine.hd_percent }}% used)</dd>
+          {% if uptime_enabled %}
+          <dt>Uptime:</dt>
+          <dd>{{ uptime }}</dd>
+          {% endif %}
           <dt>Console user:</dt>
           <dd>{{ report.ConsoleUser }}</dd>
-          <br>
+        </dl>
+      </div>
+    </div>
+    <div class="panel panel-default">
+      <div class="panel-body">
+        <dl class="dl-horizontal">
           <legend><h5 class"text-uppercase">Management Tools</h5></legend>
           <dt>Business Unit</dt>
           <dd>{{ business_unit }}</dd>
@@ -124,7 +175,7 @@
           {% if 'ManifestName' in report %}
           <dt>Munki Manifest:</dt>
           <dd>
-            {{ report.ManifestName }}</a>
+            {{ report.ManifestName }}
           </dd>
           {% endif %}
           {% if report.ManagedInstallVersion %}
@@ -142,6 +193,11 @@
         </dl>
       </div>
     </div>
+
+              {% for widget in output %}
+              {{ widget.html|safe }}
+              {% endfor %}
+
   </div>
 
   <div class="col-md-7">
@@ -183,12 +239,6 @@
             <!-- /.dropdown -->
             {% if report.managed_uninstalls_list|length %}
             <li role="presentation"><a data-toggle="tab" href="#tab2-2">Managed Uninstalls</a></li>
-            {% endif %}
-            {% if facts|length %}
-            <li role="presentation"><a data-toggle="tab" href="#tab2-3">Facter</a></li>
-            {% endif %}
-            {% if conditions|length %}
-            <li role="presentation"><a data-toggle="tab" href="#tab2-4">MSC Conditions</a></li>
             {% endif %}
           </ul>
           <!-- Tab panes -->
@@ -235,50 +285,6 @@
                     {% else %}
                     <td class='error'>installed</td>
                     {% endif %}
-                  </tr>
-                  {% endfor %}
-                </tbody>
-              </table>
-            </div>
-            <div class="tab-pane fade" id="tab2-3">
-              <table class="client_info table table-striped table-condensed">
-                <thead>
-                  <tr>
-                    <th>Fact</th>
-                    <th>Value</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {% for fact in facts %}
-                  <tr>
-                    <td>
-                      {{ fact.fact_name }}
-                    </td>
-                    <td>
-                      {{ fact.fact_data }}
-                    </td>
-                  </tr>
-                  {% endfor %}
-                </tbody>
-              </table>
-            </div>
-            <div class="tab-pane fade" id="tab2-4">
-              <table class="client_info table table-striped table-condensed">
-                <thead>
-                  <tr>
-                    <th>Condition</th>
-                    <th>Value</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {% for condition in conditions %}
-                  <tr>
-                    <td>
-                      {{ condition.condition_name }}
-                    </td>
-                    <td>
-                      {{ condition.condition_data }}
-                    </td>
                   </tr>
                   {% endfor %}
                 </tbody>

@@ -30,12 +30,18 @@ class Status(IPlugin):
         # There are three possible views we're going to be rendering to - front, bu_dashbaord and group_dashboard. If page is set to bu_dashboard, or group_dashboard, you will be passed a business_unit or machine_group id to use (mainly for linking to the right search).
         if page == 'front':
             t = loader.get_template('status/templates/front.html')
+            undeployed_machines = Machine.objects.all().filter(deployed=False).count()
 
         if page == 'bu_dashboard':
             t = loader.get_template('status/templates/id.html')
+            business_unit = get_object_or_404(BusinessUnit, pk=theid)
+            machine_groups = MachineGroup.objects.filter(business_unit=business_unit).all()
+            undeployed_machines = Machine.objects.filter(machine_group__in=machine_groups).filter(deployed=False).count()
 
         if page == 'group_dashboard':
             t = loader.get_template('status/templates/id.html')
+            machine_group = get_object_or_404(MachineGroup, pk=theid)
+            undeployed_machines = Machine.objects.filter(machine_group=machine_group).filter(deployed=False).count()
 
         errors = machines.filter(errors__gt=0).count()
         warnings = machines.filter(warnings__gt=0).count()
@@ -54,6 +60,7 @@ class Status(IPlugin):
             '30dayactive': thirtydayactive,
             '90dayactive': ninetydayactive,
             'all_machines': all_machines,
+            'undeployed_machines': undeployed_machines,
             'theid': theid,
             'page': page
         })
@@ -89,5 +96,9 @@ class Status(IPlugin):
         if data == 'all_machines':
             machines = machines
             title = 'All Machines'
+
+        if data == 'undeployed_machines':
+            machines = machines
+            title = 'Undeployed Machines'
 
         return machines, title

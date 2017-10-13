@@ -8,12 +8,13 @@ This Docker image runs [Sal](https://github.com/salopensource/sal). The containe
 Several options, such as the timezone and admin password are customizable using environment variables.
 
 * ``ADMIN_PASS``: The default admin's password. This is only set if there are no other superusers, so if you choose your own admin username and password later on, this won't be created.
+* ``DB_HOST``: Sets the hostname of the database sal will connect to. Defaults to ``db``.
+* ``DB_PORT``: Sets the port sal will connect to on the host specified in ``DB_HOST``. Defaults to ``5432``.
 * ``DOCKER_SAL_DISPLAY_NAME``: This sets the name that appears in the title bar of the window. Defaults to ``Sal``.
 * ``DOCKER_SAL_TZ``: The desired [timezone](http://en.wikipedia.org/wiki/List_of_tz_database_time_zones). Defaults to ``Europe/London``.
 * ``DOCKER_SAL_ADMINS``: The admin user's details. Defaults to ``Docker User, docker@localhost``.
 * ``DOCKER_SAL_DEFAULT_MACHINE_GROUP_KEY``: By default, all machine submissions must include a machine group key otherwise an error will occur. By defining this value to an existing machine group key then machines without a group key already defined in its preferences will be placed into this group.
 * ``DOCKER_SAL_DEBUG``: Whether debug mode is enabled or not. Valid values are ``true`` and ``false``. Defaults to ``false``.
-* ``DOCKER_SAL_BRUTE_PROTECT``: Whether brute force protection mode is enabled or not. Valid values are ``true`` and ``false``. Defaults to ``false``.
 * ``DOCKER_SAL_BRUTE_COOLOFF``: Cooloff period after which failed logins will be forgotten. Must be an integer representing the number of hours. Defaults to ``3``.
 * ``DOCKER_SAL_BRUTE_LIMIT``: Number of failed login attempts allowed within the timeout period before the account is blocked. Must be an integer. Defaults to ``3``.
 

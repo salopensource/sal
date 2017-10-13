@@ -1,3 +1,4 @@
+{% load static from staticfiles %}
 <!DOCTYPE html>
 <html lang="en">
 
@@ -12,16 +13,16 @@
     <title>{{ DISPLAY_NAME}} </title>
 
     <!-- Bootstrap Core CSS -->
-    <link href="{{ STATIC_URL }}css/bootstrap.min.css" rel="stylesheet">
+    <link href="{% static 'css/bootstrap.min.css' %}" rel="stylesheet">
 
     <!-- MetisMenu CSS -->
-    <link href="{{ STATIC_URL }}css/plugins/metisMenu/metisMenu.min.css" rel="stylesheet">
+    <link href="{% static 'css/plugins/metisMenu/metisMenu.min.css' %}" rel="stylesheet">
 
     <!-- Custom CSS -->
-    <link href="{{ STATIC_URL }}css/sb-admin-2.css" rel="stylesheet">
+    <link href="{% static 'css/sb-admin-2.css' %}" rel="stylesheet">
 
     <!-- Custom Fonts -->
-    <link href="{{ STATIC_URL }}font-awesome-4.1.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+    <link href="{% static 'font-awesome-4.1.0/css/font-awesome.min.css' %}" rel="stylesheet" type="text/css">
 
     <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
     <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
@@ -47,7 +48,7 @@
                     </div>
                     <div class="panel-body">
 
-                        <form role="form" method="post" action="{% url 'django.contrib.auth.views.login' %}">
+                        <form role="form" method="post" action="{% url 'login' %}">
                             {% csrf_token %}
                             <fieldset>
                                 <div class="form-group">
@@ -57,7 +58,7 @@
                                     <input class="form-control" placeholder="Password" id="id_password" name="password" type="password" value="">
                                 </div>
                                 <!-- Change this to a button or input when using this as a form -->
-                                
+
                             </fieldset>
                             <input class='btn btn-lg btn-success btn-block' type="submit" value="Login" />
 
@@ -70,16 +71,16 @@
     </div>
 
     <!-- jQuery Version 1.11.0 -->
-    <script src="{{ STATIC_URL }}js/jquery-1.11.0.js"></script>
+    <script src="{% static 'js/jquery-1.11.0.js' %}"></script>
 
     <!-- Bootstrap Core JavaScript -->
-    <script src="{{ STATIC_URL }}js/bootstrap.min.js"></script>
+    <script src="{% static 'js/bootstrap.min.js' %}"></script>
 
     <!-- Metis Menu Plugin JavaScript -->
-    <script src="{{ STATIC_URL }}js/plugins/metisMenu/metisMenu.min.js"></script>
+    <script src="{% static 'js/plugins/metisMenu/metisMenu.min.js' %}"></script>
 
     <!-- Custom Theme JavaScript -->
-    <script src="{{ STATIC_URL }}js/sb-admin-2.js"></script>
+    <script src="{% static 'js/sb-admin-2.js' %}"></script>
 
 </body>
 

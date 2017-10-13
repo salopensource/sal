@@ -12,26 +12,15 @@ try:
 except:
     DEBUG = False
 
-# Read the Brute force protection setting from env var
+
+# Read the BASIC_AUTH setting from env var
 try:
-    if getenv('DOCKER_SAL_BRUTE_PROTECT').lower() == 'true':
-        BRUTE_PROTECT = True
+    if getenv('DOCKER_SAL_BASIC_AUTH').lower() == 'true':
+        BASIC_AUTH = True
     else:
-        BRUTE_PROTECT = False
+        BASIC_AUTH = False
 except:
-    BRUTE_PROTECT = False
-
-# Read the Brute force protection timeout setting from env var
-try:
-    BRUTE_COOLOFF = int(getenv('DOCKER_SAL_BRUTE_COOLOFF'))
-except:
-    BRUTE_COOLOFF = 3
-
-# Read the Brute force protection limit setting from env var
-try:
-    BRUTE_LIMIT = int(getenv('DOCKER_SAL_BRUTE_LIMIT'))
-except:
-    BRUTE_LIMIT = 3
+    BASIC_AUTH = True
 
 # Read list of admins from $DOCKER_SAL_ADMINS env var
 admin_list = []
@@ -91,8 +80,43 @@ if getenv('DOCKER_SAL_DEFAULT_MACHINE_GROUP_KEY'):
 else:
     DEFAULT_MACHINE_GROUP_KEY = None
 
-if BRUTE_PROTECT == True:
-    ###############
-    # Max number of login attemts within the ``AXES_COOLOFF_TIME``
-    AXES_LOGIN_FAILURE_LIMIT = BRUTE_LIMIT
-    AXES_COOLOFF_TIME=BRUTE_COOLOFF
+try:
+    if getenv('DOCKER_SAL_ADD_TO_ALL_BUSINESS_UNITS').lower() == 'true':
+        ADD_TO_ALL_BUSINESS_UNITS = True
+    else:
+        ADD_TO_ALL_BUSINESS_UNITS = False
+except:
+    ADD_TO_ALL_BUSINESS_UNITS = False
+
+try:
+    if getenv('DOCKER_SAL_CRYPT_URL'):
+        CRYPT_URL = getenv('DOCKER_SAL_CRYPT_URL')
+    else:
+       CRYPT_URL = None
+except:
+    CRYPT_URL = None
+
+
+# Read the SSH_ACCOUNT setting from env var
+try:
+    if getenv('DOCKER_SAL_SSH_ACCOUNT'):
+        SSH_ACCOUNT = getenv('DOCKER_SAL_SSH_ACCOUNT')
+    else:
+        SSH_ACCOUNT = None
+except:
+    SSH_ACCOUNT = None
+
+# Do machines turn to 'deployed' when they check in?
+try:
+    if getenv('DOCKER_SAL_DEPLOYED_ON_CHECKIN').lower() == 'true':
+        DEPLOYED_ON_CHECKIN = True
+    else:
+        DEPLOYED_ON_CHECKIN = False
+except:
+    DEPLOYED_ON_CHECKIN = False
+
+# How long until machines are inactive before they are considered undeployed?
+try:
+    INACTIVE_UNDEPLOYED = int(getenv('DOCKER_SAL_INACTIVE_UNDEPLOYED'))
+except:
+    INACTIVE_UNDEPLOYED = 0

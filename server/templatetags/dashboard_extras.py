@@ -8,6 +8,7 @@ from django.template.defaultfilters import date
 from django.utils.timezone import utc
 import pytz
 from django.conf import settings
+from distutils.version import LooseVersion
 
 register = template.Library()
 
@@ -28,6 +29,13 @@ def humanreadablesize(kbytes):
 humanreadablesize.is_safe = True
 
 @register.filter
+def macos(os_version):
+    if LooseVersion(os_version) > LooseVersion('10.11.99'):
+        return 'macOS'
+    else:
+        return 'OS X'
+
+@register.filter
 def bu_machine_count(bu_id):
     """Returns the number of machines contained within the child Machine Groups. Input is BusinessUnit.id"""
     # Get the BusinessUnit
@@ -36,7 +44,15 @@ def bu_machine_count(bu_id):
     machine_groups = business_unit.machinegroup_set.all()
     count = 0
     for machinegroup in machine_groups:
-        count = count + machinegroup.machine_set.count()
+        count = count + machinegroup.machine_set.filter(deployed=True).count()
+    return count
+
+@register.filter
+def machine_group_count(group_id):
+    """Returns the number of machines contained within the Machine Group.
+    Input is machineGroup.id"""
+    machine_group = get_object_or_404(MachineGroup, pk=group_id)
+    count = machine_group.machine_set.filter(deployed=True).count()
     return count
 
 @register.filter
@@ -55,6 +71,18 @@ def print_timestamp(timestamp):
     except ValueError:
         return None
     return time.strftime("%Y-%m-%d", time.gmtime(ts))
+
+@register.filter
+def flatten_and_sort_list(the_list):
+    output = ''
+    counter = 1
+    for item in sorted(the_list):
+        if counter == 1:
+            output = item
+        else:
+            output = output + ', ' + item
+        counter += 1
+    return output
 
 @register.filter
 def next(value, arg):

@@ -1942,17 +1942,17 @@ def checkin(request):
         manifest = report_data['ManifestName']
         machine.manifest = manifest
     if 'MachineInfo' in report_data:
-        # try and pick up the golang struct first
-        try:
-            machine.operating_system = report_data['MachineInfo'].get(
-                'OSVers', 'UNKNOWN')
-        # fail back to sal scripts
-        except:
-            machine.operating_system = report_data['MachineInfo'].get(
-                'os_vers', 'UNKNOWN')
+        machine.operating_system = report_data['MachineInfo'].get(
+            'os_vers', 'UNKNOWN')
         # some machines are reporting 10.9, some 10.9.0 - make them the same
         if len(machine.operating_system) <= 4:
             machine.operating_system = machine.operating_system + '.0'
+
+    # if gosal is the sender look for OSVers key
+    if 'OSVers' in report_data['MachineInfo']:
+        machine.operating_system = report_data['MachineInfo'].get(
+            'OSVers')
+
     machine.hd_space = report_data.get('AvailableDiskSpace') or 0
     machine.hd_total = int(data.get('disk_size')) or 0
 

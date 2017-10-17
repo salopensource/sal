@@ -1944,16 +1944,15 @@ def checkin(request):
     if 'MachineInfo' in report_data:
         machine.operating_system = report_data['MachineInfo'].get(
             'os_vers', 'UNKNOWN')
+        # some machines are reporting 10.9, some 10.9.0 - make them the same
+        if len(machine.operating_system) <= 4:
+            machine.operating_system = machine.operating_system + '.0'
 
     # if gosal is the sender look for OSVers key
     if 'OSVers' in report_data['MachineInfo']:
         machine.operating_system = report_data['MachineInfo'].get(
             'OSVers')
 
-
-        # some machines are reporting 10.9, some 10.9.0 - make them the same
-        if len(machine.operating_system) <= 4:
-            machine.operating_system = machine.operating_system + '.0'
     machine.hd_space = report_data.get('AvailableDiskSpace') or 0
     machine.hd_total = int(data.get('disk_size')) or 0
 

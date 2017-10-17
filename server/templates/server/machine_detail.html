@@ -136,9 +136,11 @@ $( document ).ready(function() {
           <dd>
             {% if machine.os_family == 'Darwin' %}
             {{ report.MachineInfo.os_vers|macos }}
-            {% endif %}
             {{ report.MachineInfo.os_vers }}
             {{ report.MachineInfo.arch }}
+            {% else %}
+            {{ machine.operating_system }}
+            {% endif %}
           </dd>
           {% endif %}
           <dt>Free disk space:</dt>

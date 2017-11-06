@@ -85,7 +85,7 @@ class Uptime(IPlugin):
             not_alert_range = []
             for i in range(0,90):
                 not_alert_range.append(str(i))
-            machines = machines.filter(pluginscriptsubmission__plugin__exact='Uptime', pluginscriptsubmission__pluginscriptrow__pluginscript_name__exact='UptimeDays').exclude(pluginscriptsubmission__pluginscriptrow__pluginscript_data__in=not_alert_range).count()
+            machines = machines.filter(pluginscriptsubmission__plugin__exact='Uptime', pluginscriptsubmission__pluginscriptrow__pluginscript_name__exact='UptimeDays').exclude(pluginscriptsubmission__pluginscriptrow__pluginscript_data__in=not_alert_range)
             title = 'Machines with more than 90 days of uptime'
 
         else:

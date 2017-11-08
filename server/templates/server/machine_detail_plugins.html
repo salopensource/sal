@@ -101,7 +101,7 @@
                             <td>
                                 {{ plugin.os_families|flatten_and_sort_list}}
                             </td>
-                            <td><a href="{% url 'machine_detail_plugin_enable' plugin %}" title="Enable Plugin" class="btn btn-mini btn-info pull-right"><i class="fa fa-check"></i></a></td>
+                            <td><a href="{% url 'machine_detail_plugin_enable' plugin.name %}" title="Enable Plugin" class="btn btn-mini btn-info pull-right"><i class="fa fa-check"></i></a></td>
                         </tr>
                         {% endfor %}
                     </tbody>

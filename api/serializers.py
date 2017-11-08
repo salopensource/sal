@@ -57,7 +57,7 @@ class FactSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Fact
-        exclude = ('machine',)
+        fields = '__all__'
 
 
 class SerialSerializer(serializers.ModelSerializer):
@@ -67,25 +67,10 @@ class SerialSerializer(serializers.ModelSerializer):
         fields = ('id','serial',)
 
 
-class FactWithSerialSerializer(serializers.ModelSerializer):
-    machine = SerialSerializer()
-
-    class Meta:
-        model = Fact
-
-
 class ConditionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Condition
-        exclude = ('machine',)
-
-
-class ConditionWithSerialSerializer(serializers.ModelSerializer):
-    # serial = serializers.CharField()
-    machine = SerialSerializer()
-
-    class Meta:
-        model = Condition
+        fields = '__all__'
 
 
 class PendingAppleUpdateSerializer(serializers.ModelSerializer):
@@ -103,6 +88,7 @@ class PendingUpdateSerializer(serializers.ModelSerializer):
 
 
 class MachineSerializer(QueryFieldsMixin, serializers.ModelSerializer):
+
     simple_fields = (
         'console_user', 'munki_version', 'hd_space', 'machine_model',
         'cpu_speed', 'serial', 'id', 'last_puppet_run', 'errors',

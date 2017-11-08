@@ -104,58 +104,58 @@ class PendingUpdates(generics.ListAPIView):
         return PendingUpdate.objects.filter(machine=machine)
 
 
-class FactsMachine(generics.ListAPIView):
+class FactViewSet(viewsets.ReadOnlyModelViewSet):
     """
-    Retrieve facts for a machine
+    list:
+    Return facts for all machines. Filter results by machine by including the
+    querystring argument 'serial'.
+
+    - Example: `/api/facts/?serial=C0DEADBEEF00`
+
+    retrieve:
+    Return a fact by ID.
     """
+    # TODO: The docstring above is to work around not showing the 'serial'
+    # argument in the doc sites' "Query Parameters" table. Figure out how to do
+    # this.
+    # TODO: Turn this get_queryset override into a mixin for Machine serial
+    # filtering as we're going to see this again.
+    queryset = Fact.objects.all()
     serializer_class = FactSerializer
+
     def get_queryset(self):
-        """
-        Get all of the facts for the machine
-        """
-        serial = self.kwargs['serial']
-        machine = Machine.objects.get(serial=serial)
-        return Fact.objects.filter(machine=machine)
+        queryset = super(FactViewSet, self).get_queryset()
+        if 'serial' in self.request.query_params:
+            machines = Machine.objects.filter(
+                serial=self.request.query_params['serial'])
+            queryset = queryset.filter(machine__in=machines)
+
+        return queryset
 
 
-class Facts(generics.ListAPIView):
+class ConditionViewSet(viewsets.ReadOnlyModelViewSet):
     """
-    Retrieve a specific fact for all machines
-    """
-    serializer_class = FactWithSerialSerializer
-    def get_queryset(self):
-        fact_to_find = self.request.query_params.get('fact', None)
-        if fact_to_find is not None:
-            fact_to_find = fact_to_find.strip()
+    list:
+    Return conditions for all machines. Filter results by machine by including
+    the querystring argument 'serial'.
 
-        return Fact.objects.filter(fact_name=fact_to_find)
+    - Example: `/api/conditions/?serial=C0DEADBEEF00`
 
+    retrieve:
+    Return a condition by ID.
+    """
 
-class ConditionsMachine(generics.ListAPIView):
-    """
-    Retrieve conditions for a machine
-    """
+    queryset = Condition.objects.all()
     serializer_class = ConditionSerializer
+
     def get_queryset(self):
-        """
-        Get all of the conditions for the machine
-        """
-        serial = self.kwargs['serial']
-        machine = Machine.objects.get(serial=serial)
-        return Condition.objects.filter(machine=machine)
+        queryset = super(ConditionViewSet, self).get_queryset()
+        if 'serial' in self.request.query_params:
+            machines = Machine.objects.filter(
+                serial=self.request.query_params['serial'])
+            queryset = queryset.filter(machine__in=machines)
 
-
-class Conditions(generics.ListAPIView):
-    """
-    Retrieve a specific condition for all machines
-    """
-    serializer_class = ConditionWithSerialSerializer
-    def get_queryset(self):
-        condition_to_find = self.request.query_params.get('condition', None)
-        if condition_to_find is not None:
-            condition_to_find = condition_to_find.strip()
-
-        return Condition.objects.filter(condition_name=condition_to_find)
+        return queryset
 
 
 class MachineGroupViewSet(viewsets.ModelViewSet):

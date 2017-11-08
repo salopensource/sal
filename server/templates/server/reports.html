@@ -78,7 +78,7 @@
                         {% for plugin in disabled_plugins %}
                         <tr>
                             <td>{{ plugin.name }}</td>
-                            <td><a href="{% url 'settings_report_enable' plugin %}" title="Enable Report" class="btn btn-mini btn-info pull-right"><i class="fa fa-check"></i></a></td>
+                            <td><a href="{% url 'settings_report_enable' plugin.name %}" title="Enable Report" class="btn btn-mini btn-info pull-right"><i class="fa fa-check"></i></a></td>
                         </tr>
                         {% endfor %}
                     </tbody>

@@ -11,6 +11,9 @@ fields to include when serving simple requests.
 """
 
 
+from server.models import *
+
+
 class QueryFieldsMixin(object):
 
     # If using Django filters in the API, these labels mustn't conflict with
@@ -70,3 +73,20 @@ class QueryFieldsMixin(object):
 
         for field in fields_to_drop:
             self.fields.pop(field)
+
+
+class FilterByMachineSerialMixin(object):
+
+    # Classes mixing this in should override the `machine_path` to be
+    # an eval-able django ORM path to the machine record.
+    machine_path = 'machine'
+
+    def get_queryset(self):
+        queryset = super(FilterByMachineSerialMixin, self).get_queryset()
+        if 'serial' in self.request.query_params:
+            machines = Machine.objects.filter(
+                serial=self.request.query_params['serial'])
+            queryset = eval(
+                'queryset.filter({}__in=machines)'.format(self.machine_path))
+
+        return queryset

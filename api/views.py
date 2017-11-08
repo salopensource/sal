@@ -13,6 +13,7 @@ from rest_framework.views import APIView
 
 from api.serializers import *
 from auth import *
+from api.mixins import FilterByMachineSerialMixin
 from search.views import *
 from server.models import *
 
@@ -104,7 +105,7 @@ class PendingUpdates(generics.ListAPIView):
         return PendingUpdate.objects.filter(machine=machine)
 
 
-class FactViewSet(viewsets.ReadOnlyModelViewSet):
+class FactViewSet(FilterByMachineSerialMixin, viewsets.ReadOnlyModelViewSet):
     """
     list:
     Return facts for all machines. Filter results by machine by including the
@@ -118,8 +119,6 @@ class FactViewSet(viewsets.ReadOnlyModelViewSet):
     # TODO: The docstring above is to work around not showing the 'serial'
     # argument in the doc sites' "Query Parameters" table. Figure out how to do
     # this.
-    # TODO: Turn this get_queryset override into a mixin for Machine serial
-    # filtering as we're going to see this again.
     queryset = Fact.objects.all()
     serializer_class = FactSerializer
 
@@ -133,7 +132,7 @@ class FactViewSet(viewsets.ReadOnlyModelViewSet):
         return queryset
 
 
-class ConditionViewSet(viewsets.ReadOnlyModelViewSet):
+class ConditionViewSet(FilterByMachineSerialMixin, viewsets.ReadOnlyModelViewSet):
     """
     list:
     Return conditions for all machines. Filter results by machine by including
@@ -144,18 +143,12 @@ class ConditionViewSet(viewsets.ReadOnlyModelViewSet):
     retrieve:
     Return a condition by ID.
     """
+    # TODO: The docstring above is to work around not showing the 'serial'
+    # argument in the doc sites' "Query Parameters" table. Figure out how to do
+    # this.
 
     queryset = Condition.objects.all()
     serializer_class = ConditionSerializer
-
-    def get_queryset(self):
-        queryset = super(ConditionViewSet, self).get_queryset()
-        if 'serial' in self.request.query_params:
-            machines = Machine.objects.filter(
-                serial=self.request.query_params['serial'])
-            queryset = queryset.filter(machine__in=machines)
-
-        return queryset
 
 
 class MachineGroupViewSet(viewsets.ModelViewSet):

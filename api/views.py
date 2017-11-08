@@ -20,8 +20,9 @@ from server.models import *
 class MachineViewSet(viewsets.ModelViewSet):
     """
     list:
-    Returns a paginated list of all machines in abbreviated form. Accepts
-    querystring arguments for limiting fields.
+    Returns a paginated list of all machines. Records are by default in
+    abbreviated form, but this endpoint accepts querystring arguments for
+    limiting or including fields as per below.
 
     - `full` uses the full machine record instead of the abbreviated form.
         - Example: `/api/machines/?full`
@@ -29,9 +30,28 @@ class MachineViewSet(viewsets.ModelViewSet):
       the response.
         - Include Example: `/api/machines/?include=console_user,hostname`
         - Exclude Example: `/api/machines/?include!=report`
+
+    The abbreviated form excludes the `report`, `install_log`, and
+    `install_log_hash` fields.
+
+    read:
+    Returns a machine record. The returned record is by default in abbreviated
+    form, but this endpoint accepts querystring arguments for limiting or
+    including fields as per below.
+
+    - `full` uses the full machine record instead of the abbreviated form.
+        - Example: `/api/machines/42/?full`
+    - `fields` allows you to specify a list of fields to include or exclude in
+      the response.
+        - Include Example: `/api/machines/C0DEADBEEF/?include=console_user,hostname`
+        - Exclude Example: `/api/machines/C0DEADBEEF/?include!=report`
+
+    The abbreviated form excludes the `report`, `install_log`, and
+    `install_log_hash` fields.
     """
     queryset = Machine.objects.all()
     serializer_class = MachineSerializer
+    lookup_field = 'serial'
 
 
 class MachineInventory(generics.ListAPIView):

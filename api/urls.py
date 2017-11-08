@@ -14,16 +14,14 @@ router.register(r'machine_groups', views.MachineGroupViewSet)
 router.register(r'machines', views.MachineViewSet)
 router.register(r'conditions', views.ConditionViewSet)
 router.register(r'facts', views.FactViewSet)
+router.register(r'inventory', views.InventoryViewSet)
 
 
 urlpatterns = [
     url(r'^', include(router.urls)),
-    url(r'^inventory/$', views.AllInventory.as_view()),
-
     url(r'^pending_apple_updates/(?P<serial>.+)/$',
         views.PendingAppleUpdates.as_view()),
     url(r'^pending_updates/(?P<serial>.+)/$', views.PendingUpdates.as_view()),
-
     url(r'^plugin_script_submissions/(?P<serial>.+)/$',
         views.PluginScriptSubmissionMachine.as_view()),
     url(r'^plugin_script_submissions/$',
@@ -32,7 +30,6 @@ urlpatterns = [
         views.PluginScriptRowMachine.as_view()),
     url(r'^search/(?P<pk>.+)$', views.SearchID.as_view()),
     url(r'^search/$', views.BasicSearch.as_view()),
-
     url(r'^docs/', include_docs_urls(title='Sal REST API')),
     url(r'^api-auth/', include(
         'rest_framework.urls', namespace='rest_framework')),

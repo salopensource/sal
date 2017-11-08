@@ -55,26 +55,9 @@ class MachineViewSet(viewsets.ModelViewSet):
     lookup_field = 'serial'
 
 
-class MachineInventory(generics.ListAPIView):
-    """
-    Retrieve machine inventory.
-    """
-    serializer_class = InventoryItemSerializer
-
-    def get_queryset(self):
-        """
-        Get all of the inventory items for the machine
-        """
-        serial = self.kwargs['serial']
-        return Machine.objects.get(serial=serial).inventoryitem_set.all()
-
-
-class AllInventory(generics.ListAPIView):
-    """
-    Retrieve all the inventory items
-    """
-    serializer_class = InventoryItemSerializer
+class InventoryViewSet(FilterByMachineSerialMixin, viewsets.ReadOnlyModelViewSet):
     queryset = InventoryItem.objects.all()
+    serializer_class = InventoryItemSerializer
 
 
 class PendingAppleUpdates(generics.ListAPIView):

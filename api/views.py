@@ -21,23 +21,10 @@ from server.models import *
 class BusinessUnitViewSet(viewsets.ModelViewSet):
     queryset = BusinessUnit.objects.all()
     serializer_class = BusinessUnitSerializer
+    filter_fields = ('name',)
 
 
 class ConditionViewSet(viewsets.ReadOnlyModelViewSet):
-    """
-    list:
-    Return conditions for all machines. Filter results by machine by including
-    the querystring argument 'serial'.
-
-    - Example: `/api/conditions/?serial=C0DEADBEEF00`
-
-    retrieve:
-    Return a condition by ID.
-    """
-    # TODO: The docstring above is to work around not showing the 'serial'
-    # argument in the doc sites' "Query Parameters" table. Figure out how to do
-    # this.
-
     queryset = Condition.objects.all()
     serializer_class = ConditionSerializer
     filter_fields = (
@@ -46,19 +33,6 @@ class ConditionViewSet(viewsets.ReadOnlyModelViewSet):
 
 
 class FactViewSet(viewsets.ReadOnlyModelViewSet):
-    """
-    list:
-    Return facts for all machines. Filter results by machine by including the
-    querystring argument 'serial'.
-
-    - Example: `/api/facts/?serial=C0DEADBEEF00`
-
-    retrieve:
-    Return a fact by ID.
-    """
-    # TODO: The docstring above is to work around not showing the 'serial'
-    # argument in the doc sites' "Query Parameters" table. Figure out how to do
-    # this.
     queryset = Fact.objects.all()
     serializer_class = FactSerializer
     filter_fields = (
@@ -67,6 +41,14 @@ class FactViewSet(viewsets.ReadOnlyModelViewSet):
 
 
 class InventoryViewSet(viewsets.ReadOnlyModelViewSet):
+    """
+    list:
+    You may also use the `search` querystring to perform text searches
+    across the `application__name`, `application__bundleid`,
+        `application__bundlename` fields.
+
+    Example `/api/inventory/?search=Adobe`
+    """
     queryset = InventoryItem.objects.all()
     serializer_class = InventoryItemSerializer
     filter_fields = (
@@ -81,6 +63,7 @@ class InventoryViewSet(viewsets.ReadOnlyModelViewSet):
 class MachineGroupViewSet(viewsets.ModelViewSet):
     queryset = MachineGroup.objects.all()
     serializer_class = MachineGroupSerializer
+    filter_fields = ('name', 'business_unit__name', 'business_unit__id')
 
 
 class MachineViewSet(viewsets.ModelViewSet):
@@ -99,6 +82,13 @@ class MachineViewSet(viewsets.ModelViewSet):
 
     The abbreviated form excludes the `report`, `install_log`, and
     `install_log_hash` fields.
+
+    You may also use the `search` querystring to perform text searches
+    across the `activity`, `console_user`, `cpu_speed`, `cpu_type`,
+    `hostname`, `machine_model`, `machine_model_friendly`, `manifest`,
+    and `memory` fields.
+
+    Example `/api/machines/?search=MacPro`
 
     read:
     Returns a machine record. The returned record is by default in abbreviated
@@ -131,6 +121,13 @@ class MachineViewSet(viewsets.ModelViewSet):
 
 
 class PendingAppleUpdatesViewSet(viewsets.ReadOnlyModelViewSet):
+    """
+    list:
+    You may also use the `search` querystring to perform text searches
+    across the `display_name` and `update` fields.
+
+    Example `/api/pending_apple_updates/?search=Safari`
+    """
     serializer_class = PendingAppleUpdateSerializer
     queryset = PendingAppleUpdate.objects.all()
     filter_fields = (
@@ -140,6 +137,13 @@ class PendingAppleUpdatesViewSet(viewsets.ReadOnlyModelViewSet):
 
 
 class PendingUpdatesViewSet(viewsets.ReadOnlyModelViewSet):
+    """
+    list:
+    You may also use the `search` querystring to perform text searches
+    across the `display_name` and `update` fields.
+
+    Example `/api/pending_updates/?search=NetHack`
+    """
     serializer_class = PendingUpdateSerializer
     queryset = PendingUpdate.objects.all()
     filter_fields = (

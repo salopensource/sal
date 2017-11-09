@@ -77,32 +77,22 @@ class InventoryViewSet(viewsets.ReadOnlyModelViewSet):
         'application__bundlename',)
 
 
-class PendingAppleUpdates(generics.ListAPIView):
-    """
-    Retrieve pending apple updates for a machine.
-    """
+class PendingAppleUpdatesViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = PendingAppleUpdateSerializer
-    def get_queryset(self):
-        """
-        Get all of the update items for the machine
-        """
-        serial = self.kwargs['serial']
-        machine = Machine.objects.get(serial=serial)
-        return PendingAppleUpdate.objects.filter(machine=machine)
+    queryset = PendingAppleUpdate.objects.all()
+    filter_fields = (
+        'machine__serial', 'machine__hostname', 'update', 'update_version',
+        'display_name')
+    search_fields = ('display_name', 'update')
 
 
-class PendingUpdates(generics.ListAPIView):
-    """
-    Retrieve pending third party updates for a machine
-    """
+class PendingUpdatesViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = PendingUpdateSerializer
-    def get_queryset(self):
-        """
-        Get all of the update items for the machine
-        """
-        serial = self.kwargs['serial']
-        machine = Machine.objects.get(serial=serial)
-        return PendingUpdate.objects.filter(machine=machine)
+    queryset = PendingUpdate.objects.all()
+    filter_fields = (
+        'machine__serial', 'machine__hostname', 'update', 'update_version',
+        'display_name')
+    search_fields = ('display_name', 'update')
 
 
 class FactViewSet(FilterByMachineSerialMixin, viewsets.ReadOnlyModelViewSet):

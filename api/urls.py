@@ -10,18 +10,17 @@ from api import views
 # TODO: Make this a DefaultRouter when finished moving URLs.
 router = SimpleRouter()
 router.register(r'business_units', views.BusinessUnitViewSet)
-router.register(r'machine_groups', views.MachineGroupViewSet)
-router.register(r'machines', views.MachineViewSet)
 router.register(r'conditions', views.ConditionViewSet)
 router.register(r'facts', views.FactViewSet)
 router.register(r'inventory', views.InventoryViewSet)
+router.register(r'machine_groups', views.MachineGroupViewSet)
+router.register(r'machines', views.MachineViewSet)
+router.register(r'pending_apple_updates', views.PendingAppleUpdatesViewSet)
+router.register(r'pending_updates', views.PendingUpdatesViewSet)
 
 
 urlpatterns = [
     url(r'^', include(router.urls)),
-    url(r'^pending_apple_updates/(?P<serial>.+)/$',
-        views.PendingAppleUpdates.as_view()),
-    url(r'^pending_updates/(?P<serial>.+)/$', views.PendingUpdates.as_view()),
     url(r'^plugin_script_submissions/(?P<serial>.+)/$',
         views.PluginScriptSubmissionMachine.as_view()),
     url(r'^plugin_script_submissions/$',

@@ -189,7 +189,8 @@ INSTALLED_APPS = (
     'watson',
     'datatableview',
     'search',
-    'rest_framework'
+    'rest_framework',
+    'django_filters'
 )
 
 LOGGING = {
@@ -247,5 +248,6 @@ REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': ('api.auth.HasRWPermission',),
     'DEFAULT_PAGINATION_CLASS':
         'rest_framework.pagination.PageNumberPagination',
-    'PAGE_SIZE': 100
+    'PAGE_SIZE': 100,
+    'DEFAULT_FILTER_BACKENDS': ('django_filters.rest_framework.DjangoFilterBackend',),
 }

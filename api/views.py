@@ -53,11 +53,27 @@ class MachineViewSet(viewsets.ModelViewSet):
     queryset = Machine.objects.all()
     serializer_class = MachineSerializer
     lookup_field = 'serial'
+    filter_fields = (
+        'activity', 'console_user', 'cpu_speed', 'cpu_type', 'deployed',
+        'errors', 'first_checkin', 'hd_percent', 'hd_space', 'hd_total',
+        'hostname', 'last_checkin', 'last_puppet_run', 'machine_model',
+        'machine_model_friendly', 'manifest', 'memory', 'memory_kb',
+        'munki_version', 'operating_system', 'os_family', 'puppet_errors',
+        'puppet_version', 'sal_version', 'warnings')
+    search_fields = (
+        'activity', 'console_user', 'cpu_speed', 'cpu_type', 'hostname',
+        'machine_model', 'machine_model_friendly', 'manifest', 'memory')
 
 
-class InventoryViewSet(FilterByMachineSerialMixin, viewsets.ReadOnlyModelViewSet):
+class InventoryViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = InventoryItem.objects.all()
     serializer_class = InventoryItemSerializer
+    filter_fields = (
+        'application__name', 'application__bundleid',
+        'application__bundlename', 'machine__serial', 'version', 'path')
+    search_fields = (
+        'application__name', 'application__bundleid',
+        'application__bundlename',)
 
 
 class PendingAppleUpdates(generics.ListAPIView):

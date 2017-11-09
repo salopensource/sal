@@ -5,6 +5,7 @@ from rest_framework import serializers
 from inventory.models import InventoryItem, Application
 from mixins import QueryFieldsMixin
 from server.models import *
+from search.models import *
 
 
 class InventoryApplicationSerializer(serializers.ModelSerializer):
@@ -47,6 +48,8 @@ class PluginScriptSubmissionSerializer(serializers.ModelSerializer):
 
 
 class PluginScriptRowSerializer(serializers.ModelSerializer):
+
+    submission = PluginScriptSubmissionSerializer()
 
     class Meta:
         model = PluginScriptRow
@@ -100,4 +103,11 @@ class MachineSerializer(QueryFieldsMixin, serializers.ModelSerializer):
 
     class Meta:
         model = Machine
+        fields = '__all__'
+
+
+class SavedSearchSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = SavedSearch
         fields = '__all__'

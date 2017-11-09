@@ -23,7 +23,7 @@ class BusinessUnitViewSet(viewsets.ModelViewSet):
     serializer_class = BusinessUnitSerializer
 
 
-class ConditionViewSet(FilterByMachineSerialMixin, viewsets.ReadOnlyModelViewSet):
+class ConditionViewSet(viewsets.ReadOnlyModelViewSet):
     """
     list:
     Return conditions for all machines. Filter results by machine by including
@@ -40,9 +40,12 @@ class ConditionViewSet(FilterByMachineSerialMixin, viewsets.ReadOnlyModelViewSet
 
     queryset = Condition.objects.all()
     serializer_class = ConditionSerializer
+    filter_fields = (
+        'machine__serial', 'machine__hostname', 'condition_name',
+        'condition_data')
 
 
-class FactViewSet(FilterByMachineSerialMixin, viewsets.ReadOnlyModelViewSet):
+class FactViewSet(viewsets.ReadOnlyModelViewSet):
     """
     list:
     Return facts for all machines. Filter results by machine by including the
@@ -58,15 +61,9 @@ class FactViewSet(FilterByMachineSerialMixin, viewsets.ReadOnlyModelViewSet):
     # this.
     queryset = Fact.objects.all()
     serializer_class = FactSerializer
-
-    def get_queryset(self):
-        queryset = super(FactViewSet, self).get_queryset()
-        if 'serial' in self.request.query_params:
-            machines = Machine.objects.filter(
-                serial=self.request.query_params['serial'])
-            queryset = queryset.filter(machine__in=machines)
-
-        return queryset
+    filter_fields = (
+        'machine__serial', 'machine__hostname', 'fact_name',
+        'fact_data')
 
 
 class InventoryViewSet(viewsets.ReadOnlyModelViewSet):
@@ -151,67 +148,14 @@ class PendingUpdatesViewSet(viewsets.ReadOnlyModelViewSet):
     search_fields = ('display_name', 'update')
 
 
-class PluginScriptSubmissionMachine(generics.ListAPIView):
-    """
-    Get the plugin script submissions for a machine
-    """
-    serializer_class = PluginScriptSubmissionSerializer
-    def get_queryset(self):
-        """
-        Get all of the PluginScriptSubmissions for the machine
-        """
-        serial = self.kwargs['serial']
-        machine = Machine.objects.get(serial=serial)
-        return PluginScriptSubmission.objects.filter(machine=machine)
-
-
-class PluginScriptSubmissionList(generics.ListAPIView):
-    """
-    List all plugin script submissions
-    """
-    queryset = PluginScriptSubmission.objects.all()
-    serializer_class = PluginScriptSubmissionSerializer
-
-
-class PluginScriptRowMachine(generics.ListAPIView):
-    """
-    Get the pluginscriptrows for a submission
-    """
+class PluginScriptRowViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = PluginScriptRow.objects.all()
-    lookup_field = 'pk'
     serializer_class = PluginScriptRowSerializer
+    filter_fields = (
+        'submission__machine__serial', 'submission__machine__hostname',
+        'submission__plugin', 'pluginscript_name', 'pluginscript_data_string')
 
 
-class SearchID(generics.ListAPIView):
-    """
-    Retrieve a saved search
-    """
-    serializer_class = MachineSerializer
-    def get_queryset(self):
-        """
-        Run the saved search
-        """
-        search_id = self.kwargs['pk']
-        if search_id.endswith('/'):
-            search_id = search_id[:-1]
-        machines = Machine.objects.all()
-        print search_machines(search_id, machines)
-        return search_machines(search_id, machines, full=True)
-
-
-class BasicSearch(generics.ListAPIView):
-    """
-    Perform a basic search
-    """
-    serializer_class = MachineSerializer
-    def get_queryset(self):
-        """
-        Run the basic search
-        """
-        query = self.request.query_params.get('query', None)
-        machines = Machine.objects.all()
-        if query is not None:
-            machines = quick_search(machines, query)
-
-        return machines
-# Retrieve all machines with a particular Fact value
+class SavedSearchViewSet(viewsets.ReadOnlyModelViewSet):
+    queryset = SavedSearch.objects.all()
+    serializer_class = SavedSearchSerializer

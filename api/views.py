@@ -18,6 +18,74 @@ from search.views import *
 from server.models import *
 
 
+class BusinessUnitViewSet(viewsets.ModelViewSet):
+    queryset = BusinessUnit.objects.all()
+    serializer_class = BusinessUnitSerializer
+
+
+class ConditionViewSet(FilterByMachineSerialMixin, viewsets.ReadOnlyModelViewSet):
+    """
+    list:
+    Return conditions for all machines. Filter results by machine by including
+    the querystring argument 'serial'.
+
+    - Example: `/api/conditions/?serial=C0DEADBEEF00`
+
+    retrieve:
+    Return a condition by ID.
+    """
+    # TODO: The docstring above is to work around not showing the 'serial'
+    # argument in the doc sites' "Query Parameters" table. Figure out how to do
+    # this.
+
+    queryset = Condition.objects.all()
+    serializer_class = ConditionSerializer
+
+
+class FactViewSet(FilterByMachineSerialMixin, viewsets.ReadOnlyModelViewSet):
+    """
+    list:
+    Return facts for all machines. Filter results by machine by including the
+    querystring argument 'serial'.
+
+    - Example: `/api/facts/?serial=C0DEADBEEF00`
+
+    retrieve:
+    Return a fact by ID.
+    """
+    # TODO: The docstring above is to work around not showing the 'serial'
+    # argument in the doc sites' "Query Parameters" table. Figure out how to do
+    # this.
+    queryset = Fact.objects.all()
+    serializer_class = FactSerializer
+
+    def get_queryset(self):
+        queryset = super(FactViewSet, self).get_queryset()
+        if 'serial' in self.request.query_params:
+            machines = Machine.objects.filter(
+                serial=self.request.query_params['serial'])
+            queryset = queryset.filter(machine__in=machines)
+
+        return queryset
+
+
+class InventoryViewSet(viewsets.ReadOnlyModelViewSet):
+    queryset = InventoryItem.objects.all()
+    serializer_class = InventoryItemSerializer
+    filter_fields = (
+        'application__name', 'application__bundleid',
+        'application__bundlename', 'machine__hostname', 'machine__serial',
+        'version', 'path')
+    search_fields = (
+        'application__name', 'application__bundleid',
+        'application__bundlename',)
+
+
+class MachineGroupViewSet(viewsets.ModelViewSet):
+    queryset = MachineGroup.objects.all()
+    serializer_class = MachineGroupSerializer
+
+
 class MachineViewSet(viewsets.ModelViewSet):
     """
     list:
@@ -65,18 +133,6 @@ class MachineViewSet(viewsets.ModelViewSet):
         'machine_model', 'machine_model_friendly', 'manifest', 'memory')
 
 
-class InventoryViewSet(viewsets.ReadOnlyModelViewSet):
-    queryset = InventoryItem.objects.all()
-    serializer_class = InventoryItemSerializer
-    filter_fields = (
-        'application__name', 'application__bundleid',
-        'application__bundlename', 'machine__hostname', 'machine__serial',
-        'version', 'path')
-    search_fields = (
-        'application__name', 'application__bundleid',
-        'application__bundlename',)
-
-
 class PendingAppleUpdatesViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = PendingAppleUpdateSerializer
     queryset = PendingAppleUpdate.objects.all()
@@ -93,62 +149,6 @@ class PendingUpdatesViewSet(viewsets.ReadOnlyModelViewSet):
         'machine__serial', 'machine__hostname', 'update', 'update_version',
         'display_name')
     search_fields = ('display_name', 'update')
-
-
-class FactViewSet(FilterByMachineSerialMixin, viewsets.ReadOnlyModelViewSet):
-    """
-    list:
-    Return facts for all machines. Filter results by machine by including the
-    querystring argument 'serial'.
-
-    - Example: `/api/facts/?serial=C0DEADBEEF00`
-
-    retrieve:
-    Return a fact by ID.
-    """
-    # TODO: The docstring above is to work around not showing the 'serial'
-    # argument in the doc sites' "Query Parameters" table. Figure out how to do
-    # this.
-    queryset = Fact.objects.all()
-    serializer_class = FactSerializer
-
-    def get_queryset(self):
-        queryset = super(FactViewSet, self).get_queryset()
-        if 'serial' in self.request.query_params:
-            machines = Machine.objects.filter(
-                serial=self.request.query_params['serial'])
-            queryset = queryset.filter(machine__in=machines)
-
-        return queryset
-
-
-class ConditionViewSet(FilterByMachineSerialMixin, viewsets.ReadOnlyModelViewSet):
-    """
-    list:
-    Return conditions for all machines. Filter results by machine by including
-    the querystring argument 'serial'.
-
-    - Example: `/api/conditions/?serial=C0DEADBEEF00`
-
-    retrieve:
-    Return a condition by ID.
-    """
-    # TODO: The docstring above is to work around not showing the 'serial'
-    # argument in the doc sites' "Query Parameters" table. Figure out how to do
-    # this.
-
-    queryset = Condition.objects.all()
-    serializer_class = ConditionSerializer
-
-
-class MachineGroupViewSet(viewsets.ModelViewSet):
-    queryset = MachineGroup.objects.all()
-    serializer_class = MachineGroupSerializer
-
-
-class BusinessUnitViewSet(viewsets.ModelViewSet):
-    queryset = BusinessUnit.objects.all()
-    serializer_class = BusinessUnitSerializer
 
 
 class PluginScriptSubmissionMachine(generics.ListAPIView):

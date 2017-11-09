@@ -70,7 +70,8 @@ class InventoryViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = InventoryItemSerializer
     filter_fields = (
         'application__name', 'application__bundleid',
-        'application__bundlename', 'machine__serial', 'version', 'path')
+        'application__bundlename', 'machine__hostname', 'machine__serial',
+        'version', 'path')
     search_fields = (
         'application__name', 'application__bundleid',
         'application__bundlename',)

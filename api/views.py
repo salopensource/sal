@@ -13,7 +13,7 @@ from rest_framework.views import APIView
 
 from api.serializers import *
 from auth import *
-from api.mixins import FilterByMachineSerialMixin
+from api.mixins import QueryFieldsMixin
 from search.views import *
 from server.models import *
 
@@ -66,7 +66,7 @@ class MachineGroupViewSet(viewsets.ModelViewSet):
     filter_fields = ('name', 'business_unit__name', 'business_unit__id')
 
 
-class MachineViewSet(viewsets.ModelViewSet):
+class MachineViewSet(QueryFieldsMixin, viewsets.ModelViewSet):
     """
     list:
     Returns a paginated list of all machines. Records are by default in

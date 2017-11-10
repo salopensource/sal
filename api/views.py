@@ -4,6 +4,7 @@ reload(sys)
 sys.setdefaultencoding('utf8')
 
 from django.http import Http404
+from rest_framework.decorators import detail_route
 from rest_framework import generics
 from rest_framework import status
 from rest_framework import viewsets
@@ -161,5 +162,32 @@ class PluginScriptRowViewSet(viewsets.ReadOnlyModelViewSet):
 
 
 class SavedSearchViewSet(viewsets.ReadOnlyModelViewSet):
+    """
+    execute:
+    This endpoint will execute the `SavedSearch`specified by the passed
+    ID number, and return the resulting list of `Machines`.
+
+    You may add `?full` to the end of the URL to specify that you would
+    like the full `Machine` record rather than just the `id`, `serial`,
+    `console_user` and  `last_checkin` values.
+
+    For example, `/api/saved_searches/666/execute`
+    """
     queryset = SavedSearch.objects.all()
     serializer_class = SavedSearchSerializer
+
+    @detail_route()
+    def execute(self, request, pk=None):
+        machines = Machine.objects.all()
+        try:
+            query_params = request.query_params
+        except AttributeError:
+            # DRF 2
+            query_params = getattr(request, 'QUERY_PARAMS', request.GET)
+
+        full = True if 'full' in query_params else False
+        queryset = search_machines(pk, machines, full=full)
+        # Pass the "full" parameter to the serializer so it knows
+        # how to handle potentially missing fields.
+        return Response(MachineSerializer(queryset, many=True, full=full).data)
+

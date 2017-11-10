@@ -105,6 +105,30 @@ class MachineSerializer(QueryFieldsMixin, serializers.ModelSerializer):
         model = Machine
         fields = '__all__'
 
+    def __init__(self, *args, **kwargs):
+        """Modify the serializer's fields if the full argument is true.
+
+        This is taken from the DRF Serializers: Dynamically Modifying
+        Fields example to allow us to handle one case: during our
+        conversion of the Queryset result of the Search module's
+        search_machine method into json for API usage in the
+        /api/saved_search/<id>/execute endpoint (which by default does
+        not return the full results). This causes the serializer to
+        freak out because there are not fields to serialize.
+        """
+        # There's probably a better way to do this.
+        full_query  = kwargs.pop('full', None)
+
+        super(MachineSerializer, self).__init__(*args, **kwargs)
+
+        if not full_query:
+            # See sal/search/views.py for the source of the included
+            # fields.
+            allowed = {'id', 'serial', 'console_user', 'last_checkin'}
+            existing = set(self.fields.keys())
+            for field_name in existing - allowed:
+                self.fields.pop(field_name)
+
 
 class SavedSearchSerializer(serializers.ModelSerializer):
 

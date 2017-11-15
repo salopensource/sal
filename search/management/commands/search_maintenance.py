@@ -92,11 +92,11 @@ class Command(BaseCommand):
 
         # make sure this in an int:
         try:
-            int(settings.INACTIVE_UNDEPLOYED)
+            inactive_undeploy = int(settings.INACTIVE_UNDEPLOYED)
 
-            if settings.INACTIVE_UNDEPLOYED > 0:
+            if inactive_undeploy > 0:
                 now = django.utils.timezone.now()
-                inactive_days = now - timedelta(days=settings.INACTIVE_UNDEPLOYED)
-                machines_to_inactive = Machines.deployed_objects.all().filter(last_checkin__gte=inactive_days).update(deployed=False)
+                inactive_days = now - timedelta(days=inactive_undeploy)
+                machines_to_inactive = Machine.deployed_objects.all().filter(last_checkin__lte=inactive_days).update(deployed=False)
         except:
             pass

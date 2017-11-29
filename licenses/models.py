@@ -20,7 +20,7 @@ class License(models.Model):
         # query inventory items to determine how many licenses have been used.
         items = InventoryItem.objects.all()
         if self.inventory_name:
-            items = items.filter(name__exact=self.inventory_name)
+            items = items.filter(application__name__exact=self.inventory_name)
         if self.inventory_version:
             if self.inventory_version.endswith('*'):
                 items = items.filter(

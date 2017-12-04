@@ -37,8 +37,8 @@ class CryptStatus(IPlugin):
         output = {}
         date_escrowed = None
         escrowed = None
-	if crypt_url:
-        request_url = crypt_url + '/verify/'+ serial + '/recovery_key/'
+        if crypt_url:
+            request_url = crypt_url + '/verify/' + serial + '/recovery_key/'
             try:
                 r = requests.get(request_url)
                 if r.status_code == requests.codes.ok:

@@ -10,6 +10,7 @@ import plistlib
 import json
 from server.models import *
 from licenses.models import *
+from server import views as server_views
 
 @login_required
 def license_index(request):
@@ -18,7 +19,7 @@ def license_index(request):
     user = request.user
     user_level = user.userprofile.level
     if user_level != 'GA':
-        return redirect(server.views.index)
+        return redirect(server_views.index)
     c = {'request':request,
         'licenses': all_licenses,
          'user': request.user,
@@ -33,7 +34,7 @@ def new_license(request):
     user = request.user
     user_level = user.userprofile.level
     if user_level != 'GA':
-        return redirect(server.views.index)
+        return redirect(server_views.index)
     c.update(csrf(request))
     if request.method == 'POST':
         form = LicenseForm(request.POST)

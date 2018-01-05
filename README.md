@@ -34,7 +34,7 @@ There are variants of Sal that support both [SAML](https://hub.docker.com/r/maca
 
 ## Having problems?
 
-You should check out the [troubleshooting](https://github.com/salopensource/sal/wiki/Troubleshooting) page, consider getting in touch via the [Google group](http://groups.google.com/group/sal-discuss), or heading over the the #slack channel on the [macadmins.org Slack](http://macadmins.org).
+You should check out the [troubleshooting](https://github.com/salopensource/sal/wiki/Troubleshooting) page, consider getting in touch via the [Google group](http://groups.google.com/group/sal-discuss), or heading over the the #sal channel on the [macadmins.org Slack](http://macadmins.org).
 
 ## API
 

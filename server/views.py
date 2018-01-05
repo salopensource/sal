@@ -2217,6 +2217,10 @@ def checkin(request):
             # now we need to loop over the submitted facts and save them
             facts = machine.facts.all()
             for fact_name, fact_data in report_data['Facter'].iteritems():
+                if machine.os_family == 'Windows':
+                    # We had a little trouble parsing out facts on Windows, clean up here
+                    if fact_name.startswith('value=>'):
+                        fact_name = fact_name.replace('value=>','', 1)
 
                 # does fact exist already?
                 found = False

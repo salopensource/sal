@@ -24,7 +24,6 @@ class Command(BaseCommand):
 
         skip_fields = [
             'id',
-            'machine_group',
             'report',
             'activity',
             'errors',

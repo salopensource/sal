@@ -110,6 +110,14 @@ $( document ).ready(function() {
       <div class="panel-body">
         <dl class="dl-horizontal">
           <legend><h5 class"text-uppercase">Machine Details</h5></legend>
+          <dt>Deploy Status:</dt>
+          <dd>
+            {% if machine.deployed %}
+            Deployed
+            {% else %}
+            Undeployed
+            {% endif %}
+          </dd>
           <dt>Model:</dt>
           <dd>
             {% if machine.machine_model_friendly %}

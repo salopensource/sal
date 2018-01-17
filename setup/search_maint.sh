@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 cd /usr/local/sal_install/sal
 export PYTHONPATH=/usr/local/sal_install/sal/sal:$PYTHONPATH

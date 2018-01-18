@@ -2,7 +2,7 @@
 
 SAL_MAINT=`dirname $0`
 SAL_PATH=`(cd $SAL_MAINT/../.. && pwd)`
-cd $SAL_PATH
+cd $SAL_PATH/sal
 export PYTHONPATH=$SAL_PATH/sal/sal:$PYTHONPATH
 export DJANGO_SETTINGS_MODULE='sal.settings'
  

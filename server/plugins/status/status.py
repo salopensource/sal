@@ -49,6 +49,7 @@ class Status(IPlugin):
         sevendayactive = machines.filter(last_checkin__gte=week_ago).count()
         thirtydayactive = machines.filter(last_checkin__gte=month_ago).count()
         ninetydayactive = machines.filter(last_checkin__gte=three_months_ago).count()
+        broken_clients = machines.filter(broken_client=True).count()
         all_machines = machines.count()
 
         c = Context({
@@ -61,6 +62,7 @@ class Status(IPlugin):
             '90dayactive': ninetydayactive,
             'all_machines': all_machines,
             'undeployed_machines': undeployed_machines,
+            'broken_clients': broken_clients,
             'theid': theid,
             'page': page
         })
@@ -68,6 +70,10 @@ class Status(IPlugin):
 
     def filter_machines(self, machines, data):
         # You will be passed a QuerySet of machines, you then need to perform some filtering based on the 'data' part of the url from the show_widget output. Just return your filtered list of machines and the page title.
+
+        if data == 'broken_clients':
+            machines = machines.filter(broken_client=True)
+            title = 'Machines with broken Python'
 
         if data == 'errors':
             machines = machines.filter(errors__gt=0)

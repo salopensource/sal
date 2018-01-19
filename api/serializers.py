@@ -1,81 +1,137 @@
 from django.forms import widgets
+
 from rest_framework import serializers
+
 from inventory.models import InventoryItem, Application
+from mixins import QueryFieldsMixin
 from server.models import *
+from search.models import *
+
 
 class InventoryApplicationSerializer(serializers.ModelSerializer):
+
     class Meta:
         model = Application
+        fields = '__all__'
+
 
 class InventoryItemSerializer(serializers.ModelSerializer):
+
     application = InventoryApplicationSerializer()
+
     class Meta:
         model = InventoryItem
+        fields = '__all__'
+
 
 class BusinessUnitSerializer(serializers.ModelSerializer):
+
     class Meta:
         model = BusinessUnit
+        fields = '__all__'
+
 
 class MachineGroupSerializer(serializers.ModelSerializer):
-    #business_unit = BusinessUnitSerializer()
+    business_unit = serializers.PrimaryKeyRelatedField(
+        queryset=BusinessUnit.objects.all())
+
     class Meta:
         model = MachineGroup
+        fields = '__all__'
+
 
 class PluginScriptSubmissionSerializer(serializers.ModelSerializer):
+
     class Meta:
         model = PluginScriptSubmission
+        fields = '__all__'
+
 
 class PluginScriptRowSerializer(serializers.ModelSerializer):
+
+    submission = PluginScriptSubmissionSerializer()
+
     class Meta:
         model = PluginScriptRow
+        fields = '__all__'
+
 
 class FactSerializer(serializers.ModelSerializer):
+
     class Meta:
         model = Fact
-        exclude = ('machine',)
+        fields = '__all__'
+
 
 class SerialSerializer(serializers.ModelSerializer):
+
     class Meta:
         model = Machine
         fields = ('id','serial',)
 
 
-class FactWithSerialSerializer(serializers.ModelSerializer):
-    machine = SerialSerializer()
-    class Meta:
-        model = Fact
-
 class ConditionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Condition
-        exclude = ('machine',)
+        fields = '__all__'
 
-class ConditionWithSerialSerializer(serializers.ModelSerializer):
-    # serial = serializers.CharField()
-    machine = SerialSerializer()
-    class Meta:
-        model = Condition
 
 class PendingAppleUpdateSerializer(serializers.ModelSerializer):
+
     class Meta:
         model = PendingAppleUpdate
         exclude = ('machine',)
 
+
 class PendingUpdateSerializer(serializers.ModelSerializer):
+
     class Meta:
         model = PendingUpdate
         exclude = ('machine',)
 
-class FullMachineSerializer(serializers.ModelSerializer):
+
+class MachineSerializer(QueryFieldsMixin, serializers.ModelSerializer):
+
+    simple_fields = (
+        'console_user', 'munki_version', 'hd_space', 'machine_model',
+        'cpu_speed', 'serial', 'id', 'last_puppet_run', 'errors',
+        'puppet_version', 'hostname', 'puppet_errors',
+        'machine_model_friendly', 'memory', 'memory_kb', 'warnings',
+        'first_checkin', 'last_checkin', 'hd_total', 'os_family', 'deployed',
+        'operating_system', 'machine_group', 'sal_version', 'manifest',
+        'hd_percent', 'cpu_type', 'activity')
+
     class Meta:
         model = Machine
+        fields = '__all__'
 
-class MachineSerializer(serializers.ModelSerializer):
-    # facts = FactSerializer(many=True, required=False)
-    # conditions = ConditionSerializer(many=True, required=False)
-    # pending_apple_updates = PendingAppleUpdateSerializer(many=True, required=False)
-    # pending_updates = PendingUpdateSerializer(many=True, required=False)
+    def __init__(self, *args, **kwargs):
+        """Modify the serializer's fields if the full argument is true.
+
+        This is taken from the DRF Serializers: Dynamically Modifying
+        Fields example to allow us to handle one case: during our
+        conversion of the Queryset result of the Search module's
+        search_machine method into json for API usage in the
+        /api/saved_search/<id>/execute endpoint (which by default does
+        not return the full results). This causes the serializer to
+        freak out because there are not fields to serialize.
+        """
+        # There's probably a better way to do this.
+        full_query  = kwargs.pop('full', None)
+
+        super(MachineSerializer, self).__init__(*args, **kwargs)
+
+        if not full_query:
+            # See sal/search/views.py for the source of the included
+            # fields.
+            allowed = {'id', 'serial', 'console_user', 'last_checkin'}
+            existing = set(self.fields.keys())
+            for field_name in existing - allowed:
+                self.fields.pop(field_name)
+
+
+class SavedSearchSerializer(serializers.ModelSerializer):
 
     class Meta:
-        model = Machine
-        exclude = ('report','install_log','install_log_hash')
+        model = SavedSearch
+        fields = '__all__'

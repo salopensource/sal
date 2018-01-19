@@ -110,14 +110,12 @@ $( document ).ready(function() {
       <div class="panel-body">
         <dl class="dl-horizontal">
           <legend><h5 class"text-uppercase">Machine Details</h5></legend>
-          <dt>Deploy Status:</dt>
-          <dd>
-            {% if machine.deployed %}
-            Deployed
-            {% else %}
-            Undeployed
-            {% endif %}
+          {% if machine.broken_client %}
+          <dt>Broken Python:</dt>
+          <dd class="bg-danger">
+           Client has broken Python / MSC 
           </dd>
+          {% endif %}
           <dt>Model:</dt>
           <dd>
             {% if machine.machine_model_friendly %}
@@ -159,6 +157,14 @@ $( document ).ready(function() {
           {% endif %}
           <dt>Console user:</dt>
           <dd>{{ report.ConsoleUser }}</dd>
+          <dt>Deploy Status:</dt>
+          <dd>
+            {% if machine.deployed %}
+            Deployed
+            {% else %}
+            Undeployed
+            {% endif %}
+          </dd>
         </dl>
       </div>
     </div>

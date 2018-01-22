@@ -116,23 +116,22 @@ class MachineSerializer(QueryFieldsMixin, serializers.ModelSerializer):
         not return the full results). This causes the serializer to
         freak out because there are not fields to serialize.
         """
-        # TODO: Figure out why this is needed.
-        # The first form works for the API documentation site.
-        # The second form works for actual web requests (and tests).
         # There's probably a better way to do this.
-        full_query  = kwargs.pop('full', None)
-        if 'request' in kwargs['context'] and hasattr(kwargs['context']['request'], 'query_params'):
-            full_query  = 'full' in kwargs['context']['request'].query_params
+
+        # Pop off special kwargs so they don't mess up the parent init.
+        full_query = kwargs.pop('full', None)
+        saved_search = kwargs.pop('saved_search', None)
 
         super(MachineSerializer, self).__init__(*args, **kwargs)
 
-        # if not full_query:
-        #     # See sal/search/views.py for the source of the included
-        #     # fields.
-        #     allowed = {'id', 'serial', 'console_user', 'last_checkin'}
-        #     existing = set(self.fields.keys())
-        #     for field_name in existing - allowed:
-        #         self.fields.pop(field_name)
+        # Only used by saved_search
+        if saved_search and not full_query:
+            # See sal/search/views.py for the source of the included
+            # fields.
+            allowed = {'id', 'serial', 'console_user', 'hostname', 'last_checkin'}
+            existing = set(self.fields.keys())
+            for field_name in existing - allowed:
+                self.fields.pop(field_name)
 
 
 class SavedSearchSerializer(serializers.ModelSerializer):

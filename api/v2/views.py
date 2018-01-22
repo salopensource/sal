@@ -78,11 +78,11 @@ class MachineViewSet(QueryFieldsMixin, viewsets.ModelViewSet):
         - Example: `/api/machines/?full`
     - `fields` allows you to specify a list of fields to include or exclude in
       the response.
-        - Include Example: `/api/machines/?include=console_user,hostname`
-        - Exclude Example: `/api/machines/?include!=report`
+        - Include Example: `/api/machines/?fields=console_user,hostname`
+        - Exclude Example: `/api/machines/?fields!=report`
 
-    The abbreviated form excludes the `report`, `install_log`, and
-    `install_log_hash` fields.
+    The abbreviated form excludes the `report`, `install_log`,
+    `install_log_hash`, and `activity` fields.
 
     You may also use the `search` querystring to perform text searches
     across the `activity`, `console_user`, `cpu_speed`, `cpu_type`,
@@ -100,10 +100,10 @@ class MachineViewSet(QueryFieldsMixin, viewsets.ModelViewSet):
         - Example: `/api/machines/42/?full`
     - `fields` allows you to specify a list of fields to include or exclude in
       the response.
-        - Include Example: `/api/machines/C0DEADBEEF/?include=console_user,hostname`
-        - Exclude Example: `/api/machines/C0DEADBEEF/?include!=report`
+        - Include Example: `/api/machines/C0DEADBEEF/?fields=console_user,hostname`
+        - Exclude Example: `/api/machines/C0DEADBEEF/?fields!=report`
 
-    The abbreviated form excludes the `report`, `install_log`, and
+    The abbreviated form excludes the `activity`, `report`, `install_log`, and
     `install_log_hash` fields.
     """
     queryset = Machine.objects.all()
@@ -117,7 +117,7 @@ class MachineViewSet(QueryFieldsMixin, viewsets.ModelViewSet):
         'munki_version', 'operating_system', 'os_family', 'puppet_errors',
         'puppet_version', 'sal_version', 'warnings')
     search_fields = (
-        'activity', 'console_user', 'cpu_speed', 'cpu_type', 'hostname',
+        'console_user', 'cpu_speed', 'cpu_type', 'hostname',
         'machine_model', 'machine_model_friendly', 'manifest', 'memory')
 
 

@@ -12,9 +12,9 @@ from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from api.serializers import *
-from auth import *
-from api.mixins import QueryFieldsMixin
+from .serializers import *
+from api.auth import *
+from .mixins import QueryFieldsMixin
 from search.views import *
 from server.models import *
 

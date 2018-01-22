@@ -443,13 +443,16 @@ class ApiKey(models.Model):
     name = models.CharField(max_length=255)
     has_been_seen = models.BooleanField(default=False)
     read_write = models.BooleanField(default=False)
-    def save(self):
+
+    def save(self, *args, **kwargs):
             if not self.id:
                 self.public_key = GenerateAPIKey()
                 self.private_key = ''.join(random.choice(string.ascii_lowercase + string.digits) for x in range(64))
-            super(ApiKey, self).save()
+            super(ApiKey, self).save(*args, **kwargs)
+
     def __unicode__(self):
         return self.name
+
     class Meta:
         ordering = ['name']
         unique_together = ("public_key", "private_key")

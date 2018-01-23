@@ -1,8 +1,29 @@
+import contextlib
+import cStringIO
+import sys
+
 from django.urls import reverse
+
 from rest_framework import status
 from rest_framework.test import APITestCase
+
 from search.models import *
 from server.models import *
+
+
+@contextlib.contextmanager
+def nostdout(self):
+    """Method decorator to prevent stdout from mucking up test output"""
+    saved_stdout = sys.stdout
+    sys.stdout = cStringIO.StringIO()
+    try:
+        yield
+    except Exception:
+        saved_output = sys.stdout
+        sys.stdout = saved_stdout
+        print saved_output.getvalue()
+        raise
+    sys.stdout = saved_stdout
 
 
 class SalAPITestCase(APITestCase):

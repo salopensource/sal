@@ -97,3 +97,53 @@ class MachinesTest(SalAPITestCase):
         record = response.data['results'][0]
         self.assertIn('activity', record)
         self.assertNotIn('hostname', record)
+
+
+class SavedSearchTest(SalAPITestCase):
+    fixtures = ['search_fixtures.json', 'user_fixture.json']
+    setup_data = ['create_machine_data']
+
+    def test_list(self):
+        response = self.authed_get('savedsearch-list')
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response['content-type'], 'application/json')
+        self.assertTrue(len(response.data['results']) == 1)
+
+    def test_detail(self):
+        response = self.authed_get('savedsearch-detail', args=(3,))
+        self.assertEqual(response.status_code, 200)
+        self.assertIn('search_groups', response.data)
+        self.assertIn('search_rows', response.data['search_groups'][0])
+
+    @nostdout
+    def test_execute(self):
+        response = self.authed_get(
+            'savedsearch-execute', args=(3,))
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.data), 1)
+        # TODO: Set up a search that only gets 1 of 2 computers.
+
+    @nostdout
+    def test_full_param(self):
+        abbrev_keys = (
+            'id', 'serial', 'hostname', 'console_user', 'last_checkin')
+        extended_keys = (
+            'operating_system', 'memory', 'memory_kb', 'munki_version',
+            'manifest', 'hd_space', 'hd_total', 'hd_percent', 'machine_model',
+            'machine_model_friendly', 'cpu_type', 'cpu_speed', 'os_family',
+            'first_checkin', 'report', 'report_format', 'errors', 'warnings',
+            'activity', 'puppet_version', 'sal_version', 'last_puppet_run',
+            'puppet_errors', 'install_log_hash', 'install_log', 'deployed',
+            'broken_client', 'machine_group')
+        response = self.authed_get('savedsearch-execute', args=(3,))
+        keys = response.data[0].keys()
+
+        self.assertTrue(all(k in keys for k in abbrev_keys))
+        self.assertFalse(any(k in keys for k in extended_keys))
+
+        response = self.authed_get(
+            'savedsearch-execute', args=(3,), params={'full': None})
+        keys = response.data[0].keys()
+
+        import itertools
+        self.assertTrue(all(k in keys for k in itertools.chain(abbrev_keys, extended_keys)))

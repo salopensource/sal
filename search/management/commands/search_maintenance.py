@@ -12,9 +12,12 @@ from inventory.models import *
 import server.utils as utils
 import datetime
 import server.utils
+from time import sleep
 
 class Command(BaseCommand):
     help = 'Cleans up old searches and rebuilds search fields cache'
+    def add_arguments(self, parser):
+        parser.add_argument('sleep_time', type=int, nargs='?', default=0)
 
     def handle(self, *args, **options):
         old_searches = SavedSearch.objects.filter(created__lt=datetime.datetime.today()-datetime.timedelta(days=30), save_search=False)
@@ -99,3 +102,6 @@ class Command(BaseCommand):
                 machines_to_inactive = Machine.deployed_objects.all().filter(last_checkin__lte=inactive_days).update(deployed=False)
         except:
             pass
+
+        sleep_time = options['sleep_time']
+        sleep(sleep_time)

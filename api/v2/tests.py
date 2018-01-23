@@ -1,6 +1,5 @@
 import contextlib
 import cStringIO
-import itertools
 import sys
 
 from django.urls import reverse
@@ -11,6 +10,19 @@ from rest_framework.test import APITestCase
 from search.models import *
 from server.models import *
 
+
+ALL_MACHINE_COLUMNS = {
+    'console_user', 'munki_version', 'hd_space', 'machine_model', 'cpu_speed',
+    'serial', 'id', 'last_puppet_run', 'errors', 'puppet_version', 'hostname',
+    'puppet_errors', 'machine_model_friendly', 'memory', 'memory_kb',
+    'warnings', 'install_log', 'first_checkin', 'last_checkin',
+    'broken_client', 'hd_total', 'os_family', 'report', 'deployed',
+    'operating_system', 'report_format', 'machine_group', 'sal_version',
+    'manifest', 'hd_percent', 'cpu_type', 'activity', 'install_log_hash'}
+REMOVED_MACHINE_COLUMNS = {
+    'activity', 'report', 'install_log', 'install_log_hash'}
+SEARCH_RESULT_MACHINE_COLUMNS = {
+    'id', 'serial', 'hostname', 'console_user', 'last_checkin'}
 
 @contextlib.contextmanager
 def nostdout(self):
@@ -79,10 +91,17 @@ class MachinesTest(SalAPITestCase):
         full_response = self.authed_get(
             'machine-detail', args=('C0DEADBEEF',), params={'full': None})
 
-        short, full = response.json(), full_response.json()
-        self.assertNotEqual(len(short), len(full))
-        self.assertTrue('activity' in full)
-        self.assertFalse('activity' in short)
+        self.assertNotEqual(response.data, full_response.data)
+        # Make sure "regular" machine response has removed the expected
+        # keys.
+        self.assertFalse(any(
+            k in response.data for k in REMOVED_MACHINE_COLUMNS))
+        self.assertTrue(all(
+            k in response.data for
+            k in ALL_MACHINE_COLUMNS - REMOVED_MACHINE_COLUMNS))
+        # ...and that a "full" machine response includes them.
+        self.assertTrue(all(
+            k in full_response.data for k in ALL_MACHINE_COLUMNS))
 
     def test_include_fields(self):
         response = self.authed_get(
@@ -126,25 +145,19 @@ class SavedSearchTest(SalAPITestCase):
 
     @nostdout
     def test_full_param(self):
-        abbrev_keys = (
-            'id', 'serial', 'hostname', 'console_user', 'last_checkin')
-        full_keys = (
-            'operating_system', 'memory', 'memory_kb', 'munki_version',
-            'manifest', 'hd_space', 'hd_total', 'hd_percent', 'machine_model',
-            'machine_model_friendly', 'cpu_type', 'cpu_speed', 'os_family',
-            'first_checkin', 'report', 'report_format', 'errors', 'warnings',
-            'activity', 'puppet_version', 'sal_version', 'last_puppet_run',
-            'puppet_errors', 'install_log_hash', 'install_log', 'deployed',
-            'broken_client', 'machine_group')
+        # Test a "regular" savedsearch and make sure it has the
+        # abbreviated keys only.
         response = self.authed_get('savedsearch-execute', args=(3,))
         keys = response.data[0].keys()
 
-        self.assertTrue(all(k in keys for k in abbrev_keys))
-        self.assertFalse(any(k in keys for k in extended_keys))
+        self.assertTrue(all(k in keys for k in SEARCH_RESULT_MACHINE_COLUMNS))
+        self.assertFalse(any(k in keys for k in ALL_MACHINE_COLUMNS))
 
+        # Now test one that uses full and make sure it has the extra
+        # keys.
         response = self.authed_get(
             'savedsearch-execute', args=(3,), params={'full': None})
         keys = response.data[0].keys()
 
         self.assertTrue(
-            all(k in keys for k in itertools.chain(abbrev_keys, full_keys)))
+            all(k in keys for k in ALL_MACHINE_COLUMNS))

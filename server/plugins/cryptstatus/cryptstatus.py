@@ -33,14 +33,23 @@ class CryptStatus(IPlugin):
         except:
             crypt_url = None
 
+        try:
+            cert = settings.ROOT_CA
+        except:
+            cert = None
+
         serial = machines.serial
         output = {}
         date_escrowed = None
         escrowed = None
         if crypt_url:
             request_url = crypt_url + '/verify/' + serial + '/recovery_key/'
+            if cert != None:
+                verify = cert
+            else:
+                verify = True
             try:
-                r = requests.get(request_url)
+                r = requests.get(request_url, verify=verify)
                 if r.status_code == requests.codes.ok:
                     output = r.json()
             except:

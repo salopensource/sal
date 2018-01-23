@@ -134,7 +134,23 @@ class MachineSerializer(QueryFieldsMixin, serializers.ModelSerializer):
                 self.fields.pop(field_name)
 
 
+class SearchRowSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = SearchRow
+        fields = '__all__'
+
+
+class SearchGroupSerializer(serializers.ModelSerializer):
+    search_rows = SearchRowSerializer(source='searchrow_set', read_only=True, many=True)
+
+    class Meta:
+        model = SearchGroup
+        fields = '__all__'
+
+
 class SavedSearchSerializer(serializers.ModelSerializer):
+    search_groups = SearchGroupSerializer(source='searchgroup_set', read_only=True, many=True)
 
     class Meta:
         model = SavedSearch

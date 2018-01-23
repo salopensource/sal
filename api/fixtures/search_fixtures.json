@@ -1,6 +1,38 @@
 [
 {
     "model": "search.savedsearch",
+    "pk": 2,
+    "fields": {
+        "name": "Test Search 1",
+        "created": "2018-01-23T14:36:57.613Z",
+        "save_search": true,
+        "created_by": 2
+    }
+},
+{
+    "model": "search.searchgroup",
+    "pk": 2,
+    "fields": {
+        "saved_search": 2,
+        "and_or": "AND",
+        "position": 0
+    }
+},
+{
+    "model": "search.searchrow",
+    "pk": 2,
+    "fields": {
+        "search_group": 2,
+        "search_models": "Machine",
+        "search_field": "os_family",
+        "and_or": "AND",
+        "operator": "=",
+        "search_term": "Darwin",
+        "position": 0
+    }
+},
+{
+    "model": "search.savedsearch",
     "pk": 3,
     "fields": {
         "name": "Test Search",
@@ -24,10 +56,10 @@
     "fields": {
         "search_group": 3,
         "search_models": "Machine",
-        "search_field": "os_family",
+        "search_field": "hostname",
         "and_or": "AND",
-        "operator": "Contains",
-        "search_term": "Darwin",
+        "operator": "=",
+        "search_term": "C0DEADBEEF",
         "position": 0
     }
 }

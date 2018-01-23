@@ -78,15 +78,33 @@ class MachinesTest(SalAPITestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response['content-type'], 'application/json')
 
-    def test_get_by_serial(self):
+    def test_detail_by_serial(self):
         response = self.authed_get('machine-detail', args=('C0DEADBEEF',))
         self.assertEqual(response.status_code, 200)
 
-    def test_get_by_id_returns_404(self):
+    def test_detail_by_id_returns_404(self):
         response = self.authed_get('machine-detail', args=(1,))
         self.assertEqual(response.status_code, 404)
 
-    def test_get_with_full(self):
+    def test_list_with_full(self):
+        response = self.authed_get('machine-detail'))
+        full_response = self.authed_get(
+            'machine-detail', params={'full': None})
+
+        self.assertNotEqual(response.data, full_response.data)
+        # Make sure "regular" machine response has removed the expected
+        # keys.
+        self.assertFalse(any(
+            k in response.data['results'][0] for k in REMOVED_MACHINE_COLUMNS))
+        self.assertTrue(all(
+            k in response.data['results'][0] for
+            k in ALL_MACHINE_COLUMNS - REMOVED_MACHINE_COLUMNS))
+        # ...and that a "full" machine response includes them.
+        self.assertTrue(all(
+            k in full_response.data['results'][0] for
+            k in ALL_MACHINE_COLUMNS))
+
+    def test_detail_with_full(self):
         response = self.authed_get('machine-detail', args=('C0DEADBEEF',))
         full_response = self.authed_get(
             'machine-detail', args=('C0DEADBEEF',), params={'full': None})
@@ -103,7 +121,7 @@ class MachinesTest(SalAPITestCase):
         self.assertTrue(all(
             k in full_response.data for k in ALL_MACHINE_COLUMNS))
 
-    def test_include_fields(self):
+    def test_detail_include_fields(self):
         response = self.authed_get(
             'machine-detail', args=('C0DEADBEEF',),
             params= {'fields': 'activity', 'fields!': 'hostname' })

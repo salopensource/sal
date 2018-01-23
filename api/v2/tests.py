@@ -1,5 +1,6 @@
 import contextlib
 import cStringIO
+import itertools
 import sys
 
 from django.urls import reverse
@@ -127,7 +128,7 @@ class SavedSearchTest(SalAPITestCase):
     def test_full_param(self):
         abbrev_keys = (
             'id', 'serial', 'hostname', 'console_user', 'last_checkin')
-        extended_keys = (
+        full_keys = (
             'operating_system', 'memory', 'memory_kb', 'munki_version',
             'manifest', 'hd_space', 'hd_total', 'hd_percent', 'machine_model',
             'machine_model_friendly', 'cpu_type', 'cpu_speed', 'os_family',
@@ -145,5 +146,5 @@ class SavedSearchTest(SalAPITestCase):
             'savedsearch-execute', args=(3,), params={'full': None})
         keys = response.data[0].keys()
 
-        import itertools
-        self.assertTrue(all(k in keys for k in itertools.chain(abbrev_keys, extended_keys)))
+        self.assertTrue(
+            all(k in keys for k in itertools.chain(abbrev_keys, full_keys)))

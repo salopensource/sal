@@ -189,5 +189,7 @@ class SavedSearchViewSet(viewsets.ReadOnlyModelViewSet):
         queryset = search_machines(pk, machines, full=full)
         # Pass the "full" parameter to the serializer so it knows
         # how to handle potentially missing fields.
-        return Response(MachineSerializer(queryset, many=True, full=full, saved_search=True).data)
+        response_data = MachineSerializer(
+            queryset, many=True, full=full, saved_search=True)
+        return Response(response_data.data)
 

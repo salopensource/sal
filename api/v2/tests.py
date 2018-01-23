@@ -87,9 +87,9 @@ class MachinesTest(SalAPITestCase):
         self.assertEqual(response.status_code, 404)
 
     def test_list_with_full(self):
-        response = self.authed_get('machine-detail'))
+        response = self.authed_get('machine-list')
         full_response = self.authed_get(
-            'machine-detail', params={'full': None})
+            'machine-list', params={'full': None})
 
         self.assertNotEqual(response.data, full_response.data)
         # Make sure "regular" machine response has removed the expected

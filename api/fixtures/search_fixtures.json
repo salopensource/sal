@@ -1,0 +1,34 @@
+[
+{
+    "model": "search.savedsearch",
+    "pk": 3,
+    "fields": {
+        "name": "Test Search",
+        "created": "2018-01-23T14:36:57.613Z",
+        "save_search": true,
+        "created_by": 2
+    }
+},
+{
+    "model": "search.searchgroup",
+    "pk": 3,
+    "fields": {
+        "saved_search": 3,
+        "and_or": "AND",
+        "position": 0
+    }
+},
+{
+    "model": "search.searchrow",
+    "pk": 3,
+    "fields": {
+        "search_group": 3,
+        "search_models": "Machine",
+        "search_field": "os_family",
+        "and_or": "AND",
+        "operator": "Contains",
+        "search_term": "Darwin",
+        "position": 0
+    }
+}
+]

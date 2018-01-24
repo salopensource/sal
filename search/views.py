@@ -74,20 +74,22 @@ def quick_search(machines, query_string):
 
     queries = [Q(**{"%s__icontains" % f.name: query_string}) for f in fields]
 
-    for f in settings.SEARCH_FACTS:
-        query = {
-                'facts__fact_name': f,
-                'facts__fact_data__icontains': query_string
-            }
-        queries.append(Q(**query))
+    # for f in settings.SEARCH_FACTS:
+    #     query = {
+    #             'facts__fact_name': f,
+    #             'facts__fact_data__icontains': query_string
+    #         }
+    #     queries.append(Q(**query))
 
-    for f in settings.SEARCH_CONDITIONS:
-        query = {
-            'conditions__condition_name': f,
-            'conditions__condition_data__icontains': query_string
-        }
-        queries.append(Q(**query))
+    # for f in settings.SEARCH_CONDITIONS:
+    #     query = {
+    #         'conditions__condition_name': f,
+    #         'conditions__condition_data__icontains': query_string
+    #     }
+    #     queries.append(Q(**query))
 
+    query = {'searchcache__search_item__icontains': query_string}
+    queries.append(Q(**query))
     qs = Q()
     for query in queries:
         qs = qs | query

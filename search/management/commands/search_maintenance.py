@@ -13,6 +13,9 @@ import server.utils as utils
 import datetime
 import server.utils
 from time import sleep
+import operator
+from django.db.models import Q
+
 
 class Command(BaseCommand):
     help = 'Cleans up old searches and rebuilds search fields cache'
@@ -103,5 +106,41 @@ class Command(BaseCommand):
         except:
             pass
 
+        # Build the fact and condition cache
+        items_to_be_inserted = []
+        SearchCache.objects.all().delete()
+        if settings.SEARCH_FACTS != []:
+            queries = []
+            for f in settings.SEARCH_FACTS:
+                queries.append(Q(fact_name=f))
+            qs = Q()
+            for query in queries:
+                qs = qs | query
+
+            facts = Fact.objects.filter(qs)
+            for fact in facts:
+                cached_item = SearchCache(machine=fact.machine, search_item=fact.fact_data)
+                items_to_be_inserted.append(cached_item)
+                if server.utils.is_postgres() == False:
+                    cached_item.save()
+
+        if settings.SEARCH_CONDITIONS != []:
+            queries = []
+            for f in settings.SEARCH_CONDITIONS:
+                queries.append(Q(condition_name=f))
+
+            qs = Q()
+            for query in queries:
+                qs = qs | query
+                
+            conditions = Condition.objects.filter(qs)
+            for condition in conditions:
+                cached_item = SearchCache(machine=condition.machine, search_item=condition.condition_data)
+                items_to_be_inserted.append(cached_item)
+                if server.utils.is_postgres() == False:
+                    cached_item.save()       
+
+        if server.utils.is_postgres() == True and items_to_be_inserted != []:
+            SearchCache.objects.bulk_create(items_to_be_inserted)
         sleep_time = options['sleep_time']
         sleep(sleep_time)

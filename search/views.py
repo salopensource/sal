@@ -80,7 +80,7 @@ def quick_search(machines, query_string):
     for query in queries:
         qs = qs | query
 
-    return machines.filter(qs).distinct()
+    return machines.filter(qs).values('id','serial', 'hostname', 'console_user', 'last_checkin').distinct()
 
 # All saved searches
 @login_required

@@ -52,7 +52,19 @@ def quick_search(machines, query_string):
         'warnings',
         'install_log',
         'puppet_errors',
-        'install_log_hash'
+        'install_log_hash',
+        'deployed',
+        'report_format',
+        'broken_client',
+        'hd_percent',
+        'memory',
+        'memory_kb',
+        'hd_space',
+        'hd_total',
+        'cpu_type',
+        'cpu_speed',
+        'first_checkin',
+        'last_checkin'
     ]
 
     fields = []

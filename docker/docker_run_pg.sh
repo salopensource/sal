@@ -9,6 +9,7 @@ docker run -d \
     -e DB_USER=admin \
     -e DB_PASS=password \
     -e DOCKER_SAL_DEBUG="true" \
+    -v "$CWD/sal/settings.py:/home/app/sal/sal/settings.py" \
     --link postgres-sal:db \
     --name=sal \
     -p 8000:8000 \

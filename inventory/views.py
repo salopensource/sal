@@ -516,10 +516,15 @@ def inventory_submit(request):
         except Machine.DoesNotExist:
             return HttpResponseNotFound('Serial Number not found')
 
-        compressed_inventory = submission.get('base64bz2inventory')
+        compression_type = 'base64bz2'
+        if 'base64bz2inventory' in submission:
+            compressed_inventory = submission.get('base64bz2inventory')
+        elif 'base64inventory' in submission:
+            compressed_inventory = submission.get('base64inventory')
+            compression_type = 'base64'
         if compressed_inventory:
             compressed_inventory = compressed_inventory.replace(" ", "+")
-            inventory_str = utils.decode_to_string(compressed_inventory)
+            inventory_str = utils.decode_to_string(compressed_inventory, compression_type)
             try:
                 inventory_list = plistlib.readPlistFromString(inventory_str)
             except Exception:

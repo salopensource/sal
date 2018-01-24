@@ -1,0 +1,25 @@
+[
+    {
+        "fields": {
+            "historical": false,
+            "machine": 1,
+            "plugin": "Tacos",
+            "recorded": "2016-08-25T15:35:27.328Z"
+        },
+        "model": "server.pluginscriptsubmission",
+        "pk": 1
+    },
+    {
+        "fields": {
+            "pluginscript_data": "Enabled",
+            "pluginscript_data_date": null,
+            "pluginscript_data_int": 0,
+            "pluginscript_data_string": null,
+            "pluginscript_name": "Tacos",
+            "submission": 1,
+            "submission_and_script_name": "MachineDetailSecurity: Tacos"
+        },
+        "model": "server.pluginscriptrow",
+        "pk": 1
+    }
+]

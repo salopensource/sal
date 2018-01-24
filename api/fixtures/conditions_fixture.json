@@ -1,0 +1,20 @@
+[
+    {
+        "fields": {
+            "condition_data": "9",
+            "condition_name": "os_vers_minor",
+            "machine": 1
+        },
+        "model": "server.condition",
+        "pk": 1
+    },
+    {
+        "fields": {
+            "condition_data": "True",
+            "condition_name": "x86_64_capable",
+            "machine": 1
+        },
+        "model": "server.condition",
+        "pk": 13105433
+    }
+]

@@ -508,7 +508,7 @@ def inventory_submit(request):
         'com.apple.print.PrinterProxy'
     ]
     submission = request.POST
-    serial = submission.get('serial')
+    serial = submission.get('serial').upper()
     machine = None
     if serial:
         try:

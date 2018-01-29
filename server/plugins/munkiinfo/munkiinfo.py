@@ -1,6 +1,6 @@
 from yapsy.IPlugin import IPlugin
 from yapsy.PluginManager import PluginManager
-from django.template import loader, Context
+from django.template import loader
 from django.db.models import Count, F
 from server.models import *
 from catalog.models import *
@@ -89,7 +89,7 @@ class MunkiInfo(IPlugin):
         # Machines using client certs
         client_certs = machines.filter(pluginscriptsubmission__plugin='MunkiInfo',pluginscriptsubmission__pluginscriptrow__pluginscript_name='UseClientCertificate', pluginscriptsubmission__pluginscriptrow__pluginscript_data='True').count()
 
-        c = Context({
+        c = {
             'title': 'Munki Info',
             'http_only': http_only,
             'https_only': https_only,
@@ -102,7 +102,7 @@ class MunkiInfo(IPlugin):
             'plugin': 'MunkiInfo',
             'page': page,
             'theid': theid
-        })
+        }
         return t.render(c)
 
     def filter_machines(self, machines, data):

@@ -5,7 +5,7 @@ from collections import Counter
 
 from django.db.models import Count, Q
 from django.shortcuts import get_object_or_404
-from django.template import loader, Context
+from django.template import loader
 from yapsy.IPlugin import IPlugin
 from yapsy.PluginManager import PluginManager
 
@@ -53,11 +53,11 @@ class MachineModelsBar(IPlugin):
                 for model in machine_models]
         sorted_data = sorted(data, key=lambda x: x["value"])
 
-        c = Context({
+        c = {
             "title": "Hardware Models",
             "data": sorted_data,
             "theid": theid,
-            "page": page})
+            "page": page}
 
         return t.render(c)
 

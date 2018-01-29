@@ -17,7 +17,7 @@ import hashlib
 import base64
 import bz2
 
-from models import *
+from .models import *
 from server.models import *
 from sal.decorators import *
 

@@ -16,7 +16,7 @@ class SavedSearch(models.Model):
     name = models.CharField(max_length=100, blank=True, null=True)
     created = models.DateTimeField(auto_now_add=True)
     save_search = models.BooleanField(default=False)
-    created_by = models.ForeignKey(User, default=get_current_user)
+    created_by = models.ForeignKey(User, default=get_current_user, on_delete=models.CASCADE)
 
     def __getattribute__(self, name):
         attr = models.Model.__getattribute__(self, name)
@@ -32,7 +32,7 @@ class SavedSearch(models.Model):
 
 class SearchGroup(models.Model):
     id = models.BigAutoField(primary_key=True)
-    saved_search = models.ForeignKey(SavedSearch)
+    saved_search = models.ForeignKey(SavedSearch, on_delete=models.CASCADE)
     and_or = models.CharField(choices=AND_OR_CHOICES, default='AND', max_length=3)
     position = models.IntegerField(default=0)
     class Meta:
@@ -57,7 +57,7 @@ class SearchRow(models.Model):
         ('>=', '>='),
     )
     id = models.BigAutoField(primary_key=True)
-    search_group = models.ForeignKey(SearchGroup)
+    search_group = models.ForeignKey(SearchGroup, on_delete=models.CASCADE)
     search_models = models.CharField(choices=SEARCH_MODEL_CHOICES, default='AND', max_length=254, verbose_name='Search item')
     search_field = models.CharField(max_length=254)
     and_or = models.CharField(choices=AND_OR_CHOICES, default='AND', max_length=3, verbose_name='AND / OR')
@@ -84,5 +84,5 @@ class SearchFieldCache(models.Model):
 
 class SearchCache(models.Model):
     id = models.BigAutoField(primary_key=True)
-    machine = models.ForeignKey(Machine)
+    machine = models.ForeignKey(Machine, on_delete=models.CASCADE)
     search_item = models.TextField()

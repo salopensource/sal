@@ -13,7 +13,7 @@ class License(models.Model):
     inventory_bundleid = models.CharField(max_length=256, blank=True)
     inventory_bundlename = models.CharField(max_length=256, blank=True)
     inventory_path = models.CharField(max_length=1024, blank=True)
-    business_unit = models.ForeignKey(BusinessUnit)
+    business_unit = models.ForeignKey(BusinessUnit, on_delete=models.CASCADE)
     notes = models.TextField(blank=True)
 
     def used(self):

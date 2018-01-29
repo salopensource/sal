@@ -38,7 +38,7 @@ def GenerateAPIKey():
         return key;
 
 class UserProfile(models.Model):
-    user = models.OneToOneField(User, unique=True)
+    user = models.OneToOneField(User, unique=True, on_delete=models.CASCADE)
 
     LEVEL_CHOICES = (
         ('SO', 'Stats Only'),
@@ -61,7 +61,7 @@ class BusinessUnit(models.Model):
         ordering = ['name']
 
 class MachineGroup(models.Model):
-    business_unit = models.ForeignKey(BusinessUnit)
+    business_unit = models.ForeignKey(BusinessUnit, on_delete=models.CASCADE)
     name = models.CharField(max_length=100)
     key = models.CharField(db_index=True, max_length=255, unique=True, blank=True, null=True, editable=False)
     def save(self, **kwargs):
@@ -79,7 +79,7 @@ class DeployedManager(models.Manager):
 
 class Machine(models.Model):
     id = models.BigAutoField(primary_key=True)
-    machine_group = models.ForeignKey(MachineGroup)
+    machine_group = models.ForeignKey(MachineGroup, on_delete=models.CASCADE)
     serial = models.CharField(db_index=True, max_length=100, unique=True)
     hostname = models.CharField(max_length=256, null=True, blank=True)
     operating_system = models.CharField(db_index=True, max_length=256, null=True, blank=True)
@@ -239,7 +239,7 @@ class UpdateHistory(models.Model):
         ('third_party', '3rd Party'),
         ('apple', 'Apple'),
     )
-    machine = models.ForeignKey(Machine)
+    machine = models.ForeignKey(Machine, on_delete=models.CASCADE)
     update_type = models.CharField(max_length=254, choices=UPDATE_TYPE, verbose_name="Update Type")
     name = models.CharField(max_length=255, db_index=True)
     version = models.CharField(max_length=254, db_index=True)
@@ -258,7 +258,7 @@ class UpdateHistoryItem(models.Model):
         ('install', 'Install'),
         ('removal', 'Removal')
     )
-    update_history = models.ForeignKey(UpdateHistory)
+    update_history = models.ForeignKey(UpdateHistory, on_delete=models.CASCADE)
     recorded = models.DateTimeField()
     uuid = models.CharField(null=True, blank=True, max_length=100)
     status = models.CharField(max_length=254, choices=UPDATE_STATUS, verbose_name="Status")
@@ -272,7 +272,7 @@ class UpdateHistoryItem(models.Model):
 
 class Fact(models.Model):
     id = models.BigAutoField(primary_key=True)
-    machine = models.ForeignKey(Machine, related_name='facts')
+    machine = models.ForeignKey(Machine, related_name='facts', on_delete=models.CASCADE)
     fact_name = models.TextField(db_index=True)
     fact_data = models.TextField()
     def __unicode__(self):
@@ -282,7 +282,7 @@ class Fact(models.Model):
 
 class HistoricalFact(models.Model):
     id = models.BigAutoField(primary_key=True)
-    machine = models.ForeignKey(Machine, related_name='historical_facts')
+    machine = models.ForeignKey(Machine, related_name='historical_facts', on_delete=models.CASCADE)
     fact_name = models.CharField(db_index=True, max_length=255)
     fact_data = models.TextField()
     fact_recorded = models.DateTimeField(db_index=True)
@@ -293,7 +293,7 @@ class HistoricalFact(models.Model):
 
 class Condition(models.Model):
     id = models.BigAutoField(primary_key=True)
-    machine = models.ForeignKey(Machine, related_name='conditions')
+    machine = models.ForeignKey(Machine, related_name='conditions', on_delete=models.CASCADE)
     condition_name = models.CharField(max_length=255,db_index=True)
     condition_data = models.TextField(db_index=True)
     def __unicode__(self):
@@ -303,7 +303,7 @@ class Condition(models.Model):
 
 class PluginScriptSubmission(models.Model):
     id = models.BigAutoField(primary_key=True)
-    machine = models.ForeignKey(Machine)
+    machine = models.ForeignKey(Machine, on_delete=models.CASCADE)
     plugin = models.CharField(db_index=True, max_length=255)
     historical = models.BooleanField(default=False)
     recorded = models.DateTimeField(auto_now_add=True)
@@ -314,7 +314,7 @@ class PluginScriptSubmission(models.Model):
 
 class PluginScriptRow(models.Model):
     id = models.BigAutoField(primary_key=True)
-    submission = models.ForeignKey(PluginScriptSubmission)
+    submission = models.ForeignKey(PluginScriptSubmission, on_delete=models.CASCADE)
     pluginscript_name = models.TextField(db_index=True)
     pluginscript_data = models.TextField(blank=True, null=True, db_index=True)
     pluginscript_data_string = models.TextField(blank=True, null=True, db_index=True)
@@ -357,7 +357,7 @@ class PluginScriptRow(models.Model):
 
 class PendingUpdate(models.Model):
     id = models.BigAutoField(primary_key=True)
-    machine = models.ForeignKey(Machine, related_name='pending_updates')
+    machine = models.ForeignKey(Machine, related_name='pending_updates', on_delete=models.CASCADE)
     update = models.CharField(db_index=True, max_length=255, null=True, blank=True)
     update_version = models.CharField(db_index=True, max_length=255, null=True, blank=True)
     display_name = models.CharField(max_length=255, null=True, blank=True)
@@ -368,7 +368,7 @@ class PendingUpdate(models.Model):
 
 class InstalledUpdate(models.Model):
     id = models.BigAutoField(primary_key=True)
-    machine = models.ForeignKey(Machine, related_name='installed_updates')
+    machine = models.ForeignKey(Machine, related_name='installed_updates', on_delete=models.CASCADE)
     update = models.CharField(db_index=True, max_length=255, null=True, blank=True)
     update_version = models.CharField(db_index=True, max_length=255, null=True, blank=True)
     display_name = models.CharField(max_length=255, null=True, blank=True)
@@ -381,7 +381,7 @@ class InstalledUpdate(models.Model):
 
 class PendingAppleUpdate(models.Model):
     id = models.BigAutoField(primary_key=True)
-    machine = models.ForeignKey(Machine, related_name='pending_apple_updates')
+    machine = models.ForeignKey(Machine, related_name='pending_apple_updates', on_delete=models.CASCADE)
     update = models.CharField(db_index=True, max_length=255, null=True, blank=True)
     update_version = models.CharField(db_index=True, max_length=256, null=True, blank=True)
     display_name = models.CharField(max_length=256, null=True, blank=True)

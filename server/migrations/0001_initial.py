@@ -109,7 +109,7 @@ class Migration(migrations.Migration):
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
                 ('name', models.CharField(max_length=100)),
                 ('key', models.CharField(max_length=255, unique=True, null=True, editable=False, blank=True)),
-                ('business_unit', models.ForeignKey(to='server.BusinessUnit')),
+                ('business_unit', models.ForeignKey(to='server.BusinessUnit', on_delete=models.CASCADE)),
             ],
             options={
                 'ordering': ['name'],
@@ -122,7 +122,7 @@ class Migration(migrations.Migration):
                 ('update', models.CharField(max_length=256, null=True, blank=True)),
                 ('update_version', models.CharField(max_length=256, null=True, blank=True)),
                 ('display_name', models.CharField(max_length=256, null=True, blank=True)),
-                ('machine', models.ForeignKey(to='server.Machine')),
+                ('machine', models.ForeignKey(to='server.Machine', on_delete=models.CASCADE)),
             ],
             options={
                 'ordering': ['display_name'],
@@ -135,7 +135,7 @@ class Migration(migrations.Migration):
                 ('update', models.CharField(max_length=256, null=True, blank=True)),
                 ('update_version', models.CharField(max_length=256, null=True, blank=True)),
                 ('display_name', models.CharField(max_length=256, null=True, blank=True)),
-                ('machine', models.ForeignKey(to='server.Machine')),
+                ('machine', models.ForeignKey(to='server.Machine', on_delete=models.CASCADE)),
             ],
             options={
                 'ordering': ['display_name'],
@@ -146,28 +146,28 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
                 ('level', models.CharField(default=b'SO', max_length=2, choices=[(b'SO', b'Stats Only'), (b'RO', b'Read Only'), (b'RW', b'Read Write'), (b'GA', b'Global Admin')])),
-                ('user', models.OneToOneField(to=settings.AUTH_USER_MODEL)),
+                ('user', models.OneToOneField(to=settings.AUTH_USER_MODEL, on_delete=models.CASCADE)),
             ],
         ),
         migrations.AddField(
             model_name='machine',
             name='machine_group',
-            field=models.ForeignKey(to='server.MachineGroup'),
+            field=models.ForeignKey(to='server.MachineGroup', on_delete=models.CASCADE),
         ),
         migrations.AddField(
             model_name='historicalfact',
             name='machine',
-            field=models.ForeignKey(to='server.Machine'),
+            field=models.ForeignKey(to='server.Machine', on_delete=models.CASCADE),
         ),
         migrations.AddField(
             model_name='fact',
             name='machine',
-            field=models.ForeignKey(to='server.Machine'),
+            field=models.ForeignKey(to='server.Machine', on_delete=models.CASCADE),
         ),
         migrations.AddField(
             model_name='condition',
             name='machine',
-            field=models.ForeignKey(to='server.Machine'),
+            field=models.ForeignKey(to='server.Machine', on_delete=models.CASCADE),
         ),
         migrations.AlterUniqueTogether(
             name='apikey',

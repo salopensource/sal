@@ -27,7 +27,7 @@ class Migration(migrations.Migration):
                 ('hostidentifier', models.CharField(max_length=255, null=True, blank=True)),
                 ('unix_time', models.IntegerField(null=True, blank=True)),
                 ('action', models.CharField(max_length=255, null=True, blank=True)),
-                ('machine', models.ForeignKey(related_name='osquery_results', to='server.Machine')),
+                ('machine', models.ForeignKey(related_name='osquery_results', to='server.Machine', on_delete=models.CASCADE)),
             ],
             options={
                 'ordering': ['name'],
@@ -41,7 +41,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='osquerycolumn',
             name='osquery_result',
-            field=models.ForeignKey(related_name='osquery_columns', to='server.OSQueryResult'),
+            field=models.ForeignKey(related_name='osquery_columns', to='server.OSQueryResult', on_delete=models.CASCADE),
         ),
         migrations.AlterUniqueTogether(
             name='osqueryresult',

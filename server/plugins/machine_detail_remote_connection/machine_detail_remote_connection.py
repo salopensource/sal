@@ -3,7 +3,7 @@
 
 
 from django.conf import settings
-from django.template import loader, Context
+from django.template import loader
 from yapsy.IPlugin import IPlugin
 
 from server.models import Machine
@@ -43,7 +43,7 @@ class RemoteConnection(IPlugin):
         else:
             ssh_account = ""
 
-        context = Context({
+        context = {
             "title": "Remote Connection",
             "ssh_account": ssh_account.replace("@", ""),
             "vnc_url": "vnc://{}{}".format(ssh_account, ip_address),

@@ -1,6 +1,6 @@
 from yapsy.IPlugin import IPlugin
 from yapsy.PluginManager import PluginManager
-from django.template import loader, Context
+from django.template import loader
 from django.db.models import Count
 from server.models import *
 from django.shortcuts import get_object_or_404
@@ -52,7 +52,7 @@ class Status(IPlugin):
         broken_clients = machines.filter(broken_client=True).count()
         all_machines = machines.count()
 
-        c = Context({
+        c = {
             'title': 'Status',
             'errors': errors,
             'warnings': warnings,
@@ -64,8 +64,8 @@ class Status(IPlugin):
             'undeployed_machines': undeployed_machines,
             'broken_clients': broken_clients,
             'theid': theid,
-            'page': page
-        })
+            'page': page}
+
         return t.render(c)
 
     def filter_machines(self, machines, data):

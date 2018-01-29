@@ -1,6 +1,6 @@
 from yapsy.IPlugin import IPlugin
 from yapsy.PluginManager import PluginManager
-from django.template import loader, Context
+from django.template import loader
 from django.db.models import Count
 from server.models import *
 from django.shortcuts import get_object_or_404
@@ -54,12 +54,12 @@ class MachineDetailSecurity(IPlugin):
         except Exception:
             gatekeeper_status = 'Unknown'
 
-        c = Context({
+        c = {
             'title': 'Security',
             'fv_status': fv_status,
             'sip_status': sip_status,
             'gatekeeper_status': gatekeeper_status,
-        })
+        }
         return t.render(c)
 
     def filter_machines(self, machines, data):

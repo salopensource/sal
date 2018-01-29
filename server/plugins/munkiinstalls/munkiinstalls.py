@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta, date, time
 from django.db.models import Count
 from django.shortcuts import get_object_or_404
-from django.template import loader, Context
+from django.template import loader
 from server.models import *
 from yapsy.IPlugin import IPlugin
 from yapsy.PluginManager import PluginManager
@@ -98,12 +98,12 @@ class MunkiInstalls(IPlugin):
             my_dict['date'] = time_range.strftime("%Y-%m-%d")
             data.append(my_dict)
 
-        c = Context({
+        c = {
             'title': 'Munki Installs',
             'data': data,
             'theid': theid,
             'page': page
-        })
+        }
         return t.render(c)
 
     def filter_machines(self, machines, data):

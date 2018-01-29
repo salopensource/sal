@@ -232,7 +232,7 @@ def send_report():
     # plist encode output
     post_data = plistlib.writePlistToString(output)
     r = requests.post('https://version.salopensource.com', data = {"data":post_data})
-    print r.status_code
+    print(r.status_code)
     if r.status_code == 200:
         return r.text
     else:
@@ -507,7 +507,7 @@ def orderPluginOutput(pluginOutput, page='front', theID=None):
             business_unit = get_object_or_404(BusinessUnit, pk=theID)
             for item in output:
                 # remove the plugins that are to be hidden from this BU
-                for key, ids in settings.HIDE_PLUGIN_FROM_BUSINESS_UNIT.iteritems():
+                for key, ids in settings.HIDE_PLUGIN_FROM_BUSINESS_UNIT.items():
                     if item['name'] == key:
                         if str(theID) in ids:
                             output.remove(item)
@@ -521,12 +521,12 @@ def orderPluginOutput(pluginOutput, page='front', theID=None):
             # get the group's BU.
             business_unit = machine_group.business_unit
             for item in output:
-                for key, ids in settings.HIDE_PLUGIN_FROM_BUSINESS_UNIT.iteritems():
+                for key, ids in settings.HIDE_PLUGIN_FROM_BUSINESS_UNIT.items():
                     if item['name'] == key:
                         if str(business_unit.id) in ids:
                             output.remove(item)
                 # remove the plugins that are to be hidden from this Machine Group
-                for key, ids in settings.HIDE_PLUGIN_FROM_MACHINE_GROUP.iteritems():
+                for key, ids in settings.HIDE_PLUGIN_FROM_MACHINE_GROUP.items():
                     if item['name'] == key:
                         if str(theID) in ids:
                             output.remove(item)
@@ -581,7 +581,7 @@ def decode_to_string(data, compression='base64bz2'):
         try:
             return base64.b64decode(data)
         except Exception:
-            return 
+            return
             ''
     else:
         return ''
@@ -608,13 +608,13 @@ def friendly_machine_model(machine):
         try:
             r = requests.get('http://support-sp.apple.com/sp/product', params=payload)
         except requests.exceptions.RequestException as e:
-            print machine.serial
-            print e
+            print(machine.serial)
+            print(e)
 
         try:
             output = ET.fromstring(r.text).find('configCode').text
         except:
-            print 'Did not receive a model name for %s, %s. Error:' % (machine.serial, machine.machine_model)
+            print('Did not receive a model name for %s, %s. Error:' % (machine.serial, machine.machine_model))
 
     return output
 

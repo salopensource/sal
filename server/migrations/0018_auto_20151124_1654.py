@@ -20,7 +20,7 @@ class Migration(migrations.Migration):
                 ('version', models.CharField(max_length=255, db_index=True)),
                 ('recorded', models.DateTimeField()),
                 ('status', models.CharField(max_length=255, verbose_name=b'Status', choices=[(b'pending', b'Pending'), (b'error', b'Error'), (b'success', b'Success')])),
-                ('machine', models.ForeignKey(to='server.Machine')),
+                ('machine', models.ForeignKey(to='server.Machine', on_delete=models.CASCADE)),
             ],
             options={
                 'ordering': ['recorded'],

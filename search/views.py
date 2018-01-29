@@ -126,7 +126,7 @@ def search_machines(search_id, machines, full=False):
                 '>': '__gt',
                 '>=': '__gte',
             }
-            for display_operator, actual_operator in operators.iteritems():
+            for display_operator, actual_operator in operators.items():
                 if search_row.operator == display_operator:
                     operator = actual_operator
                     break
@@ -235,7 +235,7 @@ def search_machines(search_id, machines, full=False):
             queries = row_queries
 
         search_group_counter = search_group_counter + 1
-    print queries
+    print(queries)
 
     if full == True:
         machines = machines.filter(queries).distinct()

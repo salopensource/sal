@@ -17,7 +17,7 @@ class Migration(migrations.Migration):
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
                 ('datestamp', models.DateTimeField(auto_now=True)),
                 ('sha256hash', models.CharField(max_length=64)),
-                ('machine', models.ForeignKey(to='server.Machine')),
+                ('machine', models.ForeignKey(to='server.Machine', on_delete=models.CASCADE)),
             ],
             options={
                 'ordering': ['datestamp'],
@@ -32,7 +32,7 @@ class Migration(migrations.Migration):
                 ('bundleid', models.CharField(max_length=255)),
                 ('bundlename', models.CharField(max_length=255)),
                 ('path', models.TextField()),
-                ('machine', models.ForeignKey(to='server.Machine')),
+                ('machine', models.ForeignKey(to='server.Machine', on_delete=models.CASCADE)),
             ],
             options={
                 'ordering': ['name', '-version'],

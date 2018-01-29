@@ -18,7 +18,7 @@ class Migration(migrations.Migration):
                 ('content', models.TextField()),
                 ('name', models.CharField(max_length=253)),
                 ('sha256hash', models.CharField(max_length=64)),
-                ('machine_group', models.ForeignKey(to='server.MachineGroup')),
+                ('machine_group', models.ForeignKey(to='server.MachineGroup', on_delete=models.CASCADE)),
             ],
             options={
                 'ordering': ['name', 'machine_group'],

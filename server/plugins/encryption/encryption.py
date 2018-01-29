@@ -1,6 +1,6 @@
 from yapsy.IPlugin import IPlugin
 from yapsy.PluginManager import PluginManager
-from django.template import loader, Context
+from django.template import loader
 from django.db.models import Count
 from server.models import *
 from django.shortcuts import get_object_or_404
@@ -56,7 +56,7 @@ class Encryption(IPlugin):
         except:
             desktop_alert = 0
 
-        c = Context({
+        c = {
             'title': 'Encryption',
             'laptop_label': 'Laptops',
             'laptop_ok_count': laptop_ok,
@@ -67,7 +67,7 @@ class Encryption(IPlugin):
             'plugin': 'Encryption',
             'theid': theid,
             'page': page
-        })
+        }
         return t.render(c)
 
     def filter_machines(self, machines, data):

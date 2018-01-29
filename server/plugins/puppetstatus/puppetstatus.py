@@ -1,6 +1,6 @@
 from yapsy.IPlugin import IPlugin
 from yapsy.PluginManager import PluginManager
-from django.template import loader, Context
+from django.template import loader
 from django.db.models import Count
 from server.models import *
 from django.shortcuts import get_object_or_404
@@ -59,7 +59,7 @@ class PuppetStatus(IPlugin):
         else:
             size = 0
 
-        c = Context({
+        c = {
             'title': 'Puppet Status',
             'error_label': 'Errors',
             'error_count': puppet_error,
@@ -71,7 +71,7 @@ class PuppetStatus(IPlugin):
             'success_label': 'Successful',
             'theid': theid,
             'page': page
-        })
+        }
 
 
         return t.render(c)

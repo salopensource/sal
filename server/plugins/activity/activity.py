@@ -1,6 +1,6 @@
 from yapsy.IPlugin import IPlugin
 from yapsy.PluginManager import PluginManager
-from django.template import loader, Context
+from django.template import loader
 from django.db.models import Count
 from server.models import *
 from django.shortcuts import get_object_or_404
@@ -67,7 +67,7 @@ class Activity(IPlugin):
             inactive_for_three_months = 0
 
 
-        c = Context({
+        c = {
             'title': 'Activity',
             'checked_in_this_hour': checked_in_this_hour,
             'checked_in_today': checked_in_today,
@@ -76,7 +76,7 @@ class Activity(IPlugin):
             'inactive_for_three_months': inactive_for_three_months,
             'theid': theid,
             'page': page
-        })
+        }
         return t.render(c)
 
     def filter_machines(self, machines, data):

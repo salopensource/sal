@@ -1,5 +1,5 @@
 # Create your views here.
-from models import *
+from .models import *
 from inventory.models import *
 from django.contrib.auth.decorators import login_required, permission_required
 from django.template import RequestContext, Template, Context
@@ -14,17 +14,17 @@ from datetime import datetime, timedelta, date
 from django.db.models import Count, Sum, Max, Q
 from django.contrib import messages
 from django.contrib.staticfiles.templatetags.staticfiles import static
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 import plistlib
 import ast
-from forms import *
+from .forms import *
 import pprint
 import re
 import os
 from distutils.version import LooseVersion
 from yapsy.PluginManager import PluginManager
 from django.core.exceptions import PermissionDenied
-import utils
+from . import utils
 import pytz
 # from watson import search as watson
 import unicodecsv as csv
@@ -797,7 +797,7 @@ def bu_dashboard(request, bu_id):
     business_unit = get_object_or_404(BusinessUnit, pk=bu_id)
     bu = business_unit
     if business_unit not in user.businessunit_set.all() and user_level != 'GA':
-        print 'not letting you in ' + user_level
+        print('not letting you in ' + user_level)
         return redirect(index)
     # Get the groups within the Business Unit
     machine_groups = business_unit.machinegroup_set.all()
@@ -924,7 +924,7 @@ def overview_list_all(request, req_type, data, bu_id=None):
         # check user is allowed to see it
         if business_units not in user.businessunit_set.all():
             if user_level != 'GA':
-                print 'not letting you in ' + user_level
+                print('not letting you in ' + user_level)
                 return redirect(index)
     else:
         # all BUs the user has access to
@@ -1231,7 +1231,7 @@ def machine_detail(request, machine_id):
             update_history = UpdateHistory.objects.get(machine=machine,
             version=item['version_to_install'],
             name=item['name'], update_type='third_party')
-        except IndexError, e:
+        except IndexError:
             pass
         except UpdateHistory.DoesNotExist:
             pass
@@ -1261,7 +1261,7 @@ def machine_detail(request, machine_id):
                 version=version,
                 name=item['name'], update_type='third_party')
                 item['update_history'] = UpdateHistoryItem.objects.filter(update_history=update_history)
-            except Exception, e:
+            except Exception:
                 pass
 
 
@@ -1866,7 +1866,7 @@ def preflight_v2_get_script(request, pluginName, scriptName):
 @key_auth_required
 def checkin(request):
     if request.method != 'POST':
-        print 'not post data'
+        print('not post data')
         return HttpResponseNotFound('No POST data sent')
 
     data = request.POST
@@ -2163,7 +2163,7 @@ def checkin(request):
 
             facts_to_be_created = []
             historical_facts_to_be_created = []
-            for fact_name, fact_data in report_data['Facter'].iteritems():
+            for fact_name, fact_data in report_data['Facter'].items():
                 skip = False
                 if hasattr(settings, 'IGNORE_FACTS'):
                     for prefix in settings.IGNORE_FACTS:
@@ -2205,7 +2205,7 @@ def checkin(request):
                 if skip == False:
                     continue
                 found = False
-                for fact_name, fact_data in report_data['Facter'].iteritems():
+                for fact_name, fact_data in report_data['Facter'].items():
 
                     if fact.fact_name == fact_name:
                         found = True
@@ -2227,7 +2227,7 @@ def checkin(request):
                 pass
             # now we need to loop over the submitted facts and save them
             facts = machine.facts.all()
-            for fact_name, fact_data in report_data['Facter'].iteritems():
+            for fact_name, fact_data in report_data['Facter'].items():
                 if machine.os_family == 'Windows':
                     # We had a little trouble parsing out facts on Windows, clean up here
                     if fact_name.startswith('value=>'):
@@ -2268,7 +2268,7 @@ def checkin(request):
         if 'Conditions' in report_data:
             machine.conditions.all().delete()
             conditions_to_be_created = []
-            for condition_name, condition_data in report_data['Conditions'].iteritems():
+            for condition_name, condition_data in report_data['Conditions'].items():
                 # Skip the conditions that come from facter
                 if 'Facter' in report_data and condition_name.startswith('facter_'):
                     continue
@@ -2288,7 +2288,7 @@ def checkin(request):
             conditions = machine.conditions.all()
             for condition in conditions:
                 found = False
-                for condition_name, condition_data in report_data['Conditions'].iteritems():
+                for condition_name, condition_data in report_data['Conditions'].items():
                     if condition.condition_name == condition_name:
                         found = True
                         break
@@ -2296,7 +2296,7 @@ def checkin(request):
                     condition.delete()
 
             conditions = machine.conditions.all()
-            for condition_name, condition_data in report_data['Conditions'].iteritems():
+            for condition_name, condition_data in report_data['Conditions'].items():
                 # Skip the conditions that come from facter
                 if 'Facter' in report_data and condition_name.startswith('facter_'):
                     continue

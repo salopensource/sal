@@ -60,7 +60,7 @@ class Migration(migrations.Migration):
                 ('update_version', models.CharField(db_index=True, max_length=255, null=True, blank=True)),
                 ('display_name', models.CharField(max_length=255, null=True, blank=True)),
                 ('installed', models.BooleanField()),
-                ('machine', models.ForeignKey(related_name='installed_updates', to='server.Machine')),
+                ('machine', models.ForeignKey(related_name='installed_updates', to='server.Machine', on_delete=models.CASCADE)),
             ],
             options={
                 'ordering': ['display_name'],

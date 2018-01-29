@@ -240,7 +240,7 @@ def send_report():
     # plist encode output
     post_data = plistlib.writePlistToString(output)
     r = requests.post('https://version.salopensource.com', data={"data": post_data})
-    print r.status_code
+    print(r.status_code)
     if r.status_code == 200:
         return r.text
     else:
@@ -622,14 +622,19 @@ def friendly_machine_model(machine):
         try:
             r = requests.get('http://support-sp.apple.com/sp/product', params=payload)
         except requests.exceptions.RequestException as e:
-            print machine.serial
-            print e
+            print(machine.serial)
+            print(e)
 
         try:
             output = ET.fromstring(r.text).find('configCode').text
+<<<<<<< HEAD
         except Exception:
             print 'Did not receive a model name for %s, %s. Error:' % (
                 machine.serial, machine.machine_model)
+=======
+        except:
+            print('Did not receive a model name for %s, %s. Error:' % (machine.serial, machine.machine_model))
+>>>>>>> a21b19b... Make print a function...
 
     return output
 

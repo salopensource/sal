@@ -4,7 +4,7 @@ import django.utils.timezone
 from django.db import models
 from django.contrib.auth.models import User
 from current_user import get_current_user
-
+from server.models import *
 # Create your models here.
 
 AND_OR_CHOICES = (
@@ -81,3 +81,8 @@ class SearchFieldCache(models.Model):
     search_field = models.CharField(max_length=254)
     def __unicode__(self):
         return '%s: %s' % (self.search_model, self.search_field)
+
+class SearchCache(models.Model):
+    id = models.BigAutoField(primary_key=True)
+    machine = models.ForeignKey(Machine)
+    search_item = models.TextField()

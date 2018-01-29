@@ -568,12 +568,22 @@ def getBUmachines(theid):
     return machines
 
 
-def decode_to_string(base64bz2data):
-    '''Decodes an string compressed via bz2 and base64 encoded.'''
-    try:
-        bz2data = base64.b64decode(base64bz2data)
-        return bz2.decompress(bz2data)
-    except Exception:
+def decode_to_string(data, compression='base64bz2'):
+    '''Decodes a string that is optionally bz2 compressed and always base64 encoded.'''
+
+    if compression == 'base64bz2':
+        try:
+            bz2data = base64.b64decode(data)
+            return bz2.decompress(bz2data)
+        except Exception:
+            return ''
+    elif compression == 'base64':
+        try:
+            return base64.b64decode(data)
+        except Exception:
+            return 
+            ''
+    else:
         return ''
 
 

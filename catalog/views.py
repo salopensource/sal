@@ -3,7 +3,7 @@ from django.template import RequestContext, Template, Context
 from django.shortcuts import render
 from django.template.context_processors import csrf
 from django.views.decorators.csrf import csrf_exempt
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.http import Http404
 from django.contrib.auth.decorators import login_required, permission_required
 from django.conf import settings

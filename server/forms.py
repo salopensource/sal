@@ -1,5 +1,5 @@
 from django import forms
-from models import *
+from .models import *
 from django.db.models import Q
 from django.contrib.auth.models import User
 

@@ -24,7 +24,7 @@ from datatableview.columns import DisplayColumn
 from datatableview.views import DatatableView
 
 # local Django
-from models import Application, Inventory, InventoryItem, Machine
+from .models import Application, Inventory, InventoryItem, Machine
 from server import utils
 from sal.decorators import *
 from server.models import BusinessUnit, MachineGroup, Machine, SalSetting  # noqa: F811

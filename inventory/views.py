@@ -4,7 +4,7 @@ import hashlib
 import plistlib
 from datetime import datetime
 from django.utils import timezone
-from urllib import quote, urlencode
+from urllib.parse import quote, urlencode
 
 # third-party
 import unicodecsv as csv

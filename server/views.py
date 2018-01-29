@@ -2347,7 +2347,7 @@ def checkin(request):
 
             facts_to_be_created = []
             historical_facts_to_be_created = []
-            for fact_name, fact_data in report_data['Facter'].iteritems():
+            for fact_name, fact_data in report_data['Facter'].items():
                 skip = False
                 if hasattr(settings, 'IGNORE_FACTS'):
                     for prefix in settings.IGNORE_FACTS:
@@ -2389,7 +2389,7 @@ def checkin(request):
                 if not skip:
                     continue
                 found = False
-                for fact_name, fact_data in report_data['Facter'].iteritems():
+                for fact_name, fact_data in report_data['Facter'].items():
 
                     if fact.fact_name == fact_name:
                         found = True
@@ -2411,7 +2411,7 @@ def checkin(request):
                 pass
             # now we need to loop over the submitted facts and save them
             facts = machine.facts.all()
-            for fact_name, fact_data in report_data['Facter'].iteritems():
+            for fact_name, fact_data in report_data['Facter'].items():
                 if machine.os_family == 'Windows':
                     # We had a little trouble parsing out facts on Windows, clean up here
                     if fact_name.startswith('value=>'):
@@ -2453,7 +2453,7 @@ def checkin(request):
         if 'Conditions' in report_data:
             machine.conditions.all().delete()
             conditions_to_be_created = []
-            for condition_name, condition_data in report_data['Conditions'].iteritems():
+            for condition_name, condition_data in report_data['Conditions'].items():
                 # Skip the conditions that come from facter
                 if 'Facter' in report_data and condition_name.startswith('facter_'):
                     continue
@@ -2473,7 +2473,7 @@ def checkin(request):
             conditions = machine.conditions.all()
             for condition in conditions:
                 found = False
-                for condition_name, condition_data in report_data['Conditions'].iteritems():
+                for condition_name, condition_data in report_data['Conditions'].items():
                     if condition.condition_name == condition_name:
                         found = True
                         break
@@ -2481,7 +2481,7 @@ def checkin(request):
                     condition.delete()
 
             conditions = machine.conditions.all()
-            for condition_name, condition_data in report_data['Conditions'].iteritems():
+            for condition_name, condition_data in report_data['Conditions'].items():
                 # Skip the conditions that come from facter
                 if 'Facter' in report_data and condition_name.startswith('facter_'):
                     continue

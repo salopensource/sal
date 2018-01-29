@@ -1231,7 +1231,7 @@ def machine_detail(request, machine_id):
             update_history = UpdateHistory.objects.get(machine=machine,
             version=item['version_to_install'],
             name=item['name'], update_type='third_party')
-        except IndexError, e:
+        except IndexError:
             pass
         except UpdateHistory.DoesNotExist:
             pass
@@ -1261,7 +1261,7 @@ def machine_detail(request, machine_id):
                 version=version,
                 name=item['name'], update_type='third_party')
                 item['update_history'] = UpdateHistoryItem.objects.filter(update_history=update_history)
-            except Exception, e:
+            except Exception:
                 pass
 
 

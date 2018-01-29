@@ -2,7 +2,7 @@ from django.db import models
 from server.models import BusinessUnit
 from inventory.models import InventoryItem
 
-from urllib import quote_plus
+from urllib.parse import quote_plus
 
 class License(models.Model):
     item_name = models.CharField(max_length=64, unique=True, primary_key=True)

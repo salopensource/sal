@@ -1,11 +1,3 @@
-# encoding=utf8
-import sys
-reload(sys)
-sys.setdefaultencoding('utf8')
-from server.models import *
-from api.v1.serializers import *
-from api.auth import *
-from search.views import *
 from django.http import Http404
 from rest_framework.views import APIView
 from rest_framework import generics
@@ -26,7 +18,7 @@ class BusinessUnitViewSet(viewsets.ModelViewSet):
     queryset = BusinessUnit.objects.all()
     serializer_class = BusinessUnitSerializer
     filter_fields = ('name',)
->>>>>>> Fix app-level imports for Python3.
+
 
 
 class MachineList(generics.ListCreateAPIView):

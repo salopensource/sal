@@ -110,14 +110,12 @@ $( document ).ready(function() {
       <div class="panel-body">
         <dl class="dl-horizontal">
           <legend><h5 class"text-uppercase">Machine Details</h5></legend>
-          <dt>Deploy Status:</dt>
-          <dd>
-            {% if machine.deployed %}
-            Deployed
-            {% else %}
-            Undeployed
-            {% endif %}
+          {% if machine.broken_client %}
+          <dt>Broken Python:</dt>
+          <dd class="bg-danger">
+           Client has broken Python / MSC 
           </dd>
+          {% endif %}
           <dt>Model:</dt>
           <dd>
             {% if machine.machine_model_friendly %}
@@ -135,11 +133,15 @@ $( document ).ready(function() {
           <dd>{{ machine.memory }}</dd>
           <dt>Serial:</dt>
           <dd>{{ machine.serial }}</dd>
+          {% if ip_address %}
           <dt>LAN IP Address:</dt>
           <dd>{{ ip_address }}</dd>
+          {% endif %}
           {% if 'MachineInfo' in report %}
+          {% if report.MachineInfo.hostname %}
           <dt>Hostname:</dt>
           <dd>{{ report.MachineInfo.hostname }}</dd>
+          {% endif %}
           <dt>OS version:</dt>
           <dd>
             {% if machine.os_family == 'Darwin' %}
@@ -151,14 +153,28 @@ $( document ).ready(function() {
             {% endif %}
           </dd>
           {% endif %}
+          {% if report.AvailableDiskSpace %}
           <dt>Free disk space:</dt>
           <dd>{{ report.AvailableDiskSpace|humanreadablesize }} ({{ machine.hd_percent }}% used)</dd>
+          {% endif %}
           {% if uptime_enabled %}
+          {% if uptime %}
           <dt>Uptime:</dt>
           <dd>{{ uptime }}</dd>
           {% endif %}
+          {% endif %}
+          {% if report.ConsoleUser %}
           <dt>Console user:</dt>
           <dd>{{ report.ConsoleUser }}</dd>
+          {% endif %}
+          <dt>Deploy Status:</dt>
+          <dd>
+            {% if machine.deployed %}
+            Deployed
+            {% else %}
+            Undeployed
+            {% endif %}
+          </dd>
         </dl>
       </div>
     </div>

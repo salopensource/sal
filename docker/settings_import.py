@@ -22,6 +22,15 @@ try:
 except:
     BASIC_AUTH = True
 
+# Path to a root ca
+try:
+    if getenv('DOCKER_SAL_ROOT_CA'):
+        ROOT_CA = getenv('DOCKER_SAL_ROOT_CA')
+    else:
+        ROOT_CA = None
+except:
+    ROOT_CA = None
+
 # Read list of admins from $DOCKER_SAL_ADMINS env var
 admin_list = []
 if getenv('DOCKER_SAL_ADMINS'):

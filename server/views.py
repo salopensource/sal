@@ -1874,6 +1874,7 @@ def checkin(request):
     uuid = data.get('uuid')
     serial = data.get('serial')
     serial = serial.upper()
+    broken_client = data.get('broken_client', False)
 
     # Take out some of the weird junk VMware puts in. Keep an eye out in case Apple actually uses these:
     serial = serial.replace('/', '')
@@ -1909,6 +1910,17 @@ def checkin(request):
     machine_group = get_object_or_404(MachineGroup, key=key)
     machine.machine_group = machine_group
     business_unit = machine_group.business_unit
+
+    machine.last_checkin = django.utils.timezone.now()
+
+    if broken_client == True or broken_client == 'True':
+        machine.broken_client = True
+        machine.save()
+        return HttpResponse("Broken Client report submmitted for %s"
+                        % data.get('serial'))
+    else:
+        machine.broken_client = False
+
     try:
         historical_setting = SalSetting.objects.get(name='historical_retention')
         historical_days = historical_setting.value
@@ -1918,7 +1930,6 @@ def checkin(request):
         historical_days = '180'
 
     machine.hostname = data.get('name', '<NO NAME>')
-    machine.last_checkin = django.utils.timezone.now()
 
     if 'username' in data:
         if data.get('username') != '_mbsetupuser':

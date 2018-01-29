@@ -1,1 +1,1 @@
-*/5 * * * * root /usr/local/bin/search_maint.sh > /dev/null 2>&1
+*/5 * * * * root /usr/local/bin/search_maint.sh > /var/log/search_maint.log 2>&1

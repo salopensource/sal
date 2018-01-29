@@ -1,7 +1,8 @@
-from django.conf.urls import include, url
+from django.conf.urls import url
 from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
+from django.urls import include, path
 admin.autodiscover()
 import django.contrib.auth.views as auth_views
 from django.contrib.staticfiles import views

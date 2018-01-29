@@ -18,27 +18,27 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='condition',
             name='machine',
-            field=models.ForeignKey(related_name='conditions', to='server.Machine'),
+            field=models.ForeignKey(related_name='conditions', to='server.Machine', on_delete=models.CASCADE),
         ),
         migrations.AlterField(
             model_name='fact',
             name='machine',
-            field=models.ForeignKey(related_name='facts', to='server.Machine'),
+            field=models.ForeignKey(related_name='facts', to='server.Machine', on_delete=models.CASCADE),
         ),
         migrations.AlterField(
             model_name='historicalfact',
             name='machine',
-            field=models.ForeignKey(related_name='historical_facts', to='server.Machine'),
+            field=models.ForeignKey(related_name='historical_facts', to='server.Machine', on_delete=models.CASCADE),
         ),
         migrations.AlterField(
             model_name='pendingappleupdate',
             name='machine',
-            field=models.ForeignKey(related_name='pending_apple_updates', to='server.Machine'),
+            field=models.ForeignKey(related_name='pending_apple_updates', to='server.Machine', on_delete=models.CASCADE),
         ),
         migrations.AlterField(
             model_name='pendingupdate',
             name='machine',
-            field=models.ForeignKey(related_name='pending_updates', to='server.Machine'),
+            field=models.ForeignKey(related_name='pending_updates', to='server.Machine', on_delete=models.CASCADE),
         ),
         migrations.AlterField(
             model_name='plugin',

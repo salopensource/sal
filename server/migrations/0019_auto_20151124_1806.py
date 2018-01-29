@@ -32,7 +32,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='updatehistoryitem',
             name='update_history',
-            field=models.ForeignKey(to='server.UpdateHistory'),
+            field=models.ForeignKey(to='server.UpdateHistory', on_delete=models.CASCADE),
         ),
         migrations.RemoveField(
             model_name='updatehistory',

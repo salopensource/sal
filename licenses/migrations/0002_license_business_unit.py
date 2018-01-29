@@ -15,7 +15,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='license',
             name='business_unit',
-            field=models.ForeignKey(default=1, to='server.BusinessUnit'),
+            field=models.ForeignKey(default=1, to='server.BusinessUnit', on_delete=models.CASCADE),
             preserve_default=False,
         ),
     ]

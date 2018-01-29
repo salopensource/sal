@@ -235,7 +235,7 @@ def search_machines(search_id, machines, full=False):
             queries = row_queries
 
         search_group_counter = search_group_counter + 1
-    print queries
+    print(queries)
 
     if full == True:
         machines = machines.filter(queries).distinct()

@@ -797,7 +797,7 @@ def bu_dashboard(request, bu_id):
     business_unit = get_object_or_404(BusinessUnit, pk=bu_id)
     bu = business_unit
     if business_unit not in user.businessunit_set.all() and user_level != 'GA':
-        print 'not letting you in ' + user_level
+        print('not letting you in ' + user_level)
         return redirect(index)
     # Get the groups within the Business Unit
     machine_groups = business_unit.machinegroup_set.all()
@@ -924,7 +924,7 @@ def overview_list_all(request, req_type, data, bu_id=None):
         # check user is allowed to see it
         if business_units not in user.businessunit_set.all():
             if user_level != 'GA':
-                print 'not letting you in ' + user_level
+                print('not letting you in ' + user_level)
                 return redirect(index)
     else:
         # all BUs the user has access to
@@ -1866,7 +1866,7 @@ def preflight_v2_get_script(request, pluginName, scriptName):
 @key_auth_required
 def checkin(request):
     if request.method != 'POST':
-        print 'not post data'
+        print('not post data')
         return HttpResponseNotFound('No POST data sent')
 
     data = request.POST

@@ -11,7 +11,7 @@ def next_position(search_object, model='search_group'):
         search_groups = SearchRow.objects.filter(search_group=search_object)
 
 
-    print search_groups.count()
+    print(search_groups.count())
     if search_groups.count() == 0:
         return 0
     else:

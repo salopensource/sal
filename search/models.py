@@ -3,7 +3,7 @@ from __future__ import unicode_literals
 import django.utils.timezone
 from django.db import models
 from django.contrib.auth.models import User
-from current_user import get_current_user
+from .current_user import get_current_user
 from server.models import *
 # Create your models here.
 

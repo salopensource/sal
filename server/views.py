@@ -1,5 +1,5 @@
 # Create your views here.
-from models import *
+from .models import *
 from inventory.models import *
 from django.contrib.auth.decorators import login_required, permission_required
 from django.template import RequestContext, Template, Context
@@ -17,14 +17,14 @@ from django.contrib.staticfiles.templatetags.staticfiles import static
 from django.core.urlresolvers import reverse
 import plistlib
 import ast
-from forms import *
+from .forms import *
 import pprint
 import re
 import os
 from distutils.version import LooseVersion
 from yapsy.PluginManager import PluginManager
 from django.core.exceptions import PermissionDenied
-import utils
+from . import utils
 import pytz
 # from watson import search as watson
 import unicodecsv as csv

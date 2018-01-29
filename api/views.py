@@ -13,7 +13,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from api.serializers import *
-from auth import *
+from .auth import *
 from api.mixins import QueryFieldsMixin
 from search.views import *
 from server.models import *

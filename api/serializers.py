@@ -3,7 +3,7 @@ from django.forms import widgets
 from rest_framework import serializers
 
 from inventory.models import InventoryItem, Application
-from mixins import QueryFieldsMixin
+from .mixins import QueryFieldsMixin
 from server.models import *
 from search.models import *
 

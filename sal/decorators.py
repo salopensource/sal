@@ -104,5 +104,8 @@ def key_auth_required(function):
 
 
 def has_access(user, business_unit):
-    return (
-        business_unit and business_unit in user.businessunit_set.all())
+    if business_unit:
+        return business_unit in user.businessunit_set.all()
+    else:
+        # If a user is in ALL business units, they don't need GA.
+        return all(bu in user.businessunit_set.all() for bu in BusinessUnit.objects.all())

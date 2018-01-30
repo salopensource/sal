@@ -63,7 +63,7 @@ class GroupMixin(object):
     model = None
 
     @classmethod
-    def get_business_unit(cls, group_type='all', group_id=None):
+    def get_business_unit(cls, group_type='all', group_id=None, **kwargs):
         """Return the business unit associated with this request.
 
         Args:

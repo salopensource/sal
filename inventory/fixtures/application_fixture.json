@@ -1,0 +1,30 @@
+[
+    {
+        "fields": {
+            "bundleid": "com.sheagcraig.tacofortress",
+            "bundlename": "TacoFortress",
+            "name": "TacoFortress"
+        },
+        "model": "inventory.application",
+        "pk": 1
+    },
+    {
+        "fields": {
+            "datestamp": "2018-01-24T17:32:36.519Z",
+            "machine": 1,
+            "sha256hash": "be6d4deb1308ea52ef4c27d2c1b6610c5dae18ddc497360a42e075b5f52697f4"
+        },
+        "model": "inventory.inventory",
+        "pk": 1
+    },
+    {
+        "fields": {
+            "application": 1,
+            "machine": 1,
+            "path": "/Applications/TacoFortress.app",
+            "version": "201.3.6"
+        },
+        "model": "inventory.inventoryitem",
+        "pk": 1
+    }
+]

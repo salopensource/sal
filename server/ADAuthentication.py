@@ -36,7 +36,7 @@ AUTHENTICATION_BACKENDS = [
 URL of the AD/LDAP server.
 
 ```Python
-AUTH_LDAP_SERVER_URI = 'ldaps://hostname.domain.com:636'
+AUTH_LDAP_SERVER_URI = 'ldaps://hostname.company.com:636'
 ```
 
 ### AUTH_LDAP_USER_DOMAIN
@@ -44,10 +44,10 @@ AUTH_LDAP_SERVER_URI = 'ldaps://hostname.domain.com:636'
 Domain of the AD/LDAP server. This domain will be added to the username if not yet specified.
 
 ```Python
-AUTH_LDAP_USER_DOMAIN = ‘domain.com’
+AUTH_LDAP_USER_DOMAIN = company.com’
 ```
 
-`username` will be converted to `username@domain.com` (domain.com = `AUTH_LDAP_USER_DOMAIN`) for the AD/LDAP authentication. The domain will only get appended to the username if the username does **not** end with the configured domain.
+`username` will be converted to `username@company.com` (company.com = `AUTH_LDAP_USER_DOMAIN`) for the AD/LDAP authentication. The domain will only get appended to the username if the username does **not** end with the configured domain.
 
 ### AUTH_LDAP_USER_SEARCH (mandatory)
 

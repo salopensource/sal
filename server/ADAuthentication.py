@@ -31,6 +31,8 @@ AUTHENTICATION_BACKENDS = [
 ]
 ```
 
+If you don't intend to use the connector, just don't add it to your `AUTHENTICATION_BACKENDS`.
+
 ### AUTH_LDAP_SERVER_URI (mandatory)
 
 URL of the AD/LDAP server.
@@ -41,7 +43,7 @@ AUTH_LDAP_SERVER_URI = 'ldaps://hostname.company.com:636'
 
 ### AUTH_LDAP_USER_DOMAIN
 
-Domain of the AD/LDAP server. This domain will be added to the username if not yet specified.
+Domain of the AD/LDAP server.
 
 ```Python
 AUTH_LDAP_USER_DOMAIN = company.com’
@@ -72,10 +74,12 @@ AUTH_LDAP_USER_ATTR_MAP = {
 
 ### AUTH_LDAP_TRUST_ALL_CERTIFICATES
 
-If you have a self signed certificate or an unknown certificate to the django server, you need to disable the certificate check.
+If you have a self signed certificate or an unknown certificate to the django server, you need to disable the certificate check by setting this value to `True`.
 ```Python
 AUTH_LDAP_TRUST_ALL_CERTIFICATES = True
 ```
+
+The parameter defaults to `False`, causing sal to trust certificates with a valide certificate chain only.
 
 ### AUTH_LDAP_USER_PREFIX
 
@@ -154,7 +158,7 @@ With this configuration everything is logged to `/tmp/sal.log`. Make sure that y
 ### Can existing django users with identical usernames coexist with new AD/LDAP users?
 
 Yes: This can be accomplished with the setting `AUTH_LDAP_USER_PREFIX` very easily.
-This configured prefix will be added to the django username, therefore existing django users with the same username as users in the AD/LDAP should still be able to login (the local django authentication should have a higher priority).
+This configured prefix will be added to the django username, therefore existing django users with the same username as users in the AD/LDAP can still login.
 
 ### Is it possible to have a user with readonly rights in specific business unit and with write rights in a different one?
 
@@ -171,13 +175,17 @@ This is possible with business unit `#ALL_BU` in the `AUTH_LDAP_USER_TO_BUSINESS
 ### Assigned business units in SAL get reset every time a user logs in?
 
 The user profile and all assigned business units of a user get a reset every time a user logs in.
-Otherwise it is not possible to ensure that users get removed from business units from they should have no access anymore.
+Otherwise it is not possible to ensure that users get removed from business units they shouldn't have access anymore.
 Therefore it is not possible and recommended to mix the assignment between SAL and the AD/LDAP configuration.
 
 ### Does this authentication work with another ldap implementation than AD/LDAP as well?
 
 May be! But it is not tested or guaranteed. There are some AD/LDAP specific notations used to get nested groups (`memberOf:1.2.840.113556.1.4.1941:=`),
 therefore I would not trust on a connection to another ldap implementation.
+
+### This sounds like a nice feature but I don't have a need for it. How do I disable it?
+
+The AD/LDAP connector is not enabled by default.  If you intend to use the connector, you haveto add it to your `AUTHENTICATION_BACKENDS` settings and configure it correctly.
 
 ## Possible improvements
 
@@ -787,3 +795,4 @@ class ADAuthentication:
             return User.objects.get(pk=user_id)
         except User.DoesNotExist:
             return None
+

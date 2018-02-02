@@ -110,6 +110,7 @@ class Machine(models.Model):
     install_log_hash = models.CharField(max_length=200, blank=True, null=True)
     install_log = models.TextField(null=True, blank=True)
     deployed = models.BooleanField(default=True)
+    broken_client = models.BooleanField(default=False)
 
     objects = models.Manager() # The default manager.
     deployed_objects = DeployedManager()

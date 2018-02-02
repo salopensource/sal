@@ -152,8 +152,10 @@
         <div class="row">
             <div class="col-md-12">&nbsp;</div>
         </div>
+        {% autoescape on %}
             {% block content %}
             {% endblock %}
+        {% endautoescape %}
         <div class="row"><div class="col-md-12"><p class="pull-right">Sal version {{ SAL_VERSION }}</p></div></div>
         </div>
         <!-- /#page-wrapper -->

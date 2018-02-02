@@ -1,5 +1,5 @@
 
-    <div class="panel panel-default">
+    <div class="panel panel-default panel-traffic-light">
         <div class="panel-heading">
             {{ title }}
         </div>
@@ -10,23 +10,22 @@
         {% else %}
         <a href="{% url 'machine_list_front' plugin 'puppeterror' %}" class="btn btn-danger">
         {% endif %}
-			<span class="bigger"> {{ error_count }} </span><br />
-			{{ error_label }}
-          </a>
-          
-          
-      {% if month_count == 0 %}
-      <a href="{% url 'machine_list_front' plugin '1month' %}" class="btn btn-success">
-      {% else %}
-      <a href="{% url 'machine_list_front' plugin '1month' %}" class="btn btn-danger">
-      {% endif %}
-		<span class="bigger"> {{ month_count }} </span><br />
-		{{ month_label }}
+            <span class="bigger"> {{ error_count }} </span><br />
+            {{ error_label }}
         </a>
 
-      <a href="{% url 'machine_list_front' plugin 'success' %}" class="btn btn-success">
-    <span class="bigger"> {{ success_count }} </span><br />
-    {{ success_label }}
-        </a> 
-</div>
-</div>
+        {% if month_count == 0 %}
+        <a href="{% url 'machine_list_front' plugin '1month' %}" class="btn btn-success">
+        {% else %}
+        <a href="{% url 'machine_list_front' plugin '1month' %}" class="btn btn-danger">
+        {% endif %}
+            <span class="bigger"> {{ month_count }} </span><br />
+            {{ month_label }}
+        </a>
+
+        <a href="{% url 'machine_list_front' plugin 'success' %}" class="btn btn-success">
+            <span class="bigger"> {{ success_count }} </span><br />
+            {{ success_label }}
+        </a>
+        </div>
+    </div>

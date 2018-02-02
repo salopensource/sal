@@ -17,7 +17,9 @@ MANAGERS = ADMINS
 CRYPT_URL = None
 DEPLOYED_ON_CHECKIN = False
 INACTIVE_UNDEPLOYED = 0
-
+SEARCH_FACTS = []
+SEARCH_CONDITIONS = []
+DATA_UPLOAD_MAX_NUMBER_FIELDS = None
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',

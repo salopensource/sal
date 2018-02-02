@@ -63,14 +63,22 @@ class GroupMixin(object):
     model = None
 
     @classmethod
-    def get_business_unit(cls, request):
-        """Return the business unit associated with this request."""
+    def get_business_unit(cls, group_type='all', group_id=None, **kwargs):
+        """Return the business unit associated with this request.
+
+        Args:
+            group_type (str): One of: 'all', 'business_unit', 'machine',
+                or 'machine_group'.
+            group_id (int): ID number of the group, or None.
+
+        Returns:
+            BusinessUnit instance or 404 if no such object.
+        """
         instance = None
-        group_class = cls.classes[request.GET.get("group_type", 'all')]
+        group_class = cls.classes[group_type]
 
         if group_class:
-            instance = get_object_or_404(
-                group_class, pk=request.GET.get("group_id"))
+            instance = get_object_or_404(group_class, pk=group_id)
 
         # Implicitly returns BusinessUnit, or None if that is the type.
         # No need for an extra test.
@@ -508,7 +516,7 @@ def inventory_submit(request):
         'com.apple.print.PrinterProxy'
     ]
     submission = request.POST
-    serial = submission.get('serial')
+    serial = submission.get('serial').upper()
     machine = None
     if serial:
         try:
@@ -516,10 +524,15 @@ def inventory_submit(request):
         except Machine.DoesNotExist:
             return HttpResponseNotFound('Serial Number not found')
 
-        compressed_inventory = submission.get('base64bz2inventory')
+        compression_type = 'base64bz2'
+        if 'base64bz2inventory' in submission:
+            compressed_inventory = submission.get('base64bz2inventory')
+        elif 'base64inventory' in submission:
+            compressed_inventory = submission.get('base64inventory')
+            compression_type = 'base64'
         if compressed_inventory:
             compressed_inventory = compressed_inventory.replace(" ", "+")
-            inventory_str = utils.decode_to_string(compressed_inventory)
+            inventory_str = utils.decode_to_string(compressed_inventory, compression_type)
             try:
                 inventory_list = plistlib.readPlistFromString(inventory_str)
             except Exception:

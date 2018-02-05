@@ -37,9 +37,6 @@ RUN apt-get update && \
 COPY setup/requirements.txt /requirements.txt
 RUN easy_install pip && \
     pip install -r /requirements.txt && \
-    pip install psycopg2==2.6.2 && \
-    pip install gunicorn==19.6.0 && \
-    pip install setproctitle && \
     rm /requirements.txt && \
     update-rc.d -f postgresql remove && \
     update-rc.d -f nginx remove && \

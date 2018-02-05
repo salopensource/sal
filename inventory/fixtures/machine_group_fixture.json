@@ -1,0 +1,20 @@
+[
+{
+    "model": "server.machinegroup",
+    "pk": 1,
+    "fields": {
+        "business_unit": 1,
+        "name": "Hai",
+        "key": "11c3qkyht9b88uja3i7v46rztrzejdgechnl8jw5fqv7z84vdgjynrn9czykctfi4quu4uvbwijbrentnmqepx9jw61avepnl2n8talsk37jnkm36tdvpra55311gi03"
+    }
+},
+{
+    "model": "server.machinegroup",
+    "pk": 2,
+    "fields": {
+        "business_unit": 1,
+        "name": "tacos",
+        "key": "tp702yfyw698e7dag786r0ejd99oywwj4ij7egbb4dqm5ghdj9e00zyygppx7okaa4p7vod1h0u7mzeau60yfcji6nnsvbz0y592subwigqa8q3wimebo63cs1d0yj71"
+    }
+}
+]

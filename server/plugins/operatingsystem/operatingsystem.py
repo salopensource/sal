@@ -35,17 +35,42 @@ class OperatingSystem(IPlugin):
         os_info = machines.exclude(
             operating_system__isnull=True).exclude(
                 operating_system__exact='').values(
-                'operating_system').annotate(
+                'operating_system', 'os_family').annotate(
                     count=Count('operating_system')).order_by(
-                        'operating_system')
-        os_info = sorted(
-            os_info,
+                        'os_family', 'operating_system')
+
+        mac_os_info = []
+        windows_os_info = []
+        linux_os_info = []
+
+        for machine in os_info:
+            if machine['os_family'] == 'Darwin':
+                mac_os_info.append(machine)
+            elif machine['os_family'] == 'Windows':
+                windows_os_info.append(machine)
+            elif machine['os_family'] == 'Linux':
+                linux_os_info.append(machine)
+
+        mac_os_info = sorted(
+            mac_os_info,
             key=lambda x: LooseVersion(x["operating_system"]),
             reverse=True)
 
+        windows_os_info = sorted(
+            windows_os_info,
+            key=lambda x: LooseVersion(x["operating_system"]),
+            reverse=True) 
+
+        linux_os_info = sorted(
+            linux_os_info,
+            key=lambda x: LooseVersion(x["operating_system"]),
+            reverse=True)       
+
         c = Context({
             'title': 'Operating Systems',
-            'data': os_info,
+            'mac_data': mac_os_info,
+            'windows_data': windows_os_info,
+            'linux_data': linux_os_info,
             'theid': theid,
             'page': page
         })

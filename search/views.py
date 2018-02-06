@@ -562,8 +562,8 @@ def stream_csv(header_row, machines, facter_headers, condition_headers, plugin_s
 def export_csv(request, search_id):
     user = request.user
     title = None
-    machines = Machine.objects.all().defer('report', 'activity', 'install_log', 
-                                            'install_log_hash')
+    machines = Machine.objects.all().defer('report', 'activity', 'install_log',
+                                           'install_log_hash')
 
     machines = search_machines(search_id, machines, full=True)
 
@@ -575,12 +575,12 @@ def export_csv(request, search_id):
     header_row = []
     fields = Machine._meta.get_fields()
     skip_fields = [
-            'id',
-            'report',
-            'activity',
-            'install_log',
-            'install_log_hash'
-            ]
+        'id',
+        'report',
+        'activity',
+        'install_log',
+        'install_log_hash'
+    ]
     for field in fields:
         if not field.is_relation and field.name not in skip_fields:
             header_row.append(field.name)

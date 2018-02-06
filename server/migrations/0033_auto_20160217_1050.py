@@ -5,6 +5,7 @@ from django.db import models, migrations
 from django.db.models import Q
 import plistlib
 
+
 def fix_hostname(apps, schema_editor):
 
     Machine = apps.get_model("server", "Machine")
@@ -18,6 +19,7 @@ def fix_hostname(apps, schema_editor):
     for machine in machines:
         machine.hostname = machine.serial
         machine.save()
+
 
 class Migration(migrations.Migration):
 

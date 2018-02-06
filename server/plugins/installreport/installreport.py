@@ -63,7 +63,7 @@ class InstallReport(IPlugin):
         for installed_update in installed_updates:
             found = False
             for item in output:
-                #print item
+                # print item
                 if installed_update['update'] == item['name'] and installed_update['update_version'] == item['version']:
                     found = True
                     break
@@ -74,7 +74,7 @@ class InstallReport(IPlugin):
 
                     for pkginfo in catalog.content:
                         if pkginfo['name'] == installed_update['update'] and pkginfo['version'] == installed_update['update_version']:
-                            #print pkginfo
+                            # print pkginfo
                             if 'description' in pkginfo:
                                 item['description'] = pkginfo['description']
                             else:

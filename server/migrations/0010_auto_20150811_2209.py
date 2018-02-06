@@ -14,7 +14,8 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='OSQueryColumn',
             fields=[
-                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('id', models.AutoField(verbose_name='ID',
+                                        serialize=False, auto_created=True, primary_key=True)),
                 ('column_name', models.TextField()),
                 ('column_data', models.TextField()),
             ],
@@ -22,7 +23,8 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='OSQueryResult',
             fields=[
-                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('id', models.AutoField(verbose_name='ID',
+                                        serialize=False, auto_created=True, primary_key=True)),
                 ('name', models.CharField(max_length=255, null=True, blank=True)),
                 ('hostidentifier', models.CharField(max_length=255, null=True, blank=True)),
                 ('unix_time', models.IntegerField(null=True, blank=True)),
@@ -36,7 +38,8 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='plugin',
             name='type',
-            field=models.CharField(default=b'facter', max_length=255, choices=[(b'facter', b'Facter'), (b'munkicondition', b'Munki Condition'), (b'osquery', b'osquery')]),
+            field=models.CharField(default=b'facter', max_length=255, choices=[(
+                b'facter', b'Facter'), (b'munkicondition', b'Munki Condition'), (b'osquery', b'osquery')]),
         ),
         migrations.AddField(
             model_name='osquerycolumn',

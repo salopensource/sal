@@ -45,4 +45,4 @@ class XprotectVersion(IPlugin):
         machines = machines.filter(pluginscriptsubmission__plugin__exact='XprotectVersion',
                                    pluginscriptsubmission__pluginscriptrow__pluginscript_name__exact='Version', pluginscriptsubmission__pluginscriptrow__pluginscript_data__exact=data)
 
-        return machines, 'Machines with Xprotect version '+data
+        return machines, 'Machines with Xprotect version ' + data

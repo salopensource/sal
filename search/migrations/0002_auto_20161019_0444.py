@@ -19,11 +19,13 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='search',
             name='created_by',
-            field=models.ForeignKey(default=search.current_user.get_current_user, on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL),
+            field=models.ForeignKey(default=search.current_user.get_current_user,
+                                    on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL),
         ),
         migrations.AlterField(
             model_name='search',
             name='name',
-            field=models.CharField(default='Unsaved Search 2016-10-19 11:44:07.660268+00:00', max_length=100),
+            field=models.CharField(
+                default='Unsaved Search 2016-10-19 11:44:07.660268+00:00', max_length=100),
         ),
     ]

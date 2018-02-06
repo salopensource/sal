@@ -20,6 +20,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='search',
             name='name',
-            field=models.CharField(default='Unsaved Search 2016-10-19 13:57:19.564127+00:00', max_length=100),
+            field=models.CharField(
+                default='Unsaved Search 2016-10-19 13:57:19.564127+00:00', max_length=100),
         ),
     ]

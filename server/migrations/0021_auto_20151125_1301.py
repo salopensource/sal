@@ -23,7 +23,8 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='updatehistoryitem',
             name='status',
-            field=models.CharField(max_length=255, verbose_name=b'Status', choices=[(b'pending', b'Pending'), (b'error', b'Error'), (b'install', b'Install'), (b'removal', b'Removal')]),
+            field=models.CharField(max_length=255, verbose_name=b'Status', choices=[(
+                b'pending', b'Pending'), (b'error', b'Error'), (b'install', b'Install'), (b'removal', b'Removal')]),
         ),
         migrations.AlterUniqueTogether(
             name='updatehistory',

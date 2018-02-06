@@ -461,7 +461,7 @@ def tableajax(request, pluginName, data, page='front', theID=None):
     else:
         searched_machines = machines.order_by(order_string)
 
-    limited_machines = searched_machines[start:(start+length)]
+    limited_machines = searched_machines[start:(start + length)]
 
     return_data = {}
     return_data['draw'] = int(draw)
@@ -990,7 +990,7 @@ def overview_list_all(request, req_type, data, bu_id=None):
         machines_unsorted = Machine.objects.none()
         for business_unit in business_units:
             for machine_group in business_unit.machinegroup_set.all():
-                #print machines_unsorted
+                # print machines_unsorted
                 machines_unsorted = machines_unsorted | machine_group.machine_set.all().filter(deployed=True)
             #machines_unsorted = machines_unsorted | machine_group.machines.all()
         #machines = user.businessunit_set.select_related('machine_group_set').order_by('machine')
@@ -1713,7 +1713,7 @@ def machine_detail_plugin_plus(request, plugin_id):
     current_plugin = get_object_or_404(MachineDetailPlugin, pk=plugin_id)
 
     # get 'old' next one
-    old_plugin = get_object_or_404(Plugin, order=(int(current_plugin.order)+1))
+    old_plugin = get_object_or_404(Plugin, order=(int(current_plugin.order) + 1))
     current_plugin.order = current_plugin.order + 1
     current_plugin.save()
 
@@ -1732,10 +1732,10 @@ def machine_detail_plugin_minus(request, plugin_id):
 
     # get current plugin order
     current_plugin = get_object_or_404(MachineDetailPlugin, pk=plugin_id)
-    #print current_plugin
+    # print current_plugin
     # get 'old' previous one
 
-    old_plugin = get_object_or_404(MachineDetailPlugin, order=(int(current_plugin.order)-1))
+    old_plugin = get_object_or_404(MachineDetailPlugin, order=(int(current_plugin.order) - 1))
     current_plugin.order = current_plugin.order - 1
     current_plugin.save()
 
@@ -2084,7 +2084,7 @@ def checkin(request):
         machine.hd_percent = 0
     else:
         machine.hd_percent = int(
-            round(((float(machine.hd_total)-float(machine.hd_space))/float(machine.hd_total))*100))
+            round(((float(machine.hd_total) - float(machine.hd_space)) / float(machine.hd_total)) * 100))
     machine.munki_version = report_data.get('ManagedInstallVersion') or 0
     hwinfo = {}
     # macOS System Profiler

@@ -26,7 +26,7 @@ def csvrelated(header_item, facts, kind):
     if kind == 'facter':
         for fact in facts:
             try:
-                if header_item == 'Facter: '+fact['fact_name']:
+                if header_item == 'Facter: ' + fact['fact_name']:
                     found = True
                     return fact['fact_data']
             except:
@@ -34,7 +34,7 @@ def csvrelated(header_item, facts, kind):
     elif kind == 'condition':
         for condition in facts:
             try:
-                if header_item == 'Munki Condition: '+condition['condition_name']:
+                if header_item == 'Munki Condition: ' + condition['condition_name']:
                     found = True
                     return condition['condition_data']
             except:
@@ -251,7 +251,7 @@ def listify_condition_data(condition_data):
                 # convert all results into strings, since it happens at the db
                 # anyway. This fixes multiple dictionary results in an array
                 # from tracing.
-                result = str(result) + ', '+str(item)
+                result = str(result) + ', ' + str(item)
             else:
                 result = item
         if result == None:
@@ -546,7 +546,7 @@ def orderPluginOutput(pluginOutput, page='front', theID=None):
     total_width = 0
     counter = 0
     # length of the output, but starting at 0, so subtract one
-    length = len(output)-1
+    length = len(output) - 1
     # We don't do any of this for machine detail
     if page != 'machine_detail':
         for item in output:
@@ -555,8 +555,8 @@ def orderPluginOutput(pluginOutput, page='front', theID=None):
                 break
             # No point doing anything if the plugin isn't going to return any output
             if int(item['width']) != 0:
-                if total_width+item['width'] > col_width:
-                    item['html'] = '\n</div>\n\n<div class="row">\n'+item['html']
+                if total_width + item['width'] > col_width:
+                    item['html'] = '\n</div>\n\n<div class="row">\n' + item['html']
                     # print 'breaking'
                     total_width = item['width']
                     needs_break = False

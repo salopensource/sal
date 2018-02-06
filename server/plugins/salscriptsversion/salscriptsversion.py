@@ -49,5 +49,5 @@ class SalScriptsVersion(IPlugin):
 
         machines = machines.filter(sal_version__exact=data)
 
-        title = 'Machines running version '+data+' of Sal'
+        title = 'Machines running version ' + data + ' of Sal'
         return machines, title

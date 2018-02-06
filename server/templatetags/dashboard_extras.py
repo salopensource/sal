@@ -26,7 +26,7 @@ def humanreadablesize(kbytes):
         if kbytes > limit:
             continue
         else:
-            return str(round(kbytes/float(limit/2**10), 1)) + suffix
+            return str(round(kbytes / float(limit / 2**10), 1)) + suffix
 
 
 humanreadablesize.is_safe = True
@@ -97,6 +97,6 @@ def flatten_and_sort_list(the_list):
 @register.filter
 def next(value, arg):
     try:
-        return value[int(arg)+1]
+        return value[int(arg) + 1]
     except:
         return None

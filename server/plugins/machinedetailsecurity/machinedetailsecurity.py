@@ -62,4 +62,4 @@ class MachineDetailSecurity(IPlugin):
 
         machines = machines.filter(operating_system__exact=data)
 
-        return machines, 'Machines running '+data
+        return machines, 'Machines running ' + data

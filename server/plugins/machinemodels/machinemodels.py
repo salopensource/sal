@@ -46,7 +46,7 @@ class MachineModels(IPlugin):
                 machine['machine_model'] = nodigits
                 for item in output:
                     if item['machine_model'] == machine['machine_model']:
-                        item['count'] = item['count']+machine['count']
+                        item['count'] = item['count'] + machine['count']
                         found = True
                         break
                 # if we get this far, it's not been seen before

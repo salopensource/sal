@@ -13,7 +13,8 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='License',
             fields=[
-                ('item_name', models.CharField(max_length=64, unique=True, serialize=False, primary_key=True)),
+                ('item_name', models.CharField(max_length=64,
+                                               unique=True, serialize=False, primary_key=True)),
                 ('total', models.IntegerField(default=0)),
                 ('cost_per_seat', models.IntegerField(default=0)),
                 ('inventory_name', models.CharField(max_length=256, blank=True)),

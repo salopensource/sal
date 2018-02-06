@@ -22,6 +22,7 @@ jobs:
             virtualenv venv
             . venv/bin/activate
             pip install -r setup/requirements.txt
+            pip install flake8
 
       - save_cache:
           paths:
@@ -33,6 +34,11 @@ jobs:
             . venv/bin/activate
             cp sal/example_settings.py sal/settings.py
             python manage.py test
+      - run:
+          name: run linting
+          command: |
+            . venv/bin/activate
+            flake8
 
       - store_artifacts:
           path: test-reports

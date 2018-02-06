@@ -410,7 +410,8 @@ def delete_group(request, search_group_id):
 @login_required
 def new_search_row(request, search_group_id):
     search_group = get_object_or_404(SearchGroup, pk=search_group_id)
-    if request.user.userprofile.level != 'GA' and search_group.saved_search.created_by != request.user:
+    if (request.user.userprofile.level != 'GA' and 
+    search_group.saved_search.created_by != request.user):
         return redirect(search.views.list)
     if request.method == 'POST':
         form = SearchRowForm(request.POST)
@@ -538,11 +539,19 @@ class Echo(object):
 
 def get_csv_row(machine, facter_headers, condition_headers, plugin_script_headers):
     row = []
+    skip_fields = [
+        'id',
+        'report',
+        'activity',
+        'install_log',
+        'install_log_hash',
+        'machine_group'
+    ]
     for name, value in machine.get_fields():
-        if name != 'id' and name != 'machine_group' and name != 'report' and name != 'activity' and name != 'os_family' and name != 'install_log' and name != 'install_log_hash':
+        if name not in skip_fields:
             try:
                 row.append(server.utils.safe_unicode(value))
-            except:
+            except Exception:
                 row.append('')
 
     row.append(machine.machine_group.business_unit.name)
@@ -560,8 +569,6 @@ def stream_csv(header_row, machines, facter_headers, condition_headers, plugin_s
 
 @login_required
 def export_csv(request, search_id):
-    user = request.user
-    title = None
     machines = Machine.objects.all().defer('report', 'activity', 'install_log',
                                            'install_log_hash')
 

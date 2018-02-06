@@ -10,8 +10,8 @@ import server.utils as utils
 
 
 now = django.utils.timezone.now()
-this_day = now -  timedelta(days=0)
-one_day_ago = now -  timedelta(days=1)
+this_day = now - timedelta(days=0)
+one_day_ago = now - timedelta(days=1)
 two_days_ago = now - timedelta(days=2)
 three_days_ago = now - timedelta(days=3)
 four_days_ago = now - timedelta(days=4)

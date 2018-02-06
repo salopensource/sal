@@ -6,6 +6,7 @@ from server.models import *
 from django.shortcuts import get_object_or_404
 import server.utils as utils
 
+
 class SalScriptsVersion(IPlugin):
     def plugin_type(self):
         return 'builtin'
@@ -30,7 +31,8 @@ class SalScriptsVersion(IPlugin):
             t = loader.get_template('salscriptsversion/templates/id.html')
 
         try:
-            sal_info = machines.values('sal_version').exclude(sal_version__isnull=True).annotate(count=Count('sal_version')).order_by('sal_version')
+            sal_info = machines.values('sal_version').exclude(sal_version__isnull=True).annotate(
+                count=Count('sal_version')).order_by('sal_version')
         except:
             sal_info = []
 

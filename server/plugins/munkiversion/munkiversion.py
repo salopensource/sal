@@ -6,6 +6,7 @@ from server.models import *
 from django.shortcuts import get_object_or_404
 import server.utils as utils
 
+
 class MunkiVersion(IPlugin):
     def plugin_type(self):
         return 'builtin'
@@ -30,7 +31,8 @@ class MunkiVersion(IPlugin):
             t = loader.get_template('munkiversion/templates/id.html')
 
         try:
-            munki_info = machines.values('munki_version').annotate(count=Count('munki_version')).order_by('munki_version')
+            munki_info = machines.values('munki_version').annotate(
+                count=Count('munki_version')).order_by('munki_version')
         except:
             munki_info = []
 

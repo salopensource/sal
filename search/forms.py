@@ -3,14 +3,17 @@ from django import forms
 from .models import *
 from server.models import *
 
+
 class ChoiceFieldNoValidation(forms.ChoiceField):
     def validate(self, value):
         pass
+
 
 class SaveSearchForm(forms.ModelForm):
     class Meta:
         model = SavedSearch
         fields = ('name',)
+
 
 class SearchRowForm(forms.ModelForm):
 
@@ -28,7 +31,7 @@ class SearchRowForm(forms.ModelForm):
     search_fields = []
     for f in Machine._meta.fields:
         if f.name not in skip_fields:
-            add = (f.name,f.name,)
+            add = (f.name, f.name,)
             search_fields.append(add)
 
     search_field = ChoiceFieldNoValidation(choices=sorted(search_fields))
@@ -49,4 +52,4 @@ class SearchRowForm(forms.ModelForm):
 
     class Meta:
         model = SearchRow
-        fields = ('search_models', 'search_field', 'and_or', 'operator','search_term',)
+        fields = ('search_models', 'search_field', 'and_or', 'operator', 'search_term',)

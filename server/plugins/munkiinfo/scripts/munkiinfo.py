@@ -6,6 +6,7 @@ from munkilib import FoundationPlist
 from munkilib import munkicommon
 import os
 
+
 def main():
     # Skip a manual check
     if len(sys.argv) > 1:
@@ -72,6 +73,7 @@ def main():
     result['data'] = data
     plist.append(result)
     FoundationPlist.writePlist(plist, plist_path)
+
 
 if __name__ == '__main__':
     main()

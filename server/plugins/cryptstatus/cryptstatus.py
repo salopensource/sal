@@ -10,6 +10,7 @@ import requests
 from datetime import datetime
 from django.utils.dateparse import parse_datetime
 
+
 class CryptStatus(IPlugin):
     def plugin_type(self):
         return 'machine_detail'

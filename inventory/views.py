@@ -49,16 +49,16 @@ class GroupMixin(object):
             BusinessUnit: ("inventoryitem__machine__machine_group__"
                            "business_unit"),
             MachineGroup: "inventoryitem__machine__machine_group",
-            Machine: "inventoryitem__machine",},
+            Machine: "inventoryitem__machine", },
         InventoryItem: {
             BusinessUnit: "machine__machine_group__business_unit",
             MachineGroup: "machine__machine_group",
-            Machine: "machine",},
+            Machine: "machine", },
         Machine: {
             BusinessUnit: "machine_group__business_unit",
             MachineGroup: "machine_group",
-            Machine: "",},
-        Inventory: {},}
+            Machine: "", },
+        Inventory: {}, }
 
     model = None
 
@@ -120,8 +120,7 @@ class GroupMixin(object):
         group_type = self.kwargs['group_type']
 
         if self.group_instance:
-            filter_path = self.access_filter[queryset.model]\
-                [self.classes[group_type]]
+            filter_path = self.access_filter[queryset.model][self.classes[group_type]]
 
             # If filter_path is Machine there is nothing to filter on.
             if filter_path:
@@ -324,7 +323,7 @@ class ApplicationListView(DatatableView, GroupMixin):
         # set the SalSetting 'filter_proxied_virtualization_apps' to
         # 'no' or 'false' (it's a string).
         try:
-            setting_value  = SalSetting.objects.get(
+            setting_value = SalSetting.objects.get(
                 name='filter_proxied_virtualization_apps').value
         except SalSetting.DoesNotExist:
             setting_value = ''
@@ -446,7 +445,6 @@ class CSVExportView(CSVResponseMixin, GroupMixin, View):
         field_type = self.request.GET.get('field_type', 'all')
         field_value = self.request.GET.get('field_value', '')
 
-
         if application_id == "0":
             # All Applications.
             self.set_header(
@@ -458,7 +456,7 @@ class CSVExportView(CSVResponseMixin, GroupMixin, View):
             if is_postgres():
                 apps = [self.get_application_entry(item, queryset) for item in
                         queryset.select_related("application").order_by(
-                            ).distinct("application")]
+                ).distinct("application")]
                 data = apps
             else:
                 # TODO: This is super slow. This probably shouldn't be

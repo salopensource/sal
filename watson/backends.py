@@ -65,7 +65,7 @@ class SearchBackend(six.with_metaclass(abc.ABCMeta)):
     def do_search_ranking(self, engine_slug, queryset, search_text):
         """Ranks the given queryset according to the relevance of the given search text."""
         return queryset.extra(
-            select = {
+            select={
                 "watson_rank": "1",
             },
         )
@@ -78,7 +78,7 @@ class SearchBackend(six.with_metaclass(abc.ABCMeta)):
     def do_filter_ranking(self, engine_slug, queryset, search_text):
         """Ranks the given queryset according to the relevance of the given search text."""
         return queryset.extra(
-            select = {
+            select={
                 "watson_rank": "1",
             },
         )
@@ -100,7 +100,8 @@ class RegexSearchMixin(six.with_metaclass(abc.ABCMeta)):
         word_query = Q()
         for word in search_text.split():
             regex = regex_from_word(word)
-            word_query &= (Q(title__iregex=regex) | Q(description__iregex=regex) | Q(content__iregex=regex))
+            word_query &= (Q(title__iregex=regex) | Q(
+                description__iregex=regex) | Q(content__iregex=regex))
         return queryset.filter(
             word_query
         )
@@ -118,7 +119,7 @@ class RegexSearchMixin(six.with_metaclass(abc.ABCMeta)):
         """, """
             ({db_table}.{content_type_id} = %s)
         """]
-        word_kwargs= {
+        word_kwargs = {
             "db_table": db_table,
             "model_db_table": model_db_table,
             "engine_slug": connection.ops.quote_name("engine_slug"),
@@ -154,9 +155,9 @@ class RegexSearchMixin(six.with_metaclass(abc.ABCMeta)):
         # Compile the query.
         full_word_query = " AND ".join(word_query).format(**word_kwargs)
         return queryset.extra(
-            tables = (db_table,),
-            where = (full_word_query,),
-            params = word_args,
+            tables=(db_table,),
+            where=(full_word_query,),
+            params=word_args,
         )
 
 
@@ -226,7 +227,7 @@ class PostgresSearchBackend(SearchBackend):
             CREATE TRIGGER watson_searchentry_trigger BEFORE INSERT OR UPDATE
             ON watson_searchentry FOR EACH ROW EXECUTE PROCEDURE watson_searchentry_trigger_handler();
         """.format(
-            search_config = self.search_config
+            search_config=self.search_config
         ))
 
     @transaction.atomic()
@@ -249,22 +250,22 @@ class PostgresSearchBackend(SearchBackend):
     def do_search(self, engine_slug, queryset, search_text):
         """Performs the full text search."""
         return queryset.extra(
-            where = ("search_tsv @@ to_tsquery('{search_config}', %s)".format(
-                search_config = self.search_config
+            where=("search_tsv @@ to_tsquery('{search_config}', %s)".format(
+                search_config=self.search_config
             ),),
-            params = (self.escape_postgres_query(search_text),),
+            params=(self.escape_postgres_query(search_text),),
         )
 
     def do_search_ranking(self, engine_slug, queryset, search_text):
         """Performs full text ranking."""
         return queryset.extra(
-            select = {
+            select={
                 "watson_rank": "ts_rank_cd(watson_searchentry.search_tsv, to_tsquery('{search_config}', %s))".format(
-                    search_config = self.search_config
+                    search_config=self.search_config
                 ),
             },
-            select_params = (self.escape_postgres_query(search_text),),
-            order_by = ("-watson_rank",),
+            select_params=(self.escape_postgres_query(search_text),),
+            order_by=("-watson_rank",),
         )
 
     def do_filter(self, engine_slug, queryset, search_text):
@@ -280,33 +281,33 @@ class PostgresSearchBackend(SearchBackend):
             # Cast to text to make join work with uuid columns
             ref_name_typecast = "::text"
         return queryset.extra(
-            tables = ("watson_searchentry",),
-            where = (
+            tables=("watson_searchentry",),
+            where=(
                 "watson_searchentry.engine_slug = %s",
                 "watson_searchentry.search_tsv @@ to_tsquery('{search_config}', %s)".format(
-                    search_config = self.search_config
+                    search_config=self.search_config
                 ),
                 "watson_searchentry.{ref_name} = {table_name}.{pk_name}{ref_name_typecast}".format(
-                    ref_name = ref_name,
-                    table_name = connection.ops.quote_name(model._meta.db_table),
-                    pk_name = connection.ops.quote_name(pk.db_column or pk.attname),
-                    ref_name_typecast = ref_name_typecast
+                    ref_name=ref_name,
+                    table_name=connection.ops.quote_name(model._meta.db_table),
+                    pk_name=connection.ops.quote_name(pk.db_column or pk.attname),
+                    ref_name_typecast=ref_name_typecast
                 ),
                 "watson_searchentry.content_type_id = %s"
             ),
-            params = (engine_slug, self.escape_postgres_query(search_text), content_type.id),
+            params=(engine_slug, self.escape_postgres_query(search_text), content_type.id),
         )
 
     def do_filter_ranking(self, engine_slug, queryset, search_text):
         """Performs the full text ranking."""
         return queryset.extra(
-            select = {
+            select={
                 "watson_rank": "ts_rank_cd(watson_searchentry.search_tsv, to_tsquery('{search_config}', %s))".format(
-                    search_config = self.search_config
+                    search_config=self.search_config
                 ),
             },
-            select_params = (self.escape_postgres_query(search_text),),
-            order_by = ("-watson_rank",),
+            select_params=(self.escape_postgres_query(search_text),),
+            order_by=("-watson_rank",),
         )
 
 
@@ -343,7 +344,7 @@ class PostgresPrefixLegacySearchBackend(RegexSearchMixin, PostgresLegacySearchBa
 def escape_mysql_boolean_query(search_text):
     return " ".join(
         '+{word}*'.format(
-            word = word,
+            word=word,
         )
         for word in escape_query(search_text).split()
     )
@@ -354,7 +355,8 @@ class MySQLSearchBackend(SearchBackend):
     def is_installed(self):
         """Checks whether django-watson is installed."""
         cursor = connection.cursor()
-        cursor.execute("SHOW INDEX FROM watson_searchentry WHERE Key_name = 'watson_searchentry_fulltext'");
+        cursor.execute(
+            "SHOW INDEX FROM watson_searchentry WHERE Key_name = 'watson_searchentry_fulltext'")
         return bool(cursor.fetchall())
 
     def do_install(self):
@@ -364,15 +366,18 @@ class MySQLSearchBackend(SearchBackend):
         cursor.execute("SELECT CONSTRAINT_NAME FROM information_schema.TABLE_CONSTRAINTS WHERE CONSTRAINT_SCHEMA = DATABASE() AND TABLE_NAME = 'watson_searchentry' AND CONSTRAINT_TYPE = 'FOREIGN KEY'")
         for constraint_name, in cursor.fetchall():
             cursor.execute("ALTER TABLE watson_searchentry DROP FOREIGN KEY {constraint_name}".format(
-                constraint_name = constraint_name,
+                constraint_name=constraint_name,
             ))
         # Change the storage engine to MyISAM.
         cursor.execute("ALTER TABLE watson_searchentry ENGINE = MyISAM")
         # Add the full text indexes.
-        cursor.execute("CREATE FULLTEXT INDEX watson_searchentry_fulltext ON watson_searchentry (title, description, content)")
+        cursor.execute(
+            "CREATE FULLTEXT INDEX watson_searchentry_fulltext ON watson_searchentry (title, description, content)")
         cursor.execute("CREATE FULLTEXT INDEX watson_searchentry_title ON watson_searchentry (title)")
-        cursor.execute("CREATE FULLTEXT INDEX watson_searchentry_description ON watson_searchentry (description)")
-        cursor.execute("CREATE FULLTEXT INDEX watson_searchentry_content ON watson_searchentry (content)")
+        cursor.execute(
+            "CREATE FULLTEXT INDEX watson_searchentry_description ON watson_searchentry (description)")
+        cursor.execute(
+            "CREATE FULLTEXT INDEX watson_searchentry_content ON watson_searchentry (content)")
 
     def do_uninstall(self):
         """Executes the SQL needed to uninstall django-watson."""
@@ -395,23 +400,23 @@ class MySQLSearchBackend(SearchBackend):
     def do_search(self, engine_slug, queryset, search_text):
         """Performs the full text search."""
         return queryset.extra(
-            where = ("MATCH (title, description, content) AGAINST (%s IN BOOLEAN MODE)",),
-            params = (self._format_query(search_text),),
+            where=("MATCH (title, description, content) AGAINST (%s IN BOOLEAN MODE)",),
+            params=(self._format_query(search_text),),
         )
 
     def do_search_ranking(self, engine_slug, queryset, search_text):
         """Performs full text ranking."""
         search_text = self._format_query(search_text)
         return queryset.extra(
-            select = {
+            select={
                 "watson_rank": """
                     ((MATCH (title) AGAINST (%s IN BOOLEAN MODE)) * 3) +
                     ((MATCH (description) AGAINST (%s IN BOOLEAN MODE)) * 2) +
                     ((MATCH (content) AGAINST (%s IN BOOLEAN MODE)) * 1)
                 """,
             },
-            select_params = (search_text, search_text, search_text,),
-            order_by = ("-watson_rank",),
+            select_params=(search_text, search_text, search_text,),
+            order_by=("-watson_rank",),
         )
 
     def do_filter(self, engine_slug, queryset, search_text):
@@ -424,33 +429,33 @@ class MySQLSearchBackend(SearchBackend):
         else:
             ref_name = "object_id"
         return queryset.extra(
-            tables = ("watson_searchentry",),
-            where = (
+            tables=("watson_searchentry",),
+            where=(
                 "watson_searchentry.engine_slug = %s",
                 "MATCH (watson_searchentry.title, watson_searchentry.description, watson_searchentry.content) AGAINST (%s IN BOOLEAN MODE)",
                 "watson_searchentry.{ref_name} = {table_name}.{pk_name}".format(
-                    ref_name = ref_name,
-                    table_name = connection.ops.quote_name(model._meta.db_table),
-                    pk_name = connection.ops.quote_name(pk.db_column or pk.attname),
+                    ref_name=ref_name,
+                    table_name=connection.ops.quote_name(model._meta.db_table),
+                    pk_name=connection.ops.quote_name(pk.db_column or pk.attname),
                 ),
                 "watson_searchentry.content_type_id = %s",
             ),
-            params = (engine_slug, self._format_query(search_text), content_type.id),
+            params=(engine_slug, self._format_query(search_text), content_type.id),
         )
 
     def do_filter_ranking(self, engine_slug, queryset, search_text):
         """Performs the full text ranking."""
         search_text = self._format_query(search_text)
         return queryset.extra(
-            select = {
+            select={
                 "watson_rank": """
                     ((MATCH (watson_searchentry.title) AGAINST (%s IN BOOLEAN MODE)) * 3) +
                     ((MATCH (watson_searchentry.description) AGAINST (%s IN BOOLEAN MODE)) * 2) +
                     ((MATCH (watson_searchentry.content) AGAINST (%s IN BOOLEAN MODE)) * 1)
                 """,
             },
-            select_params = (search_text, search_text, search_text,),
-            order_by = ("-watson_rank",),
+            select_params=(search_text, search_text, search_text,),
+            order_by=("-watson_rank",),
         )
 
 

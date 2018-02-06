@@ -50,7 +50,8 @@ else:
 if getenv('DOCKER_SAL_TZ'):
     if '/' in getenv('DOCKER_SAL_TZ'):
         TIME_ZONE = getenv('DOCKER_SAL_TZ')
-    else: TIME_ZONE = 'Europe/London'
+    else:
+        TIME_ZONE = 'Europe/London'
 # elif getenv('TZ'):
 #     TIME_ZONE = getenv('TZ')
 # else:
@@ -101,7 +102,7 @@ try:
     if getenv('DOCKER_SAL_CRYPT_URL'):
         CRYPT_URL = getenv('DOCKER_SAL_CRYPT_URL')
     else:
-       CRYPT_URL = None
+        CRYPT_URL = None
 except:
     CRYPT_URL = None
 

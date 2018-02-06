@@ -8,6 +8,7 @@ from server.models import *
 from django.shortcuts import get_object_or_404
 import server.utils as utils
 
+
 class OperatingSystem(IPlugin):
     def plugin_type(self):
         return 'builtin'
@@ -59,12 +60,12 @@ class OperatingSystem(IPlugin):
         windows_os_info = sorted(
             windows_os_info,
             key=lambda x: LooseVersion(x["operating_system"]),
-            reverse=True) 
+            reverse=True)
 
         linux_os_info = sorted(
             linux_os_info,
             key=lambda x: LooseVersion(x["operating_system"]),
-            reverse=True)       
+            reverse=True)
 
         c = Context({
             'title': 'Operating Systems',

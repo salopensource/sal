@@ -18,6 +18,7 @@ import json
 import re
 import unicodecsv as csv
 
+
 @login_required
 @csrf_exempt
 def index(request):
@@ -32,15 +33,16 @@ def index(request):
     if user_level != 'GA':
         for business_unit in BusinessUnit.objects.all():
             if business_unit not in request.user.businessunit_set.all():
-                machines = machines.exclude(machine_group__business_unit = business_unit)
+                machines = machines.exclude(machine_group__business_unit=business_unit)
 
     template = 'search/basic_search.html'
 
     machines = quick_search(machines, query_string)
 
     title = "Search results for %s" % query_string
-    c = {'user': request.user, 'machines': machines, 'title':title, 'request':request}
+    c = {'user': request.user, 'machines': machines, 'title': title, 'request': request}
     return render(request, template, c)
+
 
 def quick_search(machines, query_string):
     skip_fields = [
@@ -80,20 +82,23 @@ def quick_search(machines, query_string):
     for query in queries:
         qs = qs | query
 
-    return machines.filter(qs).values('id','serial', 'hostname', 'console_user', 'last_checkin').distinct()
+    return machines.filter(qs).values('id', 'serial', 'hostname', 'console_user', 'last_checkin').distinct()
 
 # All saved searches
+
+
 @login_required
 def list(request):
     saved_searches = SavedSearch.objects.filter(save_search=True)
     user = request.user
     user_level = user.userprofile.level
     c = {'request': request,
-        'user': request.user,
-        'saved_searches': saved_searches,
-        'user_level': user_level
-        }
+         'user': request.user,
+         'saved_searches': saved_searches,
+         'user_level': user_level
+         }
     return render(request, 'search/list.html', c)
+
 
 def search_machines(search_id, machines, full=False):
     saved_search = get_object_or_404(SavedSearch, pk=search_id)
@@ -120,7 +125,7 @@ def search_machines(search_id, machines, full=False):
             operators = {
                 'Contains': '__icontains',
                 '=': '__exact',
-                '!=': '', # We negate this later on
+                '!=': '',  # We negate this later on
                 '<': '__lt',
                 '<=': '__lte',
                 '>': '__gt',
@@ -164,7 +169,6 @@ def search_machines(search_id, machines, full=False):
                 else:
                     q_object = ~Q(**querystring)
 
-
             elif search_row.search_models == 'Application Inventory':
                 model = Application
                 if search_row.search_field == 'Name':
@@ -189,7 +193,7 @@ def search_machines(search_id, machines, full=False):
                 querystring = {
 
                     'pluginscriptsubmission__pluginscriptrow__submission_and_script_name': submission_and_script_name,
-                    'pluginscriptsubmission__pluginscriptrow__pluginscript_data%s'% (operator): search_row.search_term
+                    'pluginscriptsubmission__pluginscriptrow__pluginscript_data%s' % (operator): search_row.search_term
                 }
                 if operator != '':
                     q_object = Q(**querystring)
@@ -211,7 +215,6 @@ def search_machines(search_id, machines, full=False):
 
                 else:
                     q_object = ~Q(**querystring)
-
 
             # Add a row operator if needed
             if row_operator != None:
@@ -240,10 +243,13 @@ def search_machines(search_id, machines, full=False):
     if full == True:
         machines = machines.filter(queries).distinct()
     else:
-        machines = machines.filter(queries).values('id','serial', 'hostname', 'console_user', 'last_checkin').distinct()
+        machines = machines.filter(queries).values(
+            'id', 'serial', 'hostname', 'console_user', 'last_checkin').distinct()
     return machines
 
 # Show search
+
+
 @login_required
 def run_search(request, search_id):
     # Placeholder
@@ -253,15 +259,17 @@ def run_search(request, search_id):
         for business_unit in BusinessUnit.objects.all():
             if business_unit not in request.user.businessunit_set.all():
                 machines = machines.exclude(
-                    machine_group__business_unit = business_unit
-                    )
+                    machine_group__business_unit=business_unit
+                )
 
     machines = search_machines(search_id, machines)
     saved_search = get_object_or_404(SavedSearch, pk=search_id)
-    c = {'request': request, 'user': request.user, 'search': saved_search, 'machines':machines}
+    c = {'request': request, 'user': request.user, 'search': saved_search, 'machines': machines}
     return render(request, 'search/search_machines.html', c)
 
 # New search
+
+
 @login_required
 def new_search(request):
     # Create a new search
@@ -278,6 +286,8 @@ def new_search(request):
     return redirect(search.views.build_search, new_search.id)
 
 # Save search
+
+
 @login_required
 def save_search(request, search_id):
     saved_search = get_object_or_404(SavedSearch, pk=search_id)
@@ -292,10 +302,12 @@ def save_search(request, search_id):
     else:
         form = SaveSearchForm(instance=saved_search)
 
-    c = {'form': form, 'saved_search':saved_search}
+    c = {'form': form, 'saved_search': saved_search}
     return render(request, 'search/save_search_form.html', c)
 
 # Build search
+
+
 @login_required
 def build_search(request, search_id):
     user = request.user
@@ -306,11 +318,13 @@ def build_search(request, search_id):
         'request': request,
         'user': request.user,
         'search': new_search,
-        'search_groups':search_groups
+        'search_groups': search_groups
     }
     return render(request, 'search/build_search.html', c)
 
 # Delete search
+
+
 @login_required
 def delete_search(request, search_id):
     user_level = request.user.userprofile.level
@@ -319,26 +333,29 @@ def delete_search(request, search_id):
         saved_search.delete()
     return redirect(search.views.list)
 
+
 @login_required
 def edit_search(request, search_id):
-        saved_search = get_object_or_404(SavedSearch, pk=search_id)
-        user = request.user
-        user_level = user.userprofile.level
-        if user_level != 'GA' and saved_search.created_by != request.user:
-            return redirect(search.views.list)
-        if request.method == 'POST':
-            form = SearchRowForm(request.POST, instance=search_row)
-            if form.is_valid():
-                row = form.save(commit=False)
-                row.save_search = True
-                row.save()
-                return redirect(search.views.build_search, search_row.search_group.saved_search.id)
-        else:
-            form = SearchRowForm(instance=search_row)
-        c = {'form': form, 'saved_search':saved_search}
-        return render(request, 'search/edit_search_name_form.html', c)
+    saved_search = get_object_or_404(SavedSearch, pk=search_id)
+    user = request.user
+    user_level = user.userprofile.level
+    if user_level != 'GA' and saved_search.created_by != request.user:
+        return redirect(search.views.list)
+    if request.method == 'POST':
+        form = SearchRowForm(request.POST, instance=search_row)
+        if form.is_valid():
+            row = form.save(commit=False)
+            row.save_search = True
+            row.save()
+            return redirect(search.views.build_search, search_row.search_group.saved_search.id)
+    else:
+        form = SearchRowForm(instance=search_row)
+    c = {'form': form, 'saved_search': saved_search}
+    return render(request, 'search/edit_search_name_form.html', c)
 
 # New Group
+
+
 @login_required
 def new_search_group(request, search_id):
     new_search = get_object_or_404(SavedSearch, pk=search_id)
@@ -360,6 +377,8 @@ def new_search_group(request, search_id):
 #     return redirect(search.views.build_search, saved_search.id)
 
 # And or toggle for group
+
+
 @login_required
 def group_and_or(request, search_group_id):
     search_group = get_object_or_404(SearchGroup, pk=search_group_id)
@@ -374,6 +393,8 @@ def group_and_or(request, search_group_id):
     return redirect(search.views.build_search, saved_search.id)
 
 # Delete group
+
+
 @login_required
 def delete_group(request, search_group_id):
     search_group = get_object_or_404(SearchGroup, pk=search_group_id)
@@ -384,6 +405,8 @@ def delete_group(request, search_group_id):
     return redirect(search.views.build_search, saved_search.id)
 
 # New row
+
+
 @login_required
 def new_search_row(request, search_group_id):
     search_group = get_object_or_404(SearchGroup, pk=search_group_id)
@@ -400,11 +423,13 @@ def new_search_row(request, search_group_id):
     else:
         form = SearchRowForm(search_group=search_group)
 
-    c = {'form': form, 'search_group':search_group}
+    c = {'form': form, 'search_group': search_group}
 
     return render(request, 'search/new_search_form.html', c)
 
 # Edit row
+
+
 @login_required
 def edit_search_row(request, search_row_id):
     search_row = get_object_or_404(SearchRow, pk=search_row_id)
@@ -444,10 +469,12 @@ def edit_search_row(request, search_row_id):
             form.fields['search_field'].choices = sorted(search_fields)
 
         form.fields['search_field'].initial = search_row.search_field
-    c = {'form': form, 'search_row':search_row}
+    c = {'form': form, 'search_row': search_row}
     return render(request, 'search/edit_search_form.html', c)
 
 # Delete Row
+
+
 @login_required
 def delete_row(request, search_row_id):
     search_row = get_object_or_404(SearchRow, pk=search_row_id)
@@ -459,6 +486,8 @@ def delete_row(request, search_row_id):
     return redirect(search.views.build_search, saved_search.id)
 
 # Response for ajax to pupulate dropdown
+
+
 @login_required
 @csrf_exempt
 def get_fields(request, model):
@@ -497,17 +526,20 @@ def get_fields(request, model):
     output['fields'] = sorted(search_fields)
     return JsonResponse(output)
 
+
 class Echo(object):
     """An object that implements just the write method of the file-like interface.
     """
+
     def write(self, value):
         """Write the value by returning it, instead of storing in a buffer."""
         return value
 
+
 def get_csv_row(machine, facter_headers, condition_headers, plugin_script_headers):
     row = []
     for name, value in machine.get_fields():
-        if name != 'id' and name !='machine_group' and name != 'report' and name != 'activity' and name != 'os_family' and name != 'install_log' and name != 'install_log_hash':
+        if name != 'id' and name != 'machine_group' and name != 'report' and name != 'activity' and name != 'os_family' and name != 'install_log' and name != 'install_log_hash':
             try:
                 row.append(server.utils.safe_unicode(value))
             except:
@@ -517,17 +549,21 @@ def get_csv_row(machine, facter_headers, condition_headers, plugin_script_header
     row.append(machine.machine_group.name)
     return row
 
-def stream_csv(header_row, machines, facter_headers, condition_headers, plugin_script_headers): # Helper function to inject headers
+
+# Helper function to inject headers
+def stream_csv(header_row, machines, facter_headers, condition_headers, plugin_script_headers):
     if header_row:
         yield header_row
     for machine in machines:
         yield get_csv_row(machine, facter_headers, condition_headers, plugin_script_headers)
 
+
 @login_required
 def export_csv(request, search_id):
     user = request.user
     title = None
-    machines = Machine.objects.all().defer('report','activity','os_family','install_log', 'install_log_hash')
+    machines = Machine.objects.all().defer('report', 'activity', 'os_family',
+                                           'install_log', 'install_log_hash')
 
     machines = search_machines(search_id, machines, full=True)
 
@@ -542,7 +578,6 @@ def export_csv(request, search_id):
         if not field.is_relation and field.name != 'id' and field.name != 'report' and field.name != 'activity' and field.name != 'os_family' and field.name != 'install_log' and field.name != 'install_log_hash':
             header_row.append(field.name)
 
-
     facter_headers = []
     condition_headers = []
     plugin_script_headers = []
@@ -551,18 +586,17 @@ def export_csv(request, search_id):
     header_row.append('machine_group')
 
     response = StreamingHttpResponse(
-            (writer.writerow(row) for row in stream_csv(
-                                            header_row=header_row,
-                                            machines=machines,
-                                            facter_headers=facter_headers,
-                                            condition_headers=condition_headers,
-                                            plugin_script_headers=plugin_script_headers)),
-            content_type="text/csv")
+        (writer.writerow(row) for row in stream_csv(
+            header_row=header_row,
+            machines=machines,
+            facter_headers=facter_headers,
+            condition_headers=condition_headers,
+            plugin_script_headers=plugin_script_headers)),
+        content_type="text/csv")
     # Create the HttpResponse object with the appropriate CSV header.
     if getattr(settings, 'DEBUG_CSV', False):
         pass
     else:
         response['Content-Disposition'] = 'attachment; filename="%s.csv"' % saved_search.name
-
 
     return response

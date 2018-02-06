@@ -77,6 +77,7 @@ class SalAPITestCase(APITestCase):
         url = reverse(name, args=args) if args else reverse(name)
 
         return self.client.get(url, params, **self.headers)
+
     def authed_options(self, name, args=None, params=None):
         """Perform an authenticated get request to API."""
         if not params:

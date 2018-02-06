@@ -11,6 +11,7 @@ mem_415_gb = 4.15 * 1024 * 1024
 mem_775_gb = 7.75 * 1024 * 1024
 mem_8_gb = 8 * 1024 * 1024
 
+
 class Memory(IPlugin):
     def plugin_type(self):
         return 'builtin'

@@ -6,13 +6,14 @@ from server.models import *
 from django.shortcuts import get_object_or_404
 import server.utils as utils
 
+
 class MachineDetailSecurity(IPlugin):
     def plugin_type(self):
         return 'machine_detail'
 
     def supported_os_families(self):
         return ['Darwin']
-        
+
     def widget_width(self):
         return 4
 
@@ -24,13 +25,15 @@ class MachineDetailSecurity(IPlugin):
         t = loader.get_template('machinedetailsecurity/templates/machinedetailsecurity.html')
 
         try:
-            fv_status = PluginScriptRow.objects.filter(submission__machine=machines, submission__plugin__exact='MachineDetailSecurity', pluginscript_name__exact='Filevault').order_by('submission__recorded').first()
+            fv_status = PluginScriptRow.objects.filter(submission__machine=machines, submission__plugin__exact='MachineDetailSecurity',
+                                                       pluginscript_name__exact='Filevault').order_by('submission__recorded').first()
             fv_status = fv_status.pluginscript_data
         except:
             fv_status = 'Unknown'
 
         try:
-            sip_status = PluginScriptRow.objects.filter(submission__machine=machines, submission__plugin__exact='MachineDetailSecurity', pluginscript_name__exact='SIP', pluginscript_data__exact='Disabled')
+            sip_status = PluginScriptRow.objects.filter(
+                submission__machine=machines, submission__plugin__exact='MachineDetailSecurity', pluginscript_name__exact='SIP', pluginscript_data__exact='Disabled')
             if len(sip_status) != 0:
                 sip_status = 'Disabled'
             else:
@@ -40,11 +43,11 @@ class MachineDetailSecurity(IPlugin):
             sip_status = 'Unknown'
 
         try:
-            gatekeeper_status = PluginScriptRow.objects.filter(submission__machine=machines, submission__plugin__exact='MachineDetailSecurity', pluginscript_name__exact='Gatekeeper').order_by('submission__recorded').first()
+            gatekeeper_status = PluginScriptRow.objects.filter(
+                submission__machine=machines, submission__plugin__exact='MachineDetailSecurity', pluginscript_name__exact='Gatekeeper').order_by('submission__recorded').first()
             gatekeeper_status = gatekeeper_status.pluginscript_data
         except:
             gatekeeper_status = 'Unknown'
-
 
         c = Context({
             'title': 'Security',

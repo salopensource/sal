@@ -9,9 +9,11 @@ import os
 import platform
 from distutils.version import LooseVersion
 
+
 def mac_version():
     v = platform.mac_ver()[0][:-2]
     return v
+
 
 def get_status(cmd, checkstring):
     status = 'Disabled'
@@ -26,17 +28,21 @@ def get_status(cmd, checkstring):
             break
     return status
 
+
 def fv_status():
     cmd = ['/usr/bin/fdesetup', 'status']
     return get_status(cmd, 'FileVault is On.')
+
 
 def sip_status():
     cmd = ['/usr/bin/csrutil', 'status']
     return get_status(cmd, 'System Integrity Protection status: enabled.')
 
+
 def gatekeeper_status():
     cmd = ['/usr/sbin/spctl', '--status']
     return get_status(cmd, 'assessments enabled')
+
 
 def main():
 
@@ -74,6 +80,7 @@ def main():
     plist.append(result)
     print plist
     FoundationPlist.writePlist(plist, plist_path)
+
 
 if __name__ == '__main__':
     main()

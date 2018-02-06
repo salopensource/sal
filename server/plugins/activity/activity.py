@@ -16,6 +16,7 @@ month_ago = today - timedelta(days=30)
 three_months_ago = today - timedelta(days=90)
 machine_data = {}
 
+
 class Activity(IPlugin):
     def widget_width(self):
         return 12
@@ -57,7 +58,8 @@ class Activity(IPlugin):
             checked_in_this_week = 0
 
         try:
-            inactive_for_a_month = machines.filter(last_checkin__range=(three_months_ago, month_ago)).count()
+            inactive_for_a_month = machines.filter(
+                last_checkin__range=(three_months_ago, month_ago)).count()
         except:
             inactive_for_a_month = 0
 
@@ -65,7 +67,6 @@ class Activity(IPlugin):
             inactive_for_three_months = machines.exclude(last_checkin__gte=three_months_ago).count()
         except:
             inactive_for_three_months = 0
-
 
         c = Context({
             'title': 'Activity',

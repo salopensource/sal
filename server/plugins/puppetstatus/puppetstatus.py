@@ -42,17 +42,18 @@ class PuppetStatus(IPlugin):
             # if there aren't any records with last checkin dates, assume puppet isn't being used
             last_checkin = machines.filter(last_puppet_run__isnull=False).count()
             if last_checkin != 0:
-                checked_in_this_month = machines.filter(last_puppet_run__lte=month_ago, last_checkin__gte=month_ago).count()
+                checked_in_this_month = machines.filter(
+                    last_puppet_run__lte=month_ago, last_checkin__gte=month_ago).count()
             else:
                 checked_in_this_month = 0
 
-            success = machines.filter(last_puppet_run__isnull=False).filter(puppet_errors__exact=0).count()
+            success = machines.filter(last_puppet_run__isnull=False).filter(
+                puppet_errors__exact=0).count()
         except:
             puppet_error = 0
             last_checkin = 0
             checked_in_this_month = 0
             success = 0
-
 
         if last_checkin > 0:
             size = 4
@@ -73,18 +74,17 @@ class PuppetStatus(IPlugin):
             'page': page
         })
 
-
         return t.render(c)
 
     def filter_machines(self, machines, data):
         if data == 'puppeterror':
             machines = machines.filter(puppet_errors__gt=0)
             title = 'Machines with Puppet errors'
-        elif data =='1month':
+        elif data == '1month':
             machines = machines.filter(last_puppet_run__lte=month_ago)
             title = 'Machines that haven\'t run Puppet for more than 1 Month'
 
-        elif data =='success':
+        elif data == 'success':
             machines = machines.filter(last_puppet_run__isnull=False).filter(puppet_errors__exact=0)
             title = 'Machines that have run Puppet succesfully'
 

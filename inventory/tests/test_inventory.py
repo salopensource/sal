@@ -61,7 +61,8 @@ class AccessTestCase(TestCase):
 
 class ApplicationDetailTestCase(TestCase):
     """Exercise the application detail view"""
-    fixtures = ['application_fixture.json', 'machine_fixture.json', 'business_unit_fixture.json', 'machine_group_fixture.json']
+    fixtures = ['application_fixture.json', 'machine_fixture.json',
+                'business_unit_fixture.json', 'machine_group_fixture.json']
 
     def setUp(self):
         self.test_user = User.objects.create(username='test')

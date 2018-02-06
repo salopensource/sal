@@ -12,6 +12,7 @@ from server.models import *
 from licenses.models import *
 from server import views as server_views
 
+
 @login_required
 def license_index(request):
     '''Sal index page for licenses.'''
@@ -20,8 +21,8 @@ def license_index(request):
     user_level = user.userprofile.level
     if user_level != 'GA':
         return redirect(server_views.index)
-    c = {'request':request,
-        'licenses': all_licenses,
+    c = {'request': request,
+         'licenses': all_licenses,
          'user': request.user,
          'page': 'licenses'}
     return render(request, 'licenses/index.html', c)
@@ -47,6 +48,7 @@ def new_license(request):
 
     return render(request, 'forms/new_license.html', c)
 
+
 @login_required
 def edit_license(request, license_id):
     user = request.user
@@ -65,9 +67,10 @@ def edit_license(request, license_id):
             return redirect(license_index)
     else:
         form = LicenseForm(instance=license)
-    c = {'form': form, 'license':license}
+    c = {'form': form, 'license': license}
 
     return render(request, 'forms/edit_license.html', c)
+
 
 @login_required
 def delete_license(request, license_id):
@@ -79,6 +82,7 @@ def delete_license(request, license_id):
     license.delete()
     return redirect(license_index)
 
+
 def available(request, key, item_name=''):
     '''Returns license seat availability for item_name in plist format.
     Key is item_name, value is boolean.
@@ -87,7 +91,7 @@ def available(request, key, item_name=''):
     output_style = request.GET.get('output_style', 'plist')
     if key.endswith('/'):
         key = key[:-1]
-    machine_group = get_object_or_404(MachineGroup,key=key)
+    machine_group = get_object_or_404(MachineGroup, key=key)
     business_unit = machine_group.business_unit
     item_names = []
     if item_name:
@@ -124,7 +128,7 @@ def usage(request, key, item_name=''):
     additional_names = request.GET.getlist('name')
     item_names.extend(additional_names)
     info = {}
-    machine_group = get_object_or_404(MachineGroup,key=key)
+    machine_group = get_object_or_404(MachineGroup, key=key)
     business_unit = machine_group.business_unit
     for name in item_names:
         try:

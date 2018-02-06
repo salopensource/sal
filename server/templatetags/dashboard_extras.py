@@ -12,6 +12,7 @@ from distutils.version import LooseVersion
 
 register = template.Library()
 
+
 @register.filter
 def humanreadablesize(kbytes):
     """Returns sizes in human-readable units. Input is kbytes"""
@@ -26,7 +27,10 @@ def humanreadablesize(kbytes):
             continue
         else:
             return str(round(kbytes/float(limit/2**10), 1)) + suffix
+
+
 humanreadablesize.is_safe = True
+
 
 @register.filter
 def macos(os_version):
@@ -34,6 +38,7 @@ def macos(os_version):
         return 'macOS'
     else:
         return 'OS X'
+
 
 @register.filter
 def bu_machine_count(bu_id):
@@ -47,6 +52,7 @@ def bu_machine_count(bu_id):
         count = count + machinegroup.machine_set.filter(deployed=True).count()
     return count
 
+
 @register.filter
 def machine_group_count(group_id):
     """Returns the number of machines contained within the Machine Group.
@@ -55,22 +61,25 @@ def machine_group_count(group_id):
     count = machine_group.machine_set.filter(deployed=True).count()
     return count
 
+
 @register.filter
 def convert_datetime(string):
     """Converts a string into a date object"""
     the_date = dateutil.parser.parse(string).replace(tzinfo=utc)
 #
-    #return date(the_date, "Y-m-d H:i")
+    # return date(the_date, "Y-m-d H:i")
     return the_date
+
 
 @register.filter
 def print_timestamp(timestamp):
     try:
-        #assume, that timestamp is given in seconds with decimal point
+        # assume, that timestamp is given in seconds with decimal point
         ts = float(timestamp)
     except ValueError:
         return None
     return time.strftime("%Y-%m-%d", time.gmtime(ts))
+
 
 @register.filter
 def flatten_and_sort_list(the_list):
@@ -83,6 +92,7 @@ def flatten_and_sort_list(the_list):
             output = output + ', ' + item
         counter += 1
     return output
+
 
 @register.filter
 def next(value, arg):

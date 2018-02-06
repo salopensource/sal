@@ -6,6 +6,7 @@ from server.models import *
 from django.shortcuts import get_object_or_404
 import server.utils as utils
 
+
 class DiskSpace(IPlugin):
     def widget_width(self):
         return 4

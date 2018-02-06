@@ -13,9 +13,11 @@ this_day = now - timedelta(hours=24)
 week_ago = this_day - timedelta(days=7)
 month_ago = this_day - timedelta(days=30)
 
+
 class NewMachines(IPlugin):
     def plugin_type(self):
         return 'builtin'
+
     def widget_width(self):
         return 4
 

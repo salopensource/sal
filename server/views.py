@@ -42,6 +42,7 @@ if settings.DEBUG:
 # The database probably isn't going to change while this is loaded.
 IS_POSTGRES = utils.is_postgres()
 
+
 @login_required
 def index(request):
     # Get the current user's Business Units
@@ -81,7 +82,8 @@ def index(request):
     # Build the manager
     manager = PluginManager()
     # Tell it the default place(s) where to find plugins
-    manager.setPluginPlaces([settings.PLUGIN_DIR, os.path.join(settings.PROJECT_DIR, 'server/plugins')])
+    manager.setPluginPlaces([settings.PLUGIN_DIR, os.path.join(
+        settings.PROJECT_DIR, 'server/plugins')])
     # Load all plugins
     manager.collectPlugins()
     output = []
@@ -113,11 +115,12 @@ def index(request):
             except:
                 plugin_type = 'widget'
             if plugin.name == enabled_plugin.name and \
-            plugin_type != 'machine_info' and plugin_type != 'report':
+                    plugin_type != 'machine_info' and plugin_type != 'report':
                 data = {}
                 data['name'] = plugin.name
                 data['width'] = plugin.plugin_object.widget_width()
-                data['html'] = '<div id="plugin-%s" class="col-md-%s"><img class="center-block blue-spinner" src="%s"/></div>' % (data['name'], str(data['width']), static('img/blue-spinner.gif'))
+                data['html'] = '<div id="plugin-%s" class="col-md-%s"><img class="center-block blue-spinner" src="%s"/></div>' % (
+                    data['name'], str(data['width']), static('img/blue-spinner.gif'))
                 output.append(data)
                 break
 
@@ -138,8 +141,10 @@ def index(request):
     new_version_available = False
     new_version = False
     current_version = False
-    c = {'user': request.user, 'business_units': business_units, 'output': output, 'data_setting_decided':data_setting_decided, 'new_version_available':new_version_available, 'new_version':new_version, 'reports':reports, 'current_version': current_version}
+    c = {'user': request.user, 'business_units': business_units, 'output': output, 'data_setting_decided': data_setting_decided,
+         'new_version_available': new_version_available, 'new_version': new_version, 'reports': reports, 'current_version': current_version}
     return render(request, 'server/index.html', c)
+
 
 def check_version():
     # Get current version
@@ -164,9 +169,10 @@ def check_version():
                 last_version_notified_lookup = SalSetting.objects.get(name='last_notified_version')
                 last_notified_version = last_version_notified_lookup.value
             except SalSetting.DoesNotExist:
-                last_version_notified_lookup = SalSetting(name='last_notified_version', value=server_version)
+                last_version_notified_lookup = SalSetting(
+                    name='last_notified_version', value=server_version)
                 last_version_notified_date_lookup = SalSetting(name='last_version_notified_date',
-                value=int(time.time()))
+                                                               value=int(time.time()))
                 last_notified_version = None
             # if last version notified version is equal to the server version
             if last_notified_version == server_version:
@@ -199,6 +205,7 @@ def check_version():
 
     return new_version_available, new_version, current_version
 
+
 @login_required
 def new_version_never(request):
     if request.user.userprofile.level != 'GA':
@@ -207,7 +214,7 @@ def new_version_never(request):
     current_version_lookup = SalSetting.objects.get(name='current_version')
     server_version = current_version_lookup.value
     try:
-        last_version_notified= SalSetting.objects.get(name='last_notified_version')
+        last_version_notified = SalSetting.objects.get(name='last_notified_version')
     except SalSetting.DoesNotExist:
         last_version_notified = SalSetting(name='last_notified_version')
     last_version_notified.value = server_version
@@ -222,12 +229,15 @@ def new_version_never(request):
     next_notify_date.save()
     return redirect(index)
 
+
 @login_required
 def new_version_week(request):
     # Notify again in a week
     pass
 
 # Manage Users
+
+
 @login_required
 def manage_users(request):
     user = request.user
@@ -243,7 +253,7 @@ def manage_users(request):
     if user.is_staff != True:
         return redirect(index)
     users = User.objects.all()
-    c = {'user':request.user, 'users':users, 'request':request, 'brute_protect':brute_protect}
+    c = {'user': request.user, 'users': users, 'request': request, 'brute_protect': brute_protect}
     return render(request, 'server/manage_users.html', c)
 
 
@@ -264,7 +274,7 @@ def new_user(request):
         if form.is_valid():
             user = form.save()
             user_profile = UserProfile.objects.get(user=user)
-            user_profile.level=request.POST['user_level']
+            user_profile.level = request.POST['user_level']
             user_profile.save()
             return redirect('manage_users')
     else:
@@ -294,7 +304,7 @@ def edit_user(request, user_id):
         if form.is_valid():
             user = form.save()
             user_profile = UserProfile.objects.get(user=the_user)
-            user_profile.level=request.POST['user_level']
+            user_profile.level = request.POST['user_level']
             user_profile.save()
             if user_profile.level != 'GA':
                 user.is_staff = False
@@ -302,13 +312,15 @@ def edit_user(request, user_id):
             return redirect('manage_users')
     else:
         if the_user.has_usable_password:
-            form = EditUserForm({'user_level':the_user.userprofile.level, 'user_id':the_user.id})
+            form = EditUserForm({'user_level': the_user.userprofile.level, 'user_id': the_user.id})
         else:
-            form = EditLDAPUserForm({'user_level':the_user.userprofile.level, 'user_id':the_user.id})
+            form = EditLDAPUserForm(
+                {'user_level': the_user.userprofile.level, 'user_id': the_user.id})
 
-    c = {'form': form, 'the_user':the_user}
+    c = {'form': form, 'the_user': the_user}
 
     return render(request, 'forms/edit_user.html', c)
+
 
 @login_required
 def user_add_staff(request, user_id):
@@ -323,6 +335,7 @@ def user_add_staff(request, user_id):
     user.save()
     return redirect('manage_users')
 
+
 @login_required
 def user_remove_staff(request, user_id):
     user_level = request.user.userprofile.level
@@ -336,6 +349,7 @@ def user_remove_staff(request, user_id):
     user.save()
     return redirect('manage_users')
 
+
 def delete_user(request, user_id):
     user_level = request.user.userprofile.level
     if user_level != 'GA':
@@ -347,13 +361,15 @@ def delete_user(request, user_id):
     user.delete()
     return redirect('manage_users')
 
+
 def plugin_machines(request, pluginName, data, page='front', theID=None, get_machines=True):
     user = request.user
     title = None
     # Build the manager
     manager = PluginManager()
     # Tell it the default place(s) where to find plugins
-    manager.setPluginPlaces([settings.PLUGIN_DIR, os.path.join(settings.PROJECT_DIR, 'server/plugins')])
+    manager.setPluginPlaces([settings.PLUGIN_DIR, os.path.join(
+        settings.PROJECT_DIR, 'server/plugins')])
     # Load all plugins
     manager.collectPlugins()
     if pluginName == 'Status' and data == 'undeployed_machines':
@@ -383,7 +399,7 @@ def plugin_machines(request, pluginName, data, page='front', theID=None, get_mac
                     machines_unsorted = machines_unsorted | machine_group.machine_set.all().filter(deployed=deployed)
             else:
                 machines_unsorted = None
-            machines=machines_unsorted
+            machines = machines_unsorted
 
         if page == 'group_dashboard':
             # only get machines from that group
@@ -400,6 +416,8 @@ def plugin_machines(request, pluginName, data, page='front', theID=None, get_mac
     return machines, title
 
 # Table ajax for dataTables
+
+
 @login_required
 def tableajax(request, pluginName, data, page='front', theID=None):
     # Pull our variables out of the GET request
@@ -438,7 +456,8 @@ def tableajax(request, pluginName, data, page='front', theID=None):
             order_string = "%s" % order_name
 
     if len(search_value) != 0:
-        searched_machines = machines.filter(Q(hostname__icontains=search_value) | Q(console_user__icontains=search_value) | Q(last_checkin__icontains=search_value)).order_by(order_string)
+        searched_machines = machines.filter(Q(hostname__icontains=search_value) | Q(
+            console_user__icontains=search_value) | Q(last_checkin__icontains=search_value)).order_by(order_string)
     else:
         searched_machines = machines.order_by(order_string)
 
@@ -459,12 +478,14 @@ def tableajax(request, pluginName, data, page='front', theID=None):
         if machine.last_checkin:
             #formatted_date = pytz.utc.localize(machine.last_checkin)
             if settings_time_zone:
-                formatted_date = machine.last_checkin.astimezone(settings_time_zone).strftime("%Y-%m-%d %H:%M %Z")
+                formatted_date = machine.last_checkin.astimezone(
+                    settings_time_zone).strftime("%Y-%m-%d %H:%M %Z")
             else:
                 formatted_date = machine.last_checkin.strftime("%Y-%m-%d %H:%M")
         else:
             formatted_date = ""
-        hostname_link = "<a href=\"%s\">%s</a>" % (reverse('machine_detail', args=[machine.id]), machine.hostname)
+        hostname_link = "<a href=\"%s\">%s</a>" % (
+            reverse('machine_detail', args=[machine.id]), machine.hostname)
 
         list_data = [hostname_link, machine.console_user, formatted_date]
         return_data['data'].append(list_data)
@@ -472,15 +493,20 @@ def tableajax(request, pluginName, data, page='front', theID=None):
     return JsonResponse(return_data)
 
 # Plugin machine list
+
+
 @login_required
 def machine_list(request, pluginName, data, page='front', theID=None):
     (machines, title) = plugin_machines(request, pluginName, data, page, theID, get_machines=False)
     user = request.user
-    c = {'user':user, 'plugin_name': pluginName, 'machines': machines, 'req_type': page, 'title': title, 'bu_id': theID, 'request':request, 'data':data }
+    c = {'user': user, 'plugin_name': pluginName, 'machines': machines, 'req_type': page,
+         'title': title, 'bu_id': theID, 'request': request, 'data': data}
 
     return render(request, 'server/overview_list_all.html', c)
 
 # Plugin machine list
+
+
 @login_required
 def plugin_load(request, pluginName, page='front', theID=None):
     user = request.user
@@ -488,7 +514,8 @@ def plugin_load(request, pluginName, page='front', theID=None):
     # Build the manager
     manager = PluginManager()
     # Tell it the default place(s) where to find plugins
-    manager.setPluginPlaces([settings.PLUGIN_DIR, os.path.join(settings.PROJECT_DIR, 'server/plugins')])
+    manager.setPluginPlaces([settings.PLUGIN_DIR, os.path.join(
+        settings.PROJECT_DIR, 'server/plugins')])
     # Load all plugins
     manager.collectPlugins()
     # get a list of machines (either from the BU or the group)
@@ -515,7 +542,7 @@ def plugin_load(request, pluginName, page='front', theID=None):
         # check that the user has access to this
         machines = Machine.deployed_objects.filter(machine_group=machine_group)
 
-    if page =='machine_detail':
+    if page == 'machine_detail':
         machines = Machine.objects.get(pk=theID)
 
     # send the machines and the data to the plugin
@@ -524,6 +551,7 @@ def plugin_load(request, pluginName, page='front', theID=None):
             html = plugin.plugin_object.widget_content(page, machines, theID)
 
     return HttpResponse(html)
+
 
 @login_required
 def report_load(request, pluginName, page='front', theID=None):
@@ -534,7 +562,8 @@ def report_load(request, pluginName, page='front', theID=None):
     # Build the manager
     manager = PluginManager()
     # Tell it the default place(s) where to find plugins
-    manager.setPluginPlaces([settings.PLUGIN_DIR, os.path.join(settings.PROJECT_DIR, 'server/plugins')])
+    manager.setPluginPlaces([settings.PLUGIN_DIR, os.path.join(
+        settings.PROJECT_DIR, 'server/plugins')])
     # Load all plugins
     manager.collectPlugins()
     # get a list of machines (either from the BU or the group)
@@ -561,7 +590,7 @@ def report_load(request, pluginName, page='front', theID=None):
         # check that the user has access to this
         machines = Machine.deployed_objects.filter(machine_group=machine_group)
 
-    if page =='machine_detail':
+    if page == 'machine_detail':
         machines = Machine.objects.get(pk=theID)
 
     output = ''
@@ -588,20 +617,24 @@ def report_load(request, pluginName, page='front', theID=None):
 
                     break
 
-    c = {'user': request.user, 'output': output, 'page':page, 'business_unit': business_unit, 'machine_group': machine_group, 'reports': reports}
+    c = {'user': request.user, 'output': output, 'page': page,
+         'business_unit': business_unit, 'machine_group': machine_group, 'reports': reports}
     return render(request, 'server/display_report.html', c)
+
 
 class Echo(object):
     """An object that implements just the write method of the file-like interface.
     """
+
     def write(self, value):
         """Write the value by returning it, instead of storing in a buffer."""
         return value
 
+
 def get_csv_row(machine, facter_headers, condition_headers, plugin_script_headers):
     row = []
     for name, value in machine.get_fields():
-        if name != 'id' and name !='machine_group' and name != 'report' and name != 'activity' and name != 'os_family' and name != 'install_log' and name != 'install_log_hash':
+        if name != 'id' and name != 'machine_group' and name != 'report' and name != 'activity' and name != 'os_family' and name != 'install_log' and name != 'install_log_hash':
             try:
                 row.append(utils.safe_unicode(value))
             except:
@@ -611,11 +644,14 @@ def get_csv_row(machine, facter_headers, condition_headers, plugin_script_header
     row.append(machine.machine_group.name)
     return row
 
-def stream_csv(header_row, machines, facter_headers, condition_headers, plugin_script_headers): # Helper function to inject headers
+
+# Helper function to inject headers
+def stream_csv(header_row, machines, facter_headers, condition_headers, plugin_script_headers):
     if header_row:
         yield header_row
     for machine in machines:
         yield get_csv_row(machine, facter_headers, condition_headers, plugin_script_headers)
+
 
 @login_required
 def export_csv(request, pluginName, data, page='front', theID=None):
@@ -624,7 +660,8 @@ def export_csv(request, pluginName, data, page='front', theID=None):
     # Build the manager
     manager = PluginManager()
     # Tell it the default place(s) where to find plugins
-    manager.setPluginPlaces([settings.PLUGIN_DIR, os.path.join(settings.PROJECT_DIR, 'server/plugins')])
+    manager.setPluginPlaces([settings.PLUGIN_DIR, os.path.join(
+        settings.PROJECT_DIR, 'server/plugins')])
     # Load all plugins
     manager.collectPlugins()
     if pluginName == 'Status' and data == 'undeployed_machines':
@@ -636,9 +673,11 @@ def export_csv(request, pluginName, data, page='front', theID=None):
         # get all machines
         if user.userprofile.level == 'GA':
             # machines = Machine.objects.all().prefetch_related('facts','conditions','pluginscriptsubmission_set','pluginscriptsubmission_set__pluginscriptrow_set')
-            machines = Machine.objects.all().filter(deployed=deployed).defer('report','activity','os_family','install_log', 'install_log_hash')
+            machines = Machine.objects.all().filter(deployed=deployed).defer(
+                'report', 'activity', 'os_family', 'install_log', 'install_log_hash')
         else:
-            machines = Machine.objects.none().defer('report','activity','os_family','install_log', 'install_log_hash')
+            machines = Machine.objects.none().defer('report', 'activity', 'os_family',
+                                                    'install_log', 'install_log_hash')
             for business_unit in user.businessunit_set.all():
                 for group in business_unit.machinegroup_set.all():
                     machines = machines | group.machine_set.all().filter(deployed=deployed)
@@ -646,12 +685,14 @@ def export_csv(request, pluginName, data, page='front', theID=None):
         # only get machines for that BU
         # Need to make sure the user is allowed to see this
         business_unit = get_object_or_404(BusinessUnit, pk=theID)
-        machine_groups = MachineGroup.objects.filter(business_unit=business_unit).prefetch_related('machine_set').all()
+        machine_groups = MachineGroup.objects.filter(
+            business_unit=business_unit).prefetch_related('machine_set').all()
 
         if machine_groups.count() != 0:
             machines = machine_groups[0].machine_set.all()
             for machine_group in machine_groups[1:]:
-                machines = machines | machine_group.machine_set.all().filter(deployed=deployed).defer('report','activity','os_family','install_log', 'install_log_hash')
+                machines = machines | machine_group.machine_set.all().filter(deployed=deployed).defer(
+                    'report', 'activity', 'os_family', 'install_log', 'install_log_hash')
         else:
             machines = None
 
@@ -660,9 +701,10 @@ def export_csv(request, pluginName, data, page='front', theID=None):
         machine_group = get_object_or_404(MachineGroup, pk=theID)
         # check that the user has access to this
         # machines = Machine.objects.filter(machine_group=machine_group).prefetch_related('facts','conditions','pluginscriptsubmission_set','pluginscriptsubmission_set__pluginscriptrow_set')
-        machines = Machine.objects.filter(machine_group=machine_group).filter(deployed=deployed).defer('report','activity','os_family','install_log', 'install_log_hash')
+        machines = Machine.objects.filter(machine_group=machine_group).filter(deployed=deployed).defer(
+            'report', 'activity', 'os_family', 'install_log', 'install_log_hash')
 
-    if page =='machine_detail':
+    if page == 'machine_detail':
         machines = Machine.objects.get(pk=theID)
 
     # send the machines and the data to the plugin
@@ -691,13 +733,13 @@ def export_csv(request, pluginName, data, page='front', theID=None):
     header_row.append('machine_group')
 
     response = StreamingHttpResponse(
-            (writer.writerow(row) for row in stream_csv(
-                                            header_row=header_row,
-                                            machines=machines,
-                                            facter_headers=facter_headers,
-                                            condition_headers=condition_headers,
-                                            plugin_script_headers=plugin_script_headers)),
-            content_type="text/csv")
+        (writer.writerow(row) for row in stream_csv(
+            header_row=header_row,
+            machines=machines,
+            facter_headers=facter_headers,
+            condition_headers=condition_headers,
+            plugin_script_headers=plugin_script_headers)),
+        content_type="text/csv")
     # Create the HttpResponse object with the appropriate CSV header.
     if getattr(settings, 'DEBUG_CSV', False):
         pass
@@ -711,6 +753,8 @@ def export_csv(request, pluginName, data, page='front', theID=None):
     return response
 
 # New BU
+
+
 @login_required
 def new_business_unit(request):
     c = {}
@@ -732,6 +776,8 @@ def new_business_unit(request):
     return render(request, 'forms/new_business_unit.html', c)
 
 # Edit BU
+
+
 @login_required
 def edit_business_unit(request, bu_id):
     user = request.user
@@ -756,12 +802,13 @@ def edit_business_unit(request, bu_id):
             form = EditUserBusinessUnitForm(instance=business_unit)
         else:
             form = EditBusinessUnitForm(instance=business_unit)
-    c = {'form': form, 'business_unit':business_unit}
+    c = {'form': form, 'business_unit': business_unit}
     user = request.user
     user_level = user.userprofile.level
     if user_level != 'GA':
         return redirect(index)
     return render(request, 'forms/edit_business_unit.html', c)
+
 
 @login_required
 def delete_business_unit(request, bu_id):
@@ -776,8 +823,10 @@ def delete_business_unit(request, bu_id):
 
     machines = Machine.deployed_objects.filter(machine_group__business_unit=business_unit)
 
-    c = {'user': user, 'business_unit':business_unit, 'machine_groups': machine_groups, 'machines':machines}
+    c = {'user': user, 'business_unit': business_unit,
+         'machine_groups': machine_groups, 'machines': machines}
     return render(request, 'server/business_unit_delete_confirm.html', c)
+
 
 @login_required
 def really_delete_business_unit(request, bu_id):
@@ -790,6 +839,8 @@ def really_delete_business_unit(request, bu_id):
     return redirect(index)
 
 # BU Dashboard
+
+
 @login_required
 def bu_dashboard(request, bu_id):
     user = request.user
@@ -816,7 +867,8 @@ def bu_dashboard(request, bu_id):
     # Build the manager
     manager = PluginManager()
     # Tell it the default place(s) where to find plugins
-    manager.setPluginPlaces([settings.PLUGIN_DIR, os.path.join(settings.PROJECT_DIR, 'server/plugins')])
+    manager.setPluginPlaces([settings.PLUGIN_DIR, os.path.join(
+        settings.PROJECT_DIR, 'server/plugins')])
     # Load all plugins
     manager.collectPlugins()
     output = []
@@ -847,20 +899,24 @@ def bu_dashboard(request, bu_id):
             except:
                 plugin_type = 'widget'
             if plugin.name == enabled_plugin.name and \
-            plugin_type != 'machine_info' and plugin_type != 'full_page':
+                    plugin_type != 'machine_info' and plugin_type != 'full_page':
                 data = {}
                 data['name'] = plugin.name
                 data['width'] = plugin.plugin_object.widget_width()
-                data['html'] = '<div id="plugin-%s" class="col-md-%s"><img class="center-block blue-spinner" src="%s"/></div>' % (data['name'], str(data['width']), static('img/blue-spinner.gif'))
+                data['html'] = '<div id="plugin-%s" class="col-md-%s"><img class="center-block blue-spinner" src="%s"/></div>' % (
+                    data['name'], str(data['width']), static('img/blue-spinner.gif'))
                 output.append(data)
                 break
 
     output = utils.orderPluginOutput(output, 'bu_dashboard', bu.id)
 
-    c = {'user': request.user, 'machine_groups': machine_groups, 'is_editor': is_editor, 'business_unit': business_unit, 'user_level': user_level, 'output':output, 'reports':reports }
+    c = {'user': request.user, 'machine_groups': machine_groups, 'is_editor': is_editor,
+         'business_unit': business_unit, 'user_level': user_level, 'output': output, 'reports': reports}
     return render(request, 'server/bu_dashboard.html', c)
 
 # Overview list (all)
+
+
 @login_required
 def overview_list_all(request, req_type, data, bu_id=None):
     # get all the BU's that the user has access to
@@ -920,7 +976,7 @@ def overview_list_all(request, req_type, data, bu_id=None):
         machines_unsorted = machine_groups[0].machine_set.all()
         for machine_group in machine_groups[1:]:
             machines_unsorted = machines_unsorted | machine_group.machine_set.all()
-        all_machines=machines_unsorted
+        all_machines = machines_unsorted
         # check user is allowed to see it
         if business_units not in user.businessunit_set.all():
             if user_level != 'GA':
@@ -974,7 +1030,7 @@ def overview_list_all(request, req_type, data, bu_id=None):
         machines = all_machines.filter(fact__fact_name='uptime_days', fact__fact_data__lte=1)
 
     if req_type == 'uptime_warning':
-        machines = all_machines.filter(fact__fact_name='uptime_days', fact__fact_data__range=[1,7])
+        machines = all_machines.filter(fact__fact_name='uptime_days', fact__fact_data__range=[1, 7])
 
     if req_type == 'uptime_alert':
         machines = all_machines.filter(fact__fact_name='uptime_days', fact__fact_data__gt=7)
@@ -1000,9 +1056,10 @@ def overview_list_all(request, req_type, data, bu_id=None):
 
     if req_type == 'pending_apple_updates':
         machines = all_machines.filter(pendingappleupdate__update=pending_apple_update)
-    c = {'user':user, 'machines': machines, 'req_type': req_type, 'data': data, 'bu_id': bu_id }
+    c = {'user': user, 'machines': machines, 'req_type': req_type, 'data': data, 'bu_id': bu_id}
 
     return render(request, 'server/overview_list_all.html', c)
+
 
 @login_required
 def delete_machine_group(request, group_id):
@@ -1018,8 +1075,9 @@ def delete_machine_group(request, group_id):
 
     machines = Machine.deployed_objects.filter(machine_group=machine_group)
 
-    c = {'user': user, 'machine_group': machine_group, 'machines':machines}
+    c = {'user': user, 'machine_group': machine_group, 'machines': machines}
     return render(request, 'server/machine_group_delete_confirm.html', c)
+
 
 @login_required
 def really_delete_machine_group(request, group_id):
@@ -1033,6 +1091,8 @@ def really_delete_machine_group(request, group_id):
     return redirect('bu_dashboard', business_unit.id)
 
 # Machine Group Dashboard
+
+
 @login_required
 def group_dashboard(request, group_id):
     # check user is allowed to access this
@@ -1051,7 +1111,8 @@ def group_dashboard(request, group_id):
     # Build the manager
     manager = PluginManager()
     # Tell it the default place(s) where to find plugins
-    manager.setPluginPlaces([settings.PLUGIN_DIR, os.path.join(settings.PROJECT_DIR, 'server/plugins')])
+    manager.setPluginPlaces([settings.PLUGIN_DIR, os.path.join(
+        settings.PROJECT_DIR, 'server/plugins')])
     # Load all plugins
     manager.collectPlugins()
     output = []
@@ -1082,19 +1143,23 @@ def group_dashboard(request, group_id):
             except:
                 plugin_type = 'widget'
             if plugin.name == enabled_plugin.name and \
-            plugin_type != 'machine_info' and plugin_type != 'full_page':
+                    plugin_type != 'machine_info' and plugin_type != 'full_page':
                 data = {}
                 data['name'] = plugin.name
                 data['width'] = plugin.plugin_object.widget_width()
-                data['html'] = '<div id="plugin-%s" class="col-md-%s"><img class="center-block blue-spinner" src="%s"/></div>' % (data['name'], str(data['width']), static('img/blue-spinner.gif'))
+                data['html'] = '<div id="plugin-%s" class="col-md-%s"><img class="center-block blue-spinner" src="%s"/></div>' % (
+                    data['name'], str(data['width']), static('img/blue-spinner.gif'))
                 output.append(data)
                 break
 
     output = utils.orderPluginOutput(output, 'group_dashboard', machine_group.id)
-    c = {'user': request.user, 'machine_group': machine_group, 'user_level': user_level,  'is_editor': is_editor, 'business_unit': business_unit, 'output':output, 'request':request, 'reports':reports}
+    c = {'user': request.user, 'machine_group': machine_group, 'user_level': user_level,  'is_editor': is_editor,
+         'business_unit': business_unit, 'output': output, 'request': request, 'reports': reports}
     return render(request, 'server/group_dashboard.html', c)
 
 # New Group
+
+
 @login_required
 def new_machine_group(request, bu_id):
     c = {}
@@ -1106,7 +1171,7 @@ def new_machine_group(request, bu_id):
             new_machine_group = form.save(commit=False)
             new_machine_group.business_unit = business_unit
             new_machine_group.save()
-            #form.save_m2m()
+            # form.save_m2m()
             return redirect('group_dashboard', new_machine_group.id)
     else:
         form = MachineGroupForm()
@@ -1125,6 +1190,8 @@ def new_machine_group(request, bu_id):
     return render(request, 'forms/new_machine_group.html', c)
 
 # Edit Group
+
+
 @login_required
 def edit_machine_group(request, group_id):
     c = {}
@@ -1145,15 +1212,18 @@ def edit_machine_group(request, group_id):
         form = EditMachineGroupForm(request.POST, instance=machine_group)
         if form.is_valid():
             machine_group.save()
-            #form.save_m2m()
+            # form.save_m2m()
             return redirect('group_dashboard', machine_group.id)
     else:
         form = EditMachineGroupForm(instance=machine_group)
 
-    c = {'form': form, 'is_editor': is_editor, 'business_unit': business_unit, 'machine_group':machine_group}
+    c = {'form': form, 'is_editor': is_editor,
+         'business_unit': business_unit, 'machine_group': machine_group}
     return render(request, 'forms/edit_machine_group.html', c)
 
 # New machine
+
+
 @login_required
 def new_machine(request, group_id):
     c = {}
@@ -1166,7 +1236,7 @@ def new_machine(request, group_id):
             new_machine = form.save(commit=False)
             new_machine.machine_group = machine_group
             new_machine.save()
-            #form.save_m2m()
+            # form.save_m2m()
             return redirect('machine_detail', new_machine.id)
     else:
         form = NewMachineForm()
@@ -1185,6 +1255,8 @@ def new_machine(request, group_id):
     return render(request, 'forms/new_machine.html', c)
 
 # Machine detail
+
+
 @login_required
 def machine_detail(request, machine_id):
     try:
@@ -1217,20 +1289,19 @@ def machine_detail(request, machine_id):
         else:
             install_results[nameAndVers] = 'error'
 
-
-    #if install_results:
+    # if install_results:
     for item in report.get('ItemsToInstall', []):
         name = item.get('display_name', item['name'])
         nameAndVers = ('%s-%s'
-            % (name, item['version_to_install']))
+                       % (name, item['version_to_install']))
         item['install_result'] = install_results.get(
             nameAndVers, 'pending')
 
         # Get the update history
         try:
             update_history = UpdateHistory.objects.get(machine=machine,
-            version=item['version_to_install'],
-            name=item['name'], update_type='third_party')
+                                                       version=item['version_to_install'],
+                                                       name=item['name'], update_type='third_party')
         except IndexError, e:
             pass
         except UpdateHistory.DoesNotExist:
@@ -1245,7 +1316,7 @@ def machine_detail(request, machine_id):
         if 'version_to_install' in item:
             name = item.get('display_name', item['name'])
             nameAndVers = ('%s-%s'
-                % (name, item['version_to_install']))
+                           % (name, item['version_to_install']))
             if install_results.get(nameAndVers) == 'installed':
                 item['installed'] = True
 
@@ -1258,12 +1329,12 @@ def machine_detail(request, machine_id):
             # Get the update history
             try:
                 update_history = UpdateHistory.objects.get(machine=machine,
-                version=version,
-                name=item['name'], update_type='third_party')
-                item['update_history'] = UpdateHistoryItem.objects.filter(update_history=update_history)
+                                                           version=version,
+                                                           name=item['name'], update_type='third_party')
+                item['update_history'] = UpdateHistoryItem.objects.filter(
+                    update_history=update_history)
             except Exception, e:
                 pass
-
 
     # handle items that were removed during the most recent run
     # this is crappy. We should fix it in Munki.
@@ -1301,12 +1372,14 @@ def machine_detail(request, machine_id):
 
     if uptime_enabled == True:
         try:
-            plugin_script_submission = PluginScriptSubmission.objects.get(machine=machine, plugin__exact='Uptime')
-            uptime_seconds = PluginScriptRow.objects.get(submission=plugin_script_submission, pluginscript_name__exact='UptimeSeconds').pluginscript_data
+            plugin_script_submission = PluginScriptSubmission.objects.get(
+                machine=machine, plugin__exact='Uptime')
+            uptime_seconds = PluginScriptRow.objects.get(
+                submission=plugin_script_submission, pluginscript_name__exact='UptimeSeconds').pluginscript_data
         except:
             uptime_seconds = '0'
     else:
-        uptime_seconds=0
+        uptime_seconds = 0
 
     uptime = utils.display_time(int(uptime_seconds))
     if 'managed_uninstalls_list' in report:
@@ -1318,7 +1391,8 @@ def machine_detail(request, machine_id):
     # Build the manager
     manager = PluginManager()
     # Tell it the default place(s) where to find plugins
-    manager.setPluginPlaces([settings.PLUGIN_DIR, os.path.join(settings.PROJECT_DIR, 'server/plugins')])
+    manager.setPluginPlaces([settings.PLUGIN_DIR, os.path.join(
+        settings.PROJECT_DIR, 'server/plugins')])
     # Load all plugins
     manager.collectPlugins()
     output = []
@@ -1340,18 +1414,21 @@ def machine_detail(request, machine_id):
             except:
                 supported_os_families = ['Darwin', 'Windows', 'Linux']
             if plugin.name == enabled_plugin.name and \
-            plugin_type != 'builtin' and plugin_type != 'report' and \
-            machine.os_family in supported_os_families:
+                    plugin_type != 'builtin' and plugin_type != 'report' and \
+                    machine.os_family in supported_os_families:
                 data = {}
                 data['name'] = plugin.name
-                data['html'] = '<div id="plugin-%s"><img class="center-block blue-spinner" src="%s"/></div>' % (data['name'], static('img/blue-spinner.gif'))
+                data['html'] = '<div id="plugin-%s"><img class="center-block blue-spinner" src="%s"/></div>' % (
+                    data['name'], static('img/blue-spinner.gif'))
                 output.append(data)
                 break
 
     output = utils.orderPluginOutput(output, page="machine_detail")
 
-    c = {'user':user, 'machine_group': machine_group, 'business_unit': business_unit, 'report': report, 'install_results': install_results, 'removal_results': removal_results, 'machine': machine, 'ip_address':ip_address, 'uptime_enabled':uptime_enabled, 'uptime':uptime,'output':output }
+    c = {'user': user, 'machine_group': machine_group, 'business_unit': business_unit, 'report': report, 'install_results': install_results,
+         'removal_results': removal_results, 'machine': machine, 'ip_address': ip_address, 'uptime_enabled': uptime_enabled, 'uptime': uptime, 'output': output}
     return render(request, 'server/machine_detail.html', c)
+
 
 @login_required
 def machine_detail_facter(request, machine_id):
@@ -1381,8 +1458,9 @@ def machine_detail_facter(request, machine_id):
         'title': title,
         'key_header': key_header,
         'value_header': value_header
-        }
+    }
     return render(request, 'server/machine_detail_table.html', c)
+
 
 def machine_detail_conditions(request, machine_id):
     machine = get_object_or_404(Machine, pk=machine_id)
@@ -1411,7 +1489,7 @@ def machine_detail_conditions(request, machine_id):
         'title': title,
         'key_header': key_header,
         'value_header': value_header
-        }
+    }
     return render(request, 'server/machine_detail_table.html', c)
 
 
@@ -1451,8 +1529,10 @@ def settings_page(request):
         senddata_setting = SalSetting(name='send_data', value='yes')
         senddata_setting.save()
 
-    c = {'user':request.user, 'request':request, 'historical_setting_form':historical_setting_form,'senddata_setting':senddata_setting.value}
+    c = {'user': request.user, 'request': request,
+         'historical_setting_form': historical_setting_form, 'senddata_setting': senddata_setting.value}
     return render(request, 'server/settings.html', c)
+
 
 @login_required
 def senddata_enable(request):
@@ -1468,6 +1548,7 @@ def senddata_enable(request):
     senddata_setting.save()
     return HttpResponseRedirect(request.META.get('HTTP_REFERER'))
 
+
 @login_required
 def senddata_disable(request):
     user = request.user
@@ -1481,6 +1562,7 @@ def senddata_disable(request):
     senddata_setting.value = 'no'
     senddata_setting.save()
     return HttpResponseRedirect(request.META.get('HTTP_REFERER'))
+
 
 @login_required
 def settings_historical_data(request):
@@ -1506,6 +1588,8 @@ def settings_historical_data(request):
 
     else:
         return redirect('settings_page')
+
+
 @login_required
 def plugins_page(request):
     user = request.user
@@ -1516,34 +1600,40 @@ def plugins_page(request):
     utils.reloadPluginsModel()
     enabled_plugins = Plugin.objects.all()
     disabled_plugins = utils.disabled_plugins(plugin_kind='main')
-    c = {'user':request.user, 'request':request, 'enabled_plugins':enabled_plugins, 'disabled_plugins':disabled_plugins}
+    c = {'user': request.user, 'request': request,
+         'enabled_plugins': enabled_plugins, 'disabled_plugins': disabled_plugins}
     return render(request, 'server/plugins.html', c)
+
 
 @login_required
 def settings_reports(request):
-        user = request.user
-        user_level = user.userprofile.level
-        if user_level != 'GA':
-            return redirect(index)
-        # Load the plugins
-        utils.reloadPluginsModel()
-        enabled_plugins = Report.objects.all()
-        disabled_plugins = utils.disabled_plugins(plugin_kind='report')
-        c = {'user':request.user, 'request':request, 'enabled_plugins':enabled_plugins, 'disabled_plugins':disabled_plugins}
-        return render(request, 'server/reports.html', c)
+    user = request.user
+    user_level = user.userprofile.level
+    if user_level != 'GA':
+        return redirect(index)
+    # Load the plugins
+    utils.reloadPluginsModel()
+    enabled_plugins = Report.objects.all()
+    disabled_plugins = utils.disabled_plugins(plugin_kind='report')
+    c = {'user': request.user, 'request': request,
+         'enabled_plugins': enabled_plugins, 'disabled_plugins': disabled_plugins}
+    return render(request, 'server/reports.html', c)
+
 
 @login_required
 def settings_machine_detail_plugins(request):
-        user = request.user
-        user_level = user.userprofile.level
-        if user_level != 'GA':
-            return redirect(index)
-        # Load the plugins
-        utils.reloadPluginsModel()
-        enabled_plugins = MachineDetailPlugin.objects.all()
-        disabled_plugins = utils.disabled_plugins(plugin_kind='machine_detail')
-        c = {'user':request.user, 'request':request, 'enabled_plugins':enabled_plugins, 'disabled_plugins':disabled_plugins}
-        return render(request, 'server/machine_detail_plugins.html', c)
+    user = request.user
+    user_level = user.userprofile.level
+    if user_level != 'GA':
+        return redirect(index)
+    # Load the plugins
+    utils.reloadPluginsModel()
+    enabled_plugins = MachineDetailPlugin.objects.all()
+    disabled_plugins = utils.disabled_plugins(plugin_kind='machine_detail')
+    c = {'user': request.user, 'request': request,
+         'enabled_plugins': enabled_plugins, 'disabled_plugins': disabled_plugins}
+    return render(request, 'server/machine_detail_plugins.html', c)
+
 
 @login_required
 def plugin_plus(request, plugin_id):
@@ -1567,10 +1657,10 @@ def _swap_plugin(request, plugin_id, direction):
     # get current plugin order
     current_plugin = get_object_or_404(Plugin, pk=plugin_id)
 
-	# Since it is sorted by order, we can swap the order attribute
+    # Since it is sorted by order, we can swap the order attribute
     # of the selected plugin with the adjacent object in the queryset.
 
-	# get all plugins (ordered by their order attribute).
+    # get all plugins (ordered by their order attribute).
     plugins = Plugin.objects.all()
 
     # Find the index in the query of the moving plugin.
@@ -1580,7 +1670,7 @@ def _swap_plugin(request, plugin_id, direction):
             break
         index += 1
 
-	# Perform the swap.
+        # Perform the swap.
     temp_id = current_plugin.order
     current_plugin.order = plugins[index + direction].order
     current_plugin.save()
@@ -1599,6 +1689,7 @@ def plugin_disable(request, plugin_id):
     plugin.delete()
     return redirect('plugins_page')
 
+
 @login_required
 def plugin_enable(request, plugin_name):
     # only do this if there isn't a plugin already with the name
@@ -1608,6 +1699,7 @@ def plugin_enable(request, plugin_name):
         plugin = Plugin(name=plugin_name, order=utils.UniquePluginOrder())
         plugin.save()
     return redirect('plugins_page')
+
 
 @login_required
 def machine_detail_plugin_plus(request, plugin_id):
@@ -1628,6 +1720,7 @@ def machine_detail_plugin_plus(request, plugin_id):
     old_plugin.order = old_plugin.order - 1
     old_plugin.save()
     return redirect('settings_machine_detail_plugins')
+
 
 @login_required
 def machine_detail_plugin_minus(request, plugin_id):
@@ -1650,6 +1743,7 @@ def machine_detail_plugin_minus(request, plugin_id):
     old_plugin.save()
     return redirect('settings_machine_detail_plugins')
 
+
 @login_required
 def machine_detail_plugin_disable(request, plugin_id):
     user = request.user
@@ -1661,6 +1755,7 @@ def machine_detail_plugin_disable(request, plugin_id):
     plugin.delete()
     return redirect('settings_machine_detail_plugins')
 
+
 @login_required
 def machine_detail_plugin_enable(request, plugin_name):
     # only do this if there isn't a plugin already with the name
@@ -1671,7 +1766,8 @@ def machine_detail_plugin_enable(request, plugin_name):
         # Build the manager
         manager = PluginManager()
         # Tell it the default place(s) where to find plugins
-        manager.setPluginPlaces([settings.PLUGIN_DIR, os.path.join(settings.PROJECT_DIR, 'server/plugins')])
+        manager.setPluginPlaces([settings.PLUGIN_DIR, os.path.join(
+            settings.PROJECT_DIR, 'server/plugins')])
         # Load all plugins
         manager.collectPlugins()
 
@@ -1683,9 +1779,11 @@ def machine_detail_plugin_enable(request, plugin_name):
                     supported_os_families = plugin.plugin_object.supported_os_families()
                 except:
                     supported_os_families = default_families
-        plugin = MachineDetailPlugin(name=plugin_name, order=utils.UniquePluginOrder(plugin_type='machine_detail'), os_families=utils.flatten_and_sort_list(supported_os_families))
+        plugin = MachineDetailPlugin(name=plugin_name, order=utils.UniquePluginOrder(
+            plugin_type='machine_detail'), os_families=utils.flatten_and_sort_list(supported_os_families))
         plugin.save()
     return redirect('settings_machine_detail_plugins')
+
 
 @login_required
 def settings_report_disable(request, plugin_id):
@@ -1698,6 +1796,7 @@ def settings_report_disable(request, plugin_id):
     plugin.delete()
     return redirect('settings_reports')
 
+
 @login_required
 def settings_report_enable(request, plugin_name):
     # only do this if there isn't a plugin already with the name
@@ -1708,6 +1807,7 @@ def settings_report_enable(request, plugin_name):
         plugin.save()
     return redirect('settings_reports')
 
+
 @login_required
 def api_keys(request):
     user = request.user
@@ -1716,8 +1816,9 @@ def api_keys(request):
         return redirect(index)
 
     api_keys = ApiKey.objects.all()
-    c = {'user':request.user, 'api_keys':api_keys, 'request':request}
+    c = {'user': request.user, 'api_keys': api_keys, 'request': request}
     return render(request, 'server/api_keys.html', c)
+
 
 @login_required
 def new_api_key(request):
@@ -1737,6 +1838,7 @@ def new_api_key(request):
         return redirect(index)
     return render(request, 'forms/new_api_key.html', c)
 
+
 @login_required
 def display_api_key(request, key_id):
     user = request.user
@@ -1749,8 +1851,9 @@ def display_api_key(request, key_id):
     else:
         api_key.has_been_seen = True
         api_key.save()
-        c = {'user':request.user, 'api_key':api_key, 'request':request}
+        c = {'user': request.user, 'api_key': api_key, 'request': request}
         return render(request, 'server/api_key_display.html', c)
+
 
 @login_required
 def edit_api_key(request, key_id):
@@ -1769,12 +1872,13 @@ def edit_api_key(request, key_id):
             return redirect(api_keys)
     else:
         form = ApiKeyForm(instance=api_key)
-    c = {'form': form, 'api_key':api_key}
+    c = {'form': form, 'api_key': api_key}
     user = request.user
     user_level = user.userprofile.level
     if user_level != 'GA':
         return redirect(index)
     return render(request, 'forms/edit_api_key.html', c)
+
 
 @login_required
 def delete_api_key(request, key_id):
@@ -1787,6 +1891,8 @@ def delete_api_key(request, key_id):
     return redirect(api_keys)
 
 # preflight
+
+
 @csrf_exempt
 @key_auth_required
 def preflight(request):
@@ -1798,6 +1904,8 @@ def preflight(request):
     return HttpResponse(json.dumps(output))
 
 # It's the new preflight (woo)
+
+
 @csrf_exempt
 @key_auth_required
 def preflight_v2(request):
@@ -1807,7 +1915,8 @@ def preflight_v2(request):
     # Build the manager
     manager = PluginManager()
     # Tell it the default place(s) where to find plugins
-    manager.setPluginPlaces([settings.PLUGIN_DIR, os.path.join(settings.PROJECT_DIR, 'server/plugins')])
+    manager.setPluginPlaces([settings.PLUGIN_DIR, os.path.join(
+        settings.PROJECT_DIR, 'server/plugins')])
     # Load all plugins
     manager.collectPlugins()
     output = []
@@ -1844,13 +1953,16 @@ def preflight_v2(request):
     return HttpResponse(json.dumps(output))
 
 # Get script for plugin
+
+
 @csrf_exempt
 @key_auth_required
 def preflight_v2_get_script(request, pluginName, scriptName):
     # Build the manager
     manager = PluginManager()
     # Tell it the default place(s) where to find plugins
-    manager.setPluginPlaces([settings.PLUGIN_DIR, os.path.join(settings.PROJECT_DIR, 'server/plugins')])
+    manager.setPluginPlaces([settings.PLUGIN_DIR, os.path.join(
+        settings.PROJECT_DIR, 'server/plugins')])
     # Load all plugins
     manager.collectPlugins()
     output = []
@@ -1862,6 +1974,8 @@ def preflight_v2_get_script(request, pluginName, scriptName):
             break
     return HttpResponse(json.dumps(output))
 # checkin
+
+
 @csrf_exempt
 @key_auth_required
 def checkin(request):
@@ -1917,7 +2031,7 @@ def checkin(request):
         machine.broken_client = True
         machine.save()
         return HttpResponse("Broken Client report submmitted for %s"
-                        % data.get('serial'))
+                            % data.get('serial'))
     else:
         machine.broken_client = False
 
@@ -1969,7 +2083,8 @@ def checkin(request):
     if machine.hd_total == 0:
         machine.hd_percent = 0
     else:
-        machine.hd_percent = int(round(((float(machine.hd_total)-float(machine.hd_space))/float(machine.hd_total))*100))
+        machine.hd_percent = int(
+            round(((float(machine.hd_total)-float(machine.hd_space))/float(machine.hd_total))*100))
     machine.munki_version = report_data.get('ManagedInstallVersion') or 0
     hwinfo = {}
     # macOS System Profiler
@@ -2056,7 +2171,8 @@ def checkin(request):
             update_name = update.get('name')
             version = str(update['version_to_install'])
             if version:
-                pending_update = PendingUpdate(machine=machine, display_name=display_name, update_version=version, update=update_name)
+                pending_update = PendingUpdate(
+                    machine=machine, display_name=display_name, update_version=version, update=update_name)
                 if IS_POSTGRES:
                     pending_update_to_save.append(pending_update)
                 else:
@@ -2064,9 +2180,10 @@ def checkin(request):
                 # Let's handle some of those lovely pending installs into the UpdateHistory Model
                 try:
                     update_history = UpdateHistory.objects.get(name=update_name,
-                    version=version, machine=machine, update_type='third_party')
+                                                               version=version, machine=machine, update_type='third_party')
                 except UpdateHistory.DoesNotExist:
-                    update_history = UpdateHistory(name=update_name, version=version, machine=machine, update_type='third_party')
+                    update_history = UpdateHistory(
+                        name=update_name, version=version, machine=machine, update_type='third_party')
                     update_history.save()
 
                 if update_history.pending_recorded == False:
@@ -2126,24 +2243,27 @@ def checkin(request):
             update_name = update.get('name')
             version = str(update['version_to_install'])
             try:
-                pending_update = PendingAppleUpdate.objects.get(machine=machine, display_name=display_name, update_version=version, update=update_name)
+                pending_update = PendingAppleUpdate.objects.get(
+                    machine=machine, display_name=display_name, update_version=version, update=update_name)
             except PendingAppleUpdate.DoesNotExist:
-                pending_update = PendingAppleUpdate(machine=machine, display_name=display_name, update_version=version, update=update_name)
+                pending_update = PendingAppleUpdate(
+                    machine=machine, display_name=display_name, update_version=version, update=update_name)
                 pending_update.save()
             # Let's handle some of those lovely pending installs into the UpdateHistory Model
             try:
-                update_history = UpdateHistory.objects.get(name=update_name, version=version, machine=machine, update_type='apple')
+                update_history = UpdateHistory.objects.get(
+                    name=update_name, version=version, machine=machine, update_type='apple')
             except UpdateHistory.DoesNotExist:
-                update_history = UpdateHistory(name=update_name, version=version, machine=machine, update_type='apple')
+                update_history = UpdateHistory(
+                    name=update_name, version=version, machine=machine, update_type='apple')
                 update_history.save()
 
             if update_history.pending_recorded == False:
-                update_history_item = UpdateHistoryItem(update_history=update_history, status='pending', recorded=now, uuid=uuid)
+                update_history_item = UpdateHistoryItem(
+                    update_history=update_history, status='pending', recorded=now, uuid=uuid)
                 update_history_item.save()
                 update_history.pending_recorded = True
                 update_history.save()
-
-
 
     # if Facter data is submitted, we need to first remove any existing facts for this machine
     if IS_POSTGRES:
@@ -2172,19 +2292,19 @@ def checkin(request):
                 if skip == True:
                     continue
                 facts_to_be_created.append(
-                            Fact(
-                                machine=machine,
-                                fact_data=fact_data,
-                                fact_name=fact_name
-                                )
-                            )
+                    Fact(
+                        machine=machine,
+                        fact_data=fact_data,
+                        fact_name=fact_name
+                    )
+                )
                 if fact_name in historical_facts:
                     historical_facts_to_be_created.append(
                         HistoricalFact(
                             machine=machine,
                             fact_data=fact_data,
                             fact_name=fact_name
-                            )
+                        )
                     )
             Fact.objects.bulk_create(facts_to_be_created)
             if len(historical_facts_to_be_created) != 0:
@@ -2231,7 +2351,7 @@ def checkin(request):
                 if machine.os_family == 'Windows':
                     # We had a little trouble parsing out facts on Windows, clean up here
                     if fact_name.startswith('value=>'):
-                        fact_name = fact_name.replace('value=>','', 1)
+                        fact_name = fact_name.replace('value=>', '', 1)
 
                 # does fact exist already?
                 found = False
@@ -2261,7 +2381,8 @@ def checkin(request):
                     fact.save()
 
                 if fact_name in historical_facts:
-                    fact = HistoricalFact(machine=machine, fact_name=fact_name, fact_data=fact_data, fact_recorded=datetime.now())
+                    fact = HistoricalFact(machine=machine, fact_name=fact_name,
+                                          fact_data=fact_data, fact_recorded=datetime.now())
                     fact.save()
 
     if IS_POSTGRES:
@@ -2317,13 +2438,15 @@ def checkin(request):
                             condition.save()
                             break
                 if found == False:
-                    condition = Condition(machine=machine, condition_name=condition_name, condition_data=utils.safe_unicode(condition_data))
+                    condition = Condition(machine=machine, condition_name=condition_name,
+                                          condition_data=utils.safe_unicode(condition_data))
                     condition.save()
 
     utils.run_plugin_processing(machine, report_data)
     utils.get_version_number()
     return HttpResponse("Sal report submmitted for %s"
                         % data.get('name'))
+
 
 @csrf_exempt
 @key_auth_required
@@ -2340,33 +2463,34 @@ def install_log_hash(request, serial):
         return HttpResponse("MACHINE NOT FOUND")
     return HttpResponse(sha256hash)
 
+
 def process_update_item(name, version, update_type, action, recorded, machine, uuid, extra=None):
     # Get a parent update history item, or create one
     try:
         update_history = UpdateHistory.objects.get(name=name,
-        version=version,
-        update_type=update_type,
-        machine=machine)
+                                                   version=version,
+                                                   update_type=update_type,
+                                                   machine=machine)
     except UpdateHistory.DoesNotExist:
         update_history = UpdateHistory(name=name,
-        version=version,
-        update_type=update_type,
-        machine=machine)
+                                       version=version,
+                                       update_type=update_type,
+                                       machine=machine)
         update_history.save()
 
     # Now make sure it's not already in there
     try:
         update_history_item = UpdateHistoryItem.objects.get(
-        recorded=recorded,
-        status=action,
-        update_history=update_history
+            recorded=recorded,
+            status=action,
+            update_history=update_history
         )
     except UpdateHistoryItem.DoesNotExist:
         # Make one if it doesn't exist
         update_history_item = UpdateHistoryItem(
-        recorded=recorded,
-        status=action,
-        update_history=update_history)
+            recorded=recorded,
+            status=action,
+            update_history=update_history)
         update_history_item.save()
         if extra:
             update_history_item.extra = extra
@@ -2376,17 +2500,17 @@ def process_update_item(name, version, update_type, action, recorded, machine, u
             # Make sure there has't been a pending in the same sal run
             # Remove them if there are
             remove_items = UpdateHistoryItem.objects.filter(uuid=uuid,
-            status='pending', update_history=update_history)
+                                                            status='pending', update_history=update_history)
             remove_items.delete()
             update_history.pending_recorded = False
             update_history.save()
+
 
 @csrf_exempt
 @key_auth_required
 def install_log_submit(request):
     if request.method != 'POST':
         return HttpResponseNotFound('No POST data sent')
-
 
     submission = request.POST
     serial = submission.get('serial')
@@ -2404,7 +2528,7 @@ def install_log_submit(request):
         if machine_group.id != machine.machine_group.id:
             return HttpResponseNotFound('No machine group found')
 
-        compressed_log= submission.get('base64bz2installlog')
+        compressed_log = submission.get('base64bz2installlog')
         if compressed_log:
             compressed_log = compressed_log.replace(" ", "+")
             log_str = utils.decode_to_string(compressed_log)
@@ -2418,9 +2542,9 @@ def install_log_submit(request):
                     try:
                         if m.group(3) == 'SUCCESSFUL':
                             the_date = dateutil.parser.parse(m.group(1))
-                            (name, version) = m.group(2).rsplit('-',1)
+                            (name, version) = m.group(2).rsplit('-', 1)
                             process_update_item(name, version, 'third_party', 'install', the_date,
-                            machine, uuid)
+                                                machine, uuid)
                             # We've processed this line, move on
                             continue
 
@@ -2431,10 +2555,10 @@ def install_log_submit(request):
                 if m:
                     try:
                         the_date = dateutil.parser.parse(m.group(1))
-                        (name, version) = m.group(2).rsplit('-',1)
+                        (name, version) = m.group(2).rsplit('-', 1)
                         extra = m.group(3)
                         process_update_item(name, version, 'third_party', 'error', the_date,
-                        machine, uuid, extra)
+                                            machine, uuid, extra)
                         # We've processed this line, move on
                         continue
 
@@ -2451,7 +2575,7 @@ def install_log_submit(request):
                             name = m.group(2)
                             version = ''
                             process_update_item(name, version, 'third_party', 'removal', the_date,
-                            machine, uuid)
+                                                machine, uuid)
                             # We've processed this line, move on
                             continue
 
@@ -2462,10 +2586,10 @@ def install_log_submit(request):
                 if m:
                     try:
                         the_date = dateutil.parser.parse(m.group(1))
-                        (name, version) = m.group(2).rsplit('-',1)
+                        (name, version) = m.group(2).rsplit('-', 1)
                         extra = m.group(3)
                         process_update_item(name, version, 'third_party', 'error', the_date,
-                        machine, uuid, extra)
+                                            machine, uuid, extra)
                         # We've processed this line, move on
                         continue
 
@@ -2478,9 +2602,9 @@ def install_log_submit(request):
                     try:
                         if m.group(3) == 'FAILED':
                             the_date = dateutil.parser.parse(m.group(1))
-                            (name, version) = m.group(2).rsplit('-',1)
+                            (name, version) = m.group(2).rsplit('-', 1)
                             process_update_item(name, version, 'apple', 'install', the_date,
-                            machine, uuid)
+                                                machine, uuid)
                             # We've processed this line, move on
                             continue
 
@@ -2492,10 +2616,10 @@ def install_log_submit(request):
                 if m:
                     try:
                         the_date = dateutil.parser.parse(m.group(1))
-                        (name, version) = m.group(2).rsplit('-',1)
+                        (name, version) = m.group(2).rsplit('-', 1)
                         extra = m.group(3)
                         process_update_item(name, version, 'apple', 'error', the_date,
-                        machine, uuid, extra)
+                                            machine, uuid, extra)
                         # We've processed this line, move on
                         continue
 

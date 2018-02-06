@@ -19,11 +19,13 @@ from django.db.models import Q
 
 class Command(BaseCommand):
     help = 'Cleans up old searches and rebuilds search fields cache'
+
     def add_arguments(self, parser):
         parser.add_argument('sleep_time', type=int, nargs='?', default=0)
 
     def handle(self, *args, **options):
-        old_searches = SavedSearch.objects.filter(created__lt=datetime.datetime.today()-datetime.timedelta(days=30), save_search=False)
+        old_searches = SavedSearch.objects.filter(
+            created__lt=datetime.datetime.today()-datetime.timedelta(days=30), save_search=False)
         old_searches.delete()
 
         search_fields = []
@@ -48,7 +50,8 @@ class Command(BaseCommand):
 
         facts = Fact.objects.values('fact_name').distinct()
         conditions = Condition.objects.values('condition_name').distinct()
-        plugin_sript_rows = PluginScriptRow.objects.values('pluginscript_name', 'submission__plugin').distinct()
+        plugin_sript_rows = PluginScriptRow.objects.values(
+            'pluginscript_name', 'submission__plugin').distinct()
         app_versions = Application.objects.values('name', 'bundleid').distinct()
 
         old_cache = SearchFieldCache.objects.all()
@@ -67,26 +70,28 @@ class Command(BaseCommand):
                 cached_item.save()
 
         for condition in conditions:
-            cached_item = SearchFieldCache(search_model='Condition', search_field=condition['condition_name'])
+            cached_item = SearchFieldCache(search_model='Condition',
+                                           search_field=condition['condition_name'])
             search_fields.append(cached_item)
             if server.utils.is_postgres() == False:
                 cached_item.save()
 
         for row in plugin_sript_rows:
-            string = '%s=>%s' %(row['submission__plugin'], row['pluginscript_name'])
+            string = '%s=>%s' % (row['submission__plugin'], row['pluginscript_name'])
             cached_item = SearchFieldCache(search_model='External Script', search_field=string)
             search_fields.append(cached_item)
             if server.utils.is_postgres() == False:
                 cached_item.save()
 
         for inventory_field in inventory_fields:
-            cached_item = SearchFieldCache(search_model='Application Inventory', search_field=inventory_field)
+            cached_item = SearchFieldCache(
+                search_model='Application Inventory', search_field=inventory_field)
             search_fields.append(cached_item)
             if server.utils.is_postgres() == False:
                 cached_item.save()
 
         for app in app_versions:
-            string = '%s=>%s' %(app['name'], app['bundleid'])
+            string = '%s=>%s' % (app['name'], app['bundleid'])
             cached_item = SearchFieldCache(search_model='Application Version', search_field=string)
             search_fields.append(cached_item)
             if server.utils.is_postgres() == False:
@@ -102,7 +107,8 @@ class Command(BaseCommand):
             if inactive_undeploy > 0:
                 now = django.utils.timezone.now()
                 inactive_days = now - timedelta(days=inactive_undeploy)
-                machines_to_inactive = Machine.deployed_objects.all().filter(last_checkin__lte=inactive_days).update(deployed=False)
+                machines_to_inactive = Machine.deployed_objects.all().filter(
+                    last_checkin__lte=inactive_days).update(deployed=False)
         except:
             pass
 
@@ -132,13 +138,14 @@ class Command(BaseCommand):
             qs = Q()
             for query in queries:
                 qs = qs | query
-                
+
             conditions = Condition.objects.filter(qs)
             for condition in conditions:
-                cached_item = SearchCache(machine=condition.machine, search_item=condition.condition_data)
+                cached_item = SearchCache(machine=condition.machine,
+                                          search_item=condition.condition_data)
                 items_to_be_inserted.append(cached_item)
                 if server.utils.is_postgres() == False:
-                    cached_item.save()       
+                    cached_item.save()
 
         if server.utils.is_postgres() == True and items_to_be_inserted != []:
             SearchCache.objects.bulk_create(items_to_be_inserted)

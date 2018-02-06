@@ -143,7 +143,6 @@ class DatatableMixin(DatatableJSONResponseMixin, MultipleObjectMixin):
                 kwargs[k] = v
         return kwargs
 
-
     # Runtime per-object hook
     def preload_record_data(self, obj):
         return {}

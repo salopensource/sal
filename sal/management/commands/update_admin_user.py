@@ -6,20 +6,22 @@ from django.core.management.base import BaseCommand, CommandError
 from django.contrib.auth.models import User
 from optparse import make_option
 
+
 class Command(BaseCommand):
     help = 'Creates/Updates an Admin user'
+
     def add_arguments(self, parser):
         parser.add_argument('--username',
-                action='store',
-                dest='username',
-                default=None,
-                help='Admin username')
+                            action='store',
+                            dest='username',
+                            default=None,
+                            help='Admin username')
 
         parser.add_argument('--password',
-                action='store',
-                dest='password',
-                default=None,
-                help='Admin password')
+                            action='store',
+                            dest='password',
+                            default=None,
+                            help='Admin password')
 
     def handle(self, *args, **options):
         username = options.get('username')

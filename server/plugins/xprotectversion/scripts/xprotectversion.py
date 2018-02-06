@@ -10,7 +10,6 @@ import platform
 from distutils.version import LooseVersion
 
 
-
 def main():
     plist_path = '/System/Library/CoreServices/CoreTypes.bundle/Contents/Resources/XProtect.meta.plist'
     if os.path.exists(plist_path):
@@ -33,6 +32,7 @@ def main():
     result['data'] = data
     plist.append(result)
     FoundationPlist.writePlist(plist, plist_path)
+
 
 if __name__ == '__main__':
     main()

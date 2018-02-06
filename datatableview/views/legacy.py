@@ -28,6 +28,7 @@ DEFAULT_OPTIONS = {
     'result_counter_id': 'id_count',  # HTML element ID to display the total results
 }
 
+
 def get_field_definition(field_definition):
     """ Normalizes a field definition into its component parts, even if some are missing. """
     if not isinstance(field_definition, (tuple, list)):
@@ -102,4 +103,3 @@ class LegacyDatatableView(LegacyDatatableMixin, ListView):
     """
     Implements :py:class:`LegacyDatatableMixin` and the standard Django ``ListView``.
     """
-

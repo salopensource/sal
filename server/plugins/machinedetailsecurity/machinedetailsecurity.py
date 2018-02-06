@@ -25,15 +25,20 @@ class MachineDetailSecurity(IPlugin):
         t = loader.get_template('machinedetailsecurity/templates/machinedetailsecurity.html')
 
         try:
-            fv_status = PluginScriptRow.objects.filter(submission__machine=machines, submission__plugin__exact='MachineDetailSecurity',
-                                                       pluginscript_name__exact='Filevault').order_by('submission__recorded').first()
+            fv_status = PluginScriptRow.objects.filter(submission__machine=machines,
+                            submission__plugin__exact='MachineDetailSecurity',
+                                    pluginscript_name__exact='Filevault').\
+                                    order_by('submission__recorded').first()
             fv_status = fv_status.pluginscript_data
         except Exception:
             fv_status = 'Unknown'
 
         try:
             sip_status = PluginScriptRow.objects.filter(
-                submission__machine=machines, submission__plugin__exact='MachineDetailSecurity', pluginscript_name__exact='SIP', pluginscript_data__exact='Disabled')
+                submission__machine=machines,
+                submission__plugin__exact='MachineDetailSecurity',
+                pluginscript_name__exact='SIP',
+                pluginscript_data__exact='Disabled')
             if len(sip_status) != 0:
                 sip_status = 'Disabled'
             else:
@@ -44,7 +49,10 @@ class MachineDetailSecurity(IPlugin):
 
         try:
             gatekeeper_status = PluginScriptRow.objects.filter(
-                submission__machine=machines, submission__plugin__exact='MachineDetailSecurity', pluginscript_name__exact='Gatekeeper').order_by('submission__recorded').first()
+                submission__machine=machines,
+                submission__plugin__exact='MachineDetailSecurity',
+                pluginscript_name__exact='Gatekeeper').\
+                order_by('submission__recorded').first()
             gatekeeper_status = gatekeeper_status.pluginscript_data
         except Exception:
             gatekeeper_status = 'Unknown'
@@ -58,7 +66,6 @@ class MachineDetailSecurity(IPlugin):
         return t.render(c)
 
     def filter_machines(self, machines, data):
-        # You will be passed a QuerySet of machines, you then need to perform some filtering based on the 'data' part of the url from the show_widget output. Just return your filtered list of machines and the page title.
 
         machines = machines.filter(operating_system__exact=data)
 

@@ -1,5 +1,5 @@
 [flake8]
-# ignore = E226,E302,E41
+ignore = F401,F405,E402,F403
 max-line-length = 100
-exclude = venv/*
-max-complexity = 10
+exclude = venv/*,watson/*,*/migrations/*,wip_plugins/*
+max-complexity = 20

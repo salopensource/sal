@@ -23,7 +23,6 @@ class BusinessUnitSerializer(serializers.ModelSerializer):
 
 
 class MachineGroupSerializer(serializers.ModelSerializer):
-    #business_unit = BusinessUnitSerializer()
     class Meta:
         model = MachineGroup
         fields = '__all__'

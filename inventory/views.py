@@ -28,7 +28,7 @@ from models import Application, Inventory, InventoryItem, Machine
 from server import utils
 from server.models import SalSetting
 from sal.decorators import *
-from server.models import BusinessUnit, MachineGroup, Machine
+from server.models import BusinessUnit, MachineGroup, Machine  # noqa: F811
 
 
 class GroupMixin(object):

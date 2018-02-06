@@ -82,7 +82,8 @@ def quick_search(machines, query_string):
     for query in queries:
         qs = qs | query
 
-    return machines.filter(qs).values('id', 'serial', 'hostname', 'console_user', 'last_checkin').distinct()
+    return machines.filter(qs).\
+        values('id', 'serial', 'hostname', 'console_user', 'last_checkin').distinct()
 
 # All saved searches
 
@@ -104,7 +105,6 @@ def search_machines(search_id, machines, full=False):
     saved_search = get_object_or_404(SavedSearch, pk=search_id)
     search_groups = saved_search.searchgroup_set.all()
     queries = Q()
-    queries_list = []
     search_group_counter = 0
     for search_group in search_groups:
         if search_group_counter != 0:
@@ -114,7 +114,6 @@ def search_machines(search_id, machines, full=False):
 
         search_row_counter = 0
         row_queries = Q()
-        row_queries_list = []
         for search_row in search_group.searchrow_set.all():
             if search_row_counter != 0:
                 row_operator = search_row.and_or
@@ -148,7 +147,6 @@ def search_machines(search_id, machines, full=False):
                     q_object = ~Q(**querystring)
             elif search_row.search_models == 'Facter':
                 model = Fact
-                prepend = 'facts__'
                 querystring = {
                     'facts__fact_name': search_row.search_field,
                     'facts__fact_data%s' % (operator): search_row.search_term
@@ -176,7 +174,7 @@ def search_machines(search_id, machines, full=False):
                 elif search_row.search_field == 'Bundle ID':
                     search_field = 'bundleid'
                 querystring = {
-                    'inventoryitem__application__%s%s' % (search_field, operator): search_row.search_term
+                    'inventoryitem__application__%s%s' % (search_field, operator): search_row.search_term  # noqa: E501
                 }
 
                 if operator != '':
@@ -192,8 +190,8 @@ def search_machines(search_id, machines, full=False):
                 submission_and_script_name = '%s: %s' % (plugin_name, row)
                 querystring = {
 
-                    'pluginscriptsubmission__pluginscriptrow__submission_and_script_name': submission_and_script_name,
-                    'pluginscriptsubmission__pluginscriptrow__pluginscript_data%s' % (operator): search_row.search_term
+                    'pluginscriptsubmission__pluginscriptrow__submission_and_script_name': submission_and_script_name,  # noqa: E501
+                    'pluginscriptsubmission__pluginscriptrow__pluginscript_data%s' % (operator): search_row.search_term  # noqa: E501
                 }
                 if operator != '':
                     q_object = Q(**querystring)
@@ -203,7 +201,7 @@ def search_machines(search_id, machines, full=False):
 
             elif search_row.search_models == 'Application Version':
 
-                model = InventoryItem
+                model = InventoryItem  # noqa: F841
                 app_name, bundleid = search_row.search_field.split('=>')
                 querystring = {
                     'inventoryitem__application__name': app_name,
@@ -217,7 +215,7 @@ def search_machines(search_id, machines, full=False):
                     q_object = ~Q(**querystring)
 
             # Add a row operator if needed
-            if row_operator != None:
+            if row_operator is not None:
                 if row_operator == 'AND':
                     row_queries.add(q_object, Q.AND)
 
@@ -228,7 +226,7 @@ def search_machines(search_id, machines, full=False):
                 # row_queries.add(q_object, Q.AND)
                 row_queries = q_object
 
-        if group_operator != None:
+        if group_operator is not None:
             if group_operator == 'AND':
                 queries.add(row_queries, Q.AND)
             elif group_operator == 'OR':
@@ -240,7 +238,7 @@ def search_machines(search_id, machines, full=False):
         search_group_counter = search_group_counter + 1
     print queries
 
-    if full == True:
+    if full:
         machines = machines.filter(queries).distinct()
     else:
         machines = machines.filter(queries).values(

@@ -30,6 +30,10 @@ RUN apt-get update && \
     python-dev \
     curl \
     supervisor \
+    libsasl2-dev \
+    python-dev \
+    libldap2-dev \
+    libssl-dev \
     libffi-dev && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*

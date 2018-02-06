@@ -3,8 +3,8 @@ import sys
 reload(sys)
 sys.setdefaultencoding('utf8')
 from server.models import *
-from api.serializers import *
-from auth import *
+from api.v1.serializers import *
+from api.auth import *
 from search.views import *
 from django.http import Http404
 from rest_framework.views import APIView

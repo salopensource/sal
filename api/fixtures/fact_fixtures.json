@@ -1,0 +1,20 @@
+[
+    {
+        "fields": {
+            "fact_data": "464.79 GiB",
+            "fact_name": "mountpoints=>/=>size",
+            "machine": 1
+        },
+        "model": "server.fact",
+        "pk": 1
+    },
+    {
+        "fields": {
+            "fact_data": "1500",
+            "fact_name": "networking=>interfaces=>en0=>mtu",
+            "machine": 1
+        },
+        "model": "server.fact",
+        "pk": 151681726
+    }
+]

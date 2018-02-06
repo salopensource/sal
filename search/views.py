@@ -575,7 +575,13 @@ def export_csv(request, search_id):
     header_row = []
     fields = Machine._meta.get_fields()
     for field in fields:
-        if not field.is_relation and field.name != 'id' and field.name != 'report' and field.name != 'activity' and field.name != 'os_family' and field.name != 'install_log' and field.name != 'install_log_hash':
+        if not field.is_relation and \
+        field.name != 'id' \
+        and field.name != 'report' \
+        and field.name != 'activity' \
+        and field.name != 'os_family' \
+        and field.name != 'install_log' \
+        and field.name != 'install_log_hash':
             header_row.append(field.name)
 
     facter_headers = []

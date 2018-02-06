@@ -29,7 +29,7 @@ class XprotectVersion(IPlugin):
         try:
             xprotect_info = machines.filter(pluginscriptsubmission__plugin__exact='XprotectVersion', pluginscriptsubmission__pluginscriptrow__pluginscript_name__exact='Version').annotate(
                 xprotect_version=F('pluginscriptsubmission__pluginscriptrow__pluginscript_data')).values('xprotect_version').annotate(count=Count('xprotect_version')).order_by('xprotect_version')
-        except:
+        except Exception:
             xprotect_info = []
 
         c = Context({

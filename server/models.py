@@ -147,18 +147,18 @@ class Machine(models.Model):
         try:
             plist = plistlib.readPlistFromString(data)
             return plist
-        except:
+        except Exception:
             try:
                 plist = plistlib.readPlistFromString(data.encode('UTF-8'))
                 return plist
-            except:
+            except Exception:
                 try:
                     if self.report_format == 'base64bz2':
                         return self.b64bz_decode(data)
                     elif self.report_format == 'base64':
                         return self.b64_decode(data)
 
-                except:
+                except Exception:
                     return dict()
 
     def b64bz_decode(self, data):
@@ -195,7 +195,7 @@ class Machine(models.Model):
                 plist = self.b64_decode(encoded_report)
             self.report = plistlib.writePlistToString(plist)
             self.report_format = report_format
-        except:
+        except Exception:
             plist = None
             self.report = ''
 
@@ -363,17 +363,17 @@ class PluginScriptRow(models.Model):
     def save(self):
         try:
             self.pluginscript_data_int = int(self.pluginscript_data)
-        except:
+        except Exception:
             self.pluginscript_data_int = 0
 
         try:
             self.pluginscript_data_string = str(self.pluginscript_data)
-        except:
+        except Exception:
             self.pluginscript_data_string = ""
 
         try:
             self.pluginscript_data_date = parse(self.pluginscript_data)
-        except:
+        except Exception:
             # Try converting it to an int if we're here
             try:
                 if int(self.pluginscript_data) != 0:
@@ -381,11 +381,11 @@ class PluginScriptRow(models.Model):
                     try:
                         self.pluginscript_data_date = datetime.fromtimestamp(
                             int(self.pluginscript_data))
-                    except:
+                    except Exception:
                         self.pluginscript_data_date = None
                 else:
                     self.pluginscript_data_date = None
-            except:
+            except Exception:
                 self.pluginscript_data_date = None
 
         super(PluginScriptRow, self).save()

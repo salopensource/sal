@@ -28,7 +28,7 @@ class MachineDetailSecurity(IPlugin):
             fv_status = PluginScriptRow.objects.filter(submission__machine=machines, submission__plugin__exact='MachineDetailSecurity',
                                                        pluginscript_name__exact='Filevault').order_by('submission__recorded').first()
             fv_status = fv_status.pluginscript_data
-        except:
+        except Exception:
             fv_status = 'Unknown'
 
         try:
@@ -39,14 +39,14 @@ class MachineDetailSecurity(IPlugin):
             else:
                 sip_status = 'Enabled'
             # sip_status = sip_status.pluginscript_data
-        except:
+        except Exception:
             sip_status = 'Unknown'
 
         try:
             gatekeeper_status = PluginScriptRow.objects.filter(
                 submission__machine=machines, submission__plugin__exact='MachineDetailSecurity', pluginscript_name__exact='Gatekeeper').order_by('submission__recorded').first()
             gatekeeper_status = gatekeeper_status.pluginscript_data
-        except:
+        except Exception:
             gatekeeper_status = 'Unknown'
 
         c = Context({

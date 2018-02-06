@@ -33,7 +33,7 @@ class SalScriptsVersion(IPlugin):
         try:
             sal_info = machines.values('sal_version').exclude(sal_version__isnull=True).annotate(
                 count=Count('sal_version')).order_by('sal_version')
-        except:
+        except Exception:
             sal_info = []
 
         c = Context({

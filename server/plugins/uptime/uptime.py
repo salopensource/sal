@@ -50,7 +50,7 @@ class Uptime(IPlugin):
                 not_alert_range.append(str(i))
             alert = machines.filter(pluginscriptsubmission__plugin__exact='Uptime', pluginscriptsubmission__pluginscriptrow__pluginscript_name__exact='UptimeDays').exclude(
                 pluginscriptsubmission__pluginscriptrow__pluginscript_data__in=not_alert_range).count()
-        except:
+        except Exception:
             ok = 0
             warning = 0
             alert = 0

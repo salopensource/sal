@@ -64,7 +64,7 @@ class MunkiInfo(IPlugin):
             package_url_prefix = 'package_urls?URL='
             for url in package_urls:
                 url['item_link'] = package_url_prefix + urllib.quote(url['pluginscript_data'])
-        except:
+        except Exception:
             package_urls = None
 
         # Distinct Manifest URLs
@@ -75,7 +75,7 @@ class MunkiInfo(IPlugin):
             for url in manifest_urls:
                 url['item_link'] = manifest_url_prefix + urllib.quote(url['pluginscript_data'])
 
-        except:
+        except Exception:
             manifest_urls = None
 
         # Distinct Catalog URLs
@@ -86,7 +86,7 @@ class MunkiInfo(IPlugin):
             for url in catalog_urls:
                 url['item_link'] = catalog_url_prefix + urllib.quote(url['pluginscript_data'])
 
-        except:
+        except Exception:
             catalog_urls = None
 
         # Machines using the default repo url
@@ -119,7 +119,7 @@ class MunkiInfo(IPlugin):
             try:
                 machines = machines.filter(pluginscriptsubmission__plugin='MunkiInfo', pluginscriptsubmission__pluginscriptrow__pluginscript_name='SoftwareRepoURL',
                                            pluginscriptsubmission__pluginscriptrow__pluginscript_data__startswith='http://')
-            except:
+            except Exception:
                 machines = None
             title = 'Machines using HTTP'
 
@@ -127,7 +127,7 @@ class MunkiInfo(IPlugin):
             try:
                 machines = machines.filter(pluginscriptsubmission__plugin='MunkiInfo', pluginscriptsubmission__pluginscriptrow__pluginscript_name='SoftwareRepoURL',
                                            pluginscriptsubmission__pluginscriptrow__pluginscript_data__startswith='https://')
-            except:
+            except Exception:
                 machines = None
             title = 'Machines using HTTPS'
 
@@ -135,7 +135,7 @@ class MunkiInfo(IPlugin):
             try:
                 machines = machines.filter(pluginscriptsubmission__plugin='MunkiInfo', pluginscriptsubmission__pluginscriptrow__pluginscript_name='SoftwareRepoURL',
                                            pluginscriptsubmission__pluginscriptrow__pluginscript_data__exact='http://munki')
-            except:
+            except Exception:
                 machines = None
             title = 'Machines connecting to Munki using http://munki'
 
@@ -143,7 +143,7 @@ class MunkiInfo(IPlugin):
             try:
                 machines = machines.filter(pluginscriptsubmission__plugin='MunkiInfo', pluginscriptsubmission__pluginscriptrow__pluginscript_name='UseClientCertificate',
                                            pluginscriptsubmission__pluginscriptrow__pluginscript_data='True')
-            except:
+            except Exception:
                 machines = None
             title = 'Machines connecting to Munki using client certificates'
 
@@ -156,7 +156,7 @@ class MunkiInfo(IPlugin):
 
                 machines = machines.filter(pluginscriptsubmission__plugin='MunkiInfo', pluginscriptsubmission__pluginscriptrow__pluginscript_name='SoftwareRepoURL',
                                            pluginscriptsubmission__pluginscriptrow__pluginscript_data__exact=url)
-            except:
+            except Exception:
                 machines = None
             title = 'Machines using %s' % url
 
@@ -169,7 +169,7 @@ class MunkiInfo(IPlugin):
 
                 machines = machines.filter(pluginscriptsubmission__plugin='MunkiInfo', pluginscriptsubmission__pluginscriptrow__pluginscript_name='ManifestURL',
                                            pluginscriptsubmission__pluginscriptrow__pluginscript_data__exact=url)
-            except:
+            except Exception:
                 machines = None
             title = 'Machines using %s' % url
 

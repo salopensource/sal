@@ -11,5 +11,5 @@ class CurrentUserMiddleware(object):
 def get_current_user():
     try:
         return _user.value
-    except:
+    except Exception:
         return None

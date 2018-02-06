@@ -9,7 +9,7 @@ try:
         DEBUG = True
     else:
         DEBUG = False
-except:
+except Exception:
     DEBUG = False
 
 
@@ -19,7 +19,7 @@ try:
         BASIC_AUTH = True
     else:
         BASIC_AUTH = False
-except:
+except Exception:
     BASIC_AUTH = True
 
 # Path to a root ca
@@ -28,7 +28,7 @@ try:
         ROOT_CA = getenv('DOCKER_SAL_ROOT_CA')
     else:
         ROOT_CA = None
-except:
+except Exception:
     ROOT_CA = None
 
 # Read list of admins from $DOCKER_SAL_ADMINS env var
@@ -95,7 +95,7 @@ try:
         ADD_TO_ALL_BUSINESS_UNITS = True
     else:
         ADD_TO_ALL_BUSINESS_UNITS = False
-except:
+except Exception:
     ADD_TO_ALL_BUSINESS_UNITS = False
 
 try:
@@ -103,7 +103,7 @@ try:
         CRYPT_URL = getenv('DOCKER_SAL_CRYPT_URL')
     else:
         CRYPT_URL = None
-except:
+except Exception:
     CRYPT_URL = None
 
 
@@ -113,7 +113,7 @@ try:
         SSH_ACCOUNT = getenv('DOCKER_SAL_SSH_ACCOUNT')
     else:
         SSH_ACCOUNT = None
-except:
+except Exception:
     SSH_ACCOUNT = None
 
 # Do machines turn to 'deployed' when they check in?
@@ -122,11 +122,11 @@ try:
         DEPLOYED_ON_CHECKIN = True
     else:
         DEPLOYED_ON_CHECKIN = False
-except:
+except Exception:
     DEPLOYED_ON_CHECKIN = False
 
 # How long until machines are inactive before they are considered undeployed?
 try:
     INACTIVE_UNDEPLOYED = int(getenv('DOCKER_SAL_INACTIVE_UNDEPLOYED'))
-except:
+except Exception:
     INACTIVE_UNDEPLOYED = 0

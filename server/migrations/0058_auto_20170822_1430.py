@@ -31,7 +31,7 @@ def update_os_families(apps, schema_editor):
 
                 try:
                     supported_os_families = plugin.plugin_object.supported_os_families()
-                except:
+                except Exception:
                     supported_os_families = default_families
                 item.os_families = utils.flatten_and_sort_list(supported_os_families)
                 item.save()

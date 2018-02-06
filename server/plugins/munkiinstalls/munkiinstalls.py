@@ -73,7 +73,7 @@ class MunkiInstalls(IPlugin):
                     status__iexact='install', recorded__range=(the_min, the_max),
                     update_history__machine__in=machines,
                     update_history__update_type='third_party').count()
-            except:
+            except Exception:
                 installs = 0
 
             try:
@@ -81,7 +81,7 @@ class MunkiInstalls(IPlugin):
                     status='error', recorded__range=(the_min, the_max),
                     update_history__machine__in=machines,
                     update_history__update_type='third_party').count()
-            except:
+            except Exception:
                 errors = 0
 
             try:
@@ -89,7 +89,7 @@ class MunkiInstalls(IPlugin):
                     status='pending', update_history__machine__in=machines,
                     recorded__range=(the_min, the_max),
                     update_history__update_type='third_party').count()
-            except:
+            except Exception:
                 pending = 0
 
             my_dict['installs'] = installs

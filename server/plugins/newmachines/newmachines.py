@@ -39,17 +39,17 @@ class NewMachines(IPlugin):
 
         try:
             today = machines.filter(first_checkin__gte=this_day).count()
-        except:
+        except Exception:
             today = 0
 
         try:
             this_week = machines.filter(first_checkin__gte=week_ago).count()
-        except:
+        except Exception:
             this_week = 0
 
         try:
             this_month = machines.filter(first_checkin__gte=month_ago).count()
-        except:
+        except Exception:
             this_month = 0
 
         c = Context({

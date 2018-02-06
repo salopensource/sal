@@ -32,17 +32,17 @@ class DiskSpace(IPlugin):
 
         try:
             disk_ok = machines.filter(hd_percent__lt=80).count()
-        except:
+        except Exception:
             disk_ok = 0
 
         try:
             disk_warning = machines.filter(hd_percent__range=["80", "89"]).count()
-        except:
+        except Exception:
             disk_warning = 0
 
         try:
             disk_alert = machines.filter(hd_percent__gte=90).count()
-        except:
+        except Exception:
             disk_alert = 0
 
         c = Context({

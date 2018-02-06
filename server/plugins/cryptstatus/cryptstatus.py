@@ -31,12 +31,12 @@ class CryptStatus(IPlugin):
         try:
             crypt_url = settings.CRYPT_URL
             crypt_url = crypt_url.rstrip('/')
-        except:
+        except Exception:
             crypt_url = None
 
         try:
             cert = settings.ROOT_CA
-        except:
+        except Exception:
             cert = None
 
         serial = machines.serial
@@ -53,7 +53,7 @@ class CryptStatus(IPlugin):
                 r = requests.get(request_url, verify=verify)
                 if r.status_code == requests.codes.ok:
                     output = r.json()
-            except:
+            except Exception:
                 pass
 
         if output != {}:

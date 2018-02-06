@@ -19,7 +19,6 @@ class SearchRowForm(forms.ModelForm):
 
     skip_fields = [
         'id',
-        'machine_group',
         'report',
         'activity',
         'errors',
@@ -42,7 +41,7 @@ class SearchRowForm(forms.ModelForm):
         super(SearchRowForm, self).__init__(*args, **kwargs)
         try:
             search_group_count = self.search_group.searchrow_set.count()
-        except:
+        except Exception:
             search_group_count = 0
         if search_group_count == 0 and self.search_group:
             self.fields['and_or'] = ChoiceFieldNoValidation(

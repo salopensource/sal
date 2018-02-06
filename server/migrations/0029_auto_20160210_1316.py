@@ -25,11 +25,11 @@ import plistlib
 #
 #         try:
 #             report_data = plistlib.readPlistFromString(report)
-#         except:
+#         except Exception:
 #             try:
 #                 report_data = plistlib.readPlistFromString(
 #                                         report.encode('UTF-8'))
-#             except:
+#             except Exception:
 #                 report_data = {}
 #
 #         if 'ManagedInstalls' in report_data:

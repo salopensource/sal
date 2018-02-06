@@ -16,7 +16,7 @@ class Encryption(IPlugin):
 
         try:
             show_desktops = settings.ENCRYPTION_SHOW_DESKTOPS
-        except:
+        except Exception:
             show_desktops = False
 
         if page == 'front':
@@ -40,25 +40,25 @@ class Encryption(IPlugin):
         try:
             laptop_ok = machines.filter(pluginscriptsubmission__plugin='Encryption', pluginscriptsubmission__pluginscriptrow__pluginscript_name='Filevault',
                                         pluginscriptsubmission__pluginscriptrow__pluginscript_data='Enabled').filter(machine_model__contains='Book').count()
-        except:
+        except Exception:
             laptop_ok = 0
 
         try:
             desktop_ok = machines.filter(pluginscriptsubmission__plugin__exact='Encryption', pluginscriptsubmission__pluginscriptrow__pluginscript_name__exact='Filevault',
                                          pluginscriptsubmission__pluginscriptrow__pluginscript_data__exact='Enabled').exclude(machine_model__contains='Book').count()
-        except:
+        except Exception:
             desktop_ok = 0
 
         try:
             laptop_alert = machines.filter(pluginscriptsubmission__plugin__exact='Encryption', pluginscriptsubmission__pluginscriptrow__pluginscript_name__exact='Filevault',
                                            pluginscriptsubmission__pluginscriptrow__pluginscript_data__exact='Disabled').filter(machine_model__contains='Book').count()
-        except:
+        except Exception:
             laptop_alert = 0
 
         try:
             desktop_alert = machines.filter(pluginscriptsubmission__plugin__exact='Encryption', pluginscriptsubmission__pluginscriptrow__pluginscript_name__exact='Filevault',
                                             pluginscriptsubmission__pluginscriptrow__pluginscript_data__exact='Disabled').exclude(machine_model__contains='Book').count()
-        except:
+        except Exception:
             desktop_alert = 0
 
         c = Context({

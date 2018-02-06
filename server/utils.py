@@ -29,7 +29,7 @@ def csvrelated(header_item, facts, kind):
                 if header_item == 'Facter: ' + fact['fact_name']:
                     found = True
                     return fact['fact_data']
-            except:
+            except Exception:
                 pass
     elif kind == 'condition':
         for condition in facts:
@@ -37,7 +37,7 @@ def csvrelated(header_item, facts, kind):
                 if header_item == 'Munki Condition: ' + condition['condition_name']:
                     found = True
                     return condition['condition_data']
-            except:
+            except Exception:
                 pass
     elif kind == 'pluginscript':
         for pluginscriptrow in facts:
@@ -45,7 +45,7 @@ def csvrelated(header_item, facts, kind):
                 if header_item == pluginscriptrow['submission_and_script_name']:
                     found = True
                     return pluginscriptrow['pluginscript_data']
-            except:
+            except Exception:
                 pass
     if found == False:
         return ''
@@ -133,7 +133,7 @@ def get_version_number():
                 if r.status_code == 200:
                     current_version.value = r.text
                     current_version.save()
-            except:
+            except Exception:
                 return True
 
 
@@ -186,7 +186,7 @@ def run_plugin_processing(machine, report_data):
                 # Not all plugins will have a checkin_processor
                 try:
                     plugin.plugin_object.checkin_processor(machine, report_data)
-                except:
+                except Exception:
                     pass
     # Get all the enabled plugins
     enabled_plugins = Plugin.objects.all()
@@ -196,7 +196,7 @@ def run_plugin_processing(machine, report_data):
             # Not all plugins will have a checkin_processor
             try:
                 plugin.plugin_object.checkin_processor(machine, report_data)
-            except:
+            except Exception:
                 pass
 
     # Get all the enabled plugins
@@ -207,7 +207,7 @@ def run_plugin_processing(machine, report_data):
             # Not all plugins will have a checkin_processor
             try:
                 plugin.plugin_object.checkin_processor(machine, report_data)
-            except:
+            except Exception:
                 pass
 
 
@@ -325,12 +325,12 @@ def reloadPluginsModel():
             if plugin.name == dbplugin.name:
                 try:
                     dbplugin.type = plugin.plugin_object.plugin_type()
-                except:
+                except Exception:
                     dbplugin.type = 'builtin'
 
                 try:
                     dbplugin.description = plugin.plugin_object.get_description()
-                except:
+                except Exception:
                     pass
                 dbplugin.save()
 
@@ -345,12 +345,12 @@ def reloadPluginsModel():
             if plugin.name == dbplugin.name:
                 try:
                     dbplugin.type = plugin.plugin_object.plugin_type()
-                except:
+                except Exception:
                     dbplugin.type = 'builtin'
 
                 try:
                     dbplugin.description = plugin.plugin_object.get_description()
-                except:
+                except Exception:
                     pass
                 dbplugin.save()
 
@@ -365,12 +365,12 @@ def reloadPluginsModel():
             if plugin.name == dbplugin.name:
                 try:
                     dbplugin.type = plugin.plugin_object.plugin_type()
-                except:
+                except Exception:
                     dbplugin.type = 'builtin'
 
                 try:
                     dbplugin.description = plugin.plugin_object.get_description()
-                except:
+                except Exception:
                     pass
                 dbplugin.save()
 
@@ -397,15 +397,15 @@ def disabled_plugins(plugin_kind='main'):
         for plugin in manager.getAllPlugins():
             try:
                 plugin_type = plugin.plugin_object.plugin_type()
-            except:
+            except Exception:
                 plugin_type = 'builtin'
             try:
                 supported_os_families = plugin.plugin_object.supported_os_families()
-            except:
+            except Exception:
                 supported_os_families = default_families
             if plugin_type == 'builtin':
                 try:
-                    _ = Plugin.objects.get(name=plugin.name)
+                    Plugin.objects.get(name=plugin.name)
                 except Plugin.DoesNotExist:
                     item = {}
                     item['name'] = plugin.name
@@ -416,12 +416,12 @@ def disabled_plugins(plugin_kind='main'):
         for plugin in manager.getAllPlugins():
             try:
                 plugin_type = plugin.plugin_object.plugin_type()
-            except:
+            except Exception:
                 plugin_type = 'builtin'
 
             try:
                 supported_os_families = plugin.plugin_object.supported_os_families()
-            except:
+            except Exception:
                 supported_os_families = default_families
 
             if plugin_type == 'report':
@@ -437,12 +437,12 @@ def disabled_plugins(plugin_kind='main'):
         for plugin in manager.getAllPlugins():
             try:
                 plugin_type = plugin.plugin_object.plugin_type()
-            except:
+            except Exception:
                 plugin_type = 'builtin'
 
             try:
                 supported_os_families = plugin.plugin_object.supported_os_families()
-            except:
+            except Exception:
                 supported_os_families = default_families
 
             if plugin_type == 'machine_detail':
@@ -619,7 +619,7 @@ def friendly_machine_model(machine):
 
         try:
             output = ET.fromstring(r.text).find('configCode').text
-        except:
+        except Exception:
             print 'Did not receive a model name for %s, %s. Error:' % (
                 machine.serial, machine.machine_model)
 

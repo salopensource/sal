@@ -95,7 +95,7 @@ def index(request):
                 # If plugin_type isn't set, it can't be a report
                 try:
                     plugin_type = plugin.plugin_object.plugin_type()
-                except:
+                except Exception:
                     plugin_type = 'widget'
                 if plugin_type == 'report':
                     data = {}
@@ -112,7 +112,7 @@ def index(request):
             # If plugin_type isn't set, assume its an old style one
             try:
                 plugin_type = plugin.plugin_object.plugin_type()
-            except:
+            except Exception:
                 plugin_type = 'widget'
             if plugin.name == enabled_plugin.name and \
                     plugin_type != 'machine_info' and plugin_type != 'report':
@@ -179,7 +179,7 @@ def check_version():
                 try:
                     next_notify_date_lookup = SalSetting.objects.get(name='next_notify_date')
                     next_notify_date = next_notify_date_lookup.value
-                except:
+                except Exception:
                     # They've not chosen yet, show it
                     should_notify = True
                     next_notify_date = None
@@ -247,7 +247,7 @@ def manage_users(request):
 
     try:
         brute_protect = settings.BRUTE_PROTECT
-    except:
+    except Exception:
         brute_protect = False
     # We require you to be staff to manage users
     if user.is_staff != True:
@@ -472,7 +472,7 @@ def tableajax(request, pluginName, data, page='front', theID=None):
     settings_time_zone = None
     try:
         settings_time_zone = pytz.timezone(settings.TIME_ZONE)
-    except:
+    except Exception:
         pass
     for machine in limited_machines:
         if machine.last_checkin:
@@ -607,7 +607,7 @@ def report_load(request, pluginName, page='front', theID=None):
                 # If plugin_type isn't set, it can't be a report
                 try:
                     plugin_type = plugin.plugin_object.plugin_type()
-                except:
+                except Exception:
                     plugin_type = 'widget'
                 if plugin_type == 'report':
                     data = {}
@@ -637,7 +637,7 @@ def get_csv_row(machine, facter_headers, condition_headers, plugin_script_header
         if name != 'id' and name != 'machine_group' and name != 'report' and name != 'activity' and name != 'os_family' and name != 'install_log' and name != 'install_log_hash':
             try:
                 row.append(utils.safe_unicode(value))
-            except:
+            except Exception:
                 row.append('')
 
     row.append(machine.machine_group.business_unit.name)
@@ -880,7 +880,7 @@ def bu_dashboard(request, bu_id):
                 # If plugin_type isn't set, it can't be a report
                 try:
                     plugin_type = plugin.plugin_object.plugin_type()
-                except:
+                except Exception:
                     plugin_type = 'widget'
                 if plugin_type == 'report':
                     data = {}
@@ -896,7 +896,7 @@ def bu_dashboard(request, bu_id):
         for plugin in manager.getAllPlugins():
             try:
                 plugin_type = plugin.plugin_object.plugin_type()
-            except:
+            except Exception:
                 plugin_type = 'widget'
             if plugin.name == enabled_plugin.name and \
                     plugin_type != 'machine_info' and plugin_type != 'full_page':
@@ -1124,7 +1124,7 @@ def group_dashboard(request, group_id):
                 # If plugin_type isn't set, it can't be a report
                 try:
                     plugin_type = plugin.plugin_object.plugin_type()
-                except:
+                except Exception:
                     plugin_type = 'widget'
                 if plugin_type == 'report':
                     data = {}
@@ -1140,7 +1140,7 @@ def group_dashboard(request, group_id):
         for plugin in manager.getAllPlugins():
             try:
                 plugin_type = plugin.plugin_object.plugin_type()
-            except:
+            except Exception:
                 plugin_type = 'widget'
             if plugin.name == enabled_plugin.name and \
                     plugin_type != 'machine_info' and plugin_type != 'full_page':
@@ -1309,7 +1309,7 @@ def machine_detail(request, machine_id):
 
         try:
             item['update_history'] = UpdateHistoryItem.objects.filter(update_history=update_history)
-        except:
+        except Exception:
             pass
 
     for item in report.get('ManagedInstalls', []):
@@ -1342,7 +1342,7 @@ def machine_detail(request, machine_id):
     for result in report.get('RemovalResults', []):
         try:
             m = re.search('^Removal of (.+): (.+)$', result)
-        except:
+        except Exception:
             m = None
         if m:
             try:
@@ -1376,7 +1376,7 @@ def machine_detail(request, machine_id):
                 machine=machine, plugin__exact='Uptime')
             uptime_seconds = PluginScriptRow.objects.get(
                 submission=plugin_script_submission, pluginscript_name__exact='UptimeSeconds').pluginscript_data
-        except:
+        except Exception:
             uptime_seconds = '0'
     else:
         uptime_seconds = 0
@@ -1405,13 +1405,13 @@ def machine_detail(request, machine_id):
             # If plugin_type isn't set, assume its an old style one
             try:
                 plugin_type = plugin.plugin_object.plugin_type()
-            except:
+            except Exception:
                 plugin_type = 'widget'
 
             # If we can't get supported OS Families, assume it's for all
             try:
                 supported_os_families = plugin.plugin_object.supported_os_families()
-            except:
+            except Exception:
                 supported_os_families = ['Darwin', 'Windows', 'Linux']
             if plugin.name == enabled_plugin.name and \
                     plugin_type != 'builtin' and plugin_type != 'report' and \
@@ -1777,7 +1777,7 @@ def machine_detail_plugin_enable(request, plugin_name):
 
                 try:
                     supported_os_families = plugin.plugin_object.supported_os_families()
-                except:
+                except Exception:
                     supported_os_families = default_families
         plugin = MachineDetailPlugin(name=plugin_name, order=utils.UniquePluginOrder(
             plugin_type='machine_detail'), os_families=utils.flatten_and_sort_list(supported_os_families))
@@ -1997,7 +1997,7 @@ def checkin(request):
     # Are we using Sal for some sort of inventory (like, I don't know, Puppet?)
     try:
         add_new_machines = settings.ADD_NEW_MACHINES
-    except:
+    except Exception:
         add_new_machines = True
 
     if add_new_machines == True:
@@ -2012,7 +2012,7 @@ def checkin(request):
 
     try:
         deployed_on_checkin = settings.DEPLOYED_ON_CHECKIN
-    except:
+    except Exception:
         deployed_on_checkin = True
 
     if key is None or key == 'None':
@@ -2142,7 +2142,7 @@ def checkin(request):
     if not machine.machine_model_friendly:
         try:
             machine.machine_model_friendly = utils.friendly_machine_model(machine)
-        except:
+        except Exception:
             machine.machine_model_friendly = machine.machine_model
 
     if deployed_on_checkin is True:
@@ -2154,7 +2154,7 @@ def checkin(request):
     try:
         datelimit = django.utils.timezone.now() - timedelta(days=historical_days)
         PluginScriptSubmission.objects.filter(recorded__lt=datelimit).delete()
-    except:
+    except Exception:
         pass
 
     if 'Plugin_Results' in report_data:

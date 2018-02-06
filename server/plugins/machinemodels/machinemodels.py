@@ -34,7 +34,7 @@ class MachineModels(IPlugin):
         try:
             machines = machines.filter(machine_model__isnull=False).exclude(machine_model=u'').values(
                 'machine_model').annotate(count=Count('machine_model')).order_by('machine_model')
-        except:
+        except Exception:
             machines = []
 
         output = []

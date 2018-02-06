@@ -49,7 +49,7 @@ class PuppetStatus(IPlugin):
 
             success = machines.filter(last_puppet_run__isnull=False).filter(
                 puppet_errors__exact=0).count()
-        except:
+        except Exception:
             puppet_error = 0
             last_checkin = 0
             checked_in_this_month = 0

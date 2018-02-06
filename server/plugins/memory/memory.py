@@ -37,16 +37,16 @@ class Memory(IPlugin):
 
         try:
             mem_ok = machines.filter(memory_kb__gte=mem_8_gb).count()
-        except:
+        except Exception:
             mem_ok = 0
         try:
             mem_warning = machines.filter(memory_kb__range=[mem_4_gb, mem_775_gb]).count()
-        except:
+        except Exception:
             mem_warning = 0
 
         try:
             mem_alert = machines.filter(memory_kb__lt=mem_4_gb).count()
-        except:
+        except Exception:
             mem_alert = 0
 
         c = Context({

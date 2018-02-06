@@ -98,5 +98,5 @@ def flatten_and_sort_list(the_list):
 def next(value, arg):
     try:
         return value[int(arg) + 1]
-    except:
+    except Exception:
         return None

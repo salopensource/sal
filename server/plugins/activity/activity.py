@@ -44,28 +44,28 @@ class Activity(IPlugin):
 
         try:
             checked_in_this_hour = machines.filter(last_checkin__gte=hour_ago).count()
-        except:
+        except Exception:
             checked_in_this_hour = 0
 
         try:
             checked_in_today = machines.filter(last_checkin__gte=today).count()
-        except:
+        except Exception:
             checked_in_today = 0
 
         try:
             checked_in_this_week = machines.filter(last_checkin__gte=week_ago).count()
-        except:
+        except Exception:
             checked_in_this_week = 0
 
         try:
             inactive_for_a_month = machines.filter(
                 last_checkin__range=(three_months_ago, month_ago)).count()
-        except:
+        except Exception:
             inactive_for_a_month = 0
 
         try:
             inactive_for_three_months = machines.exclude(last_checkin__gte=three_months_ago).count()
-        except:
+        except Exception:
             inactive_for_three_months = 0
 
         c = Context({

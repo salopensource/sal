@@ -26,13 +26,13 @@ class Sip(IPlugin):
         try:
             ok = machines.filter(pluginscriptsubmission__plugin__exact='Sip', pluginscriptsubmission__pluginscriptrow__pluginscript_name__exact='SIP',
                                  pluginscriptsubmission__pluginscriptrow__pluginscript_data__exact='Enabled').count()
-        except:
+        except Exception:
             ok = 0
 
         try:
             alert = machines.filter(pluginscriptsubmission__plugin__exact='Sip', pluginscriptsubmission__pluginscriptrow__pluginscript_name__exact='SIP',
                                     pluginscriptsubmission__pluginscriptrow__pluginscript_data__exact='Disabled').count()
-        except:
+        except Exception:
             alert = 0
 
         c = Context({

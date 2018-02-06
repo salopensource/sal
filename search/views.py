@@ -410,8 +410,8 @@ def delete_group(request, search_group_id):
 @login_required
 def new_search_row(request, search_group_id):
     search_group = get_object_or_404(SearchGroup, pk=search_group_id)
-    if (request.user.userprofile.level != 'GA' and 
-    search_group.saved_search.created_by != request.user):
+    if (request.user.userprofile.level != 'GA' and
+            search_group.saved_search.created_by != request.user):
         return redirect(search.views.list)
     if request.method == 'POST':
         form = SearchRowForm(request.POST)

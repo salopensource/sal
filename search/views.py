@@ -310,7 +310,6 @@ def save_search(request, search_id):
 
 @login_required
 def build_search(request, search_id):
-    user = request.user
     new_search = get_object_or_404(SavedSearch, pk=search_id)
     search_groups = SearchGroup.objects.filter(saved_search=new_search)
     c = {

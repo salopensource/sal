@@ -16,7 +16,7 @@ DATABASES = {
 }
 
 # Memcached
-if os.environ.has_key('MEMCACHED_PORT_11211_TCP_ADDR'):
+if 'MEMCACHED_PORT_11211_TCP_ADDR' in os.environ:
     CACHES = {
         'default': {
             'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
@@ -31,12 +31,12 @@ if os.environ.has_key('MEMCACHED_PORT_11211_TCP_ADDR'):
 host = None
 port = None
 
-if os.environ.has_key('DB_USER'):
-    if os.environ.has_key('DB_HOST'):
+if 'DB_USER' in os.environ:
+    if 'DB_HOST' in os.environ:
         host = os.environ.get('DB_HOST')
         port = os.environ.get('DB_PORT', '5432')
 
-    elif os.environ.has_key('DB_PORT_5432_TCP_ADDR'):
+    elif 'DB_PORT_5432_TCP_ADDR' in os.environ:
         host = os.environ.get('DB_PORT_5432_TCP_ADDR')
         port = os.environ.get('DB_PORT_5432_TCP_PORT', '5432')
 

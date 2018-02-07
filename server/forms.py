@@ -100,7 +100,8 @@ class NewUserForm(forms.Form):
         raise forms.ValidationError("Username already exists")
 
     def clean(self):  # check if password 1 and password2 match each other
-        if 'password1' in self.cleaned_data and 'password2' in self.cleaned_data:  # check if both pass first validation
+        if 'password1' in self.cleaned_data and 'password2' in self.cleaned_data:  
+            # check if both pass first validation
             # check if they match each other
             if self.cleaned_data['password1'] != self.cleaned_data['password2']:
                 raise forms.ValidationError("Passwords must match")
@@ -151,7 +152,8 @@ class EditUserForm(forms.Form):
     user_level = forms.ChoiceField(choices=LEVEL_CHOICES)
 
     def clean(self):  # check if password 1 and password2 match each other
-        if 'password1' in self.cleaned_data and 'password2' in self.cleaned_data:  # check if both pass first validation
+        if 'password1' in self.cleaned_data and 'password2' in self.cleaned_data:
+            # check if both pass first validation
             # check if they match each other
             if self.cleaned_data['password1'] != self.cleaned_data['password2']:
                 raise forms.ValidationError("Passwords must match")
@@ -167,7 +169,6 @@ class EditUserForm(forms.Form):
 
 
 class UserToBUForm(forms.ModelForm):
-    #cats = forms.ModelMultipleChoiceField(widget=forms.CheckboxSelectMultiple(),required=True)
     class Meta:
         model = User
         fields = '__all__'

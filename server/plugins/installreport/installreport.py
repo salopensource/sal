@@ -64,16 +64,18 @@ class InstallReport(IPlugin):
             found = False
             for item in output:
                 # print item
-                if installed_update['update'] == item['name'] and installed_update['update_version'] == item['version']:
+                if installed_update['update'] == item['name'] and \
+                        installed_update['update_version'] == item['version']:
                     found = True
                     break
 
-            if found == False:
+            if found is False:
                 item = {}
                 for catalog in catalog_objects:
 
                     for pkginfo in catalog.content:
-                        if pkginfo['name'] == installed_update['update'] and pkginfo['version'] == installed_update['update_version']:
+                        if pkginfo['name'] == installed_update['update'] and \
+                                pkginfo['version'] == installed_update['update_version']:
                             # print pkginfo
                             if 'description' in pkginfo:
                                 item['description'] = pkginfo['description']
@@ -86,10 +88,15 @@ class InstallReport(IPlugin):
                 item['version'] = installed_update['update_version']
                 item['name'] = installed_update['update']
                 item['install_count'] = InstalledUpdate.objects.filter(
-                    machine__in=machines, update=installed_update['update'], update_version=installed_update['update_version'], installed=True).count()
+                    machine__in=machines,
+                    update=installed_update['update'],
+                    update_version=installed_update['update_version'],
+                    installed=True).count()
 
                 item['pending_count'] = PendingUpdate.objects.filter(
-                    machine__in=machines, update=installed_update['update'], update_version=installed_update['update_version']).count()
+                    machine__in=machines,
+                    update=installed_update['update'],
+                    update_version=installed_update['update_version']).count()
                 item['installed_url'] = 'Installed?VERSION=%s&&NAME=%s' % (
                     item['version'], item['name'])
                 item['pending_url'] = 'Pending?VERSION=%s&&NAME=%s' % (
@@ -110,7 +117,6 @@ class InstallReport(IPlugin):
         return t.render(c)
 
     def filter_machines(self, machines, data):
-        # You will be passed a QuerySet of machines, you then need to perform some filtering based on the 'data' part of the url from the show_widget output. Just return your filtered list of machines and the page title.
 
         if data.startswith('Installed?'):
             version_re = re.search('Installed\?VERSION\=(.*)&&NAME', data)
@@ -119,7 +125,9 @@ class InstallReport(IPlugin):
             name = name_re.group(1)
 
             machines = machines.filter(
-                installed_updates__update=name, installed_updates__update_version=version, installed_updates__installed=True)
+                installed_updates__update=name,
+                installed_updates__update_version=version,
+                installed_updates__installed=True)
             title = 'Machines with %s %s installed' % (name, version)
 
         if data.startswith('Pending?'):

@@ -11,7 +11,7 @@ from distutils.version import LooseVersion
 
 
 def main():
-    plist_path = '/System/Library/CoreServices/CoreTypes.bundle/Contents/Resources/XProtect.meta.plist'
+    plist_path = '/System/Library/CoreServices/CoreTypes.bundle/Contents/Resources/XProtect.meta.plist'  # noqa: E501
     if os.path.exists(plist_path):
         plist = FoundationPlist.readPlist(plist_path)
         version = str(plist['Version'])

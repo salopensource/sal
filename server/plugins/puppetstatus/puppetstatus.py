@@ -55,11 +55,6 @@ class PuppetStatus(IPlugin):
             checked_in_this_month = 0
             success = 0
 
-        if last_checkin > 0:
-            size = 4
-        else:
-            size = 0
-
         c = Context({
             'title': 'Puppet Status',
             'error_label': 'Errors',

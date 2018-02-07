@@ -24,14 +24,12 @@ class Gatekeeper(IPlugin):
             t = loader.get_template('gatekeeper/templates/id.html')
 
         try:
-            ok = machines.filter(pluginscriptsubmission__plugin__exact='Gatekeeper', pluginscriptsubmission__pluginscriptrow__pluginscript_name__exact='Gatekeeper',
-                                 pluginscriptsubmission__pluginscriptrow__pluginscript_data__exact='Enabled').count()
+            ok = machines.filter(pluginscriptsubmission__plugin__exact='Gatekeeper', pluginscriptsubmission__pluginscriptrow__pluginscript_name__exact='Gatekeeper', pluginscriptsubmission__pluginscriptrow__pluginscript_data__exact='Enabled').count()  # noqa: E501
         except Exception:
             ok = 0
 
         try:
-            alert = machines.filter(pluginscriptsubmission__plugin__exact='Gatekeeper', pluginscriptsubmission__pluginscriptrow__pluginscript_name__exact='Gatekeeper',
-                                    pluginscriptsubmission__pluginscriptrow__pluginscript_data__exact='Disabled').count()
+            alert = machines.filter(pluginscriptsubmission__plugin__exact='Gatekeeper', pluginscriptsubmission__pluginscriptrow__pluginscript_name__exact='Gatekeeper', pluginscriptsubmission__pluginscriptrow__pluginscript_data__exact='Disabled').count()  # noqa: E501
         except Exception:
             alert = 0
 
@@ -47,13 +45,11 @@ class Gatekeeper(IPlugin):
 
     def filter_machines(self, machines, data):
         if data == 'ok':
-            machines = machines.filter(pluginscriptsubmission__plugin__exact='Gatekeeper', pluginscriptsubmission__pluginscriptrow__pluginscript_name__exact='Gatekeeper',
-                                       pluginscriptsubmission__pluginscriptrow__pluginscript_data__exact='Enabled')
+            machines = machines.filter(pluginscriptsubmission__plugin__exact='Gatekeeper', pluginscriptsubmission__pluginscriptrow__pluginscript_name__exact='Gatekeeper', pluginscriptsubmission__pluginscriptrow__pluginscript_data__exact='Enabled')  # noqa: E501
             title = 'Machines with Gatekeeper enabled'
 
         elif data == 'alert':
-            machines = machines.filter(pluginscriptsubmission__plugin__exact='Gatekeeper', pluginscriptsubmission__pluginscriptrow__pluginscript_name__exact='Gatekeeper',
-                                       pluginscriptsubmission__pluginscriptrow__pluginscript_data__exact='Disabled')
+            machines = machines.filter(pluginscriptsubmission__plugin__exact='Gatekeeper', pluginscriptsubmission__pluginscriptrow__pluginscript_name__exact='Gatekeeper', pluginscriptsubmission__pluginscriptrow__pluginscript_data__exact='Disabled')  # noqa: E501
             title = 'Machines without Gatekeeper enabled'
 
         else:

@@ -383,7 +383,7 @@ def is_postgres():
 
 
 def disabled_plugins(plugin_kind='main'):
-    enabled_plugins = Plugin.objects.all()
+    enabled_plugins = Plugin.objects.all()  # noqa: F841
     # Build the manager
     manager = PluginManager()
     # Tell it the default place(s) where to find plugins
@@ -426,7 +426,7 @@ def disabled_plugins(plugin_kind='main'):
 
             if plugin_type == 'report':
                 try:
-                    _ = Report.objects.get(name=plugin.name)
+                    Report.objects.get(name=plugin.name)
                 except Report.DoesNotExist:
                     item = {}
                     item['name'] = plugin.name
@@ -447,7 +447,7 @@ def disabled_plugins(plugin_kind='main'):
 
             if plugin_type == 'machine_detail':
                 try:
-                    _ = MachineDetailPlugin.objects.get(name=plugin.name)
+                    MachineDetailPlugin.objects.get(name=plugin.name)
                 except MachineDetailPlugin.DoesNotExist:
                     item = {}
                     item['name'] = plugin.name
@@ -486,7 +486,8 @@ def orderPlugins(output):
     # Sort by name initially
     output = sorted(output, key=lambda k: k['name'])
     # Order by the list specified in settings
-    # Run through all of the names in pluginOutput. If they're not in the PLUGIN_ORDER list, we'll add them to a new one
+    # Run through all of the names in pluginOutput.
+    # If they're not in the PLUGIN_ORDER list, we'll add them to a new one
     not_ordered = []
     for item in output:
         if item['name'] not in settings.PLUGIN_ORDER:
@@ -499,7 +500,6 @@ def orderPlugins(output):
 
 
 def orderPluginOutput(pluginOutput, page='front', theID=None):
-    #output = orderPlugins(pluginOutput)
     output = pluginOutput
     if page == 'front':
         # remove the plugins that are in the list
@@ -559,7 +559,7 @@ def orderPluginOutput(pluginOutput, page='front', theID=None):
                     item['html'] = '\n</div>\n\n<div class="row">\n' + item['html']
                     # print 'breaking'
                     total_width = item['width']
-                    needs_break = False
+                    needs_break = False  # noqa: F841
                 else:
                     total_width = int(item['width']) + total_width
             counter = counter + 1
@@ -596,8 +596,9 @@ def decode_to_string(data, compression='base64bz2'):
 def friendly_machine_model(machine):
     # See if the machine's model already has one (and only one) friendly name
     output = None
-    friendly_names = Machine.objects.filter(machine_model=machine.machine_model).values('machine_model_friendly').annotate(num_models=Count('machine_model_friendly',
-                                                                                                                                            distinct=True)).distinct()
+    friendly_names = Machine.objects.filter(machine_model=machine.machine_model).\
+        values('machine_model_friendly').\
+        annotate(num_models=Count('machine_model_friendly', distinct=True)).distinct()
     for name in friendly_names:
         if name['num_models'] == 1:
             output = name['machine_model_friendly']

@@ -5,7 +5,7 @@ from django.contrib.auth.decorators import login_required, permission_required
 from django.template import RequestContext, Template, Context
 import json
 from django.views.decorators.csrf import csrf_exempt, csrf_protect
-from django.http import HttpResponse, Http404, HttpResponseNotFound, HttpResponseRedirect, JsonResponse, StreamingHttpResponse
+from django.http import HttpResponse, Http404, HttpResponseNotFound, HttpResponseRedirect, JsonResponse, StreamingHttpResponse  # noqa: E501
 from django.contrib.auth.models import Permission, User
 from django.conf import settings
 from django.template.context_processors import csrf
@@ -59,12 +59,6 @@ def index(request):
         profile.level = 'GA'
         profile.save()
     user_level = user.userprofile.level
-    now = django.utils.timezone.now()
-    hour_ago = now - timedelta(hours=1)
-    today = now - timedelta(hours=24)
-    week_ago = today - timedelta(days=7)
-    month_ago = today - timedelta(days=30)
-    three_months_ago = today - timedelta(days=90)
 
     if user_level != 'GA':
         # user has many BU's display them all in a friendly manner
@@ -120,8 +114,7 @@ def index(request):
                 data = {}
                 data['name'] = plugin.name
                 data['width'] = plugin.plugin_object.widget_width()
-                data['html'] = '<div id="plugin-%s" class="col-md-%s"><img class="center-block blue-spinner" src="%s"/></div>' % (
-                    data['name'], str(data['width']), static('img/blue-spinner.gif'))
+                data['html'] = '<div id="plugin-%s" class="col-md-%s"><img class="center-block blue-spinner" src="%s"/></div>' % (data['name'], str(data['width']), static('img/blue-spinner.gif'))  # noqa: E501
                 output.append(data)
                 break
 
@@ -132,7 +125,7 @@ def index(request):
     if user_level == 'GA':
         business_units = BusinessUnit.objects.all()
         try:
-            senddata_setting = SalSetting.objects.get(name='send_data')
+            SalSetting.objects.get(name='send_data')
         except SalSetting.DoesNotExist:
             data_setting_decided = False
     else:
@@ -178,10 +171,6 @@ def check_version():
                 last_version_notified_lookup = SalSetting.objects.get(name='last_notified_version')
                 last_notified_version = last_version_notified_lookup.value
             except SalSetting.DoesNotExist:
-                last_version_notified_lookup = SalSetting(
-                    name='last_notified_version', value=server_version)
-                last_version_notified_date_lookup = SalSetting(name='last_version_notified_date',
-                                                               value=int(time.time()))
                 last_notified_version = None
             # if last version notified version is equal to the server version
             if last_notified_version == server_version:
@@ -405,7 +394,8 @@ def plugin_machines(request, pluginName, data, page='front', theID=None, get_mac
             if machine_groups.count() != 0:
                 machines_unsorted = machine_groups[0].machine_set.all().filter(deployed=deployed)
                 for machine_group in machine_groups[1:]:
-                    machines_unsorted = machines_unsorted | machine_group.machine_set.all().filter(deployed=deployed)
+                    machines_unsorted = machines_unsorted | \
+                        machine_group.machine_set.all().filter(deployed=deployed)
             else:
                 machines_unsorted = None
             machines = machines_unsorted
@@ -453,9 +443,9 @@ def tableajax(request, pluginName, data, page='front', theID=None):
             break
 
     if pluginName == 'Status' and data == 'undeployed_machines':
-        deployed = False
+        deployed = False  # noqa: F841
     else:
-        deployed = True
+        deployed = True  # noqa: F841
     (machines, title) = plugin_machines(request, pluginName, data, page, theID)
     # machines = machines.filter(deployed=deployed)
     if len(order_name) != 0:
@@ -465,9 +455,10 @@ def tableajax(request, pluginName, data, page='front', theID=None):
             order_string = "%s" % order_name
 
     if len(search_value) != 0:
-        searched_machines = machines.filter(Q(hostname__icontains=search_value) |
-                                Q(console_user__icontains=search_value) |
-                Q(last_checkin__icontains=search_value)).order_by(order_string)
+        searched_machines = machines.filter(
+            Q(hostname__icontains=search_value) |
+            Q(console_user__icontains=search_value) |
+            Q(last_checkin__icontains=search_value)).order_by(order_string)
     else:
         searched_machines = machines.order_by(order_string)
 

@@ -143,8 +143,15 @@ def index(request):
     new_version_available = False
     new_version = False
     current_version = False
-    c = {'user': request.user, 'business_units': business_units, 'output': output, 'data_setting_decided': data_setting_decided,
-         'new_version_available': new_version_available, 'new_version': new_version, 'reports': reports, 'current_version': current_version}
+    c = {
+        'user': request.user,
+        'business_units': business_units,
+        'output': output,
+        'data_setting_decided': data_setting_decided,
+        'new_version_available': new_version_available,
+        'new_version': new_version,
+        'reports': reports,
+        'current_version': current_version}
     return render(request, 'server/index.html', c)
 
 
@@ -252,7 +259,7 @@ def manage_users(request):
     except Exception:
         brute_protect = False
     # We require you to be staff to manage users
-    if user.is_staff != True:
+    if not user.is_staff:
         return redirect(index)
     users = User.objects.all()
     c = {'user': request.user, 'users': users, 'request': request, 'brute_protect': brute_protect}
@@ -267,7 +274,7 @@ def new_user(request):
     if user_level != 'GA':
         return redirect(index)
     # We require you to be staff to manage users
-    if user.is_staff != True:
+    if not user.is_staff:
         return redirect(index)
     c = {}
     c.update(csrf(request))
@@ -293,7 +300,7 @@ def edit_user(request, user_id):
     if user_level != 'GA':
         return redirect(index)
     # We require you to be staff to manage users
-    if user.is_staff != True:
+    if not user.is_staff:
         return redirect(index)
     the_user = get_object_or_404(User, pk=int(user_id))
     c = {}
@@ -703,8 +710,14 @@ def export_csv(request, pluginName, data, page='front', theID=None):
         machine_group = get_object_or_404(MachineGroup, pk=theID)
         # check that the user has access to this
         # machines = Machine.objects.filter(machine_group=machine_group).prefetch_related('facts','conditions','pluginscriptsubmission_set','pluginscriptsubmission_set__pluginscriptrow_set')
-        machines = Machine.objects.filter(machine_group=machine_group).filter(deployed=deployed).defer(
-            'report', 'activity', 'os_family', 'install_log', 'install_log_hash')
+        machines = Machine.objects.filter(
+            machine_group=machine_group).filter(
+            deployed=deployed).defer(
+            'report',
+            'activity',
+            'os_family',
+            'install_log',
+            'install_log_hash')
 
     if page == 'machine_detail':
         machines = Machine.objects.get(pk=theID)
@@ -912,8 +925,14 @@ def bu_dashboard(request, bu_id):
 
     output = utils.orderPluginOutput(output, 'bu_dashboard', bu.id)
 
-    c = {'user': request.user, 'machine_groups': machine_groups, 'is_editor': is_editor,
-         'business_unit': business_unit, 'user_level': user_level, 'output': output, 'reports': reports}
+    c = {
+        'user': request.user,
+        'machine_groups': machine_groups,
+        'is_editor': is_editor,
+        'business_unit': business_unit,
+        'user_level': user_level,
+        'output': output,
+        'reports': reports}
     return render(request, 'server/bu_dashboard.html', c)
 
 # Overview list (all)
@@ -1155,8 +1174,15 @@ def group_dashboard(request, group_id):
                 break
 
     output = utils.orderPluginOutput(output, 'group_dashboard', machine_group.id)
-    c = {'user': request.user, 'machine_group': machine_group, 'user_level': user_level, 'is_editor': is_editor,
-         'business_unit': business_unit, 'output': output, 'request': request, 'reports': reports}
+    c = {
+        'user': request.user,
+        'machine_group': machine_group,
+        'user_level': user_level,
+        'is_editor': is_editor,
+        'business_unit': business_unit,
+        'output': output,
+        'request': request,
+        'reports': reports}
     return render(request, 'server/group_dashboard.html', c)
 
 # New Group
@@ -1330,9 +1356,8 @@ def machine_detail(request, machine_id):
             item['version'] = version
             # Get the update history
             try:
-                update_history = UpdateHistory.objects.get(machine=machine,
-                                                           version=version,
-                                                           name=item['name'], update_type='third_party')
+                update_history = UpdateHistory.objects.get(
+                    machine=machine, version=version, name=item['name'], update_type='third_party')
                 item['update_history'] = UpdateHistoryItem.objects.filter(
                     update_history=update_history)
             except Exception as e:
@@ -1361,9 +1386,9 @@ def machine_detail(request, machine_id):
             item['install_result'] = removal_results.get(
                 name, 'pending')
             if item['install_result'] == 'removed':
-                if not 'RemovedItems' in report:
+                if 'RemovedItems' not in report:
                     report['RemovedItems'] = [item['name']]
-                elif not name in report['RemovedItems']:
+                elif name not in report['RemovedItems']:
                     report['RemovedItems'].append(item['name'])
 
     uptime_enabled = False
@@ -1372,12 +1397,13 @@ def machine_detail(request, machine_id):
         if plugin.name == 'Uptime':
             uptime_enabled = True
 
-    if uptime_enabled == True:
+    if uptime_enabled:
         try:
             plugin_script_submission = PluginScriptSubmission.objects.get(
                 machine=machine, plugin__exact='Uptime')
             uptime_seconds = PluginScriptRow.objects.get(
-                submission=plugin_script_submission, pluginscript_name__exact='UptimeSeconds').pluginscript_data
+                submission=plugin_script_submission,
+                pluginscript_name__exact='UptimeSeconds').pluginscript_data
         except Exception:
             uptime_seconds = '0'
     else:
@@ -1427,8 +1453,18 @@ def machine_detail(request, machine_id):
 
     output = utils.orderPluginOutput(output, page="machine_detail")
 
-    c = {'user': user, 'machine_group': machine_group, 'business_unit': business_unit, 'report': report, 'install_results': install_results,
-         'removal_results': removal_results, 'machine': machine, 'ip_address': ip_address, 'uptime_enabled': uptime_enabled, 'uptime': uptime, 'output': output}
+    c = {
+        'user': user,
+        'machine_group': machine_group,
+        'business_unit': business_unit,
+        'report': report,
+        'install_results': install_results,
+        'removal_results': removal_results,
+        'machine': machine,
+        'ip_address': ip_address,
+        'uptime_enabled': uptime_enabled,
+        'uptime': uptime,
+        'output': output}
     return render(request, 'server/machine_detail.html', c)
 
 
@@ -1531,8 +1567,11 @@ def settings_page(request):
         senddata_setting = SalSetting(name='send_data', value='yes')
         senddata_setting.save()
 
-    c = {'user': request.user, 'request': request,
-         'historical_setting_form': historical_setting_form, 'senddata_setting': senddata_setting.value}
+    c = {
+        'user': request.user,
+        'request': request,
+        'historical_setting_form': historical_setting_form,
+        'senddata_setting': senddata_setting.value}
     return render(request, 'server/settings.html', c)
 
 
@@ -1781,8 +1820,9 @@ def machine_detail_plugin_enable(request, plugin_name):
                     supported_os_families = plugin.plugin_object.supported_os_families()
                 except Exception:
                     supported_os_families = default_families
-        plugin = MachineDetailPlugin(name=plugin_name, order=utils.UniquePluginOrder(
-            plugin_type='machine_detail'), os_families=utils.flatten_and_sort_list(supported_os_families))
+        plugin = MachineDetailPlugin(name=plugin_name,
+                                     order=utils.UniquePluginOrder(plugin_type='machine_detail'),
+                                     os_families=utils.flatten_and_sort_list(supported_os_families))
         plugin.save()
     return redirect('settings_machine_detail_plugins')
 
@@ -1848,7 +1888,7 @@ def display_api_key(request, key_id):
     if user_level != 'GA':
         return redirect(index)
     api_key = get_object_or_404(ApiKey, pk=int(key_id))
-    if api_key.has_been_seen == True:
+    if api_key.has_been_seen:
         return redirect(index)
     else:
         api_key.has_been_seen = True
@@ -2003,7 +2043,7 @@ def checkin(request):
     except Exception:
         add_new_machines = True
 
-    if add_new_machines == True:
+    if add_new_machines:
         # look for serial number - if it doesn't exist, create one
         if serial:
             try:
@@ -2030,7 +2070,7 @@ def checkin(request):
 
     machine.last_checkin = django.utils.timezone.now()
 
-    if broken_client == True or broken_client == 'True':
+    if broken_client or broken_client == 'True':
         machine.broken_client = True
         machine.save()
         return HttpResponse("Broken Client report submmitted for %s"
@@ -2087,7 +2127,14 @@ def checkin(request):
         machine.hd_percent = 0
     else:
         machine.hd_percent = int(
-            round(((float(machine.hd_total) - float(machine.hd_space)) / float(machine.hd_total)) * 100))
+            round(
+                ((float(
+                    machine.hd_total) -
+                    float(
+                    machine.hd_space)) /
+                    float(
+                    machine.hd_total)) *
+                100))
     machine.munki_version = report_data.get('ManagedInstallVersion') or 0
     hwinfo = {}
     # macOS System Profiler
@@ -2175,21 +2222,27 @@ def checkin(request):
             version = str(update['version_to_install'])
             if version:
                 pending_update = PendingUpdate(
-                    machine=machine, display_name=display_name, update_version=version, update=update_name)
+                    machine=machine,
+                    display_name=display_name,
+                    update_version=version,
+                    update=update_name)
                 if IS_POSTGRES:
                     pending_update_to_save.append(pending_update)
                 else:
                     pending_update.save()
                 # Let's handle some of those lovely pending installs into the UpdateHistory Model
                 try:
-                    update_history = UpdateHistory.objects.get(name=update_name,
-                                                               version=version, machine=machine, update_type='third_party')
+                    update_history = UpdateHistory.objects.get(
+                        name=update_name, version=version, machine=machine, update_type='third_party')
                 except UpdateHistory.DoesNotExist:
                     update_history = UpdateHistory(
-                        name=update_name, version=version, machine=machine, update_type='third_party')
+                        name=update_name,
+                        version=version,
+                        machine=machine,
+                        update_type='third_party')
                     update_history.save()
 
-                if update_history.pending_recorded == False:
+                if not update_history.pending_recorded:
                     update_history_item = UpdateHistoryItem(
                         update_history=update_history, status='pending',
                         recorded=now, uuid=uuid)
@@ -2250,7 +2303,10 @@ def checkin(request):
                     machine=machine, display_name=display_name, update_version=version, update=update_name)
             except PendingAppleUpdate.DoesNotExist:
                 pending_update = PendingAppleUpdate(
-                    machine=machine, display_name=display_name, update_version=version, update=update_name)
+                    machine=machine,
+                    display_name=display_name,
+                    update_version=version,
+                    update=update_name)
                 pending_update.save()
             # Let's handle some of those lovely pending installs into the UpdateHistory Model
             try:
@@ -2261,7 +2317,7 @@ def checkin(request):
                     name=update_name, version=version, machine=machine, update_type='apple')
                 update_history.save()
 
-            if update_history.pending_recorded == False:
+            if not update_history.pending_recorded:
                 update_history_item = UpdateHistoryItem(
                     update_history=update_history, status='pending', recorded=now, uuid=uuid)
                 update_history_item.save()
@@ -2292,7 +2348,7 @@ def checkin(request):
                     for prefix in settings.IGNORE_FACTS:
                         if fact_name.startswith(prefix):
                             skip = True
-                if skip == True:
+                if skip:
                     continue
                 facts_to_be_created.append(
                     Fact(
@@ -2325,7 +2381,7 @@ def checkin(request):
                             skip = True
                             fact.delete()
                             break
-                if skip == False:
+                if not skip:
                     continue
                 found = False
                 for fact_name, fact_data in report_data['Facter'].iteritems():
@@ -2333,7 +2389,7 @@ def checkin(request):
                     if fact.fact_name == fact_name:
                         found = True
                         break
-                if found == False:
+                if not found:
                     fact.delete()
 
             # Delete old historical facts
@@ -2365,7 +2421,7 @@ def checkin(request):
                         if fact_name.startswith(prefix):
                             skip = True
                             break
-                if skip == True:
+                if skip:
                     continue
                 for fact in facts:
                     if fact_name == fact.fact_name:
@@ -2378,7 +2434,7 @@ def checkin(request):
                             fact.fact_data = fact_data
                             fact.save()
                             break
-                if found == False:
+                if not found:
 
                     fact = Fact(machine=machine, fact_data=fact_data, fact_name=fact_name)
                     fact.save()

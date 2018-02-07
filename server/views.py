@@ -465,8 +465,9 @@ def tableajax(request, pluginName, data, page='front', theID=None):
             order_string = "%s" % order_name
 
     if len(search_value) != 0:
-        searched_machines = machines.filter(Q(hostname__icontains=search_value) | Q(
-            console_user__icontains=search_value) | Q(last_checkin__icontains=search_value)).order_by(order_string)
+        searched_machines = machines.filter(Q(hostname__icontains=search_value) |
+                                Q(console_user__icontains=search_value) |
+                Q(last_checkin__icontains=search_value)).order_by(order_string)
     else:
         searched_machines = machines.order_by(order_string)
 
@@ -485,7 +486,7 @@ def tableajax(request, pluginName, data, page='front', theID=None):
         pass
     for machine in limited_machines:
         if machine.last_checkin:
-            #formatted_date = pytz.utc.localize(machine.last_checkin)
+            # formatted_date = pytz.utc.localize(machine.last_checkin)
             if settings_time_zone:
                 formatted_date = machine.last_checkin.astimezone(
                     settings_time_zone).strftime("%Y-%m-%d %H:%M %Z")
@@ -519,7 +520,6 @@ def machine_list(request, pluginName, data, page='front', theID=None):
 @login_required
 def plugin_load(request, pluginName, page='front', theID=None):
     user = request.user
-    title = None
     # Build the manager
     manager = PluginManager()
     # Tell it the default place(s) where to find plugins
@@ -565,7 +565,6 @@ def plugin_load(request, pluginName, page='front', theID=None):
 @login_required
 def report_load(request, pluginName, page='front', theID=None):
     user = request.user
-    title = None
     business_unit = None
     machine_group = None
     # Build the manager
@@ -643,7 +642,13 @@ class Echo(object):
 def get_csv_row(machine, facter_headers, condition_headers, plugin_script_headers):
     row = []
     for name, value in machine.get_fields():
-        if name != 'id' and name != 'machine_group' and name != 'report' and name != 'activity' and name != 'os_family' and name != 'install_log' and name != 'install_log_hash':
+        if name != 'id' and \
+                name != 'machine_group' and \
+                name != 'report' and \
+                name != 'activity' and \
+                name != 'os_family' and \
+                name != 'install_log' and \
+                name != 'install_log_hash':
             try:
                 row.append(utils.safe_unicode(value))
             except Exception:
@@ -681,7 +686,6 @@ def export_csv(request, pluginName, data, page='front', theID=None):
     if page == 'front':
         # get all machines
         if user.userprofile.level == 'GA':
-            # machines = Machine.objects.all().prefetch_related('facts','conditions','pluginscriptsubmission_set','pluginscriptsubmission_set__pluginscriptrow_set')
             machines = Machine.objects.all().filter(deployed=deployed).defer(
                 'report', 'activity', 'os_family', 'install_log', 'install_log_hash')
         else:
@@ -700,16 +704,14 @@ def export_csv(request, pluginName, data, page='front', theID=None):
         if machine_groups.count() != 0:
             machines = machine_groups[0].machine_set.all()
             for machine_group in machine_groups[1:]:
-                machines = machines | machine_group.machine_set.all().filter(deployed=deployed).defer(
-                    'report', 'activity', 'os_family', 'install_log', 'install_log_hash')
+                machines = machines | machine_group.machine_set.all().filter(deployed=deployed).\
+                    defer('report', 'activity', 'os_family', 'install_log', 'install_log_hash')
         else:
             machines = None
 
     if page == 'group_dashboard':
         # only get machines from that group
         machine_group = get_object_or_404(MachineGroup, pk=theID)
-        # check that the user has access to this
-        # machines = Machine.objects.filter(machine_group=machine_group).prefetch_related('facts','conditions','pluginscriptsubmission_set','pluginscriptsubmission_set__pluginscriptrow_set')
         machines = Machine.objects.filter(
             machine_group=machine_group).filter(
             deployed=deployed).defer(
@@ -734,7 +736,13 @@ def export_csv(request, pluginName, data, page='front', theID=None):
     header_row = []
     fields = Machine._meta.get_fields()
     for field in fields:
-        if not field.is_relation and field.name != 'id' and field.name != 'report' and field.name != 'activity' and field.name != 'os_family' and field.name != 'install_log' and field.name != 'install_log_hash':
+        if not field.is_relation and \
+                field.name != 'id' and \
+                field.name != 'report' and \
+                field.name != 'activity' and \
+                field.name != 'os_family' and \
+                field.name != 'install_log' and \
+                field.name != 'install_log_hash':
             header_row.append(field.name)
     # distinct_facts = Fact.objects.values('fact_name').distinct().order_by('fact_name')
 
@@ -871,13 +879,13 @@ def bu_dashboard(request, bu_id):
         is_editor = True
     else:
         is_editor = False
-    machines = utils.getBUmachines(bu_id)
+    machines = utils.getBUmachines(bu_id)  # noqa: F841
     now = django.utils.timezone.now()
-    hour_ago = now - timedelta(hours=1)
+    hour_ago = now - timedelta(hours=1)  # noqa: F841
     today = now - timedelta(hours=24)
-    week_ago = today - timedelta(days=7)
-    month_ago = today - timedelta(days=30)
-    three_months_ago = today - timedelta(days=90)
+    week_ago = today - timedelta(days=7)  # noqa: F841
+    month_ago = today - timedelta(days=30)  # noqa: F841
+    three_months_ago = today - timedelta(days=90)  # noqa: F841
 
     # Build the manager
     manager = PluginManager()
@@ -918,8 +926,7 @@ def bu_dashboard(request, bu_id):
                 data = {}
                 data['name'] = plugin.name
                 data['width'] = plugin.plugin_object.widget_width()
-                data['html'] = '<div id="plugin-%s" class="col-md-%s"><img class="center-block blue-spinner" src="%s"/></div>' % (
-                    data['name'], str(data['width']), static('img/blue-spinner.gif'))
+                data['html'] = '<div id="plugin-%s" class="col-md-%s"><img class="center-block blue-spinner" src="%s"/></div>' % (data['name'], str(data['width']), static('img/blue-spinner.gif'))  # noqa: E501
                 output.append(data)
                 break
 
@@ -946,7 +953,7 @@ def overview_list_all(request, req_type, data, bu_id=None):
     operating_system = None
     activity = None
     inactivity = None
-    disk_space = None
+    disk_space = None  # noqa: F841
     now = django.utils.timezone.now()
     hour_ago = now - timedelta(hours=1)
     today = now - timedelta(hours=24)
@@ -954,7 +961,7 @@ def overview_list_all(request, req_type, data, bu_id=None):
     month_ago = today - timedelta(days=30)
     three_months_ago = today - timedelta(days=90)
     mem_4_gb = 4 * 1024 * 1024
-    mem_415_gb = 4.15 * 1024 * 1024
+    mem_415_gb = 4.15 * 1024 * 1024  # noqa: F841
     mem_775_gb = 7.75 * 1024 * 1024
     mem_8_gb = 8 * 1024 * 1024
     if req_type == 'operating_system':
@@ -967,10 +974,10 @@ def overview_list_all(request, req_type, data, bu_id=None):
         inactivity = data
 
     if req_type == 'disk_space_ok':
-        disk_space_ok = data
+        disk_space_ok = data  # noqa: F841
 
     if req_type == 'disk_space_warning':
-        disk_space_warning = data
+        disk_space_warning = data  # noqa: F841
 
     if req_type == 'disk_space_alert':
         disk_space_alert = data
@@ -982,13 +989,13 @@ def overview_list_all(request, req_type, data, bu_id=None):
         disk_space_alert = data
 
     if req_type == 'mem_alert':
-        disk_space_alert = data
+        disk_space_alert = data  # noqa: F841
 
     if req_type == 'pending_updates':
-        pending_update = data
+        pending_update = data  # noqa: F841
 
     if req_type == 'pending_apple_updates':
-        pending_apple_update = data
+        pending_apple_update = data  # noqa: F841
 
     if bu_id is not None:
         business_units = get_object_or_404(BusinessUnit, pk=bu_id)
@@ -1012,9 +1019,9 @@ def overview_list_all(request, req_type, data, bu_id=None):
         for business_unit in business_units:
             for machine_group in business_unit.machinegroup_set.all():
                 # print machines_unsorted
-                machines_unsorted = machines_unsorted | machine_group.machine_set.all().filter(deployed=True)
-            #machines_unsorted = machines_unsorted | machine_group.machines.all()
-        #machines = user.businessunit_set.select_related('machine_group_set').order_by('machine')
+                machines_unsorted = machines_unsorted | machine_group.machine_set.all().\
+                    filter(deployed=True)
+
         all_machines = machines_unsorted
         if user_level == 'GA':
             business_units = BusinessUnit.objects.all()
@@ -1128,7 +1135,7 @@ def group_dashboard(request, group_id):
         is_editor = True
     else:
         is_editor = False
-    machines = machine_group.machine_set.all().filter(deployed=True)
+    machines = machine_group.machine_set.all().filter(deployed=True)  # noqa: F841
     # Build the manager
     manager = PluginManager()
     # Tell it the default place(s) where to find plugins
@@ -1168,8 +1175,7 @@ def group_dashboard(request, group_id):
                 data = {}
                 data['name'] = plugin.name
                 data['width'] = plugin.plugin_object.widget_width()
-                data['html'] = '<div id="plugin-%s" class="col-md-%s"><img class="center-block blue-spinner" src="%s"/></div>' % (
-                    data['name'], str(data['width']), static('img/blue-spinner.gif'))
+                data['html'] = '<div id="plugin-%s" class="col-md-%s"><img class="center-block blue-spinner" src="%s"/></div>' % (data['name'], str(data['width']), static('img/blue-spinner.gif'))  # noqa: E501
                 output.append(data)
                 break
 
@@ -1211,7 +1217,7 @@ def new_machine_group(request, bu_id):
     else:
         is_editor = False
 
-    if business_unit not in user.businessunit_set.all() or is_editor == False:
+    if business_unit not in user.businessunit_set.all() or is_editor is False:
         if user_level != 'GA':
             return redirect(index)
     c = {'form': form, 'is_editor': is_editor, 'business_unit': business_unit, }
@@ -1233,7 +1239,7 @@ def edit_machine_group(request, group_id):
     else:
         is_editor = False
 
-    if business_unit not in user.businessunit_set.all() or is_editor == False:
+    if business_unit not in user.businessunit_set.all() or is_editor is False:
         if user_level != 'GA':
             return redirect(index)
     if request.method == 'POST':
@@ -1276,7 +1282,7 @@ def new_machine(request, group_id):
     else:
         is_editor = False
 
-    if business_unit not in user.businessunit_set.all() or is_editor == False:
+    if business_unit not in user.businessunit_set.all() or is_editor is False:
         if user_level != 'GA':
             return redirect(index)
     c = {'form': form, 'is_editor': is_editor, 'machine_group': machine_group, }
@@ -1330,7 +1336,7 @@ def machine_detail(request, machine_id):
             update_history = UpdateHistory.objects.get(machine=machine,
                                                        version=item['version_to_install'],
                                                        name=item['name'], update_type='third_party')
-        except IndexError as e:
+        except IndexError:
             pass
         except UpdateHistory.DoesNotExist:
             pass
@@ -1360,7 +1366,7 @@ def machine_detail(request, machine_id):
                     machine=machine, version=version, name=item['name'], update_type='third_party')
                 item['update_history'] = UpdateHistoryItem.objects.filter(
                     update_history=update_history)
-            except Exception as e:
+            except Exception:
                 pass
 
     # handle items that were removed during the most recent run
@@ -1446,8 +1452,7 @@ def machine_detail(request, machine_id):
                     machine.os_family in supported_os_families:
                 data = {}
                 data['name'] = plugin.name
-                data['html'] = '<div id="plugin-%s"><img class="center-block blue-spinner" src="%s"/></div>' % (
-                    data['name'], static('img/blue-spinner.gif'))
+                data['html'] = '<div id="plugin-%s"><img class="center-block blue-spinner" src="%s"/></div>' % (data['name'], static('img/blue-spinner.gif'))  # noqa: E501
                 output.append(data)
                 break
 
@@ -1803,7 +1808,7 @@ def machine_detail_plugin_enable(request, plugin_name):
     try:
         plugin = MachineDetailPlugin.objects.get(name=plugin_name)
     except MachineDetailPlugin.DoesNotExist:
-        enabled_plugins = MachineDetailPlugin.objects.all()
+        enabled_plugins = MachineDetailPlugin.objects.all()  # noqa: F841
         # Build the manager
         manager = PluginManager()
         # Tell it the default place(s) where to find plugins
@@ -2066,7 +2071,6 @@ def checkin(request):
 
     machine_group = get_object_or_404(MachineGroup, key=key)
     machine.machine_group = machine_group
-    business_unit = machine_group.business_unit
 
     machine.last_checkin = django.utils.timezone.now()
 
@@ -2211,7 +2215,7 @@ def checkin(request):
         utils.process_plugin_script(report_data.get('Plugin_Results'), machine)
 
     # Remove existing PendingUpdates for the machine
-    updates = machine.pending_updates.all().delete()
+    machine.pending_updates.all().delete()
     now = django.utils.timezone.now()
     if 'ItemsToInstall' in report_data:
         pending_update_to_save = []
@@ -2233,7 +2237,11 @@ def checkin(request):
                 # Let's handle some of those lovely pending installs into the UpdateHistory Model
                 try:
                     update_history = UpdateHistory.objects.get(
-                        name=update_name, version=version, machine=machine, update_type='third_party')
+                        name=update_name,
+                        version=version,
+                        machine=machine,
+                        update_type='third_party'
+                    )
                 except UpdateHistory.DoesNotExist:
                     update_history = UpdateHistory(
                         name=update_name,
@@ -2259,7 +2267,7 @@ def checkin(request):
             PendingUpdate.objects.bulk_create(pending_update_to_save)
             UpdateHistoryItem.objects.bulk_create(update_history_item_to_save)
 
-    updates = machine.installed_updates.all().delete()
+    machine.installed_updates.all().delete()
 
     if 'ManagedInstalls' in report_data:
         # Due to a quirk in how Munki 3 processes updates with dependencies,
@@ -2292,7 +2300,7 @@ def checkin(request):
             InstalledUpdate.objects.bulk_create(installed_updates_to_save)
 
     # Remove existing PendingAppleUpdates for the machine
-    updates = machine.pending_apple_updates.all().delete()
+    machine.pending_apple_updates.all().delete()
     if 'AppleUpdates' in report_data:
         for update in report_data.get('AppleUpdates'):
             display_name = update.get('display_name', update['name'])
@@ -2300,7 +2308,11 @@ def checkin(request):
             version = str(update['version_to_install'])
             try:
                 pending_update = PendingAppleUpdate.objects.get(
-                    machine=machine, display_name=display_name, update_version=version, update=update_name)
+                    machine=machine,
+                    display_name=display_name,
+                    update_version=version,
+                    update=update_name
+                )
             except PendingAppleUpdate.DoesNotExist:
                 pending_update = PendingAppleUpdate(
                     machine=machine,

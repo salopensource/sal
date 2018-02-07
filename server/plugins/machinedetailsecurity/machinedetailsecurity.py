@@ -25,10 +25,7 @@ class MachineDetailSecurity(IPlugin):
         t = loader.get_template('machinedetailsecurity/templates/machinedetailsecurity.html')
 
         try:
-            fv_status = PluginScriptRow.objects.filter(submission__machine=machines,
-                            submission__plugin__exact='MachineDetailSecurity',
-                                    pluginscript_name__exact='Filevault').\
-                                    order_by('submission__recorded').first()
+            fv_status = PluginScriptRow.objects.filter(submission__machine=machines, submission__plugin__exact='MachineDetailSecurity', pluginscript_name__exact='Filevault').order_by('submission__recorded').first()  # noqa: E501
             fv_status = fv_status.pluginscript_data
         except Exception:
             fv_status = 'Unknown'

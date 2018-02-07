@@ -19,7 +19,6 @@ class DiskSpace(IPlugin):
 
     def widget_content(self, page, machines=None, theid=None):
         # The data is data is pulled from the database and passed to a template.
-
         """
         There are three possible views we're going to be rendering to - front, bu_dashbaord and
         group_dashboard. If page is set to bu_dashboard, or group_dashboard, you will be passed a

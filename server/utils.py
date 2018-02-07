@@ -60,7 +60,7 @@ def process_plugin_script(results, machine):
         plugin_name = plugin['plugin']
         historical = plugin.get('historical', False)
         if not historical:
-            deleted_sub = PluginScriptSubmission.objects.filter(
+            PluginScriptSubmission.objects.filter(
                 machine=machine, plugin=safe_unicode(plugin_name)).delete()
 
         plugin_script = PluginScriptSubmission(

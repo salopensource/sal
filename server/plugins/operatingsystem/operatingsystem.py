@@ -49,20 +49,11 @@ class OperatingSystem(IPlugin):
             elif machine['os_family'] == 'Linux':
                 linux_os_info.append(machine)
 
-        mac_os_info = sorted(
-            mac_os_info,
-            key=lambda x: LooseVersion(x["operating_system"]),
-            reverse=True)
+        os_key = lambda x: LooseVersion(x["operating_system"])
 
-        windows_os_info = sorted(
-            windows_os_info,
-            key=lambda x: LooseVersion(x["operating_system"]),
-            reverse=True)
-
-        linux_os_info = sorted(
-            linux_os_info,
-            key=lambda x: LooseVersion(x["operating_system"]),
-            reverse=True)
+        mac_os_info = sorted(mac_os_info, key=os_key, reverse=True)
+        windows_os_info = sorted(windows_os_info, key=os_key, reverse=True)
+        linux_os_info = sorted(linux_os_info, key=os_key, reverse=True)
 
         c = Context({
             'title': 'Operating Systems',

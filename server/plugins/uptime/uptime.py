@@ -32,21 +32,18 @@ class Uptime(IPlugin):
             for i in range(0, 30):
                 ok_range.append(str(i))
 
-            ok = machines.filter(pluginscriptsubmission__plugin__exact='Uptime', pluginscriptsubmission__pluginscriptrow__pluginscript_name__exact='UptimeDays',
-                                 pluginscriptsubmission__pluginscriptrow__pluginscript_data__in=ok_range).count()  # noqa: E501
+            ok = machines.filter(pluginscriptsubmission__plugin__exact='Uptime', pluginscriptsubmission__pluginscriptrow__pluginscript_name__exact='UptimeDays', pluginscriptsubmission__pluginscriptrow__pluginscript_data__in=ok_range).count()  # noqa: E501
 
             warning_range = []
             for i in range(30, 90):
                 warning_range.append(str(i))
 
-            warning = machines.filter(pluginscriptsubmission__plugin__exact='Uptime', pluginscriptsubmission__pluginscriptrow__pluginscript_name__exact='UptimeDays',
-                                      pluginscriptsubmission__pluginscriptrow__pluginscript_data__in=warning_range).count()  # noqa: E501
+            warning = machines.filter(pluginscriptsubmission__plugin__exact='Uptime', pluginscriptsubmission__pluginscriptrow__pluginscript_name__exact='UptimeDays', pluginscriptsubmission__pluginscriptrow__pluginscript_data__in=warning_range).count()  # noqa: E501
 
             not_alert_range = []
             for i in range(0, 90):
                 not_alert_range.append(str(i))
-            alert = machines.filter(pluginscriptsubmission__plugin__exact='Uptime', pluginscriptsubmission__pluginscriptrow__pluginscript_name__exact='UptimeDays').exclude(
-                pluginscriptsubmission__pluginscriptrow__pluginscript_data__in=not_alert_range).count()  # noqa: E501
+            alert = machines.filter(pluginscriptsubmission__plugin__exact='Uptime', pluginscriptsubmission__pluginscriptrow__pluginscript_name__exact='UptimeDays').exclude(pluginscriptsubmission__pluginscriptrow__pluginscript_data__in=not_alert_range).count()  # noqa: E501
         except Exception:
             ok = 0
             warning = 0

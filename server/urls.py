@@ -33,7 +33,8 @@ urlpatterns = [
     # reporload (front page)
     url(r'^report/(?P<pluginName>.+)/$', report_load, name='report_load_front'),
     # report (id)
-    url(r'^id_report/(?P<pluginName>.+)/(?P<page>.+)/(?P<theID>.+)/$', report_load, name='report_load_id'),
+    url(r'^id_report/(?P<pluginName>.+)/(?P<page>.+)/(?P<theID>.+)/$', report_load,
+        name='report_load_id'),
     # Machine List (front page)
     url(r'^list/(?P<pluginName>.+)/(?P<data>.+)/$', machine_list, name='machine_list_front'),
     # Machine List (id)
@@ -69,7 +70,8 @@ urlpatterns = [
     url(r'^business_unit/really/delete/(?P<bu_id>.+)/',
         really_delete_business_unit, name='really_delete_business_unit'),
     # Delete Machine Group
-    url(r'^machine_group/delete/(?P<group_id>.+)/', delete_machine_group, name='delete_machine_group'),
+    url(r'^machine_group/delete/(?P<group_id>.+)/', delete_machine_group,
+        name='delete_machine_group'),
     # Really Delete Machine Group
     url(r'^machine_group/really/delete/(?P<group_id>.+)/',
         really_delete_machine_group, name='really_delete_machine_group'),
@@ -140,7 +142,11 @@ urlpatterns = [
     # Manage Plugins
     url(r'^settings/plugins/', plugins_page, name='plugins_page'),
     # Save Historical days
-    url(r'^settings/save_historical_days/', settings_historical_data, name='settings_historical_data'),
+    url(
+        r'^settings/save_historical_days/',
+        settings_historical_data,
+        name='settings_historical_data'
+    ),
     # Settings
     url(r'^settings/', settings_page, name='settings_page'),
     # never remind about new version

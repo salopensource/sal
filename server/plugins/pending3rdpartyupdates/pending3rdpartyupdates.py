@@ -41,11 +41,12 @@ class Pending3rdPartyUpdates(IPlugin):
             # loop over existing items, see if there is a dict with the right value
             found = False
             for update in pending_updates:
-                if update['update'] == item['update'] and update['update_version'] == item['update_version']:
+                if update['update'] == item['update'] and \
+                        update['update_version'] == item['update_version']:
                     update['count'] = update['count'] + item['count']
                     found = True
                     break
-            if found == False:
+            if found is False:
                 pending_updates.append(item)
 
         c = Context({
@@ -56,16 +57,9 @@ class Pending3rdPartyUpdates(IPlugin):
             'plugin': 'Pending3rdPartyUpdates'
         })
 
-        if len(updates) == 0:
-            size = 0
-        else:
-            size = 4
-
         return t.render(c)
 
     def filter_machines(self, machines, data):
-        # You will be passed a QuerySet of machines, you then need to perform some filtering based on the 'data' part of the url from the show_widget output. Just return your filtered list of machines and the page title.
-
         # updatename--version
         (update_name, update_version) = data.split("--")
         machines = machines.filter(pending_updates__update=update_name,

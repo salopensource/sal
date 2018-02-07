@@ -38,26 +38,22 @@ class Encryption(IPlugin):
                 t = loader.get_template('encryption/templates/id_laptops.html')
 
         try:
-            laptop_ok = machines.filter(pluginscriptsubmission__plugin='Encryption', pluginscriptsubmission__pluginscriptrow__pluginscript_name='Filevault',
-                                        pluginscriptsubmission__pluginscriptrow__pluginscript_data='Enabled').filter(machine_model__contains='Book').count()
+            laptop_ok = machines.filter(pluginscriptsubmission__plugin='Encryption', pluginscriptsubmission__pluginscriptrow__pluginscript_name='Filevault', pluginscriptsubmission__pluginscriptrow__pluginscript_data='Enabled').filter(machine_model__contains='Book').count()  # noqa: E501
         except Exception:
             laptop_ok = 0
 
         try:
-            desktop_ok = machines.filter(pluginscriptsubmission__plugin__exact='Encryption', pluginscriptsubmission__pluginscriptrow__pluginscript_name__exact='Filevault',
-                                         pluginscriptsubmission__pluginscriptrow__pluginscript_data__exact='Enabled').exclude(machine_model__contains='Book').count()
+            desktop_ok = machines.filter(pluginscriptsubmission__plugin__exact='Encryption', pluginscriptsubmission__pluginscriptrow__pluginscript_name__exact='Filevault', pluginscriptsubmission__pluginscriptrow__pluginscript_data__exact='Enabled').exclude(machine_model__contains='Book').count()  # noqa: E501
         except Exception:
             desktop_ok = 0
 
         try:
-            laptop_alert = machines.filter(pluginscriptsubmission__plugin__exact='Encryption', pluginscriptsubmission__pluginscriptrow__pluginscript_name__exact='Filevault',
-                                           pluginscriptsubmission__pluginscriptrow__pluginscript_data__exact='Disabled').filter(machine_model__contains='Book').count()
+            laptop_alert = machines.filter(pluginscriptsubmission__plugin__exact='Encryption', pluginscriptsubmission__pluginscriptrow__pluginscript_name__exact='Filevault', pluginscriptsubmission__pluginscriptrow__pluginscript_data__exact='Disabled').filter(machine_model__contains='Book').count()  # noqa: E501
         except Exception:
             laptop_alert = 0
 
         try:
-            desktop_alert = machines.filter(pluginscriptsubmission__plugin__exact='Encryption', pluginscriptsubmission__pluginscriptrow__pluginscript_name__exact='Filevault',
-                                            pluginscriptsubmission__pluginscriptrow__pluginscript_data__exact='Disabled').exclude(machine_model__contains='Book').count()
+            desktop_alert = machines.filter(pluginscriptsubmission__plugin__exact='Encryption', pluginscriptsubmission__pluginscriptrow__pluginscript_name__exact='Filevault', pluginscriptsubmission__pluginscriptrow__pluginscript_data__exact='Disabled').exclude(machine_model__contains='Book').count()  # noqa: E501
         except Exception:
             desktop_alert = 0
 
@@ -77,23 +73,19 @@ class Encryption(IPlugin):
 
     def filter_machines(self, machines, data):
         if data == 'laptopok':
-            machines = machines.filter(pluginscriptsubmission__plugin__exact='Encryption', pluginscriptsubmission__pluginscriptrow__pluginscript_name__exact='Filevault',
-                                       pluginscriptsubmission__pluginscriptrow__pluginscript_data__exact='Enabled').filter(machine_model__contains='Book')
+            machines = machines.filter(pluginscriptsubmission__plugin__exact='Encryption', pluginscriptsubmission__pluginscriptrow__pluginscript_name__exact='Filevault', pluginscriptsubmission__pluginscriptrow__pluginscript_data__exact='Enabled').filter(machine_model__contains='Book')  # noqa: E501
             title = 'Laptops with encryption enabled'
 
         elif data == 'desktopok':
-            machines = machines.filter(pluginscriptsubmission__plugin__exact='Encryption', pluginscriptsubmission__pluginscriptrow__pluginscript_name__exact='Filevault',
-                                       pluginscriptsubmission__pluginscriptrow__pluginscript_data__exact='Enabled').exclude(machine_model__contains='Book')
+            machines = machines.filter(pluginscriptsubmission__plugin__exact='Encryption', pluginscriptsubmission__pluginscriptrow__pluginscript_name__exact='Filevault', pluginscriptsubmission__pluginscriptrow__pluginscript_data__exact='Enabled').exclude(machine_model__contains='Book')  # noqa: E501
             title = 'Desktops with encryption enabled'
 
         elif data == 'laptopalert':
-            machines = machines.filter(pluginscriptsubmission__plugin__exact='Encryption', pluginscriptsubmission__pluginscriptrow__pluginscript_name__exact='Filevault',
-                                       pluginscriptsubmission__pluginscriptrow__pluginscript_data__exact='Disabled').filter(machine_model__contains='Book')
+            machines = machines.filter(pluginscriptsubmission__plugin__exact='Encryption', pluginscriptsubmission__pluginscriptrow__pluginscript_name__exact='Filevault', pluginscriptsubmission__pluginscriptrow__pluginscript_data__exact='Disabled').filter(machine_model__contains='Book')  # noqa: E501
             title = 'Laptops without encryption enabled'
 
         elif data == 'desktopalert':
-            machines = machines.filter(pluginscriptsubmission__plugin__exact='Encryption', pluginscriptsubmission__pluginscriptrow__pluginscript_name__exact='Filevault',
-                                       pluginscriptsubmission__pluginscriptrow__pluginscript_data__exact='Disabled').exclude(machine_model__contains='Book')
+            machines = machines.filter(pluginscriptsubmission__plugin__exact='Encryption', pluginscriptsubmission__pluginscriptrow__pluginscript_name__exact='Filevault', pluginscriptsubmission__pluginscriptrow__pluginscript_data__exact='Disabled').exclude(machine_model__contains='Book')  # noqa: E501
             title = 'Desktops without encryption enabled'
 
         else:

@@ -42,9 +42,9 @@ def macos(os_version):
 
 @register.filter
 def bu_machine_count(bu_id):
-    """Returns the number of machines contained within the child Machine Groups. Input is BusinessUnit.id"""
+    """Returns the number of machines contained within the child Machine Groups. Input is
+    BusinessUnit.id"""
     # Get the BusinessUnit
-    #bu_id = int(bu_id)
     business_unit = get_object_or_404(BusinessUnit, pk=bu_id)
     machine_groups = business_unit.machinegroup_set.all()
     count = 0

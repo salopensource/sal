@@ -188,10 +188,8 @@ class Machine(models.Model):
         # Save report.
         try:
             if report_format == 'base64bz2':
-                base64bz2report = encoded_report.replace(" ", "+")
                 plist = self.b64bz_decode(encoded_report)
             elif report_format == 'base64':
-                base64report = encoded_report.replace(" ", "+")
                 plist = self.b64_decode(encoded_report)
             self.report = plistlib.writePlistToString(plist)
             self.report_format = report_format
@@ -216,7 +214,6 @@ class Machine(models.Model):
             if (section in plist) and len(plist[section]):
                 activity[section] = plist[section]
         if activity:
-            #self.activity = self.encode(activity)
             self.activity = plistlib.writePlistToString(activity)
         else:
             self.activity = None
@@ -289,7 +286,12 @@ class UpdateHistoryItem(models.Model):
     extra = models.TextField(blank=True, null=True)
 
     def __unicode__(self):
-        return u"%s: %s %s %s %s" % (self.update_history.machine, self.update_history.name, self.update_history.version, self.status, self.recorded)
+        return u"%s: %s %s %s %s" % (
+            self.update_history.machine,
+            self.update_history.name,
+            self.update_history.version,
+            self.status, self.recorded
+        )
 
     class Meta:
         ordering = ['-recorded']

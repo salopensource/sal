@@ -49,7 +49,8 @@ def index(request):
     user = request.user
     # Count the number of users. If there is only one, they need to be made a GA
     if User.objects.count() == 1:
-        # The first user created by syncdb won't have a profile. If there isn't one, make sure they get one.
+        # The first user created by syncdb won't have a profile. If there isn't
+        # one, make sure they get one.
         try:
             profile = UserProfile.objects.get(user=user)
         except UserProfile.DoesNotExist:
@@ -125,7 +126,8 @@ def index(request):
                 break
 
     output = utils.orderPluginOutput(output)
-    # get the user level - if they're a global admin, show all of the machines. If not, show only the machines they have access to
+    # get the user level - if they're a global admin, show all of the
+    # machines. If not, show only the machines they have access to
     data_setting_decided = True
     if user_level == 'GA':
         business_units = BusinessUnit.objects.all()
@@ -969,7 +971,7 @@ def overview_list_all(request, req_type, data, bu_id=None):
     if req_type == 'pending_apple_updates':
         pending_apple_update = data
 
-    if bu_id != None:
+    if bu_id is not None:
         business_units = get_object_or_404(BusinessUnit, pk=bu_id)
         machine_groups = MachineGroup.objects.filter(business_unit=business_units).all()
 
@@ -1153,7 +1155,7 @@ def group_dashboard(request, group_id):
                 break
 
     output = utils.orderPluginOutput(output, 'group_dashboard', machine_group.id)
-    c = {'user': request.user, 'machine_group': machine_group, 'user_level': user_level,  'is_editor': is_editor,
+    c = {'user': request.user, 'machine_group': machine_group, 'user_level': user_level, 'is_editor': is_editor,
          'business_unit': business_unit, 'output': output, 'request': request, 'reports': reports}
     return render(request, 'server/group_dashboard.html', c)
 
@@ -1302,7 +1304,7 @@ def machine_detail(request, machine_id):
             update_history = UpdateHistory.objects.get(machine=machine,
                                                        version=item['version_to_install'],
                                                        name=item['name'], update_type='third_party')
-        except IndexError, e:
+        except IndexError as e:
             pass
         except UpdateHistory.DoesNotExist:
             pass
@@ -1333,7 +1335,7 @@ def machine_detail(request, machine_id):
                                                            name=item['name'], update_type='third_party')
                 item['update_history'] = UpdateHistoryItem.objects.filter(
                     update_history=update_history)
-            except Exception, e:
+            except Exception as e:
                 pass
 
     # handle items that were removed during the most recent run
@@ -1990,7 +1992,8 @@ def checkin(request):
     serial = serial.upper()
     broken_client = data.get('broken_client', False)
 
-    # Take out some of the weird junk VMware puts in. Keep an eye out in case Apple actually uses these:
+    # Take out some of the weird junk VMware puts in. Keep an eye out in case
+    # Apple actually uses these:
     serial = serial.replace('/', '')
     serial = serial.replace('+', '')
 
@@ -2222,7 +2225,7 @@ def checkin(request):
             installed = update.get('installed')
             if (update_name, version) not in seen_names_and_versions:
                 seen_names_and_versions.append((update_name, version))
-                if (version != 'UNKNOWN' and version != None and
+                if (version != 'UNKNOWN' and version is not None and
                         len(version) != 0):
                     installed_update = InstalledUpdate(
                         machine=machine, display_name=display_name,

@@ -41,6 +41,9 @@ class XprotectVersion(IPlugin):
         return t.render(c)
 
     def filter_machines(self, machines, data):
-        machines = machines.filter(pluginscriptsubmission__plugin__exact='XprotectVersion', pluginscriptsubmission__pluginscriptrow__pluginscript_name__exact='Version', pluginscriptsubmission__pluginscriptrow__pluginscript_data__exact=data)  # noqa: E501
+        machines = machines.filter(
+            pluginscriptsubmission__plugin__exact='XprotectVersion',
+            pluginscriptsubmission__pluginscriptrow__pluginscript_name__exact='Version',
+            pluginscriptsubmission__pluginscriptrow__pluginscript_data__exact=data)
 
         return machines, 'Machines with Xprotect version ' + data

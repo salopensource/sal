@@ -47,7 +47,7 @@ def csvrelated(header_item, facts, kind):
                     return pluginscriptrow['pluginscript_data']
             except Exception:
                 pass
-    if found == False:
+    if not found:
         return ''
 
 
@@ -59,7 +59,7 @@ def process_plugin_script(results, machine):
     for plugin in results:
         plugin_name = plugin['plugin']
         historical = plugin.get('historical', False)
-        if historical == False:
+        if not historical:
             deleted_sub = PluginScriptSubmission.objects.filter(
                 machine=machine, plugin=safe_unicode(plugin_name)).delete()
 
@@ -68,8 +68,13 @@ def process_plugin_script(results, machine):
         plugin_script.save()
         data = plugin.get('data')
         for key, value in data.items():
-            plugin_row = PluginScriptRow(submission=safe_unicode(plugin_script), pluginscript_name=safe_unicode(
-                key), pluginscript_data=safe_unicode(value), submission_and_script_name=(safe_unicode(plugin_name + ': ' + key)))
+            plugin_row = PluginScriptRow(
+                submission=safe_unicode(plugin_script),
+                pluginscript_name=safe_unicode(key),
+                pluginscript_data=safe_unicode(value),
+                submission_and_script_name=(
+                    safe_unicode(
+                        plugin_name + ': ' + key)))
             if is_postgres():
                 rows_to_create.append(plugin_row)
             else:
@@ -162,7 +167,7 @@ def get_plugin_scripts(plugin, hash_only=False, script_name=None):
                 break
         script_content = open(os.path.join(scripts_dir, script), "r").read()
         script_output = {}
-        if hash_only == False:
+        if not hash_only:
             script_output['content'] = script_content
         script_output['plugin'] = plugin.name
         script_output['filename'] = script
@@ -243,7 +248,7 @@ def send_report():
 
 
 def listify_condition_data(condition_data):
-    if type(condition_data) == list:
+    if isinstance(condition_data, list):
         result = None
         for item in condition_data:
             # is this the first loop? If so, no need for a comma
@@ -254,7 +259,7 @@ def listify_condition_data(condition_data):
                 result = str(result) + ', ' + str(item)
             else:
                 result = item
-        if result == None:
+        if result is None:
             # Handle empty arrays
             result = '{EMPTY}'
         condition_data = result

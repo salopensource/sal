@@ -2413,7 +2413,7 @@ def checkin(request):
                     if condition.condition_name == condition_name:
                         found = True
                         break
-                if found == False:
+                if found is False:
                     condition.delete()
 
             conditions = machine.conditions.all()
@@ -2422,7 +2422,8 @@ def checkin(request):
                 if 'Facter' in report_data and condition_name.startswith('facter_'):
                     continue
 
-                # if it's a list (more than one result), we're going to conacetnate it into one comma separated string
+                """ if it's a list (more than one result),
+                we're going to conacetnate it into one comma separated string """
                 condition_data = utils.listify_condition_data(condition_data)
 
                 found = False
@@ -2437,7 +2438,7 @@ def checkin(request):
                             condition.condition_data = condition_data
                             condition.save()
                             break
-                if found == False:
+                if found is False:
                     condition = Condition(machine=machine, condition_name=condition_name,
                                           condition_data=utils.safe_unicode(condition_data))
                     condition.save()
@@ -2499,8 +2500,11 @@ def process_update_item(name, version, update_type, action, recorded, machine, u
         if action == 'install' or action == 'removal':
             # Make sure there has't been a pending in the same sal run
             # Remove them if there are
-            remove_items = UpdateHistoryItem.objects.filter(uuid=uuid,
-                                                            status='pending', update_history=update_history)
+            remove_items = UpdateHistoryItem.objects.filter(
+                uuid=uuid,
+                status='pending',
+                update_history=update_history
+            )
             remove_items.delete()
             update_history.pending_recorded = False
             update_history.save()
@@ -2571,7 +2575,7 @@ def install_log_submit(request):
                     try:
                         if m.group(3) == 'SUCCESSFUL':
                             the_date = dateutil.parser.parse(m.group(1))
-                            #(name, version) = m.group(2).rsplit('-',1)
+                            # (name, version) = m.group(2).rsplit('-',1)
                             name = m.group(2)
                             version = ''
                             process_update_item(name, version, 'third_party', 'removal', the_date,

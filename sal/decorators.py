@@ -75,8 +75,8 @@ def key_auth_required(function):
         else:
             use_auth = True
 
-        if use_auth == False:
-            return view(request, *args, **kwargs)
+        if use_auth is False:
+            return view(request, *args, **kwargs)  # noqa: F821
 
         if 'HTTP_AUTHORIZATION' in request.META:
             auth = request.META['HTTP_AUTHORIZATION'].split()

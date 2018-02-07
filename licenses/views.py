@@ -40,7 +40,7 @@ def new_license(request):
     if request.method == 'POST':
         form = LicenseForm(request.POST)
         if form.is_valid():
-            new_license = form.save()
+            form.save()
             return redirect(license_index)
     else:
         form = LicenseForm()

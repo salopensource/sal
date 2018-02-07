@@ -44,9 +44,20 @@ TEMPLATES = [
     },
 ]
 
-# The order plugins (if they're able to be shown on that particular page) will be displayed in. If not listed here, will be listed alphabetically after.
-PLUGIN_ORDER = ['Activity', 'Status', 'OperatingSystem', 'MunkiVersion', 'Uptime',
-                'Memory', 'DiskSpace', 'PendingAppleUpdates', 'Pending3rdPartyUpdates', 'PuppetStatus']
+# The order plugins (if they're able to be shown on that particular page) will be displayed in.
+# If not listed here, will be listed alphabetically after.
+PLUGIN_ORDER = [
+    'Activity',
+    'Status',
+    'OperatingSystem',
+    'MunkiVersion',
+    'Uptime',
+    'Memory',
+    'DiskSpace',
+    'PendingAppleUpdates',
+    'Pending3rdPartyUpdates',
+    'PuppetStatus'
+]
 
 # Only show these plugins on the front page - some things only the admins should see.
 LIMIT_PLUGIN_TO_FRONT_PAGE = []
@@ -66,7 +77,7 @@ HIDE_PLUGIN_FROM_MACHINE_GROUP = {
 
 # If you want to have a default machine group, define this to the key of
 # that group.
-#DEFAULT_MACHINE_GROUP_KEY = ''
+# DEFAULT_MACHINE_GROUP_KEY = ''
 
 # Facts which will have historical data kept in addition to the most
 # recent instanct of that fact.
@@ -235,7 +246,7 @@ BOOTSTRAP3 = {
 if 'DYNO' in os.environ:
     # Parse database configuration from $DATABASE_URL
     import dj_database_url
-    DATABASES['default'] = dj_database_url.config()
+    DATABASES['default'] = dj_database_url.config()  # noqa: F821
 
     # Honor the 'X-Forwarded-Proto' header for request.is_secure()
     SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')

@@ -5,7 +5,6 @@ from django.template.context_processors import csrf
 from django.views.decorators.csrf import csrf_exempt
 from django.core.urlresolvers import reverse
 from django.http import Http404
-#from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required, permission_required
 from django.conf import settings
 from django import forms
@@ -97,7 +96,6 @@ def catalog_hash(request):
         if catalogs_plist:
             for item in catalogs_plist:
                 name = item['name']
-                sha256hash = item['sha256hash']
                 try:
                     found_catalog = Catalog.objects.get(name=name, machine_group=machine_group)
                     output.append({'name': name, 'sha256hash': found_catalog.sha256hash})

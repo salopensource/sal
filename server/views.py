@@ -5,7 +5,9 @@ from django.contrib.auth.decorators import login_required, permission_required
 from django.template import RequestContext, Template, Context
 import json
 from django.views.decorators.csrf import csrf_exempt, csrf_protect
-from django.http import HttpResponse, Http404, HttpResponseNotFound, HttpResponseRedirect, JsonResponse, StreamingHttpResponse  # noqa: E501
+from django.http import (
+    HttpResponse, Http404, HttpResponseNotFound, HttpResponseRedirect,
+    JsonResponse, StreamingHttpResponse)
 from django.contrib.auth.models import Permission, User
 from django.conf import settings
 from django.template.context_processors import csrf

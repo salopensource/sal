@@ -49,7 +49,8 @@ class OperatingSystem(IPlugin):
             elif machine['os_family'] == 'Linux':
                 linux_os_info.append(machine)
 
-        os_key = lambda x: LooseVersion(x["operating_system"])
+        # you and your lanbda's @sheacraig...
+        os_key = lambda x: LooseVersion(x["operating_system"])  # noqa: E731
 
         mac_os_info = sorted(mac_os_info, key=os_key, reverse=True)
         windows_os_info = sorted(windows_os_info, key=os_key, reverse=True)

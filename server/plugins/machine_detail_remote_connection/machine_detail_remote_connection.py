@@ -47,6 +47,6 @@ class RemoteConnection(IPlugin):
             "title": "Remote Connection",
             "ssh_account": ssh_account.replace("@", ""),
             "vnc_url": "vnc://{}{}".format(ssh_account, ip_address),
-            "ssh_url": "ssh://{}{}".format(ssh_account, ip_address), })
+            "ssh_url": "ssh://{}{}".format(ssh_account, ip_address), }
 
         return template.render(context)

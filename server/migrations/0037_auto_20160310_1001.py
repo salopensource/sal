@@ -4,6 +4,7 @@ from server.models import *
 from django.db import models, migrations
 import plistlib
 
+
 def enable_plugins(apps, schema_editor):
 
     Machine = apps.get_model("server", "Machine")
@@ -20,6 +21,7 @@ def enable_plugins(apps, schema_editor):
 
         install_report = Report(name='MunkiInfo')
         install_report.save()
+
 
 class Migration(migrations.Migration):
 

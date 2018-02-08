@@ -26,18 +26,18 @@ def csvrelated(header_item, facts, kind):
     if kind == 'facter':
         for fact in facts:
             try:
-                if header_item == 'Facter: '+fact['fact_name']:
+                if header_item == 'Facter: ' + fact['fact_name']:
                     found = True
                     return fact['fact_data']
-            except:
+            except Exception:
                 pass
     elif kind == 'condition':
         for condition in facts:
             try:
-                if header_item == 'Munki Condition: '+condition['condition_name']:
+                if header_item == 'Munki Condition: ' + condition['condition_name']:
                     found = True
                     return condition['condition_data']
-            except:
+            except Exception:
                 pass
     elif kind == 'pluginscript':
         for pluginscriptrow in facts:
@@ -45,9 +45,9 @@ def csvrelated(header_item, facts, kind):
                 if header_item == pluginscriptrow['submission_and_script_name']:
                     found = True
                     return pluginscriptrow['pluginscript_data']
-            except:
+            except Exception:
                 pass
-    if found == False:
+    if not found:
         return ''
 
 
@@ -59,14 +59,22 @@ def process_plugin_script(results, machine):
     for plugin in results:
         plugin_name = plugin['plugin']
         historical = plugin.get('historical', False)
-        if historical == False:
-            deleted_sub = PluginScriptSubmission.objects.filter(machine=machine, plugin=safe_unicode(plugin_name)).delete()
+        if not historical:
+            PluginScriptSubmission.objects.filter(
+                machine=machine, plugin=safe_unicode(plugin_name)).delete()
 
-        plugin_script = PluginScriptSubmission(machine=machine, plugin=safe_unicode(plugin_name), historical=historical)
+        plugin_script = PluginScriptSubmission(
+            machine=machine, plugin=safe_unicode(plugin_name), historical=historical)
         plugin_script.save()
         data = plugin.get('data')
         for key, value in data.items():
-            plugin_row = PluginScriptRow(submission=safe_unicode(plugin_script), pluginscript_name=safe_unicode(key), pluginscript_data=safe_unicode(value), submission_and_script_name=(safe_unicode(plugin_name + ': ' + key)))
+            plugin_row = PluginScriptRow(
+                submission=safe_unicode(plugin_script),
+                pluginscript_name=safe_unicode(key),
+                pluginscript_data=safe_unicode(value),
+                submission_and_script_name=(
+                    safe_unicode(
+                        plugin_name + ': ' + key)))
             if is_postgres():
                 rows_to_create.append(plugin_row)
             else:
@@ -102,7 +110,7 @@ def get_version_number():
     try:
         senddata_setting = SalSetting.objects.get(name='send_data')
     except SalSetting.DoesNotExist:
-        #it's not been set up yet, just return true
+        # it's not been set up yet, just return true
         return True
 
     try:
@@ -112,7 +120,7 @@ def get_version_number():
         last_sent.save()
 
     current_time = int(time.time())
-    if  int(last_sent.value) < (current_time - 86400) or int(last_sent.value) == 0:
+    if int(last_sent.value) < (current_time - 86400) or int(last_sent.value) == 0:
         try:
             current_version = SalSetting.objects.get(name='current_version')
         except SalSetting.DoesNotExist:
@@ -130,7 +138,7 @@ def get_version_number():
                 if r.status_code == 200:
                     current_version.value = r.text
                     current_version.save()
-            except:
+            except Exception:
                 return True
 
 
@@ -149,7 +157,7 @@ def get_plugin_scripts(plugin, hash_only=False, script_name=None):
         scripts_dir = os.path.join(plugin.path, 'scripts')
     elif os.path.exists(os.path.abspath(os.path.join(os.path.join(plugin.path), '..', 'scripts'))):
         scripts_dir = os.path.abspath(os.path.join(
-        os.path.join(plugin.path), '..', 'scripts'))
+            os.path.join(plugin.path), '..', 'scripts'))
     else:
         return None
 
@@ -159,7 +167,7 @@ def get_plugin_scripts(plugin, hash_only=False, script_name=None):
                 break
         script_content = open(os.path.join(scripts_dir, script), "r").read()
         script_output = {}
-        if hash_only == False:
+        if not hash_only:
             script_output['content'] = script_content
         script_output['plugin'] = plugin.name
         script_output['filename'] = script
@@ -171,7 +179,8 @@ def run_plugin_processing(machine, report_data):
     # Build the manager
     manager = PluginManager()
     # Tell it the default place(s) where to find plugins
-    manager.setPluginPlaces([settings.PLUGIN_DIR, os.path.join(settings.PROJECT_DIR, 'server/plugins')])
+    manager.setPluginPlaces([settings.PLUGIN_DIR, os.path.join(
+        settings.PROJECT_DIR, 'server/plugins')])
     # Load all plugins
     manager.collectPlugins()
 
@@ -182,7 +191,7 @@ def run_plugin_processing(machine, report_data):
                 # Not all plugins will have a checkin_processor
                 try:
                     plugin.plugin_object.checkin_processor(machine, report_data)
-                except:
+                except Exception:
                     pass
     # Get all the enabled plugins
     enabled_plugins = Plugin.objects.all()
@@ -192,7 +201,7 @@ def run_plugin_processing(machine, report_data):
             # Not all plugins will have a checkin_processor
             try:
                 plugin.plugin_object.checkin_processor(machine, report_data)
-            except:
+            except Exception:
                 pass
 
     # Get all the enabled plugins
@@ -203,9 +212,8 @@ def run_plugin_processing(machine, report_data):
             # Not all plugins will have a checkin_processor
             try:
                 plugin.plugin_object.checkin_processor(machine, report_data)
-            except:
+            except Exception:
                 pass
-
 
 
 def send_report():
@@ -231,7 +239,7 @@ def send_report():
     output['version'] = version['version']
     # plist encode output
     post_data = plistlib.writePlistToString(output)
-    r = requests.post('https://version.salopensource.com', data = {"data":post_data})
+    r = requests.post('https://version.salopensource.com', data={"data": post_data})
     print r.status_code
     if r.status_code == 200:
         return r.text
@@ -240,7 +248,7 @@ def send_report():
 
 
 def listify_condition_data(condition_data):
-    if type(condition_data) == list:
+    if isinstance(condition_data, list):
         result = None
         for item in condition_data:
             # is this the first loop? If so, no need for a comma
@@ -248,10 +256,10 @@ def listify_condition_data(condition_data):
                 # convert all results into strings, since it happens at the db
                 # anyway. This fixes multiple dictionary results in an array
                 # from tracing.
-                result = str(result) + ', '+str(item)
+                result = str(result) + ', ' + str(item)
             else:
                 result = item
-        if result == None:
+        if result is None:
             # Handle empty arrays
             result = '{EMPTY}'
         condition_data = result
@@ -263,7 +271,8 @@ def loadDefaultPlugins():
     plugin_objects = Plugin.objects.all().count()
     if plugin_objects == 0:
         order = 0
-        PLUGIN_ORDER = ['Activity','Status','OperatingSystem', 'MunkiVersion', 'Uptime', 'Memory', 'DiskSpace', 'PendingAppleUpdates', 'Pending3rdPartyUpdates']
+        PLUGIN_ORDER = ['Activity', 'Status', 'OperatingSystem', 'MunkiVersion', 'Uptime',
+                        'Memory', 'DiskSpace', 'PendingAppleUpdates', 'Pending3rdPartyUpdates']
         for item in PLUGIN_ORDER:
             order = order + 1
             plugin = Plugin(name=item, order=order)
@@ -291,7 +300,7 @@ def reloadPluginsModel():
             'Gatekeeper',
             'Sip',
             'XprotectVersion'
-            ]
+        ]
 
         for item in PLUGIN_ORDER:
             order = order + 1
@@ -301,7 +310,8 @@ def reloadPluginsModel():
     # Build the manager
     manager = PluginManager()
     # Tell it the default place(s) where to find plugins
-    manager.setPluginPlaces([settings.PLUGIN_DIR, os.path.join(settings.PROJECT_DIR, 'server/plugins')])
+    manager.setPluginPlaces([settings.PLUGIN_DIR, os.path.join(
+        settings.PROJECT_DIR, 'server/plugins')])
     # Load all plugins
     manager.collectPlugins()
     found = []
@@ -320,12 +330,12 @@ def reloadPluginsModel():
             if plugin.name == dbplugin.name:
                 try:
                     dbplugin.type = plugin.plugin_object.plugin_type()
-                except:
+                except Exception:
                     dbplugin.type = 'builtin'
 
                 try:
                     dbplugin.description = plugin.plugin_object.get_description()
-                except:
+                except Exception:
                     pass
                 dbplugin.save()
 
@@ -340,15 +350,14 @@ def reloadPluginsModel():
             if plugin.name == dbplugin.name:
                 try:
                     dbplugin.type = plugin.plugin_object.plugin_type()
-                except:
+                except Exception:
                     dbplugin.type = 'builtin'
 
                 try:
                     dbplugin.description = plugin.plugin_object.get_description()
-                except:
+                except Exception:
                     pass
                 dbplugin.save()
-
 
     all_plugins = MachineDetailPlugin.objects.all()
     for plugin in all_plugins:
@@ -361,12 +370,12 @@ def reloadPluginsModel():
             if plugin.name == dbplugin.name:
                 try:
                     dbplugin.type = plugin.plugin_object.plugin_type()
-                except:
+                except Exception:
                     dbplugin.type = 'builtin'
 
                 try:
                     dbplugin.description = plugin.plugin_object.get_description()
-                except:
+                except Exception:
                     pass
                 dbplugin.save()
 
@@ -379,11 +388,12 @@ def is_postgres():
 
 
 def disabled_plugins(plugin_kind='main'):
-    enabled_plugins = Plugin.objects.all()
+    enabled_plugins = Plugin.objects.all()  # noqa: F841
     # Build the manager
     manager = PluginManager()
     # Tell it the default place(s) where to find plugins
-    manager.setPluginPlaces([settings.PLUGIN_DIR, os.path.join(settings.PROJECT_DIR, 'server/plugins')])
+    manager.setPluginPlaces([settings.PLUGIN_DIR, os.path.join(
+        settings.PROJECT_DIR, 'server/plugins')])
     # Load all plugins
     manager.collectPlugins()
     output = []
@@ -392,15 +402,15 @@ def disabled_plugins(plugin_kind='main'):
         for plugin in manager.getAllPlugins():
             try:
                 plugin_type = plugin.plugin_object.plugin_type()
-            except:
+            except Exception:
                 plugin_type = 'builtin'
             try:
                 supported_os_families = plugin.plugin_object.supported_os_families()
-            except:
+            except Exception:
                 supported_os_families = default_families
             if plugin_type == 'builtin':
                 try:
-                    _ = Plugin.objects.get(name=plugin.name)
+                    Plugin.objects.get(name=plugin.name)
                 except Plugin.DoesNotExist:
                     item = {}
                     item['name'] = plugin.name
@@ -411,17 +421,17 @@ def disabled_plugins(plugin_kind='main'):
         for plugin in manager.getAllPlugins():
             try:
                 plugin_type = plugin.plugin_object.plugin_type()
-            except:
+            except Exception:
                 plugin_type = 'builtin'
 
             try:
                 supported_os_families = plugin.plugin_object.supported_os_families()
-            except:
+            except Exception:
                 supported_os_families = default_families
 
             if plugin_type == 'report':
                 try:
-                    _ = Report.objects.get(name=plugin.name)
+                    Report.objects.get(name=plugin.name)
                 except Report.DoesNotExist:
                     item = {}
                     item['name'] = plugin.name
@@ -432,17 +442,17 @@ def disabled_plugins(plugin_kind='main'):
         for plugin in manager.getAllPlugins():
             try:
                 plugin_type = plugin.plugin_object.plugin_type()
-            except:
+            except Exception:
                 plugin_type = 'builtin'
 
             try:
                 supported_os_families = plugin.plugin_object.supported_os_families()
-            except:
+            except Exception:
                 supported_os_families = default_families
 
             if plugin_type == 'machine_detail':
                 try:
-                    _ = MachineDetailPlugin.objects.get(name=plugin.name)
+                    MachineDetailPlugin.objects.get(name=plugin.name)
                 except MachineDetailPlugin.DoesNotExist:
                     item = {}
                     item['name'] = plugin.name
@@ -462,6 +472,7 @@ def flatten_and_sort_list(the_list):
         counter += 1
     return output
 
+
 def UniquePluginOrder(plugin_type='builtin'):
     if plugin_type == 'builtin':
         plugins = Plugin.objects.all()
@@ -480,11 +491,12 @@ def orderPlugins(output):
     # Sort by name initially
     output = sorted(output, key=lambda k: k['name'])
     # Order by the list specified in settings
-    # Run through all of the names in pluginOutput. If they're not in the PLUGIN_ORDER list, we'll add them to a new one
+    # Run through all of the names in pluginOutput.
+    # If they're not in the PLUGIN_ORDER list, we'll add them to a new one
     not_ordered = []
     for item in output:
-            if item['name'] not in settings.PLUGIN_ORDER:
-                not_ordered.append(item['name'])
+        if item['name'] not in settings.PLUGIN_ORDER:
+            not_ordered.append(item['name'])
 
     search_items = settings.PLUGIN_ORDER + not_ordered
     lookup = {s: i for i, s in enumerate(search_items)}
@@ -493,9 +505,8 @@ def orderPlugins(output):
 
 
 def orderPluginOutput(pluginOutput, page='front', theID=None):
-    #output = orderPlugins(pluginOutput)
     output = pluginOutput
-    if page =='front':
+    if page == 'front':
         # remove the plugins that are in the list
         for item in output:
             for key in settings.HIDE_PLUGIN_FROM_FRONT_PAGE:
@@ -540,7 +551,7 @@ def orderPluginOutput(pluginOutput, page='front', theID=None):
     total_width = 0
     counter = 0
     # length of the output, but starting at 0, so subtract one
-    length = len(output)-1
+    length = len(output) - 1
     # We don't do any of this for machine detail
     if page != 'machine_detail':
         for item in output:
@@ -549,14 +560,14 @@ def orderPluginOutput(pluginOutput, page='front', theID=None):
                 break
             # No point doing anything if the plugin isn't going to return any output
             if int(item['width']) != 0:
-                if total_width+item['width'] > col_width:
-                    item['html'] = '\n</div>\n\n<div class="row">\n'+item['html']
+                if total_width + item['width'] > col_width:
+                    item['html'] = '\n</div>\n\n<div class="row">\n' + item['html']
                     # print 'breaking'
                     total_width = item['width']
-                    needs_break = False
+                    needs_break = False  # noqa: F841
                 else:
                     total_width = int(item['width']) + total_width
-            counter = counter +1
+            counter = counter + 1
             # print item['name']+' total: '+str(total_width)
     return output
 
@@ -581,7 +592,7 @@ def decode_to_string(data, compression='base64bz2'):
         try:
             return base64.b64decode(data)
         except Exception:
-            return 
+            return
             ''
     else:
         return ''
@@ -590,8 +601,9 @@ def decode_to_string(data, compression='base64bz2'):
 def friendly_machine_model(machine):
     # See if the machine's model already has one (and only one) friendly name
     output = None
-    friendly_names = Machine.objects.filter(machine_model=machine.machine_model).values('machine_model_friendly').annotate(num_models=Count('machine_model_friendly',
-                                         distinct=True)).distinct()
+    friendly_names = Machine.objects.filter(machine_model=machine.machine_model).\
+        values('machine_model_friendly').\
+        annotate(num_models=Count('machine_model_friendly', distinct=True)).distinct()
     for name in friendly_names:
         if name['num_models'] == 1:
             output = name['machine_model_friendly']
@@ -613,8 +625,9 @@ def friendly_machine_model(machine):
 
         try:
             output = ET.fromstring(r.text).find('configCode').text
-        except:
-            print 'Did not receive a model name for %s, %s. Error:' % (machine.serial, machine.machine_model)
+        except Exception:
+            print 'Did not receive a model name for %s, %s. Error:' % (
+                machine.serial, machine.machine_model)
 
     return output
 

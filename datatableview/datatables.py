@@ -31,6 +31,7 @@ from .utils import (OPTION_NAME_MAP, MINIMUM_PAGE_LENGTH, contains_plural_field,
                     resolve_orm_path)
 from .cache import DEFAULT_CACHE_TYPE, cache_types, get_cache_key, cache_data, get_cached_data
 
+
 def pretty_name(name):
     if not name:
         return ''
@@ -82,6 +83,8 @@ def columns_for_model(model, fields=None, exclude=None, labels=None, processors=
     return field_dict
 
 # Borrowed from the Django forms implementation
+
+
 def get_declared_columns(bases, attrs, with_base_columns=True):
     """
     Create a list of form field instances from the passed in 'attrs', plus any
@@ -94,9 +97,9 @@ def get_declared_columns(bases, attrs, with_base_columns=True):
     Also integrates any additional media definitions
     """
     local_columns = [
-        (column_name, attrs.pop(column_name)) \
-                for column_name, obj in list(six.iteritems(attrs)) \
-                if isinstance(obj, Column)
+        (column_name, attrs.pop(column_name))
+        for column_name, obj in list(six.iteritems(attrs))
+        if isinstance(obj, Column)
     ]
     local_columns.sort(key=lambda x: x[1].creation_counter)
 
@@ -114,11 +117,13 @@ def get_declared_columns(bases, attrs, with_base_columns=True):
 
     return OrderedDict(local_columns)
 
+
 class DatatableOptions(object):
     """
     Contains declarable options for a datatable, some of which can be manipuated by subsequent
     requests by the user.
     """
+
     def __init__(self, options=None):
         # Non-mutable; server's declared preference is final
         self.model = getattr(options, 'model', None)
@@ -130,7 +135,8 @@ class DatatableOptions(object):
         self.labels = getattr(options, 'labels', None)
         self.processors = getattr(options, 'processors', None)
         self.request_method = getattr(options, 'request_method', 'GET')
-        self.structure_template = getattr(options, 'structure_template', "datatableview/default_structure.html")
+        self.structure_template = getattr(
+            options, 'structure_template', "datatableview/default_structure.html")
         self.footer = getattr(options, 'footer', False)
         self.result_counter_id = getattr(options, 'result_counter_id', 'id_count')
 
@@ -144,6 +150,7 @@ class DatatableOptions(object):
 
 
 default_options = DatatableOptions()
+
 
 class DatatableMetaclass(type):
     """
@@ -348,7 +355,8 @@ class Datatable(six.with_metaclass(DatatableMetaclass)):
 
         for sort_queue_i in range(len(columns_list)):
             try:
-                column_index = int(query_config.get(OPTION_NAME_MAP['sort_column'] % sort_queue_i, ''))
+                column_index = int(query_config.get(
+                    OPTION_NAME_MAP['sort_column'] % sort_queue_i, ''))
             except ValueError:
                 continue
 
@@ -358,7 +366,8 @@ class Datatable(six.with_metaclass(DatatableMetaclass)):
             if column.name in config['unsortable_columns']:
                 continue
 
-            sort_direction = query_config.get(OPTION_NAME_MAP['sort_column_direction'] % sort_queue_i, None)
+            sort_direction = query_config.get(
+                OPTION_NAME_MAP['sort_column_direction'] % sort_queue_i, None)
 
             if sort_direction == 'asc':
                 sort_modifier = ''
@@ -751,6 +760,7 @@ class Datatable(six.with_metaclass(DatatableMetaclass)):
 
     def force_distinct(self, object_list):
         seen = set()
+
         def is_unseen(obj):
             if obj.pk in seen:
                 return False
@@ -894,7 +904,6 @@ class Datatable(six.with_metaclass(DatatableMetaclass)):
 
         return None
 
-
     # Template rendering features
     def __str__(self):
         """ Renders ``structure_template`` with ``self`` as a context variable. """
@@ -929,6 +938,7 @@ class ValuesDatatable(Datatable):
     Processor callbacks will no longer receive model instances, but instead the dict of selected
     values.
     """
+
     def get_valuesqueryset(self, queryset):
         # Figure out the full list of ORM path names
         self.value_queries = OrderedDict({'pk': 'pk'})

@@ -14,7 +14,8 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='SalSetting',
             fields=[
-                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('id', models.AutoField(verbose_name='ID',
+                                        serialize=False, auto_created=True, primary_key=True)),
                 ('name', models.TextField()),
                 ('value', models.TextField()),
             ],
@@ -52,6 +53,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='plugin',
             name='type',
-            field=models.CharField(default=b'facter', max_length=255, choices=[(b'facter', b'Facter'), (b'munkicondition', b'Munki Condition'), (b'osquery', b'osquery'), (b'builtin', b'Built In')]),
+            field=models.CharField(default=b'facter', max_length=255, choices=[(b'facter', b'Facter'), (
+                b'munkicondition', b'Munki Condition'), (b'osquery', b'osquery'), (b'builtin', b'Built In')]),
         ),
     ]

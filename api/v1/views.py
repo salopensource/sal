@@ -13,6 +13,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.pagination import PageNumberPagination
 
+
 class MachineList(generics.ListCreateAPIView):
     """
     List all machines, or create a new machine.
@@ -43,6 +44,7 @@ class MachineDetail(generics.RetrieveUpdateDestroyAPIView):
     lookup_field = 'serial'
     serializer_class = MachineSerializer
 
+
 class MachineFullDetail(generics.RetrieveUpdateDestroyAPIView):
     """
     Retrieve full details, update or delete a machine.
@@ -52,6 +54,7 @@ class MachineFullDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = Machine.objects.all()
     lookup_field = 'serial'
     serializer_class = FullMachineSerializer
+
 
 class MachineInventory(generics.ListAPIView):
     """
@@ -68,6 +71,7 @@ class MachineInventory(generics.ListAPIView):
         serial = self.kwargs['serial']
         return Machine.objects.get(serial=serial).inventoryitem_set.all()
 
+
 class AllInventory(generics.ListAPIView):
     """
     Retrieve all the inventory items
@@ -77,6 +81,7 @@ class AllInventory(generics.ListAPIView):
     serializer_class = InventoryItemSerializer
     queryset = InventoryItem.objects.all()
 
+
 class PendingAppleUpdates(generics.ListAPIView):
     """
     Retrieve pending apple updates for a machine.
@@ -84,6 +89,7 @@ class PendingAppleUpdates(generics.ListAPIView):
     authentication_classes = (ApiKeyAuthentication,)
     permission_classes = (HasRWPermission,)
     serializer_class = PendingAppleUpdateSerializer
+
     def get_queryset(self):
         """
         Get all of the update items for the machine
@@ -92,6 +98,7 @@ class PendingAppleUpdates(generics.ListAPIView):
         machine = Machine.objects.get(serial=serial)
         return PendingAppleUpdate.objects.filter(machine=machine)
 
+
 class PendingUpdates(generics.ListAPIView):
     """
     Retrieve pending third party updates for a machine
@@ -99,6 +106,7 @@ class PendingUpdates(generics.ListAPIView):
     authentication_classes = (ApiKeyAuthentication,)
     permission_classes = (HasRWPermission,)
     serializer_class = PendingUpdateSerializer
+
     def get_queryset(self):
         """
         Get all of the update items for the machine
@@ -107,6 +115,7 @@ class PendingUpdates(generics.ListAPIView):
         machine = Machine.objects.get(serial=serial)
         return PendingUpdate.objects.filter(machine=machine)
 
+
 class FactsMachine(generics.ListAPIView):
     """
     Retrieve facts for a machine
@@ -114,6 +123,7 @@ class FactsMachine(generics.ListAPIView):
     authentication_classes = (ApiKeyAuthentication,)
     permission_classes = (HasRWPermission,)
     serializer_class = FactSerializer
+
     def get_queryset(self):
         """
         Get all of the facts for the machine
@@ -122,6 +132,7 @@ class FactsMachine(generics.ListAPIView):
         machine = Machine.objects.get(serial=serial)
         return Fact.objects.filter(machine=machine)
 
+
 class Facts(generics.ListAPIView):
     """
     Retrieve a specific fact for all machines
@@ -129,12 +140,14 @@ class Facts(generics.ListAPIView):
     authentication_classes = (ApiKeyAuthentication,)
     permission_classes = (HasRWPermission,)
     serializer_class = FactWithSerialSerializer
+
     def get_queryset(self):
         fact_to_find = self.request.query_params.get('fact', None)
         if fact_to_find is not None:
             fact_to_find = fact_to_find.strip()
 
         return Fact.objects.filter(fact_name=fact_to_find)
+
 
 class ConditionsMachine(generics.ListAPIView):
     """
@@ -143,6 +156,7 @@ class ConditionsMachine(generics.ListAPIView):
     authentication_classes = (ApiKeyAuthentication,)
     permission_classes = (HasRWPermission,)
     serializer_class = ConditionSerializer
+
     def get_queryset(self):
         """
         Get all of the conditions for the machine
@@ -151,6 +165,7 @@ class ConditionsMachine(generics.ListAPIView):
         machine = Machine.objects.get(serial=serial)
         return Condition.objects.filter(machine=machine)
 
+
 class Conditions(generics.ListAPIView):
     """
     Retrieve a specific condition for all machines
@@ -158,12 +173,14 @@ class Conditions(generics.ListAPIView):
     authentication_classes = (ApiKeyAuthentication,)
     permission_classes = (HasRWPermission,)
     serializer_class = ConditionWithSerialSerializer
+
     def get_queryset(self):
         condition_to_find = self.request.query_params.get('condition', None)
         if condition_to_find is not None:
             condition_to_find = condition_to_find.strip()
 
         return Condition.objects.filter(condition_name=condition_to_find)
+
 
 class MachineGroupView(generics.RetrieveUpdateDestroyAPIView):
     """
@@ -175,6 +192,7 @@ class MachineGroupView(generics.RetrieveUpdateDestroyAPIView):
     lookup_field = 'pk'
     serializer_class = MachineGroupSerializer
 
+
 class MachineGroupList(generics.ListCreateAPIView):
     """
     List all machine groups, or create a new machine group.
@@ -184,6 +202,7 @@ class MachineGroupList(generics.ListCreateAPIView):
     queryset = MachineGroup.objects.all()
     lookup_field = 'pk'
     serializer_class = MachineGroupSerializer
+
 
 class BusinessUnitView(generics.RetrieveUpdateDestroyAPIView):
     """
@@ -195,6 +214,7 @@ class BusinessUnitView(generics.RetrieveUpdateDestroyAPIView):
     lookup_field = 'pk'
     serializer_class = BusinessUnitSerializer
 
+
 class BusinessUnitList(generics.ListCreateAPIView):
     """
     List all machine groups, or create a new business unit
@@ -205,6 +225,7 @@ class BusinessUnitList(generics.ListCreateAPIView):
     lookup_field = 'pk'
     serializer_class = BusinessUnitSerializer
 
+
 class PluginScriptSubmissionMachine(generics.ListAPIView):
     """
     Get the plugin script submissions for a machine
@@ -212,6 +233,7 @@ class PluginScriptSubmissionMachine(generics.ListAPIView):
     authentication_classes = (ApiKeyAuthentication,)
     permission_classes = (HasRWPermission,)
     serializer_class = PluginScriptSubmissionSerializer
+
     def get_queryset(self):
         """
         Get all of the PluginScriptSubmissions for the machine
@@ -219,6 +241,7 @@ class PluginScriptSubmissionMachine(generics.ListAPIView):
         serial = self.kwargs['serial']
         machine = Machine.objects.get(serial=serial)
         return PluginScriptSubmission.objects.filter(machine=machine)
+
 
 class PluginScriptSubmissionList(generics.ListAPIView):
     """
@@ -228,6 +251,7 @@ class PluginScriptSubmissionList(generics.ListAPIView):
     permission_classes = (HasRWPermission,)
     queryset = PluginScriptSubmission.objects.all()
     serializer_class = PluginScriptSubmissionSerializer
+
 
 class PluginScriptRowMachine(generics.ListAPIView):
     """
@@ -239,6 +263,7 @@ class PluginScriptRowMachine(generics.ListAPIView):
     lookup_field = 'pk'
     serializer_class = PluginScriptRowSerializer
 
+
 class SearchID(generics.ListAPIView):
     """
     Retrieve a saved search
@@ -246,6 +271,7 @@ class SearchID(generics.ListAPIView):
     authentication_classes = (ApiKeyAuthentication,)
     permission_classes = (HasRWPermission,)
     serializer_class = MachineSerializer
+
     def get_queryset(self):
         """
         Run the saved search
@@ -257,6 +283,7 @@ class SearchID(generics.ListAPIView):
         print search_machines(search_id, machines)
         return search_machines(search_id, machines, full=True)
 
+
 class BasicSearch(generics.ListAPIView):
     """
     Perform a basic search
@@ -264,6 +291,7 @@ class BasicSearch(generics.ListAPIView):
     authentication_classes = (ApiKeyAuthentication,)
     permission_classes = (HasRWPermission,)
     serializer_class = MachineSerializer
+
     def get_queryset(self):
         """
         Run the basic search

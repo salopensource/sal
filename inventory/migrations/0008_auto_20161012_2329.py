@@ -17,7 +17,8 @@ def clean_inventory(apps, schema_editor):
     for machine in Machine.objects.all():
         all_inventory = Inventory.objects.all().filter(machine=machine)
         if all_inventory.count() != 0:
-            first_inventory = Inventory.objects.all().filter(machine=machine)[:1].values_list("id", flat=True)
+            first_inventory = Inventory.objects.all().filter(
+                machine=machine)[:1].values_list("id", flat=True)
             Inventory.objects.all().filter(machine=machine).exclude(pk__in=list(first_inventory)).delete()
 
 
@@ -32,6 +33,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='inventory',
             name='machine',
-            field=models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, to='server.Machine'),
+            field=models.OneToOneField(
+                on_delete=django.db.models.deletion.CASCADE, to='server.Machine'),
         ),
     ]

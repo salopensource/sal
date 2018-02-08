@@ -192,4 +192,3 @@ class SavedSearchViewSet(viewsets.ReadOnlyModelViewSet):
         response_data = MachineSerializer(
             queryset, many=True, full=full, saved_search=True)
         return Response(response_data.data)
-

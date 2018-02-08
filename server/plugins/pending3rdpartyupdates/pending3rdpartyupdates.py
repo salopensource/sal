@@ -6,6 +6,7 @@ from server.models import *
 from django.shortcuts import get_object_or_404
 import server.utils as utils
 
+
 class Pending3rdPartyUpdates(IPlugin):
     def plugin_type(self):
         return 'builtin'
@@ -25,24 +26,27 @@ class Pending3rdPartyUpdates(IPlugin):
         if page == 'bu_dashboard':
             t = loader.get_template('plugins/pendingupdates/id.html')
             business_unit = get_object_or_404(BusinessUnit, pk=id)
-            updates = PendingUpdate.objects.filter(machine__machine_group__business_unit=business_unit)
+            updates = PendingUpdate.objects.filter(
+                machine__machine_group__business_unit=business_unit)
 
         if page == 'group_dashboard':
             t = loader.get_template('plugins/pendingupdates/id.html')
             machine_group = get_object_or_404(MachineGroup, pk=id)
             updates = PendingUpdate.objects.filter(machine__machine_group=machine_group)
 
-        updates = updates.values('update', 'update_version', 'display_name').annotate(count=Count('update')).order_by('display_name')
+        updates = updates.values('update', 'update_version', 'display_name').annotate(
+            count=Count('update')).order_by('display_name')
         pending_updates = []
         for item in updates:
             # loop over existing items, see if there is a dict with the right value
             found = False
             for update in pending_updates:
-                if update['update'] == item['update'] and update['update_version'] == item['update_version']:
+                if update['update'] == item['update'] and \
+                        update['update_version'] == item['update_version']:
                     update['count'] = update['count'] + item['count']
                     found = True
                     break
-            if found == False:
+            if found is False:
                 pending_updates.append(item)
 
         c = Context({
@@ -53,24 +57,18 @@ class Pending3rdPartyUpdates(IPlugin):
             'plugin': 'Pending3rdPartyUpdates'
         })
 
-        if len(updates)==0:
-            size = 0
-        else:
-            size = 4
-
         return t.render(c)
 
     def filter_machines(self, machines, data):
-        # You will be passed a QuerySet of machines, you then need to perform some filtering based on the 'data' part of the url from the show_widget output. Just return your filtered list of machines and the page title.
-
         # updatename--version
         (update_name, update_version) = data.split("--")
         machines = machines.filter(pending_updates__update=update_name,
-         pending_updates__update_version=update_version)
+                                   pending_updates__update_version=update_version)
 
         # get the display name of the update
 
-        display_name = PendingUpdate.objects.filter(update=update_name, update_version=update_version).values('display_name')
+        display_name = PendingUpdate.objects.filter(
+            update=update_name, update_version=update_version).values('display_name')
 
         for item in display_name:
             display_name = item['display_name']

@@ -4,6 +4,7 @@ from inventory.models import InventoryItem
 
 from urllib import quote_plus
 
+
 class License(models.Model):
     item_name = models.CharField(max_length=64, unique=True, primary_key=True)
     total = models.IntegerField(default=0)

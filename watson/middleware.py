@@ -17,7 +17,8 @@ class SearchContextMiddleware(object):
     def process_request(self, request):
         """Starts a new search context."""
         if request.META.get(WATSON_MIDDLEWARE_FLAG, False):
-            raise ImproperlyConfigured("SearchContextMiddleware can only be included in MIDDLEWARE_CLASSES once.")
+            raise ImproperlyConfigured(
+                "SearchContextMiddleware can only be included in MIDDLEWARE_CLASSES once.")
         request.META[WATSON_MIDDLEWARE_FLAG] = True
         search_context_manager.start()
 

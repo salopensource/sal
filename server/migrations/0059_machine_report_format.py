@@ -15,6 +15,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='machine',
             name='report_format',
-            field=models.CharField(choices=[(b'base64', b'base64'), (b'base64bz2', b'base64bz2')], default=b'base64bz2', editable=False, max_length=256),
+            field=models.CharField(choices=[(b'base64', b'base64'), (b'base64bz2',
+                                                                     b'base64bz2')], default=b'base64bz2', editable=False, max_length=256),
         ),
     ]

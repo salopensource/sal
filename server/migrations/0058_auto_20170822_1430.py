@@ -19,7 +19,8 @@ def update_os_families(apps, schema_editor):
     # Build the manager
     manager = PluginManager()
     # Tell it the default place(s) where to find plugins
-    manager.setPluginPlaces([settings.PLUGIN_DIR, os.path.join(settings.PROJECT_DIR, 'server/plugins')])
+    manager.setPluginPlaces([settings.PLUGIN_DIR, os.path.join(
+        settings.PROJECT_DIR, 'server/plugins')])
     # Load all plugins
     manager.collectPlugins()
     enabled_plugins = apps.get_model("server", "MachineDetailPlugin")
@@ -30,11 +31,10 @@ def update_os_families(apps, schema_editor):
 
                 try:
                     supported_os_families = plugin.plugin_object.supported_os_families()
-                except:
+                except Exception:
                     supported_os_families = default_families
                 item.os_families = utils.flatten_and_sort_list(supported_os_families)
                 item.save()
-
 
 
 class Migration(migrations.Migration):

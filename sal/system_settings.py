@@ -5,7 +5,7 @@ PROJECT_DIR = os.path.abspath(
     os.path.join(
         os.path.dirname(
             os.path.abspath(__file__)
-            ), os.path.pardir))
+        ), os.path.pardir))
 PLUGIN_DIR = os.path.join(PROJECT_DIR, 'plugins')
 ADMINS = (
     # ('Your Name', 'your_email@example.com'),
@@ -31,8 +31,8 @@ TEMPLATES = [
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
-                 'django.template.context_processors.debug',
-                 'django.template.context_processors.request',
+                'django.template.context_processors.debug',
+                'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
                 'sal.context_processors.display_name',
@@ -44,8 +44,20 @@ TEMPLATES = [
     },
 ]
 
-# The order plugins (if they're able to be shown on that particular page) will be displayed in. If not listed here, will be listed alphabetically after.
-PLUGIN_ORDER = ['Activity','Status','OperatingSystem', 'MunkiVersion', 'Uptime', 'Memory', 'DiskSpace', 'PendingAppleUpdates', 'Pending3rdPartyUpdates', 'PuppetStatus']
+# The order plugins (if they're able to be shown on that particular page) will be displayed in.
+# If not listed here, will be listed alphabetically after.
+PLUGIN_ORDER = [
+    'Activity',
+    'Status',
+    'OperatingSystem',
+    'MunkiVersion',
+    'Uptime',
+    'Memory',
+    'DiskSpace',
+    'PendingAppleUpdates',
+    'Pending3rdPartyUpdates',
+    'PuppetStatus'
+]
 
 # Only show these plugins on the front page - some things only the admins should see.
 LIMIT_PLUGIN_TO_FRONT_PAGE = []
@@ -65,7 +77,7 @@ HIDE_PLUGIN_FROM_MACHINE_GROUP = {
 
 # If you want to have a default machine group, define this to the key of
 # that group.
-#DEFAULT_MACHINE_GROUP_KEY = ''
+# DEFAULT_MACHINE_GROUP_KEY = ''
 
 # Facts which will have historical data kept in addition to the most
 # recent instanct of that fact.
@@ -145,7 +157,7 @@ STATICFILES_DIRS = (
 STATICFILES_FINDERS = (
     'django.contrib.staticfiles.finders.FileSystemFinder',
     'django.contrib.staticfiles.finders.AppDirectoriesFinder',
-#    'django.contrib.staticfiles.finders.DefaultStorageFinder',
+    #    'django.contrib.staticfiles.finders.DefaultStorageFinder',
 )
 
 # Make this unique, and don't share it with anybody.
@@ -164,8 +176,8 @@ MIDDLEWARE_CLASSES = (
     'search.current_user.CurrentUserMiddleware',
 )
 
-LOGIN_URL='/login'
-LOGIN_REDIRECT_URL='/'
+LOGIN_URL = '/login'
+LOGIN_REDIRECT_URL = '/'
 
 ROOT_URLCONF = 'sal.urls'
 
@@ -200,8 +212,8 @@ LOGGING = {
     'disable_existing_loggers': False,
     'formatters': {
         'verbose': {
-            'format' : "[%(asctime)s] %(levelname)s [%(name)s:%(lineno)s] %(message)s",
-            'datefmt' : "%d/%b/%Y %H:%M:%S"
+            'format': "[%(asctime)s] %(levelname)s [%(name)s:%(lineno)s] %(message)s",
+            'datefmt': "%d/%b/%Y %H:%M:%S"
         },
         'simple': {
             'format': '%(levelname)s %(message)s'
@@ -217,9 +229,9 @@ LOGGING = {
     },
     'loggers': {
         'django': {
-            'handlers':['file'],
+            'handlers': ['file'],
             'propagate': True,
-            'level':'ERROR',
+            'level': 'ERROR',
         },
         'sal': {
             'handlers': ['file'],
@@ -232,15 +244,15 @@ BOOTSTRAP3 = {
 }
 
 if 'DYNO' in os.environ:
-  # Parse database configuration from $DATABASE_URL
-  import dj_database_url
-  DATABASES['default'] =  dj_database_url.config()
+    # Parse database configuration from $DATABASE_URL
+    import dj_database_url
+    DATABASES['default'] = dj_database_url.config()  # noqa: F821
 
-  # Honor the 'X-Forwarded-Proto' header for request.is_secure()
-  SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+    # Honor the 'X-Forwarded-Proto' header for request.is_secure()
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
-  # Allow all host headers
-  ALLOWED_HOSTS = ['*']
+    # Allow all host headers
+    ALLOWED_HOSTS = ['*']
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (

@@ -67,7 +67,7 @@ class SerialSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Machine
-        fields = ('id','serial',)
+        fields = ('id', 'serial',)
 
 
 class ConditionSerializer(serializers.ModelSerializer):

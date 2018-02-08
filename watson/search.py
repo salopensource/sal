@@ -2,7 +2,8 @@
 
 from __future__ import unicode_literals
 
-import sys, json
+import sys
+import json
 from itertools import chain, islice
 from threading import local
 from functools import wraps
@@ -64,9 +65,9 @@ class SearchAdapter(object):
                 value = getattr(self, prefix)
             except AttributeError:
                 raise SearchAdapterError("Could not find a property called {name!r} on either {obj!r} or {search_adapter!r}".format(
-                    name = prefix,
-                    obj = obj,
-                    search_adapter = self,
+                    name=prefix,
+                    obj=obj,
+                    search_adapter=self,
                 ))
             else:
                 # Run the attribute on the search adapter, if it's callable.
@@ -127,7 +128,8 @@ class SearchAdapter(object):
         The default implementation returns all the registered fields in your model joined together.
         """
         # Get the field names to look up.
-        field_names = self.fields or (field.name for field in self.model._meta.fields if isinstance(field, (models.CharField, models.TextField)))
+        field_names = self.fields or (field.name for field in self.model._meta.fields if isinstance(
+            field, (models.CharField, models.TextField)))
         # Exclude named fields.
         field_names = (field_name for field_name in field_names if field_name not in self.exclude)
         # Create the text.
@@ -244,7 +246,8 @@ class SearchContextManager(local):
         # Save all the models.
         tasks, is_invalid = self._stack.pop()
         if not is_invalid:
-            _bulk_save_search_entries(list(chain.from_iterable(engine._update_obj_index_iter(obj) for engine, obj in tasks)))
+            _bulk_save_search_entries(list(chain.from_iterable(
+                engine._update_obj_index_iter(obj) for engine, obj in tasks)))
 
     # Context management.
 
@@ -346,7 +349,7 @@ class SearchEngine(object):
         # Check the slug is unique for this project.
         if engine_slug in SearchEngine._created_engines:
             raise SearchEngineError("A search engine has already been created with the slug {engine_slug!r}".format(
-                engine_slug = engine_slug,
+                engine_slug=engine_slug,
             ))
         # Initialize thie engine.
         self._registered_models = {}
@@ -375,12 +378,13 @@ class SearchEngine(object):
         # Check for existing registration.
         if self.is_registered(model):
             raise RegistrationError("{model!r} is already registered with this search engine".format(
-                model = model,
+                model=model,
             ))
         # Perform any customization.
         if field_overrides:
             # Conversion to str is needed because Python 2 doesn't accept unicode for class name
-            adapter_cls = type(str("Custom") + adapter_cls.__name__, (adapter_cls,), field_overrides)
+            adapter_cls = type(str("Custom") + adapter_cls.__name__,
+                               (adapter_cls,), field_overrides)
         # Perform the registration.
         adapter_obj = adapter_cls(model)
         self._registered_models[model] = adapter_obj
@@ -401,7 +405,7 @@ class SearchEngine(object):
         # Check for registration.
         if not self.is_registered(model):
             raise RegistrationError("{model!r} is not registered with this search engine".format(
-                model = model,
+                model=model,
             ))
         # Perform the unregistration.
         del self._registered_models[model]
@@ -418,7 +422,7 @@ class SearchEngine(object):
         if self.is_registered(model):
             return self._registered_models[model]
         raise RegistrationError("{model!r} is not registered with this search engine".format(
-            model = model,
+            model=model,
         ))
 
     def _get_entries_for_obj(self, obj):
@@ -430,20 +434,20 @@ class SearchEngine(object):
         object_id = force_text(obj.pk)
         # Get the basic list of search entries.
         search_entries = SearchEntry.objects.filter(
-            content_type = content_type,
-            engine_slug = self._engine_slug,
+            content_type=content_type,
+            engine_slug=self._engine_slug,
         )
         if has_int_pk(model):
             # Do a fast indexed lookup.
             object_id_int = int(obj.pk)
             search_entries = search_entries.filter(
-                object_id_int = object_id_int,
+                object_id_int=object_id_int,
             )
         else:
             # Alas, have to do a slow unindexed lookup.
             object_id_int = None
             search_entries = search_entries.filter(
-                object_id = object_id,
+                object_id=object_id,
             )
         return object_id_int, search_entries
 
@@ -514,24 +518,24 @@ class SearchEngine(object):
                 queryset = sub_queryset.values_list("pk", flat=True)
                 if has_int_pk(model):
                     filter &= Q(
-                        object_id_int__in = queryset,
+                        object_id_int__in=queryset,
                     )
                 else:
                     live_ids = list(queryset)
                     if live_ids:
                         filter &= Q(
-                            object_id__in = live_ids,
+                            object_id__in=live_ids,
                         )
                     else:
                         # HACK: There is a bug in Django (https://code.djangoproject.com/ticket/15145) that messes up __in queries when the iterable is empty.
                         # This bit of nonsense ensures that this aspect of the query will be impossible to fulfill.
                         filter &= Q(
-                            content_type = ContentType.objects.get_for_model(model).id + 1,
+                            content_type=ContentType.objects.get_for_model(model).id + 1,
                         )
             # Add the model to the filter.
             content_type = ContentType.objects.get_for_model(model)
             filter &= Q(
-                content_type = content_type,
+                content_type=content_type,
             )
             # Combine with the other filters.
             filters |= filter
@@ -559,7 +563,7 @@ class SearchEngine(object):
             return SearchEntry.objects.none()
         # Get the initial queryset.
         queryset = SearchEntry.objects.filter(
-            engine_slug = self._engine_slug,
+            engine_slug=self._engine_slug,
         )
         # Process the allowed models.
         queryset = queryset.filter(
@@ -621,8 +625,8 @@ def get_backend(backend_name=None):
         backend_cls = getattr(backend_module, backend_cls_name)
     except AttributeError:
         raise ImproperlyConfigured("Could not find a class named {backend_module_name!r} in {backend_cls_name!r}".format(
-            backend_module_name = backend_module_name,
-            backend_cls_name = backend_cls_name,
+            backend_module_name=backend_module_name,
+            backend_cls_name=backend_cls_name,
         ))
     # Initialize the backend.
     backend = backend_cls()

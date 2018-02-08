@@ -6,6 +6,7 @@ from server.models import *
 from django.shortcuts import get_object_or_404
 import server.utils as utils
 
+
 class SalScriptsVersion(IPlugin):
     def plugin_type(self):
         return 'builtin'
@@ -17,9 +18,6 @@ class SalScriptsVersion(IPlugin):
         return 'Chart of installed versions of the Sal Scripts'
 
     def widget_content(self, page, machines=None, theid=None):
-        # The data is data is pulled from the database and passed to a template.
-
-        # There are three possible views we're going to be rendering to - front, bu_dashbaord and group_dashboard. If page is set to bu_dashboard, or group_dashboard, you will be passed a business_unit or machine_group id to use (mainly for linking to the right search).
         if page == 'front':
             t = loader.get_template('salscriptsversion/templates/front.html')
 
@@ -30,8 +28,9 @@ class SalScriptsVersion(IPlugin):
             t = loader.get_template('salscriptsversion/templates/id.html')
 
         try:
-            sal_info = machines.values('sal_version').exclude(sal_version__isnull=True).annotate(count=Count('sal_version')).order_by('sal_version')
-        except:
+            sal_info = machines.values('sal_version').exclude(sal_version__isnull=True).annotate(
+                count=Count('sal_version')).order_by('sal_version')
+        except Exception:
             sal_info = []
 
         c = Context({
@@ -43,9 +42,8 @@ class SalScriptsVersion(IPlugin):
         return t.render(c)
 
     def filter_machines(self, machines, data):
-        # You will be passed a QuerySet of machines, you then need to perform some filtering based on the 'data' part of the url from the show_widget output. Just return your filtered list of machines and the page title.
 
         machines = machines.filter(sal_version__exact=data)
 
-        title = 'Machines running version '+data+' of Sal'
+        title = 'Machines running version {} of Sal'.format(data)
         return machines, title

@@ -44,11 +44,12 @@ class PendingAppleUpdates(IPlugin):
             # value
             found = False
             for update in pending_updates:
-                if update['update'] == item['update'] and update['update_version'] == item['update_version']:
+                if (update['update'] == item['update'] and
+                        update['update_version'] == item['update_version']):
                     update['count'] = update['count'] + item['count']
                     found = True
                     break
-            if found == False:
+            if found is False:
                 pending_updates.append(item)
 
         c = Context({
@@ -59,10 +60,6 @@ class PendingAppleUpdates(IPlugin):
             'plugin': 'PendingAppleUpdates'
         })
 
-        if len(pending_updates) == 0:
-            size = 0
-        else:
-            size = 4
         return t.render(c)
 
     def filter_machines(self, machines, data):

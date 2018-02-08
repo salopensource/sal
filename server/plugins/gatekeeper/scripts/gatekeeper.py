@@ -8,6 +8,7 @@ from munkilib import munkicommon
 import os
 import platform
 
+
 def get_status(cmd, checkstring):
     try:
         output = subprocess.check_output(cmd, stderr=subprocess.STDOUT)
@@ -18,9 +19,11 @@ def get_status(cmd, checkstring):
     else:
         return 'Disabled'
 
+
 def gatekeeper_status():
     cmd = ['/usr/sbin/spctl', '--status']
     return get_status(cmd, 'assessments enabled')
+
 
 def main():
 
@@ -43,6 +46,7 @@ def main():
     result['data'] = data
     plist.append(result)
     FoundationPlist.writePlist(plist, plist_path)
+
 
 if __name__ == '__main__':
     main()

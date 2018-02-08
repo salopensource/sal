@@ -19,11 +19,14 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='SavedSearch',
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('name', models.CharField(default='Unsaved Search 2016-10-19 14:13:48.222252+00:00', max_length=100)),
+                ('id', models.AutoField(auto_created=True,
+                                        primary_key=True, serialize=False, verbose_name='ID')),
+                ('name', models.CharField(
+                    default='Unsaved Search 2016-10-19 14:13:48.222252+00:00', max_length=100)),
                 ('created', models.DateTimeField(auto_now_add=True)),
                 ('save_search', models.BooleanField(default=False)),
-                ('created_by', models.ForeignKey(default=search.current_user.get_current_user, on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL)),
+                ('created_by', models.ForeignKey(default=search.current_user.get_current_user,
+                                                 on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL)),
             ],
             options={
                 'ordering': ['name'],
@@ -43,7 +46,8 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='searchgroup',
             name='saved_search',
-            field=models.ForeignKey(default='1', on_delete=django.db.models.deletion.CASCADE, to='search.SavedSearch'),
+            field=models.ForeignKey(
+                default='1', on_delete=django.db.models.deletion.CASCADE, to='search.SavedSearch'),
             preserve_default=False,
         ),
     ]

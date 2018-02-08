@@ -7,6 +7,7 @@ from django.shortcuts import get_object_or_404
 import server.utils as utils
 import re
 
+
 class MachineModels(IPlugin):
     def plugin_type(self):
         return 'builtin'
@@ -18,9 +19,6 @@ class MachineModels(IPlugin):
         return 'Chart of machine models'
 
     def widget_content(self, page, machines=None, theid=None):
-        # The data is data is pulled from the database and passed to a template.
-
-        # There are three possible views we're going to be rendering to - front, bu_dashbaord and group_dashboard. If page is set to bu_dashboard, or group_dashboard, you will be passed a business_unit or machine_group id to use (mainly for linking to the right search).
         if page == 'front':
             t = loader.get_template('machinemodels/templates/front.html')
 
@@ -31,8 +29,12 @@ class MachineModels(IPlugin):
             t = loader.get_template('machinemodels/templates/id.html')
 
         try:
-            machines = machines.filter(machine_model__isnull=False).exclude(machine_model=u'').values('machine_model').annotate(count=Count('machine_model')).order_by('machine_model')
-        except:
+            machines = machines.filter(machine_model__isnull=False).\
+                exclude(machine_model=u'').\
+                values('machine_model').\
+                annotate(count=Count('machine_model')).\
+                order_by('machine_model')
+        except Exception:
             machines = []
 
         output = []
@@ -40,18 +42,16 @@ class MachineModels(IPlugin):
         for machine in machines:
             if machine['machine_model']:
                 found = False
-                nodigits=''.join(i for i in machine['machine_model'] if i.isalpha())
-                machine['machine_model']=nodigits
+                nodigits = ''.join(i for i in machine['machine_model'] if i.isalpha())
+                machine['machine_model'] = nodigits
                 for item in output:
                     if item['machine_model'] == machine['machine_model']:
-                        item['count'] = item['count']+machine['count']
+                        item['count'] = item['count'] + machine['count']
                         found = True
                         break
-                #if we get this far, it's not been seen before
-                if found == False:
+                # if we get this far, it's not been seen before
+                if found is False:
                     output.append(machine)
-
-
 
         c = Context({
             'title': 'Models',
@@ -62,13 +62,13 @@ class MachineModels(IPlugin):
         return t.render(c)
 
     def filter_machines(self, machines, data):
-        # You will be passed a QuerySet of machines, you then need to perform some filtering based on the 'data' part of the url from the show_widget output. Just return your filtered list of machines and the page title.
 
         if data == 'MacBook':
-            machines = machines.filter(machine_model__startswith=data).exclude(machine_model__startswith='MacBookPro').exclude(machine_model__startswith='MacBookAir')
+            machines = machines.filter(machine_model__startswith=data).\
+                exclude(machine_model__startswith='MacBookPro').\
+                exclude(machine_model__startswith='MacBookAir')
         else:
             machines = machines.filter(machine_model__startswith=data)
-
 
         title = data
         return machines, title

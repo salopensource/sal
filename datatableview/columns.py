@@ -38,16 +38,18 @@ COLUMN_CLASSES = []
 STRPTIME_PLACEHOLDERS = {
     'year': ('%y', '%Y'),
     'month': ('%m', '%b', '%B'),
-    'day': ('%d',),# '%a', '%A'),  # day names are hard because they depend on other date info
+    'day': ('%d',),  # '%a', '%A'),  # day names are hard because they depend on other date info
     'hour': ('%H', '%I'),
     'minute': ('%M',),
     'second': ('%S',),
     'week_day': ('%w',),
 }
 
+
 def register_simple_modelfield(model_field):
     column_class = get_column_for_modelfield(model_field)
     COLUMN_CLASSES.insert(0, (column_class, [model_field]))
+
 
 def get_column_for_modelfield(model_field):
     """ Return the built-in Column class for a model field class. """
@@ -62,6 +64,7 @@ def get_column_for_modelfield(model_field):
         if isinstance(model_field, tuple(modelfield_classes)):
             return ColumnClass
 
+
 def get_attribute_value(obj, bit):
     try:
         value = getattr(obj, bit)
@@ -72,6 +75,7 @@ def get_attribute_value(obj, bit):
             if not hasattr(value, 'alters_data') or value.alters_data is not True:
                 value = value()
     return value
+
 
 class ColumnMetaclass(type):
     """ Column type for automatic registration of column types as ModelField handlers. """
@@ -501,6 +505,7 @@ class BooleanColumn(Column):
         else:
             return None
         return super(BooleanColumn, self).prep_search_value(term, lookup_type)
+
 
 class IntegerColumn(Column):
     model_field_class = models.IntegerField

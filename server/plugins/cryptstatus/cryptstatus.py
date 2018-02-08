@@ -10,6 +10,7 @@ import requests
 from datetime import datetime
 from django.utils.dateparse import parse_datetime
 
+
 class CryptStatus(IPlugin):
     def plugin_type(self):
         return 'machine_detail'
@@ -30,12 +31,12 @@ class CryptStatus(IPlugin):
         try:
             crypt_url = settings.CRYPT_URL
             crypt_url = crypt_url.rstrip('/')
-        except:
+        except Exception:
             crypt_url = None
 
         try:
             cert = settings.ROOT_CA
-        except:
+        except Exception:
             cert = None
 
         serial = machines.serial
@@ -44,7 +45,7 @@ class CryptStatus(IPlugin):
         escrowed = None
         if crypt_url:
             request_url = crypt_url + '/verify/' + serial + '/recovery_key/'
-            if cert != None:
+            if cert is not None:
                 verify = cert
             else:
                 verify = True
@@ -52,12 +53,12 @@ class CryptStatus(IPlugin):
                 r = requests.get(request_url, verify=verify)
                 if r.status_code == requests.codes.ok:
                     output = r.json()
-            except:
+            except Exception:
                 pass
 
         if output != {}:
             escrowed = output['escrowed']
-            if output['escrowed'] == True:
+            if output['escrowed']:
                 date_escrowed = parse_datetime(output['date_escrowed'])
 
         c = Context({
@@ -68,8 +69,7 @@ class CryptStatus(IPlugin):
         return t.render(c)
 
     def filter_machines(self, machines, data):
-        # You will be passed a QuerySet of machines, you then need to perform some filtering based on the 'data' part of the url from the show_widget output. Just return your filtered list of machines and the page title.
 
         machines = machines.filter(operating_system__exact=data)
 
-        return machines, 'Machines running '+data
+        return machines, 'Machines running ' + data

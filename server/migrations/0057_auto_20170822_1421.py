@@ -19,6 +19,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='machinedetailplugin',
             name='os_families',
-            field=models.CharField(db_index=True, default=b'Darwin', max_length=256, verbose_name=b'OS Family'),
+            field=models.CharField(db_index=True, default=b'Darwin',
+                                   max_length=256, verbose_name=b'OS Family'),
         ),
     ]

@@ -84,7 +84,8 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='machinegroup',
             name='key',
-            field=models.CharField(null=True, editable=False, max_length=255, blank=True, unique=True, db_index=True),
+            field=models.CharField(null=True, editable=False, max_length=255,
+                                   blank=True, unique=True, db_index=True),
         ),
         migrations.AlterField(
             model_name='osqueryresult',

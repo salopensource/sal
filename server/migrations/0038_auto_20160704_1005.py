@@ -19,6 +19,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='userprofile',
             name='level',
-            field=models.CharField(default=b'RO', max_length=2, choices=[(b'SO', b'Stats Only'), (b'RO', b'Read Only'), (b'RW', b'Read Write'), (b'GA', b'Global Admin')]),
+            field=models.CharField(default=b'RO', max_length=2, choices=[(
+                b'SO', b'Stats Only'), (b'RO', b'Read Only'), (b'RW', b'Read Write'), (b'GA', b'Global Admin')]),
         ),
     ]

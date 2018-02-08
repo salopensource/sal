@@ -21,7 +21,7 @@ def main():
     sal_result_key = "ARD_Info_{}"
     prefs_key_prefix = "Text{}"
 
-    data  = {
+    data = {
         sal_result_key.format(i): ard_prefs.get(prefs_key_prefix.format(i), "")
         for i in xrange(1, 5)}
 

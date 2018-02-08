@@ -3,6 +3,7 @@ from __future__ import unicode_literals
 from server.models import *
 from django.db import migrations, models
 
+
 def enable_plugins(apps, schema_editor):
 
     Machine = apps.get_model("server", "Machine")
@@ -15,6 +16,7 @@ def enable_plugins(apps, schema_editor):
         plugin = MachineDetailPlugin(name='MachineDetailSecurity', order=1)
         plugin.save()
 
+
 class Migration(migrations.Migration):
 
     dependencies = [
@@ -25,11 +27,13 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='MachineDetailPlugin',
             fields=[
-                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('id', models.AutoField(verbose_name='ID',
+                                        serialize=False, auto_created=True, primary_key=True)),
                 ('name', models.CharField(unique=True, max_length=255)),
                 ('description', models.TextField(null=True, blank=True)),
                 ('order', models.IntegerField()),
-                ('type', models.CharField(default=b'builtin', max_length=255, choices=[(b'facter', b'Facter'), (b'munkicondition', b'Munki Condition'), (b'builtin', b'Built In'), (b'custom', b'Custom Script')])),
+                ('type', models.CharField(default=b'builtin', max_length=255, choices=[(b'facter', b'Facter'), (
+                    b'munkicondition', b'Munki Condition'), (b'builtin', b'Built In'), (b'custom', b'Custom Script')])),
             ],
             options={
                 'ordering': ['order'],
@@ -38,7 +42,8 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='plugin',
             name='type',
-            field=models.CharField(default=b'builtin', max_length=255, choices=[(b'facter', b'Facter'), (b'munkicondition', b'Munki Condition'), (b'builtin', b'Built In'), (b'custom', b'Custom Script')]),
+            field=models.CharField(default=b'builtin', max_length=255, choices=[(b'facter', b'Facter'), (
+                b'munkicondition', b'Munki Condition'), (b'builtin', b'Built In'), (b'custom', b'Custom Script')]),
         ),
         migrations.RunPython(enable_plugins),
     ]

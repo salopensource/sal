@@ -17,8 +17,10 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='Search',
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('name', models.CharField(default='Unsaved Search 2016-10-19 10:36:36.519612+00:00', max_length=100)),
+                ('id', models.AutoField(auto_created=True,
+                                        primary_key=True, serialize=False, verbose_name='ID')),
+                ('name', models.CharField(
+                    default='Unsaved Search 2016-10-19 10:36:36.519612+00:00', max_length=100)),
                 ('created', models.DateTimeField(auto_now_add=True)),
                 ('save', models.BooleanField(default=False)),
             ],
@@ -29,8 +31,10 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='SearchGroup',
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('and_or', models.CharField(choices=[('AND', 'AND'), ('OR', 'OR')], default='AND', max_length=3)),
+                ('id', models.AutoField(auto_created=True,
+                                        primary_key=True, serialize=False, verbose_name='ID')),
+                ('and_or', models.CharField(choices=[
+                 ('AND', 'AND'), ('OR', 'OR')], default='AND', max_length=3)),
                 ('position', models.IntegerField(default=0)),
                 ('search', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='search.Search')),
             ],
@@ -38,12 +42,17 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='SearchRow',
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('search_models', models.CharField(choices=[('Machine', 'Machine'), ('Facter', 'Facter'), ('Condition', 'Condition'), ('External Script', 'External Script')], default='AND', max_length=254)),
-                ('and_or', models.CharField(choices=[('AND', 'AND'), ('OR', 'OR')], default='AND', max_length=3)),
-                ('operator', models.CharField(choices=[('Contains', 'Contains'), ('=', '='), ('!=', '!='), ('<', '<'), ('<=', '<='), ('>', '>'), ('>=', '>=')], default='Contains', max_length=9)),
+                ('id', models.AutoField(auto_created=True,
+                                        primary_key=True, serialize=False, verbose_name='ID')),
+                ('search_models', models.CharField(choices=[('Machine', 'Machine'), ('Facter', 'Facter'), (
+                    'Condition', 'Condition'), ('External Script', 'External Script')], default='AND', max_length=254)),
+                ('and_or', models.CharField(choices=[
+                 ('AND', 'AND'), ('OR', 'OR')], default='AND', max_length=3)),
+                ('operator', models.CharField(choices=[('Contains', 'Contains'), ('=', '='), ('!=', '!='), (
+                    '<', '<'), ('<=', '<='), ('>', '>'), ('>=', '>=')], default='Contains', max_length=9)),
                 ('search_term', models.CharField(max_length=254)),
-                ('search_group', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='search.SearchGroup')),
+                ('search_group', models.ForeignKey(
+                    on_delete=django.db.models.deletion.CASCADE, to='search.SearchGroup')),
             ],
         ),
     ]

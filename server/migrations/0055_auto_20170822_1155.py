@@ -15,6 +15,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='machine',
             name='os_family',
-            field=models.CharField(choices=[(b'Darwin', b'macOS'), (b'Windows', b'Windows'), (b'Linux', b'Linux')], db_index=True, default=b'Darwin', max_length=256, verbose_name=b'OS Family'),
+            field=models.CharField(choices=[(b'Darwin', b'macOS'), (b'Windows', b'Windows'), (
+                b'Linux', b'Linux')], db_index=True, default=b'Darwin', max_length=256, verbose_name=b'OS Family'),
         ),
     ]

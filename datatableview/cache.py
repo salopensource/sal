@@ -47,6 +47,7 @@ hash_slice = None
 if CACHE_KEY_HASH:
     hash_slice = slice(None, CACHE_KEY_HASH_LENGTH)
 
+
 def _hash_key_component(s):
     return hashlib.sha1(s).hexdigest()[hash_slice]
 

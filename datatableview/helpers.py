@@ -69,7 +69,7 @@ def keyed_helper(helper):
 
         if attr:
             if attr == 'self':
-                key = lambda obj: obj
+                def key(obj): return obj
             else:
                 key = operator.attrgetter(attr)
 
@@ -82,6 +82,7 @@ def keyed_helper(helper):
 
     wrapper._is_wrapped = True
     return wrapper
+
 
 @keyed_helper
 def link_to_model(instance, text=None, *args, **kwargs):
@@ -266,7 +267,7 @@ def format(format_string, cast=lambda x: x):
     the ``cast`` function.
 
     Examples::
-    
+
         # Perform some 0 padding
         item_number = columns.FloatColumn("Item No.", sources=['number'],
                                           processor=format("{:03d}))
@@ -352,7 +353,7 @@ def make_xeditable(instance=None, extra_attrs=[], *args, **kwargs):
         if not url_provider:
             url_provider = getattr(instance, provider_name, None)
             if not url_provider and 'view' in kwargs:
-                url_provider = lambda field_name: kwargs['view'].request.path
+                def url_provider(field_name): return kwargs['view'].request.path
             else:
                 raise ValueError("'make_xeditable' cannot determine a value for 'url'.")
         if url_provider:
@@ -426,5 +427,6 @@ def make_processor(func, arg=None):
             extra_arg = []
         return func(value, *extra_arg)
     return helper
+
 
 through_filter = make_processor

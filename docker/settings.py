@@ -4,8 +4,10 @@ from settings_import import *
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3', # Add 'postgresql_psycopg2', 'mysql', 'sqlite3' or 'oracle'.
-        'NAME': os.path.join(PROJECT_DIR, 'db/sal.db'),                      # Or path to database file if using sqlite3.
+        # Add 'postgresql_psycopg2', 'mysql', 'sqlite3' or 'oracle'.
+        'ENGINE': 'django.db.backends.sqlite3',
+        # Or path to database file if using sqlite3.
+        'NAME': os.path.join(PROJECT_DIR, 'db/sal.db'),
         'USER': '',                      # Not used with sqlite3.
         'PASSWORD': '',                  # Not used with sqlite3.
         'HOST': '',                      # Set to empty string for localhost. Not used with sqlite3.
@@ -14,12 +16,13 @@ DATABASES = {
 }
 
 # Memcached
-if os.environ.has_key('MEMCACHED_PORT_11211_TCP_ADDR'):
+if 'MEMCACHED_PORT_11211_TCP_ADDR' in os.environ:
     CACHES = {
         'default': {
             'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
             'LOCATION': [
-                '%s:%s' % (os.environ['MEMCACHED_PORT_11211_TCP_ADDR'], os.environ['MEMCACHED_PORT_11211_TCP_PORT']),
+                '%s:%s' % (os.environ['MEMCACHED_PORT_11211_TCP_ADDR'],
+                           os.environ['MEMCACHED_PORT_11211_TCP_PORT']),
             ]
         }
     }
@@ -28,12 +31,12 @@ if os.environ.has_key('MEMCACHED_PORT_11211_TCP_ADDR'):
 host = None
 port = None
 
-if os.environ.has_key('DB_USER'):
-    if os.environ.has_key('DB_HOST'):
+if 'DB_USER' in os.environ:
+    if 'DB_HOST' in os.environ:
         host = os.environ.get('DB_HOST')
         port = os.environ.get('DB_PORT', '5432')
 
-    elif os.environ.has_key('DB_PORT_5432_TCP_ADDR'):
+    elif 'DB_PORT_5432_TCP_ADDR' in os.environ:
         host = os.environ.get('DB_PORT_5432_TCP_ADDR')
         port = os.environ.get('DB_PORT_5432_TCP_PORT', '5432')
 

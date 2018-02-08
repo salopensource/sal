@@ -60,10 +60,6 @@ class PendingAppleUpdates(IPlugin):
             'plugin': 'PendingAppleUpdates'
         })
 
-        # if len(pending_updates) == 0:
-        #     size = 0
-        # else:
-        #     size = 4
         return t.render(c)
 
     def filter_machines(self, machines, data):

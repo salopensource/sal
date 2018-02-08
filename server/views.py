@@ -2065,7 +2065,7 @@ def checkin(request):
 
     machine.last_checkin = django.utils.timezone.now()
 
-    if broken_client or broken_client == 'True':
+    if bool(broken_client):
         machine.broken_client = True
         machine.save()
         return HttpResponse("Broken Client report submmitted for %s"

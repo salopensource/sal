@@ -19,7 +19,7 @@ jobs:
       - run:
           name: install dependencies
           command: |
-            virtualenv venv
+            python -m venv venv
             . venv/bin/activate
             pip install -r setup/requirements.txt
             pip install flake8

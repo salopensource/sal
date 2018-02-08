@@ -6,10 +6,11 @@ from rest_framework import status
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework import viewsets
 
-from api.serializers import *
-from .auth import *
-from api.mixins import QueryFieldsMixin
+from api.v1.serializers import *
+from api.auth import *
+from api.v1.mixins import QueryFieldsMixin
 from search.views import *
 from server.models import *
 
@@ -287,7 +288,7 @@ class SearchID(generics.ListAPIView):
         if search_id.endswith('/'):
             search_id = search_id[:-1]
         machines = Machine.objects.all()
-        print search_machines(search_id, machines)
+        print(search_machines(search_id, machines))
         return search_machines(search_id, machines, full=True)
 
 

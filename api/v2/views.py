@@ -1,8 +1,3 @@
-# encoding=utf8
-import sys
-reload(sys)
-sys.setdefaultencoding('utf8')
-
 from django.http import Http404
 from rest_framework.decorators import detail_route
 from rest_framework import generics

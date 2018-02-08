@@ -17,7 +17,7 @@ urlpatterns = [
     path('', include('server.urls')),
     path('admin/doc/', include('django.contrib.admindocs.urls')),
     url(r'admin/', admin.site.urls),
-    url(r'^api/', include('api.urls')),
+    url(r'^api/', include('api.v1.urls')),
     url(r'^api/v1/', include('api.v1.urls')),
     url(r'^api/v2/', include('api.v2.urls')),
     url(r'^inventory/', include('inventory.urls')),

@@ -551,14 +551,9 @@ class Migration(migrations.Migration):
                 ('name', models.CharField(max_length=255, db_index=True)),
                 ('version', models.CharField(max_length=255, db_index=True)),
                 ('recorded', models.DateTimeField()),
-<<<<<<< HEAD
                 ('status', models.CharField(max_length=255, verbose_name=b'Status', choices=[
                  (b'pending', b'Pending'), (b'error', b'Error'), (b'success', b'Success')])),
-                ('machine', models.ForeignKey(to='server.Machine')),
-=======
-                ('status', models.CharField(max_length=255, verbose_name=b'Status', choices=[(b'pending', b'Pending'), (b'error', b'Error'), (b'success', b'Success')])),
                 ('machine', models.ForeignKey(to='server.Machine', on_delete=models.CASCADE)),
->>>>>>> 9754d6f... Update to include Django2's required `on_delete` for `ForeignKey`s.
             ],
             options={
                 'ordering': ['recorded'],

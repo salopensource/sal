@@ -247,23 +247,25 @@ def send_report():
         return 'Error'
 
 
-def listify_condition_data(condition_data):
-    if isinstance(condition_data, list):
-        result = None
-        for item in condition_data:
-            # is this the first loop? If so, no need for a comma
-            if result:
-                # convert all results into strings, since it happens at the db
-                # anyway. This fixes multiple dictionary results in an array
-                # from tracing.
-                result = str(result) + ', ' + str(item)
-            else:
-                result = item
-        if result is None:
-            # Handle empty arrays
-            result = '{EMPTY}'
-        condition_data = result
-    return condition_data
+def listify_condition_data(data):
+    """Sanitize collection data into a string format for db storage.
+
+    Args:
+        data (str, bool, numeric, dict, list): Condition values to
+            squash into strings.
+
+    Returns:
+        list data returns as a comma separated string or '{EMPTY}'
+        if the list is empty.
+
+        All other data types are `str()` converted, including nested
+        collections in a list.
+    """
+    if isinstance(data, list):
+        return ", ".join(str(i) for i in data) if data else "{EMPTY}"
+
+    # Handle dict, int, float, bool values.
+    return str(data)
 
 
 def loadDefaultPlugins():

@@ -14,7 +14,8 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='PluginScriptRow',
             fields=[
-                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('id', models.AutoField(verbose_name='ID',
+                                        serialize=False, auto_created=True, primary_key=True)),
                 ('pluginscript_name', models.TextField()),
                 ('pluginscript_data', models.TextField()),
             ],
@@ -25,7 +26,8 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='PluginScriptSubmission',
             fields=[
-                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('id', models.AutoField(verbose_name='ID',
+                                        serialize=False, auto_created=True, primary_key=True)),
                 ('plugin', models.CharField(max_length=255)),
                 ('historical', models.BooleanField(default=False)),
                 ('recorded', models.DateTimeField(auto_now_add=True)),

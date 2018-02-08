@@ -16,7 +16,7 @@ try:
     if getenv('DOCKER_SAL_DEBUG').lower() == 'true':
         accesslog = '/var/log/gunicorn/gunicorn-access.log'
         loglevel = 'info'
-except:
+except Exception:
     pass
 
 # Protect against memory leaks by restarting each worker every 1000

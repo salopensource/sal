@@ -16,12 +16,12 @@
 		<dt>Bundle Name:</dt>
 		<dd>{{ object.bundlename }}</dd>
 		<dt>Total Install Count:</dt>
-		<dd><a href="{% url 'inventory_list' group_type=group_type group_id=group_id application_id=object.id field_type='all' field_value='0' %}"><span class="badge">{{ install_count }}</span></a></dd>
+		<dd><a href="{% url 'inventory_list' application_id=object.id group_type=group_type group_id=group_id %}?field_type=all&field_value=0"><span class="badge">{{ install_count }}</span></a></dd>
 		<br>
 		<legend><h5 class"text-uppercase">Installed Versions</h5></legend>
 		{% for version in versions %}
 		<dt>{{ version.version }}:</dt>
-		<dd><a href="{% url 'inventory_list' group_type=group_type group_id=group_id application_id=object.id field_type='version' field_value=version.version %}"><span class="badge">{{ version.count }}</span></a></dd>
+		<dd><a href="{% url 'inventory_list' application_id=object.id group_type=group_type group_id=group_id %}?field_type=version&field_value={{ version.version }}"><span class="badge">{{ version.count }}</span></a> {{ path.path }}</dd>
 		{% endfor %}
 		</ul>
 		<br>

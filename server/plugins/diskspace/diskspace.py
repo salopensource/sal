@@ -6,6 +6,7 @@ from server.models import *
 from django.shortcuts import get_object_or_404
 import server.utils as utils
 
+
 class DiskSpace(IPlugin):
     def widget_width(self):
         return 4
@@ -18,8 +19,11 @@ class DiskSpace(IPlugin):
 
     def widget_content(self, page, machines=None, theid=None):
         # The data is data is pulled from the database and passed to a template.
-
-        # There are three possible views we're going to be rendering to - front, bu_dashbaord and group_dashboard. If page is set to bu_dashboard, or group_dashboard, you will be passed a business_unit or machine_group id to use (mainly for linking to the right search).
+        """
+        There are three possible views we're going to be rendering to - front, bu_dashbaord and
+        group_dashboard. If page is set to bu_dashboard, or group_dashboard, you will be passed a
+        business_unit or machine_group id to use (mainly for linking to the right search).
+        """
         if page == 'front':
             t = loader.get_template('plugins/traffic_lights_front.html')
 
@@ -31,17 +35,17 @@ class DiskSpace(IPlugin):
 
         try:
             disk_ok = machines.filter(hd_percent__lt=80).count()
-        except:
+        except Exception:
             disk_ok = 0
 
         try:
             disk_warning = machines.filter(hd_percent__range=["80", "89"]).count()
-        except:
+        except Exception:
             disk_warning = 0
 
         try:
             disk_alert = machines.filter(hd_percent__gte=90).count()
-        except:
+        except Exception:
             disk_alert = 0
 
         c = Context({

@@ -7,12 +7,12 @@ from django.shortcuts import get_object_or_404
 import server.utils as utils
 from django.conf import settings
 
+
 class Sip(IPlugin):
     def widget_width(self):
         return 4
 
     def widget_content(self, page, machines=None, theid=None):
-
 
         if page == 'front':
             t = loader.get_template('sip/templates/front.html')
@@ -23,15 +23,14 @@ class Sip(IPlugin):
         if page == 'group_dashboard':
             t = loader.get_template('sip/templates/id.html')
 
-
         try:
-            ok = machines.filter(pluginscriptsubmission__plugin__exact='Sip', pluginscriptsubmission__pluginscriptrow__pluginscript_name__exact='SIP', pluginscriptsubmission__pluginscriptrow__pluginscript_data__exact='Enabled').count()
-        except:
+            ok = machines.filter(pluginscriptsubmission__plugin__exact='Sip', pluginscriptsubmission__pluginscriptrow__pluginscript_name__exact='SIP', pluginscriptsubmission__pluginscriptrow__pluginscript_data__exact='Enabled').count()  # noqa: E501
+        except Exception:
             ok = 0
 
         try:
-            alert = machines.filter(pluginscriptsubmission__plugin__exact='Sip', pluginscriptsubmission__pluginscriptrow__pluginscript_name__exact='SIP', pluginscriptsubmission__pluginscriptrow__pluginscript_data__exact='Disabled').count()
-        except:
+            alert = machines.filter(pluginscriptsubmission__plugin__exact='Sip', pluginscriptsubmission__pluginscriptrow__pluginscript_name__exact='SIP', pluginscriptsubmission__pluginscriptrow__pluginscript_data__exact='Disabled').count()  # noqa: E501
+        except Exception:
             alert = 0
 
         c = Context({
@@ -46,11 +45,11 @@ class Sip(IPlugin):
 
     def filter_machines(self, machines, data):
         if data == 'ok':
-            machines = machines.filter(pluginscriptsubmission__plugin__exact='Sip', pluginscriptsubmission__pluginscriptrow__pluginscript_name__exact='SIP', pluginscriptsubmission__pluginscriptrow__pluginscript_data__exact='Enabled')
+            machines = machines.filter(pluginscriptsubmission__plugin__exact='Sip', pluginscriptsubmission__pluginscriptrow__pluginscript_name__exact='SIP', pluginscriptsubmission__pluginscriptrow__pluginscript_data__exact='Enabled')  # noqa: E501
             title = 'Machines with Sip enabled'
 
         elif data == 'alert':
-            machines = machines.filter(pluginscriptsubmission__plugin__exact='Sip', pluginscriptsubmission__pluginscriptrow__pluginscript_name__exact='SIP', pluginscriptsubmission__pluginscriptrow__pluginscript_data__exact='Disabled')
+            machines = machines.filter(pluginscriptsubmission__plugin__exact='Sip', pluginscriptsubmission__pluginscriptrow__pluginscript_name__exact='SIP', pluginscriptsubmission__pluginscriptrow__pluginscript_data__exact='Disabled')  # noqa: E501
             title = 'Machines without SIP enabled'
 
         else:

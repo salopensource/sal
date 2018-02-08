@@ -1,7 +1,7 @@
 from django.conf.urls import *
 from server.views import *
 urlpatterns = [
-    #front page
+    # front page
     url(r'^$', index, name='home'),
     # checkin
     url(r'^checkin/', checkin, name='checkin'),
@@ -12,7 +12,8 @@ urlpatterns = [
     # preflight
     url(r'^preflight/$', preflight, name='preflight'),
     # preflight get script v2
-    url(r'^preflight-v2/get-script/(?P<pluginName>.+)/(?P<scriptName>.+)/$', preflight_v2_get_script, name='preflight_v2_get_script'),
+    url(r'^preflight-v2/get-script/(?P<pluginName>.+)/(?P<scriptName>.+)/$',
+        preflight_v2_get_script, name='preflight_v2_get_script'),
     # preflight v2
     url(r'^preflight-v2/$', preflight_v2, name='preflight_v2'),
     # Search
@@ -22,29 +23,36 @@ urlpatterns = [
     # pluginload (front page)
     url(r'^pluginload/(?P<pluginName>.+)/$', plugin_load, name='plugin_load_front'),
     # pluginload (id)
-    url(r'^id_pluginload/(?P<pluginName>.+)/(?P<page>.+)/(?P<theID>.+)/$', plugin_load, name='plugin_load_id'),
+    url(r'^id_pluginload/(?P<pluginName>.+)/(?P<page>.+)/(?P<theID>.+)/$',
+        plugin_load, name='plugin_load_id'),
     # tableajax (front page)
     url(r'^tableajax/(?P<pluginName>.+)/(?P<data>.+)/$', tableajax, name='tableajax_front'),
     # tableajax (id)
-    url(r'^id_tableajax/(?P<pluginName>.+)/(?P<data>.+)/(?P<page>.+)/(?P<theID>.+)/$', tableajax, name='tableajax_id'),
+    url(r'^id_tableajax/(?P<pluginName>.+)/(?P<data>.+)/(?P<page>.+)/(?P<theID>.+)/$',
+        tableajax, name='tableajax_id'),
     # reporload (front page)
     url(r'^report/(?P<pluginName>.+)/$', report_load, name='report_load_front'),
     # report (id)
-    url(r'^id_report/(?P<pluginName>.+)/(?P<page>.+)/(?P<theID>.+)/$', report_load, name='report_load_id'),
+    url(r'^id_report/(?P<pluginName>.+)/(?P<page>.+)/(?P<theID>.+)/$', report_load,
+        name='report_load_id'),
     # Machine List (front page)
     url(r'^list/(?P<pluginName>.+)/(?P<data>.+)/$', machine_list, name='machine_list_front'),
     # Machine List (id)
-    url(r'^id_list/(?P<pluginName>.+)/(?P<data>.+)/(?P<page>.+)/(?P<theID>.+)/$', machine_list, name='machine_list_id'),
+    url(r'^id_list/(?P<pluginName>.+)/(?P<data>.+)/(?P<page>.+)/(?P<theID>.+)/$',
+        machine_list, name='machine_list_id'),
     # CSV Export (front page)
     url(r'^csv/(?P<pluginName>.+)/(?P<data>.+)/$', export_csv, name='export_csv_front'),
     # CSS Ecport (id)
-    url(r'^id_csv/(?P<pluginName>.+)/(?P<data>.+)/(?P<page>.+)/(?P<theID>.+)/$', export_csv, name='export_csv_id'),
+    url(r'^id_csv/(?P<pluginName>.+)/(?P<data>.+)/(?P<page>.+)/(?P<theID>.+)/$',
+        export_csv, name='export_csv_id'),
     # Group Dashboard
     url(r'^machinegroup/(?P<group_id>.+)/', group_dashboard, name='group_dashboard'),
     # Machine detail facter
-    url(r'^machine_detail/facter/(?P<machine_id>.+)/', machine_detail_facter, name='machine_detail_facter'),
+    url(r'^machine_detail/facter/(?P<machine_id>.+)/',
+        machine_detail_facter, name='machine_detail_facter'),
     # Machine detail facter
-    url(r'^machine_detail/conditions/(?P<machine_id>.+)/', machine_detail_conditions, name='machine_detail_conditions'),
+    url(r'^machine_detail/conditions/(?P<machine_id>.+)/',
+        machine_detail_conditions, name='machine_detail_conditions'),
     # Machine detail
     url(r'^machine_detail/(?P<machine_id>.+)/', machine_detail, name='machine_detail'),
     # Delete Machine
@@ -59,11 +67,14 @@ urlpatterns = [
     # Delete Business Unit
     url(r'^business_unit/delete/(?P<bu_id>.+)/', delete_business_unit, name='delete_business_unit'),
     # Really Delete Business Unit
-    url(r'^business_unit/really/delete/(?P<bu_id>.+)/', really_delete_business_unit, name='really_delete_business_unit'),
+    url(r'^business_unit/really/delete/(?P<bu_id>.+)/',
+        really_delete_business_unit, name='really_delete_business_unit'),
     # Delete Machine Group
-    url(r'^machine_group/delete/(?P<group_id>.+)/', delete_machine_group, name='delete_machine_group'),
+    url(r'^machine_group/delete/(?P<group_id>.+)/', delete_machine_group,
+        name='delete_machine_group'),
     # Really Delete Machine Group
-    url(r'^machine_group/really/delete/(?P<group_id>.+)/', really_delete_machine_group, name='really_delete_machine_group'),
+    url(r'^machine_group/really/delete/(?P<group_id>.+)/',
+        really_delete_machine_group, name='really_delete_machine_group'),
     # New Machine Group
     url(r'^new-machine-group/(?P<bu_id>.+)/', new_machine_group, name='new_machine_group'),
     # Edit Machine Group
@@ -79,39 +90,47 @@ urlpatterns = [
     # Make User Staff
     url(r'^settings/users/makestaff/(?P<user_id>.+)/', user_add_staff, name='user_add_staff'),
     # Remove User Staff
-    url(r'^settings/users/removestaff/(?P<user_id>.+)/', user_remove_staff, name='user_remove_staff'),
+    url(r'^settings/users/removestaff/(?P<user_id>.+)/',
+        user_remove_staff, name='user_remove_staff'),
 
     # Delete User Staff
     url(r'^settings/users/delete/(?P<user_id>.+)/', delete_user, name='delete_user'),
     # Manage Users
     url(r'^settings/users/', manage_users, name='manage_users'),
 
-    #Edit API Key
+    # Edit API Key
     url(r'^settings/api-keys/edit/(?P<key_id>.+)/', edit_api_key, name='edit_api_key'),
-    #Delete API Key
+    # Delete API Key
     url(r'^settings/api-keys/delete/(?P<key_id>.+)/', delete_api_key, name='delete_api_key'),
-    #Display API Key
+    # Display API Key
     url(r'^settings/api-keys/display/(?P<key_id>.+)/', display_api_key, name='display_api_key'),
     # New API Key
     url(r'^settings/api-keys/new/', new_api_key, name='new_api_key'),
     # Manage API Keys
     url(r'^settings/api-keys/', api_keys, name='api_keys'),
     # Disable Report
-    url(r'^settings/plugins/reports/disable/(?P<plugin_id>.+)/', settings_report_disable, name='settings_report_disable'),
+    url(r'^settings/plugins/reports/disable/(?P<plugin_id>.+)/',
+        settings_report_disable, name='settings_report_disable'),
     # Enable Report
-    url(r'^settings/plugins/reports/enable/(?P<plugin_name>.+)/', settings_report_enable, name='settings_report_enable'),
+    url(r'^settings/plugins/reports/enable/(?P<plugin_name>.+)/',
+        settings_report_enable, name='settings_report_enable'),
     # Manage Reports
     url(r'^settings/plugins/reports/', settings_reports, name='settings_reports'),
     # Plus Machine Detail Plugin
-    url(r'^settings/plugins/machinedetail/plus/(?P<plugin_id>.+)/', machine_detail_plugin_plus, name='machine_detail_plugin_plus'),
+    url(r'^settings/plugins/machinedetail/plus/(?P<plugin_id>.+)/',
+        machine_detail_plugin_plus, name='machine_detail_plugin_plus'),
     # Minus Machine Detail Plugin
-    url(r'^settings/plugins/machinedetail/minus/(?P<plugin_id>.+)/', machine_detail_plugin_minus, name='machine_detail_plugin_minus'),
+    url(r'^settings/plugins/machinedetail/minus/(?P<plugin_id>.+)/',
+        machine_detail_plugin_minus, name='machine_detail_plugin_minus'),
     # Disable Machine Detail Plugin
-    url(r'^settings/plugins/machinedetail/disable/(?P<plugin_id>.+)/', machine_detail_plugin_disable, name='machine_detail_plugin_disable'),
+    url(r'^settings/plugins/machinedetail/disable/(?P<plugin_id>.+)/',
+        machine_detail_plugin_disable, name='machine_detail_plugin_disable'),
     # Enable Machine Detail Plugin
-    url(r'^settings/plugins/machinedetail/enable/(?P<plugin_name>.+)/', machine_detail_plugin_enable, name='machine_detail_plugin_enable'),
+    url(r'^settings/plugins/machinedetail/enable/(?P<plugin_name>.+)/',
+        machine_detail_plugin_enable, name='machine_detail_plugin_enable'),
     # Manage Machine Detail Plugins
-    url(r'^settings/plugins/machinedetail/', settings_machine_detail_plugins, name='settings_machine_detail_plugins'),
+    url(r'^settings/plugins/machinedetail/', settings_machine_detail_plugins,
+        name='settings_machine_detail_plugins'),
     # Plus Plugin
     url(r'^settings/plugins/plus/(?P<plugin_id>.+)/', plugin_plus, name='plugin_plus'),
     # Minus Plugin
@@ -123,7 +142,11 @@ urlpatterns = [
     # Manage Plugins
     url(r'^settings/plugins/', plugins_page, name='plugins_page'),
     # Save Historical days
-    url(r'^settings/save_historical_days/', settings_historical_data, name='settings_historical_data'),
+    url(
+        r'^settings/save_historical_days/',
+        settings_historical_data,
+        name='settings_historical_data'
+    ),
     # Settings
     url(r'^settings/', settings_page, name='settings_page'),
     # never remind about new version

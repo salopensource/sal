@@ -20,7 +20,8 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='savedsearch',
             name='name',
-            field=models.CharField(default='Unsaved Search 2017-08-10 19:05:53.135973+00:00', max_length=100),
+            field=models.CharField(
+                default='Unsaved Search 2017-08-10 19:05:53.135973+00:00', max_length=100),
         ),
         migrations.AlterField(
             model_name='searchfieldcache',

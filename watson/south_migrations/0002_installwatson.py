@@ -5,20 +5,19 @@ from south.v2 import DataMigration
 from django.db import models
 from django.core.management import call_command
 
+
 class Migration(DataMigration):
 
     def forwards(self, orm):
         "Write your forwards methods here."
-        
+
         # Needs to be run in a separate migration to avoid borking MySQL.
         call_command("installwatson", verbosity=0)
 
-
     def backwards(self, orm):
         "Write your backwards methods here."
-        
-        call_command("uninstallwatson", verbosity=0)
 
+        call_command("uninstallwatson", verbosity=0)
 
     models = {
         'contenttypes.contenttype': {

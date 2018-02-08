@@ -14,9 +14,11 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='UpdateHistoryItem',
             fields=[
-                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('id', models.AutoField(verbose_name='ID',
+                                        serialize=False, auto_created=True, primary_key=True)),
                 ('recorded', models.DateTimeField()),
-                ('status', models.CharField(max_length=255, verbose_name=b'Status', choices=[(b'pending', b'Pending'), (b'error', b'Error'), (b'success', b'Success')])),
+                ('status', models.CharField(max_length=255, verbose_name=b'Status', choices=[
+                 (b'pending', b'Pending'), (b'error', b'Error'), (b'success', b'Success')])),
             ],
         ),
         migrations.AlterModelOptions(

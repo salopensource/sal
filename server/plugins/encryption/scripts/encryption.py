@@ -7,6 +7,7 @@ from munkilib import FoundationPlist
 import os
 import platform
 
+
 def get_status(cmd, checkstring):
     status = 'Disabled'
     try:
@@ -20,9 +21,11 @@ def get_status(cmd, checkstring):
             break
     return status
 
+
 def fv_status():
     cmd = ['/usr/bin/fdesetup', 'status']
     return get_status(cmd, 'FileVault is On.')
+
 
 def main():
 
@@ -45,6 +48,7 @@ def main():
     result['data'] = data
     plist.append(result)
     FoundationPlist.writePlist(plist, plist_path)
+
 
 if __name__ == '__main__':
     main()

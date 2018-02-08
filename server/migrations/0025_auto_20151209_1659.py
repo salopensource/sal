@@ -19,7 +19,8 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='updatehistory',
             name='update_type',
-            field=models.CharField(max_length=254, verbose_name=b'Update Type', choices=[(b'third_party', b'3rd Party'), (b'apple', b'Apple')]),
+            field=models.CharField(max_length=254, verbose_name=b'Update Type', choices=[
+                                   (b'third_party', b'3rd Party'), (b'apple', b'Apple')]),
         ),
         migrations.AlterField(
             model_name='updatehistory',
@@ -29,6 +30,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='updatehistoryitem',
             name='status',
-            field=models.CharField(max_length=254, verbose_name=b'Status', choices=[(b'pending', b'Pending'), (b'error', b'Error'), (b'install', b'Install'), (b'removal', b'Removal')]),
+            field=models.CharField(max_length=254, verbose_name=b'Status', choices=[(
+                b'pending', b'Pending'), (b'error', b'Error'), (b'install', b'Install'), (b'removal', b'Removal')]),
         ),
     ]

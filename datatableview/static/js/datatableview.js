@@ -1,13 +1,111 @@
 /* For datatable view */
 
-var datatableview = {
-    auto_initialize: false,
-    defaults: {
-        "bServerSide": true,
-        "bPaginate": true
-    },
+var datatableview = (function(){
+    var defaultDataTableOptions = {
+        "serverSide": true,
+        "paging": true
+    }
+    var optionsNameMap = {
+        'name': 'name',
+        'config-sortable': 'orderable',
+        'config-sorting': 'order',
+        'config-visible': 'visible',
+        'config-searchable': 'searchable'
+    };
 
-    make_xeditable: function(options) {
+    var checkGlobalConfirmHook = true;
+    var autoInitialize = false;
+
+    function initialize($$, opts) {
+        $$.each(function(){
+            var datatable = $(this);
+            var options = datatableview.getOptions(datatable, opts);
+            datatable.DataTable(options);
+        });
+        return $$;
+    }
+
+    function getOptions(datatable, opts) {
+        /* Reads the options found on the datatable DOM into an object ready to be sent to the
+           actual DataTable() constructor.  Is also responsible for calling the finalizeOptions()
+           hook to process what is found.
+        */
+        var columnOptions = [];
+        var sortingOptions = [];
+
+        datatable.find('thead th').each(function(){
+            var header = $(this);
+            var options = {};
+            for (var i = 0; i < header[0].attributes.length; i++) {
+                var attr = header[0].attributes[i];
+                if (attr.specified && /^data-/.test(attr.name)) {
+                    var name = attr.name.replace(/^data-/, '');
+                    var value = attr.value;
+
+                    // Typecasting out of string
+                    name = optionsNameMap[name];
+                    if (/^(true|false)/.test(value.toLowerCase())) {
+                        value = (value === 'true');
+                    }
+
+                    if (name == 'order') {
+                        // This doesn't go in the columnOptions
+                        var sort_info = value.split(',');
+                        sort_info[1] = parseInt(sort_info[1]);
+                        sortingOptions.push(sort_info);
+                        continue;
+                    }
+
+                    options[name] = value;
+                }
+            }
+            columnOptions.push(options);
+        });
+
+        // Arrange the sorting column requests and strip the priority information
+        sortingOptions.sort(function(a, b){ return a[0] - b[0] });
+        for (var i = 0; i < sortingOptions.length; i++) {
+            sortingOptions[i] = sortingOptions[i].slice(1);
+        }
+
+        options = $.extend({}, datatableview.defaults, opts, {
+            "order": sortingOptions,
+            "columns": columnOptions,
+            "pageLength": datatable.attr('data-page-length'),
+            "infoCallback": function(oSettings, iStart, iEnd, iMax, iTotal, sPre){
+                $("#" + datatable.attr('data-result-counter-id')).html(parseInt(iTotal).toLocaleString());
+                var infoString = oSettings.oLanguage.sInfo.replace('_START_',iStart).replace('_END_',iEnd).replace('_TOTAL_',iTotal);
+                if (iMax != iTotal) {
+                    infoString += oSettings.oLanguage.sInfoFiltered.replace('_MAX_',iMax);
+                }
+                return infoString;
+            }
+        });
+        options.ajax = $.extend(options.ajax, {
+            "url": datatable.attr('data-source-url'),
+            "type": datatable.attr('data-ajax-method') || 'GET',
+            "beforeSend": function(request){
+                request.setRequestHeader("X-CSRFToken", getCookie('csrftoken'));
+            }
+        });
+
+        options = datatableview.finalizeOptions(datatable, options);
+        return options;
+    }
+
+    function finalizeOptions(datatable, options) {
+        /* Hook for processing all options before sent to actual DataTable() constructor. */
+
+        // Legacy behavior, will be removed in favor of user providing their own finalizeOptions()
+        if (datatableview.checkGlobalConfirmHook) {
+            if (window.confirm_datatable_options !== undefined) {
+                options = window.confirm_datatable_options(options, datatable);
+            }
+        }
+        return options;
+    }
+
+    function makeXEditable(options) {
         var options = $.extend({}, options);
         if (!options.ajaxOptions) {
             options.ajaxOptions = {}
@@ -15,7 +113,7 @@ var datatableview = {
         if (!options.ajaxOptions.headers) {
             options.ajaxOptions.headers = {}
         }
-        options.ajaxOptions.headers['X-CSRFToken'] = datatableview.getCookie('csrftoken');
+        options.ajaxOptions.headers['X-CSRFToken'] = getCookie('csrftoken');
         options.error = function (data) {
             var response = data.responseJSON;
             if (response.status == 'error') {
@@ -24,14 +122,14 @@ var datatableview = {
                 });
                 return errors.join('\n');
             }
-        }
+        };
         return function(nRow, mData, iDisplayIndex) {
             $('td a[data-xeditable]', nRow).editable(options);
             return nRow;
         }
-    },
+    }
 
-    getCookie: function(name) {
+    function getCookie(name) {
         var cookieValue = null;
         if (document.cookie && document.cookie != '') {
             var cookies = document.cookie.split(';');
@@ -45,125 +143,34 @@ var datatableview = {
             }
         }
         return cookieValue;
-    },
-
-    initialize: function($$, opts) {
-        if (typeof window.console === "undefined" || typeof window.console.log === "undefined") {
-            console = {
-                log: function(){},
-                info: function(){}
-            };
-        }
-        var options_name_map = {
-            'config-sortable': 'bSortable',
-            'config-sorting': 'aaSorting',
-            'config-visible': 'bVisible'
-        };
-
-        var template_clear_button = $('<a href="#" class="clear-search">Clear</a>');
-
-        var initialized_datatables = [];
-        $$.each(function(){
-            var datatable = $(this);
-            var column_options = [];
-            var sorting_options = [];
-
-            datatable.find('thead th').each(function(){
-                var header = $(this);
-                var options = {};
-                for (var i = 0; i < header[0].attributes.length; i++) {
-                    var attr = header[0].attributes[i];
-                    if (attr.specified && /^data-/.test(attr.name)) {
-                        var name = attr.name.replace(/^data-/, '');
-                        var value = attr.value;
-
-                        // Typecasting out of string
-                        name = options_name_map[name];
-                        if (/^b/.test(name)) {
-                            value = (value === 'true');
-                        }
-
-                        if (name == 'aaSorting') {
-                            // This doesn't go in the column_options
-                            var sort_info = value.split(',');
-                            sort_info[1] = parseInt(sort_info[1]);
-                            sorting_options.push(sort_info);
-                            continue;
-                        }
-
-                        options[name] = value;
-                    }
-                }
-                column_options.push(options);
-            });
-
-            // Arrange the sorting column requests and strip the priority information
-            sorting_options.sort(function(a, b){ return a[0] - b[0] });
-            for (var i = 0; i < sorting_options.length; i++) {
-                sorting_options[i] = sorting_options[i].slice(1);
-            }
-
-            options = $.extend({}, datatableview.defaults, opts, {
-                "aaSorting": sorting_options,
-                "aoColumns": column_options,
-                "sAjaxSource": datatable.attr('data-source-url'),
-                "iDisplayLength": datatable.attr('data-page-length'),
-                "fnInfoCallback": function(oSettings, iStart, iEnd, iMax, iTotal, sPre){
-                    $("#" + datatable.attr('data-result-counter-id')).html(parseInt(iTotal).toLocaleString());
-                    var infoString = oSettings.oLanguage.sInfo.replace('_START_',iStart).replace('_END_',iEnd).replace('_TOTAL_',iTotal);
-                    if (iMax != iTotal) {
-                        infoString += oSettings.oLanguage.sInfoFiltered.replace('_MAX_',iMax);
-                    }
-                    // /******************************************************************
-                    //  * ##########       ###       ######         ###
-                    //  * ##########     ###  ##     ###   ##     ###  ##
-                    //  *    ###        ###   ###    ###   ##    ###   ###
-                    //  *    ###        ###   ###    ###   ##    ###   ###
-                    //  *    ###        ###   ###    ###   ##    ###   ###
-                    //  *    ###         ######      ######       ######
-                    //  * ===============================================================
-                    //  * The string at the bottom of the table showing entries being
-                    //  * looked at is always updated, but not always rendered in all
-                    //  * browsers *cough cough* Chrome, Safari.
-                    //  * This makes it so that results string always updates.
-                    //  *****************************************************************/
-                    // var n = oSettings.aanFeatures.i;
-                    // for (var i = 0, iLen = n.length; i < j; i++) {
-                    //     $(n[i]).empty();
-                    // }
-                    return infoString;
-                }
-            });
-            try {
-                options = confirm_datatable_options(options, datatable);
-            } catch (e) {
-
-            }
-
-            var initialized_datatable = datatable.dataTable(options);
-            initialized_datatables.push(initialized_datatable[0]);
-
-            try {
-                initialized_datatable.fnSetFilteringDelay();
-            } catch (e) {
-                console.info("datatable plugin fnSetFilteringDelay not available");
-            }
-
-            var search_input = initialized_datatable.closest('.dataTables_wrapper').find('.dataTables_filter input');
-            var clear_button = template_clear_button.clone().click(function(){
-                $(this).trigger('clear.datatable', [initialized_datatable]);
-                return false;
-            }).bind('clear.datatable', function(){
-                search_input.val('').keyup();
-            });
-            search_input.after(clear_button).after(' ');
-        });
-        return $(initialized_datatables).dataTable();
     }
-}
+
+    var api = {
+        // values
+        autoInitialize: autoInitialize,
+        auto_initialize: undefined,  // Legacy name
+        checkGlobalConfirmHook: checkGlobalConfirmHook,
+        defaults: defaultDataTableOptions,
+
+        // functions
+        initialize: initialize,
+        getOptions: getOptions,
+        finalizeOptions: finalizeOptions,
+        makeXEditable: makeXEditable,
+        make_xeditable: makeXEditable  // Legacy name
+    }
+    return api;
+})();
 
 $(function(){
-    if (datatableview.auto_initialize) {
+    var shouldInit = null;
+    if (datatableview.auto_initialize === undefined) {
+        shouldInit = datatableview.autoInitialize;
+    } else {
+        shouldInit = datatableview.auto_initialize
+    }
+
+    if (shouldInit) {
         datatableview.initialize($('.datatable'));
     }
 });

@@ -29,7 +29,7 @@ urlpatterns = [
         views.delete_group,
         name='search_group_delete'),
 
-     #Delete search row
+    # Delete search row
     url(r'^delete_search_row/(?P<search_row_id>.+)/',
         views.delete_row,
         name='search_row_delete'),

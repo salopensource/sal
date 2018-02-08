@@ -4,6 +4,7 @@ from inventory.models import InventoryItem
 
 from urllib import quote_plus
 
+
 class License(models.Model):
     item_name = models.CharField(max_length=64, unique=True, primary_key=True)
     total = models.IntegerField(default=0)
@@ -20,7 +21,7 @@ class License(models.Model):
         # query inventory items to determine how many licenses have been used.
         items = InventoryItem.objects.all()
         if self.inventory_name:
-            items = items.filter(name__exact=self.inventory_name)
+            items = items.filter(application__name__exact=self.inventory_name)
         if self.inventory_version:
             if self.inventory_version.endswith('*'):
                 items = items.filter(

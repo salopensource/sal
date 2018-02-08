@@ -91,8 +91,8 @@
 
                         {% for plugin in disabled_plugins %}
                         <tr>
-                            <td>{{ plugin }}</td>
-                            <td><a href="{% url 'plugin_enable' plugin %}" title="Enable Plugin" class="btn btn-mini btn-info pull-right"><i class="fa fa-check"></i></a></td>
+                            <td>{{ plugin.name }}</td>
+                            <td><a href="{% url 'plugin_enable' plugin.name %}" title="Enable Plugin" class="btn btn-mini btn-info pull-right"><i class="fa fa-check"></i></a></td>
                         </tr>
                         {% endfor %}
                     </tbody>

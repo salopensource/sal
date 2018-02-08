@@ -1,0 +1,5 @@
+[flake8]
+ignore = F401,F405,E402,F403
+max-line-length = 100
+exclude = venv/*,watson/*,*/migrations/*,wip_plugins/*,datatableview/*, sal/settings.py
+max-complexity = 124

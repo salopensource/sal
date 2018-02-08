@@ -5,7 +5,6 @@ from django.template.context_processors import csrf
 from django.views.decorators.csrf import csrf_exempt
 from django.core.urlresolvers import reverse
 from django.http import Http404
-#from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required, permission_required
 from django.conf import settings
 from django import forms
@@ -24,6 +23,7 @@ from sal.decorators import *
 
 # Create your views here.
 
+
 def decode_to_string(base64bz2data):
     '''Decodes an inventory submission, which is a plist-encoded
     list, compressed via bz2 and base64 encoded.'''
@@ -31,6 +31,7 @@ def decode_to_string(base64bz2data):
         return bz2.decompress(base64.b64decode(base64bz2data))
     except Exception:
         return ''
+
 
 @csrf_exempt
 @key_auth_required
@@ -69,6 +70,7 @@ def submit_catalog(request):
                 catalog.save()
     return HttpResponse("Catalogs submitted.")
 
+
 @csrf_exempt
 @key_auth_required
 def catalog_hash(request):
@@ -94,10 +96,9 @@ def catalog_hash(request):
         if catalogs_plist:
             for item in catalogs_plist:
                 name = item['name']
-                sha256hash = item['sha256hash']
                 try:
                     found_catalog = Catalog.objects.get(name=name, machine_group=machine_group)
-                    output.append({'name': name, 'sha256hash':found_catalog.sha256hash})
+                    output.append({'name': name, 'sha256hash': found_catalog.sha256hash})
                 except Catalog.DoesNotExist:
                     output.append({'name': name, 'sha256hash': 'NOT FOUND'})
 

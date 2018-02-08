@@ -12,6 +12,7 @@ from distutils.version import LooseVersion
 
 register = template.Library()
 
+
 @register.filter
 def humanreadablesize(kbytes):
     """Returns sizes in human-readable units. Input is kbytes"""
@@ -25,8 +26,11 @@ def humanreadablesize(kbytes):
         if kbytes > limit:
             continue
         else:
-            return str(round(kbytes/float(limit/2**10), 1)) + suffix
+            return str(round(kbytes / float(limit / 2**10), 1)) + suffix
+
+
 humanreadablesize.is_safe = True
+
 
 @register.filter
 def macos(os_version):
@@ -35,17 +39,19 @@ def macos(os_version):
     else:
         return 'OS X'
 
+
 @register.filter
 def bu_machine_count(bu_id):
-    """Returns the number of machines contained within the child Machine Groups. Input is BusinessUnit.id"""
+    """Returns the number of machines contained within the child Machine Groups. Input is
+    BusinessUnit.id"""
     # Get the BusinessUnit
-    #bu_id = int(bu_id)
     business_unit = get_object_or_404(BusinessUnit, pk=bu_id)
     machine_groups = business_unit.machinegroup_set.all()
     count = 0
     for machinegroup in machine_groups:
         count = count + machinegroup.machine_set.filter(deployed=True).count()
     return count
+
 
 @register.filter
 def machine_group_count(group_id):
@@ -55,26 +61,42 @@ def machine_group_count(group_id):
     count = machine_group.machine_set.filter(deployed=True).count()
     return count
 
+
 @register.filter
 def convert_datetime(string):
     """Converts a string into a date object"""
     the_date = dateutil.parser.parse(string).replace(tzinfo=utc)
 #
-    #return date(the_date, "Y-m-d H:i")
+    # return date(the_date, "Y-m-d H:i")
     return the_date
+
 
 @register.filter
 def print_timestamp(timestamp):
     try:
-        #assume, that timestamp is given in seconds with decimal point
+        # assume, that timestamp is given in seconds with decimal point
         ts = float(timestamp)
     except ValueError:
         return None
     return time.strftime("%Y-%m-%d", time.gmtime(ts))
 
+
+@register.filter
+def flatten_and_sort_list(the_list):
+    output = ''
+    counter = 1
+    for item in sorted(the_list):
+        if counter == 1:
+            output = item
+        else:
+            output = output + ', ' + item
+        counter += 1
+    return output
+
+
 @register.filter
 def next(value, arg):
     try:
-        return value[int(arg)+1]
-    except:
+        return value[int(arg) + 1]
+    except Exception:
         return None

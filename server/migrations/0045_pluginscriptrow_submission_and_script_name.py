@@ -4,6 +4,7 @@ from __future__ import unicode_literals
 from server.models import *
 from django.db import migrations, models
 
+
 def update_plugins(apps, schema_editor):
 
     PluginScriptRow = apps.get_model("server", "PluginScriptRow")
@@ -13,6 +14,7 @@ def update_plugins(apps, schema_editor):
         for row in PluginScriptRow.objects.filter(submission=submission):
             row.submission_and_script_name = submission.plugin + ': ' + row.pluginscript_name
             row.save()
+
 
 class Migration(migrations.Migration):
 

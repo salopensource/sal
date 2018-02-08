@@ -4,6 +4,7 @@ from server.models import *
 from django.db import migrations, models
 from server import utils
 
+
 def plugin_enable(request, plugin_name):
     # only do this if there isn't a plugin already with the name
     try:
@@ -12,6 +13,7 @@ def plugin_enable(request, plugin_name):
         plugin = Plugin(name=plugin_name, order=utils.UniquePluginOrder())
         plugin.save()
     return redirect('plugins_page')
+
 
 def enable_plugins(apps, schema_editor):
 
@@ -26,6 +28,7 @@ def enable_plugins(apps, schema_editor):
             except Plugin.DoesNotExist:
                 plugin = Plugin(name=plugin_name, order=utils.UniquePluginOrder())
                 plugin.save()
+
 
 class Migration(migrations.Migration):
 

@@ -1,4 +1,5 @@
-import os, sys
+import os
+import sys
 import site
 
 SAL_ENV_DIR = '/home/docker/sal'

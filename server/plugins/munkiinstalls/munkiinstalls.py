@@ -10,8 +10,8 @@ import server.utils as utils
 
 
 now = django.utils.timezone.now()
-this_day = now -  timedelta(days=0)
-one_day_ago = now -  timedelta(days=1)
+this_day = now - timedelta(days=0)
+one_day_ago = now - timedelta(days=1)
 two_days_ago = now - timedelta(days=2)
 three_days_ago = now - timedelta(days=3)
 four_days_ago = now - timedelta(days=4)
@@ -73,7 +73,7 @@ class MunkiInstalls(IPlugin):
                     status__iexact='install', recorded__range=(the_min, the_max),
                     update_history__machine__in=machines,
                     update_history__update_type='third_party').count()
-            except:
+            except Exception:
                 installs = 0
 
             try:
@@ -81,7 +81,7 @@ class MunkiInstalls(IPlugin):
                     status='error', recorded__range=(the_min, the_max),
                     update_history__machine__in=machines,
                     update_history__update_type='third_party').count()
-            except:
+            except Exception:
                 errors = 0
 
             try:
@@ -89,7 +89,7 @@ class MunkiInstalls(IPlugin):
                     status='pending', update_history__machine__in=machines,
                     recorded__range=(the_min, the_max),
                     update_history__update_type='third_party').count()
-            except:
+            except Exception:
                 pending = 0
 
             my_dict['installs'] = installs
@@ -114,5 +114,5 @@ class MunkiInstalls(IPlugin):
 
         machines = machines.filter(munki_version__exact=data)
 
-        title = 'Machines running version '+data+' of MSC'
+        title = 'Machines running version {} of MSC'.format(data)
         return machines, title

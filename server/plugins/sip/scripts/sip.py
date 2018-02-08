@@ -6,6 +6,7 @@ sys.path.append('/usr/local/munki')
 from munkilib import FoundationPlist
 import os
 
+
 def get_status(cmd, checkstring):
     try:
         output = subprocess.check_output(cmd, stderr=subprocess.STDOUT)
@@ -16,9 +17,11 @@ def get_status(cmd, checkstring):
     else:
         return 'Disabled'
 
+
 def sip_status():
     cmd = ['/usr/bin/csrutil', 'status']
     return get_status(cmd, 'System Integrity Protection status: enabled.')
+
 
 def main():
 
@@ -41,6 +44,7 @@ def main():
     result['data'] = data
     plist.append(result)
     FoundationPlist.writePlist(plist, plist_path)
+
 
 if __name__ == '__main__':
     main()

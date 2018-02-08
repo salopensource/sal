@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 {% load i18n %}
 {% load dashboard_extras %}
+{% load static from staticfiles %}
 {% block title %}Sal - {{ machine.hostname }}{% endblock %}
 {% block script %}
 <script>
@@ -46,7 +47,11 @@ $( document ).ready(function() {
 <div class="row">
   <div class="col-md-5">
     <p style="text-align: center;">
-      <img src='https://km.support.apple.com.edgekey.net/kb/securedImage.jsp?configcode={{machine.serial|slice:"8:" }}&size=120x120'>
+        {% if machine.os_family == 'Darwin' %}
+      <img src='https://km.support.apple.com/kb/securedImage.jsp?configcode={{machine.serial|slice:"8:" }}&size=120x120'>
+      {% else %}
+      <img src="{% static 'img/generic_pc.png' %}" height="120" width="120" alt="Generic PC"/>
+      {% endif %}
       <br>
       <h2 style="text-align:center">{{ machine.hostname }}</h2>
       <span style="display: block; margin: 0px auto; text-align: center;" title="Last report date">
@@ -105,6 +110,12 @@ $( document ).ready(function() {
       <div class="panel-body">
         <dl class="dl-horizontal">
           <legend><h5 class"text-uppercase">Machine Details</h5></legend>
+          {% if machine.broken_client %}
+          <dt>Broken Python:</dt>
+          <dd class="bg-danger">
+           Client has broken Python / MSC 
+          </dd>
+          {% endif %}
           <dt>Model:</dt>
           <dd>
             {% if machine.machine_model_friendly %}
@@ -122,28 +133,48 @@ $( document ).ready(function() {
           <dd>{{ machine.memory }}</dd>
           <dt>Serial:</dt>
           <dd>{{ machine.serial }}</dd>
+          {% if ip_address %}
           <dt>LAN IP Address:</dt>
           <dd>{{ ip_address }}</dd>
+          {% endif %}
           {% if 'MachineInfo' in report %}
+          {% if report.MachineInfo.hostname %}
           <dt>Hostname:</dt>
           <dd>{{ report.MachineInfo.hostname }}</dd>
+          {% endif %}
           <dt>OS version:</dt>
           <dd>
-            {% if report.os_family == 'Darwin' %}
+            {% if machine.os_family == 'Darwin' %}
             {{ report.MachineInfo.os_vers|macos }}
-            {% endif %}
             {{ report.MachineInfo.os_vers }}
             {{ report.MachineInfo.arch }}
+            {% else %}
+            {{ machine.operating_system }}
+            {% endif %}
           </dd>
           {% endif %}
+          {% if report.AvailableDiskSpace %}
           <dt>Free disk space:</dt>
           <dd>{{ report.AvailableDiskSpace|humanreadablesize }} ({{ machine.hd_percent }}% used)</dd>
+          {% endif %}
           {% if uptime_enabled %}
+          {% if uptime %}
           <dt>Uptime:</dt>
           <dd>{{ uptime }}</dd>
           {% endif %}
+          {% endif %}
+          {% if report.ConsoleUser %}
           <dt>Console user:</dt>
           <dd>{{ report.ConsoleUser }}</dd>
+          {% endif %}
+          <dt>Deploy Status:</dt>
+          <dd>
+            {% if machine.deployed %}
+            Deployed
+            {% else %}
+            Undeployed
+            {% endif %}
+          </dd>
         </dl>
       </div>
     </div>

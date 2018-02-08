@@ -5,8 +5,6 @@ from collections import namedtuple
 
 from django.views.generic.list import ListView
 
-import six
-
 from .base import DatatableMixin
 from ..datatables import Datatable, LegacyDatatable
 
@@ -29,6 +27,7 @@ DEFAULT_OPTIONS = {
     'structure_template': "datatableview/legacy_structure.html",
     'result_counter_id': 'id_count',  # HTML element ID to display the total results
 }
+
 
 def get_field_definition(field_definition):
     """ Normalizes a field definition into its component parts, even if some are missing. """
@@ -93,8 +92,14 @@ class LegacyDatatableMixin(DatatableMixin):
         kwargs.update(self._get_datatable_options())
         return kwargs
 
+    def preload_record_data(self, obj):
+        return {}
+
+    def get_extra_record_data(self, obj):
+        return {}
+
+
 class LegacyDatatableView(LegacyDatatableMixin, ListView):
     """
     Implements :py:class:`LegacyDatatableMixin` and the standard Django ``ListView``.
     """
-

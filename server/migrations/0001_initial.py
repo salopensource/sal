@@ -15,7 +15,8 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='ApiKey',
             fields=[
-                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('id', models.AutoField(verbose_name='ID',
+                                        serialize=False, auto_created=True, primary_key=True)),
                 ('public_key', models.CharField(max_length=256)),
                 ('private_key', models.CharField(max_length=256)),
                 ('name', models.CharField(max_length=256)),
@@ -29,7 +30,8 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='BusinessUnit',
             fields=[
-                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('id', models.AutoField(verbose_name='ID',
+                                        serialize=False, auto_created=True, primary_key=True)),
                 ('name', models.CharField(max_length=100)),
                 ('users', models.ManyToManyField(to=settings.AUTH_USER_MODEL, blank=True)),
             ],
@@ -40,7 +42,8 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='Condition',
             fields=[
-                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('id', models.AutoField(verbose_name='ID',
+                                        serialize=False, auto_created=True, primary_key=True)),
                 ('condition_name', models.TextField()),
                 ('condition_data', models.TextField()),
             ],
@@ -51,7 +54,8 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='Fact',
             fields=[
-                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('id', models.AutoField(verbose_name='ID',
+                                        serialize=False, auto_created=True, primary_key=True)),
                 ('fact_name', models.TextField()),
                 ('fact_data', models.TextField()),
             ],
@@ -62,7 +66,8 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='HistoricalFact',
             fields=[
-                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('id', models.AutoField(verbose_name='ID',
+                                        serialize=False, auto_created=True, primary_key=True)),
                 ('fact_name', models.TextField()),
                 ('fact_data', models.TextField()),
                 ('fact_recorded', models.DateTimeField(db_index=True)),
@@ -74,7 +79,8 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='Machine',
             fields=[
-                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('id', models.AutoField(verbose_name='ID',
+                                        serialize=False, auto_created=True, primary_key=True)),
                 ('serial', models.CharField(unique=True, max_length=100)),
                 ('hostname', models.CharField(max_length=256, null=True, blank=True)),
                 ('operating_system', models.CharField(max_length=256)),
@@ -89,7 +95,8 @@ class Migration(migrations.Migration):
                 ('machine_model', models.CharField(max_length=256, null=True, blank=True)),
                 ('cpu_type', models.CharField(max_length=256, null=True, blank=True)),
                 ('cpu_speed', models.CharField(max_length=256, null=True, blank=True)),
-                ('os_family', models.CharField(default=b'Darwin', max_length=256, verbose_name=b'OS Family', choices=[(b'Darwin', b'OS X'), (b'Windows', b'Windows'), (b'Linux', b'Linux')])),
+                ('os_family', models.CharField(default=b'Darwin', max_length=256, verbose_name=b'OS Family', choices=[
+                 (b'Darwin', b'OS X'), (b'Windows', b'Windows'), (b'Linux', b'Linux')])),
                 ('last_checkin', models.DateTimeField(null=True, blank=True)),
                 ('report', models.TextField(null=True)),
                 ('errors', models.IntegerField(default=0)),
@@ -106,7 +113,8 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='MachineGroup',
             fields=[
-                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('id', models.AutoField(verbose_name='ID',
+                                        serialize=False, auto_created=True, primary_key=True)),
                 ('name', models.CharField(max_length=100)),
                 ('key', models.CharField(max_length=255, unique=True, null=True, editable=False, blank=True)),
                 ('business_unit', models.ForeignKey(to='server.BusinessUnit')),
@@ -118,7 +126,8 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='PendingAppleUpdate',
             fields=[
-                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('id', models.AutoField(verbose_name='ID',
+                                        serialize=False, auto_created=True, primary_key=True)),
                 ('update', models.CharField(max_length=256, null=True, blank=True)),
                 ('update_version', models.CharField(max_length=256, null=True, blank=True)),
                 ('display_name', models.CharField(max_length=256, null=True, blank=True)),
@@ -131,7 +140,8 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='PendingUpdate',
             fields=[
-                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('id', models.AutoField(verbose_name='ID',
+                                        serialize=False, auto_created=True, primary_key=True)),
                 ('update', models.CharField(max_length=256, null=True, blank=True)),
                 ('update_version', models.CharField(max_length=256, null=True, blank=True)),
                 ('display_name', models.CharField(max_length=256, null=True, blank=True)),
@@ -144,8 +154,10 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='UserProfile',
             fields=[
-                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
-                ('level', models.CharField(default=b'SO', max_length=2, choices=[(b'SO', b'Stats Only'), (b'RO', b'Read Only'), (b'RW', b'Read Write'), (b'GA', b'Global Admin')])),
+                ('id', models.AutoField(verbose_name='ID',
+                                        serialize=False, auto_created=True, primary_key=True)),
+                ('level', models.CharField(default=b'SO', max_length=2, choices=[
+                 (b'SO', b'Stats Only'), (b'RO', b'Read Only'), (b'RW', b'Read Write'), (b'GA', b'Global Admin')])),
                 ('user', models.OneToOneField(to=settings.AUTH_USER_MODEL)),
             ],
         ),

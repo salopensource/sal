@@ -25,11 +25,11 @@ import plistlib
 #
 #         try:
 #             report_data = plistlib.readPlistFromString(report)
-#         except:
+#         except Exception:
 #             try:
 #                 report_data = plistlib.readPlistFromString(
 #                                         report.encode('UTF-8'))
-#             except:
+#             except Exception:
 #                 report_data = {}
 #
 #         if 'ManagedInstalls' in report_data:
@@ -45,6 +45,7 @@ import plistlib
 #                     update=update_name, installed=installed)
 #                     installed_update.save()
 
+
 class Migration(migrations.Migration):
 
     dependencies = [
@@ -55,7 +56,8 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='InstalledUpdate',
             fields=[
-                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('id', models.AutoField(verbose_name='ID',
+                                        serialize=False, auto_created=True, primary_key=True)),
                 ('update', models.CharField(db_index=True, max_length=255, null=True, blank=True)),
                 ('update_version', models.CharField(db_index=True, max_length=255, null=True, blank=True)),
                 ('display_name', models.CharField(max_length=255, null=True, blank=True)),

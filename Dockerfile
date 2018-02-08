@@ -1,6 +1,5 @@
 # Sal Dockerfile
-# Version 0.4
-FROM ubuntu:14.04.5
+FROM ubuntu:14.04
 
 MAINTAINER Graham Gilbert <graham@grahamgilbert.com>
 
@@ -34,16 +33,9 @@ RUN apt-get update && \
     libffi-dev && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
-# && \
-# wget https://github.com/jwilder/dockerize/releases/download/$DOCKERIZE_VERSION/dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz \
-#    && tar -C /usr/local/bin -xzvf dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz \
-#    && rm dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz &&\
 COPY setup/requirements.txt /requirements.txt
 RUN easy_install pip && \
     pip install -r /requirements.txt && \
-    pip install psycopg2==2.6.2 && \
-    pip install gunicorn==19.6.0 && \
-    pip install setproctitle && \
     rm /requirements.txt && \
     update-rc.d -f postgresql remove && \
     update-rc.d -f nginx remove && \
@@ -59,14 +51,10 @@ COPY docker/run.sh /run.sh
 COPY docker/nginx/nginx-env.conf /etc/nginx/main.d/
 COPY docker/nginx/sal.conf /etc/nginx/sites-enabled/sal.conf
 COPY docker/nginx/nginx.conf /etc/nginx/nginx.conf
-COPY docker/crontab /etc/cron.d/search-maint
-COPY docker/search_maint.sh /usr/local/bin/search_maint.sh
 
 RUN chmod 755 /run.sh && \
     rm -f /etc/nginx/sites-enabled/default && \
     ln -s $APP_DIR /home/app/sal && \
-    chmod 644 /etc/cron.d/search-maint &&\
-    chmod 755 /usr/local/bin/search_maint.sh &&\
     mkdir -p /var/log/gunicorn &&\
     touch /var/log/gunicorn/gunicorn-error.log &&\
     touch /var/log/gunicorn/gunicorn-access.log &&\

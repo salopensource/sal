@@ -1,0 +1,18 @@
+[
+{
+    "model": "server.businessunit",
+    "pk": 1,
+    "fields": {
+        "name": "Gandalf",
+        "users": []
+    }
+},
+{
+    "model": "server.businessunit",
+    "pk": 2,
+    "fields": {
+        "name": "You don't want to know",
+        "users": []
+    }
+}
+]

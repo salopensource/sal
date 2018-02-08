@@ -11,6 +11,7 @@ mem_415_gb = 4.15 * 1024 * 1024
 mem_775_gb = 7.75 * 1024 * 1024
 mem_8_gb = 8 * 1024 * 1024
 
+
 class Memory(IPlugin):
     def plugin_type(self):
         return 'builtin'
@@ -22,9 +23,6 @@ class Memory(IPlugin):
         return 'Installed RAM'
 
     def widget_content(self, page, machines=None, theid=None):
-        # The data is data is pulled from the database and passed to a template.
-
-        # There are three possible views we're going to be rendering to - front, bu_dashbaord and group_dashboard. If page is set to bu_dashboard, or group_dashboard, you will be passed a business_unit or machine_group id to use (mainly for linking to the right search).
         if page == 'front':
             t = loader.get_template('plugins/traffic_lights_front.html')
 
@@ -36,16 +34,16 @@ class Memory(IPlugin):
 
         try:
             mem_ok = machines.filter(memory_kb__gte=mem_8_gb).count()
-        except:
+        except Exception:
             mem_ok = 0
         try:
             mem_warning = machines.filter(memory_kb__range=[mem_4_gb, mem_775_gb]).count()
-        except:
+        except Exception:
             mem_warning = 0
 
         try:
             mem_alert = machines.filter(memory_kb__lt=mem_4_gb).count()
-        except:
+        except Exception:
             mem_alert = 0
 
         c = Context({

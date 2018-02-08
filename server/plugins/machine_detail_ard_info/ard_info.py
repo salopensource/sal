@@ -34,7 +34,7 @@ class ARDInfo(IPlugin):
 
             try:
                 val = row.first().pluginscript_data
-            except:
+            except Exception:
                 val = ""
             ard_info[key] = val
 

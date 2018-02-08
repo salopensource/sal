@@ -1,20 +1,19 @@
 '''
 Cleans up old searches and rebuilds search fields cache
 '''
+import datetime
+import operator
+from time import sleep
 
 from django.core.management.base import BaseCommand, CommandError
 from django.conf import settings
-from datetime import datetime, timedelta, date  # noqa: F811
+from django.db.models import Q
 import django.utils.timezone
+
+from inventory.models import *
 from server.models import *
 from search.models import *
-from inventory.models import *
-import server.utils as utils
-import datetime  # noqa: F811
 import server.utils
-from time import sleep
-import operator
-from django.db.models import Q
 
 
 class Command(BaseCommand):
@@ -106,7 +105,7 @@ class Command(BaseCommand):
 
             if inactive_undeploy > 0:
                 now = django.utils.timezone.now()
-                inactive_days = now - timedelta(days=inactive_undeploy)
+                inactive_days = now - datetime.timedelta(days=inactive_undeploy)
                 Machine.deployed_objects.all().filter(
                     last_checkin__lte=inactive_days).update(deployed=False)
         except Exception:

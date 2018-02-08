@@ -45,5 +45,5 @@ class MunkiVersion(IPlugin):
 
         machines = machines.filter(munki_version__exact=data)
 
-        title = 'Machines running version ' + data + ' of MSC'
+        title = 'Machines running version {} of MSC'.format(data)
         return machines, title

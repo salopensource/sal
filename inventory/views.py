@@ -26,9 +26,8 @@ from datatableview.views import DatatableView
 # local Django
 from models import Application, Inventory, InventoryItem, Machine
 from server import utils
-from server.models import SalSetting
 from sal.decorators import *
-from server.models import BusinessUnit, MachineGroup, Machine  # noqa: F811
+from server.models import BusinessUnit, MachineGroup, Machine, SalSetting
 
 
 class GroupMixin(object):

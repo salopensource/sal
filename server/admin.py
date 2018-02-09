@@ -7,6 +7,12 @@ class ApiKeyAdmin(admin.ModelAdmin):
     list_display = ('name', 'public_key', 'private_key')
 
 
+class MachineGroupInline(admin.TabularInline):
+    model = MachineGroup
+
+
+class BusinessUnitAdmin(admin.ModelAdmin):
+    inlines = [MachineGroupInline,]
 class MachineAdmin(admin.ModelAdmin):
     list_display = ('hostname', 'serial')
 

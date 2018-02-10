@@ -4,6 +4,34 @@ from django.forms import ModelForm, ModelMultipleChoiceField
 from server.models import *
 
 
+class BusinessUnitFilter(admin.SimpleListFilter):
+    title = 'Business Unit'
+    parameter_name = 'business_unit'
+
+    def lookups(self, request, model_admin):
+        return ((bu.name, bu.name) for bu in BusinessUnit.objects.all())
+
+    def queryset(self, request, queryset):
+        if self.value():
+            return queryset.filter(machine__machine_group__business_unit__name=self.value())
+        else:
+            return queryset
+
+
+class MachineGroupFilter(admin.SimpleListFilter):
+    title = 'Machine Group'
+    parameter_name = 'machine_group'
+
+    def lookups(self, request, model_admin):
+        return ((mg.name, mg.name) for mg in MachineGroup.objects.all())
+
+    def queryset(self, request, queryset):
+        if self.value():
+            return queryset.filter(machine__machine_group__name=self.value())
+        else:
+            return queryset
+
+
 class ApiKeyAdmin(admin.ModelAdmin):
     list_display = ('name', 'public_key', 'private_key')
 
@@ -45,34 +73,6 @@ class BusinessUnitAdmin(admin.ModelAdmin):
     readonly_fields = (number_of_users, number_of_machine_groups, number_of_machines)
 
 
-class BusinessUnitFilter(admin.SimpleListFilter):
-    title = 'Business Unit'
-    parameter_name = 'business_unit'
-
-    def lookups(self, request, model_admin):
-        return ((bu.name, bu.name) for bu in BusinessUnit.objects.all())
-
-    def queryset(self, request, queryset):
-        if self.value():
-            return queryset.filter(machine__machine_group__business_unit__name=self.value())
-        else:
-            return queryset
-
-
-class MachineGroupFilter(admin.SimpleListFilter):
-    title = 'Machine Group'
-    parameter_name = 'machine_group'
-
-    def lookups(self, request, model_admin):
-        return ((mg.name, mg.name) for mg in MachineGroup.objects.all())
-
-    def queryset(self, request, queryset):
-        if self.value():
-            return queryset.filter(machine__machine_group__name=self.value())
-        else:
-            return queryset
-
-
 class ConditionAdmin(admin.ModelAdmin):
     list_filter = (BusinessUnitFilter, MachineGroupFilter, 'condition_name')
 
@@ -82,13 +82,37 @@ class FactAdmin(admin.ModelAdmin):
     list_filter = (BusinessUnitFilter, MachineGroupFilter, 'fact_name')
 
 
+class InstalledUpdateAdmin(admin.ModelAdmin):
+    list_display = ('update', 'display_name', 'machine', 'update_version', 'installed')
+    list_filter = (BusinessUnitFilter, MachineGroupFilter, 'update')
+
+
 class HistoricalFactAdmin(admin.ModelAdmin):
     list_display = ('fact_name', 'fact_data', 'fact_recorded')
     list_filter = (BusinessUnitFilter, MachineGroupFilter, 'fact_name')
 
 
+def business_unit(obj):
+    return obj.machine_group.business_unit.name
+
 class MachineAdmin(admin.ModelAdmin):
-    list_display = ('hostname', 'serial')
+    list_display = ('hostname', 'serial', 'machine_model', 'operating_system', 'deployed')
+    list_filter = (BusinessUnitFilter, MachineGroupFilter, 'operating_system', 'machine_model',
+                   'last_checkin', 'errors', 'warnings', 'puppet_errors', 'deployed')
+    fields = (
+        (business_unit, 'machine_group'),
+        ('hostname', 'serial', 'console_user'),
+        ('machine_model', 'machine_model_friendly'),
+        ('cpu_type', 'cpu_speed'), ('memory', 'memory_kb'), ('hd_space', 'hd_total', 'hd_percent'),
+        ('operating_system', 'os_family'),
+        ('munki_version', 'manifest', 'errors', 'warnings'),
+        ('last_checkin', 'first_checkin'),
+        ('puppet_version', 'last_puppet_run', 'puppet_errors'),
+        ('sal_version', 'deployed', 'broken_client'),
+        'report', 'report_format', 'install_log_hash', 'install_log'
+    )
+    readonly_fields = (business_unit, 'first_checkin', 'last_checkin', 'last_puppet_run',
+                       'report_format')
 
 
 class MachineGroupAdmin(admin.ModelAdmin):
@@ -100,7 +124,7 @@ admin.site.register(BusinessUnit, BusinessUnitAdmin)
 admin.site.register(Condition, ConditionAdmin)
 admin.site.register(Fact, FactAdmin)
 admin.site.register(HistoricalFact, HistoricalFactAdmin)
-admin.site.register(InstalledUpdate)
+admin.site.register(InstalledUpdate, InstalledUpdateAdmin)
 admin.site.register(Machine, MachineAdmin)
 admin.site.register(MachineDetailPlugin)
 admin.site.register(MachineGroup, MachineGroupAdmin)

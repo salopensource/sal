@@ -62,7 +62,10 @@ def number_of_machine_groups(obj):
 
 
 def number_of_machines(obj):
-    return Machine.objects.filter(machine_group__in=obj.machinegroup_set.all()).count()
+    if isinstance(obj, MachineGroup):
+        return Machine.objects.filter(machine_group=obj).count()
+    else:
+        return Machine.objects.filter(machine_group__in=obj.machinegroup_set.all()).count()
 
 
 class BusinessUnitAdmin(admin.ModelAdmin):
@@ -95,6 +98,7 @@ class HistoricalFactAdmin(admin.ModelAdmin):
 def business_unit(obj):
     return obj.machine_group.business_unit.name
 
+
 class MachineAdmin(admin.ModelAdmin):
     list_display = ('hostname', 'serial', 'machine_model', 'operating_system', 'deployed')
     list_filter = (BusinessUnitFilter, MachineGroupFilter, 'operating_system', 'machine_model',
@@ -116,6 +120,8 @@ class MachineAdmin(admin.ModelAdmin):
 
 
 class MachineGroupAdmin(admin.ModelAdmin):
+    list_display = ('name', 'business_unit', number_of_machines)
+    list_filter = (BusinessUnitFilter,)
     readonly_fields = ('key',)
 
 

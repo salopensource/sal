@@ -122,7 +122,8 @@ class MachineAdmin(admin.ModelAdmin):
 class MachineGroupAdmin(admin.ModelAdmin):
     list_display = ('name', 'business_unit', number_of_machines)
     list_filter = (BusinessUnitFilter,)
-    readonly_fields = ('key',)
+    fields = ('name', 'business_unit', number_of_machines, 'key')
+    readonly_fields = (number_of_machines, 'key')
 
 
 admin.site.register(ApiKey, ApiKeyAdmin)

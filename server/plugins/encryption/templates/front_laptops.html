@@ -15,9 +15,11 @@
             <i class="fa fa-laptop fa-3x"></i>
           </a>
 
+          {% if laptop_unknown_count > 0 %}
           <a href="{% url 'machine_list_front' plugin 'laptopunk' %}" title="{{ laptop_label }}" class="btn btn-danger">
             <span class="bigger">{{ laptop_unknown_count }}</span><br />
             <i class="fa fa-laptop fa-3x"></i>
           </a>
+          {% endif %}
         </div>
       </div>

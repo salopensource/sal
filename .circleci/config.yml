@@ -2,7 +2,7 @@ version: 2
 jobs:
   build:
     docker:
-      - image: circleci/python:2.7-jessie
+      - image: circleci/python:3.6.4-jessie-node-browsers
 
     working_directory: ~/repo
 
@@ -19,7 +19,7 @@ jobs:
       - run:
           name: install dependencies
           command: |
-            virtualenv venv
+            python -m venv venv
             . venv/bin/activate
             pip install -r setup/requirements.txt
             pip install flake8

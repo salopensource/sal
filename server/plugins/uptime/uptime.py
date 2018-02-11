@@ -1,6 +1,6 @@
 from yapsy.IPlugin import IPlugin
 from yapsy.PluginManager import PluginManager
-from django.template import loader, Context
+from django.template import loader
 from django.db.models import Count
 from server.models import *
 from django.shortcuts import get_object_or_404
@@ -49,7 +49,7 @@ class Uptime(IPlugin):
             warning = 0
             alert = 0
 
-        c = Context({
+        c = {
             'title': 'Uptime',
             'ok_label': '< 30 Days',
             'ok_count': ok,
@@ -60,7 +60,7 @@ class Uptime(IPlugin):
             'plugin': 'Uptime',
             'page': page,
             'theid': theid
-        })
+        }
         return t.render(c)
 
     def filter_machines(self, machines, data):

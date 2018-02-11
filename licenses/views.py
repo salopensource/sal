@@ -4,7 +4,7 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.http import Http404
 from django.contrib.auth.decorators import login_required, permission_required
 from django.template.context_processors import csrf
-from forms import *
+from .forms import *
 
 import plistlib
 import json

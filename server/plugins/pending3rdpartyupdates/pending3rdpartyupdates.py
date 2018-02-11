@@ -1,6 +1,6 @@
 from yapsy.IPlugin import IPlugin
 from yapsy.PluginManager import PluginManager
-from django.template import loader, Context
+from django.template import loader
 from django.db.models import Count
 from server.models import *
 from django.shortcuts import get_object_or_404
@@ -49,13 +49,13 @@ class Pending3rdPartyUpdates(IPlugin):
             if found is False:
                 pending_updates.append(item)
 
-        c = Context({
+        c = {
             'title': 'Pending 3rd Party Updates',
             'data': pending_updates,
             'theid': id,
             'page': page,
             'plugin': 'Pending3rdPartyUpdates'
-        })
+        }
 
         return t.render(c)
 

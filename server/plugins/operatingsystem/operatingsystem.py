@@ -2,7 +2,7 @@ from distutils.version import LooseVersion
 
 from yapsy.IPlugin import IPlugin
 from yapsy.PluginManager import PluginManager
-from django.template import loader, Context
+from django.template import loader
 from django.db.models import Count
 from server.models import *
 from django.shortcuts import get_object_or_404
@@ -56,14 +56,14 @@ class OperatingSystem(IPlugin):
         windows_os_info = sorted(windows_os_info, key=os_key, reverse=True)
         linux_os_info = sorted(linux_os_info, key=os_key, reverse=True)
 
-        c = Context({
+        c = {
             'title': 'Operating Systems',
             'mac_data': mac_os_info,
             'windows_data': windows_os_info,
             'linux_data': linux_os_info,
             'theid': theid,
             'page': page
-        })
+        }
         return t.render(c)
 
     def filter_machines(self, machines, data):

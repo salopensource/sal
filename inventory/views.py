@@ -4,7 +4,7 @@ import hashlib
 import plistlib
 from datetime import datetime
 from django.utils import timezone
-from urllib import quote, urlencode
+from urllib.parse import quote, urlencode
 
 # third-party
 import unicodecsv as csv
@@ -12,7 +12,7 @@ import unicodecsv as csv
 # Django
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.http import (
     HttpResponse, HttpResponseNotFound, HttpResponseBadRequest)
 from django.shortcuts import get_object_or_404, render_to_response
@@ -24,7 +24,7 @@ from datatableview.columns import DisplayColumn
 from datatableview.views import DatatableView
 
 # local Django
-from models import Application, Inventory, InventoryItem, Machine
+from .models import Application, Inventory, InventoryItem, Machine
 from server import utils
 from sal.decorators import *
 from server.models import BusinessUnit, MachineGroup, Machine, SalSetting  # noqa: F811
@@ -184,7 +184,7 @@ class InventoryList(Datatable):
             "machine_detail", kwargs={"machine_id": instance.pk})
 
         return '<a href="{}">{}</a>'.format(
-            url, instance.hostname.encode("utf-8"))
+            url, instance.hostname)
 
     def get_install_count(self, instance, **kwargs):
         queryset = instance.inventoryitem_set.filter(
@@ -269,7 +269,7 @@ class ApplicationList(Datatable):
         link_kwargs = copy.copy(kwargs['view'].kwargs)
         link_kwargs['pk'] = instance.pk
         url = reverse("application_detail", kwargs=link_kwargs)
-        return '<a href="{}">{}</a>'.format(url, instance.name.encode("utf-8"))
+        return '<a href="{}">{}</a>'.format(url, instance.name)
 
     def get_install_count(self, instance, **kwargs):
         """Get the number of app installs filtered by access group"""

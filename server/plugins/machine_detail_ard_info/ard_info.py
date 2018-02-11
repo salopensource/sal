@@ -1,7 +1,7 @@
 #!/usr/bin/python
 
 
-from django.template import loader, Context
+from django.template import loader
 from yapsy.IPlugin import IPlugin
 
 from server.models import PluginScriptRow
@@ -38,10 +38,10 @@ class ARDInfo(IPlugin):
                 val = ""
             ard_info[key] = val
 
-        c = Context({
+        c = {
             "title": self.get_description(),
             "data": ard_info,
             "theid": theid,
-            "page": page})
+            "page": page}
 
         return template.render(c)

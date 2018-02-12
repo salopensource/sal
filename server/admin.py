@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.forms import ModelForm, ModelMultipleChoiceField
 
 from server.models import *
-from server.utils import reloadPluginsModel
+from server.utils import reload_plugins_model
 
 
 class BusinessUnitFilter(admin.SimpleListFilter):
@@ -35,6 +35,10 @@ class MachineGroupFilter(admin.SimpleListFilter):
 
 class MachineGroupInline(admin.TabularInline):
     model = MachineGroup
+
+
+class PluginScriptRowInline(admin.StackedInline):
+    model = PluginScriptRow
 
 
 class BusinessUnitForm(ModelForm):
@@ -121,8 +125,8 @@ class MachineAdmin(admin.ModelAdmin):
 
 
 class MachineDetailPluginAdmin(admin.ModelAdmin):
-    list_display = ('name', 'description', 'os_families', 'type')
-    list_filter = ('os_families', 'type')
+    list_display = ('name', 'description', 'os_families')
+    list_filter = ('os_families',)
 
     def get_queryset(self, request):
         """Update db prior to retrieving plugins.
@@ -130,7 +134,7 @@ class MachineDetailPluginAdmin(admin.ModelAdmin):
         Views listing MachineDetailPlugins must first update the list of
         installed plugins and update their descriptions and types.
         """
-        reloadPluginsModel()
+        reload_plugins_model()
         return super(MachineDetailPluginAdmin, self).get_queryset(request)
 
 
@@ -139,6 +143,44 @@ class MachineGroupAdmin(admin.ModelAdmin):
     list_filter = (BusinessUnitFilter,)
     fields = ('name', 'business_unit', number_of_machines, 'key')
     readonly_fields = (number_of_machines, 'key')
+
+
+class PendingUpdateAdmin(admin.ModelAdmin):
+    list_filter = (BusinessUnitFilter, MachineGroupFilter)
+    list_display = ('update', 'display_name', 'update_version', 'machine')
+
+
+class PluginAdmin(admin.ModelAdmin):
+    list_display = ('name', 'description', 'type')
+    list_filter = ('type',)
+
+    def get_queryset(self, request):
+        """Update db prior to retrieving plugins.
+
+        Views listing Plugins must first update the list of
+        installed plugins and update their descriptions and types.
+        """
+        reload_plugins_model()
+        return super(PluginAdmin, self).get_queryset(request)
+
+
+class PluginScriptSubmissionAdmin(admin.ModelAdmin):
+    inlines = [PluginScriptRowInline,]
+    list_display = ('plugin', 'machine', 'recorded', 'historical')
+    list_filter = (BusinessUnitFilter, MachineGroupFilter, 'plugin', 'historical', 'recorded')
+
+
+class ReportAdmin(admin.ModelAdmin):
+    list_display = ('name', 'description')
+
+    def get_queryset(self, request):
+        """Update db prior to retrieving plugins.
+
+        Views listing MachineDetailPlugins must first update the list of
+        installed plugins and update their descriptions and types.
+        """
+        reload_plugins_model()
+        return super(ReportAdmin, self).get_queryset(request)
 
 
 admin.site.register(ApiKey, ApiKeyAdmin)
@@ -150,12 +192,12 @@ admin.site.register(InstalledUpdate, InstalledUpdateAdmin)
 admin.site.register(Machine, MachineAdmin)
 admin.site.register(MachineDetailPlugin, MachineDetailPluginAdmin)
 admin.site.register(MachineGroup, MachineGroupAdmin)
-admin.site.register(PendingAppleUpdate)
-admin.site.register(PendingUpdate)
-admin.site.register(Plugin)
+admin.site.register(PendingAppleUpdate, PendingUpdateAdmin)
+admin.site.register(PendingUpdate, PendingUpdateAdmin)
+admin.site.register(Plugin, PluginAdmin)
 admin.site.register(PluginScriptRow)
-admin.site.register(PluginScriptSubmission)
-admin.site.register(Report)
+admin.site.register(PluginScriptSubmission, PluginScriptSubmissionAdmin)
+admin.site.register(Report, ReportAdmin)
 admin.site.register(SalSetting)
 admin.site.register(UpdateHistory)
 admin.site.register(UpdateHistoryItem)

@@ -319,24 +319,24 @@ def _update_plugin_record(model, yapsy_plugins, found):
         if plugin.name not in found:
             plugin.delete()
 
-    default_type = 'machine_detail' if model == MachineDetailPlugin else 'builtin'
-
     for plugin in yapsy_plugins:
         try:
             dbplugin = all_plugins.get(name=plugin.name)
         except model.DoesNotExist:
             continue
 
-        try:
-            declared_type = plugin.plugin_object.plugin_type()
-            dbplugin.type = declared_type if declared_type in model.PLUGIN_TYPES else default_type
-        except Exception:
-            dbplugin.type = default_type
+        if hasattr(model, 'type'):
+            try:
+                declared_type = plugin.plugin_object.plugin_type()
+            except AttributeError:
+                declared_type = model._meta.get_field('type').default
+
+            dbplugin.type = declared_type
 
         try:
             dbplugin.description = plugin.plugin_object.get_description()
-        except Exception:
-            pass
+        except AttributeError:
+            dbplugin.description = ''
 
         try:
             dbplugin.full_clean()

@@ -58,60 +58,6 @@ def csvrelated(header_item, facts, kind):
         return ''
 
 
-def process_plugin_script(results, machine):
-    rows_to_create = []
-
-    results = get_newest_plugin_results(results)
-
-    for plugin in results:
-        plugin_name = plugin['plugin']
-        historical = plugin.get('historical', False)
-        if not historical:
-            PluginScriptSubmission.objects.filter(
-                machine=machine, plugin=safe_unicode(plugin_name)).delete()
-
-        plugin_script = PluginScriptSubmission(
-            machine=machine, plugin=safe_unicode(plugin_name), historical=historical)
-        plugin_script.save()
-        data = plugin.get('data')
-        for key, value in data.items():
-            plugin_row = PluginScriptRow(
-                submission=safe_unicode(plugin_script),
-                pluginscript_name=safe_unicode(key),
-                pluginscript_data=safe_unicode(value),
-                submission_and_script_name=(
-                    safe_unicode(
-                        plugin_name + ': ' + key)))
-            if is_postgres():
-                rows_to_create.append(plugin_row)
-            else:
-                plugin_row.save()
-
-    if is_postgres():
-        PluginScriptRow.objects.bulk_create(rows_to_create)
-
-
-def get_newest_plugin_results(results):
-    """Get the newest, correct results from plugin scripts.
-
-    If the sal scripts fail to complete the plugin process, duplicate
-    entries can be introduced into the results. Filter out all but the
-    newest result for each plugin.
-    Drop any results that don't have the required keys.
-    """
-    results = [result for result in results if is_valid_plugin_result(result)]
-
-    # Since the last write to each dictionary key in this comprehension is
-    # also the newest, (the sal_postflight appends results to the end), we can
-    # then use just the `values()` method to get back a list of plugin results
-    # dicts.
-    return {result['plugin']: result for result in results}.values()
-
-
-def is_valid_plugin_result(result):
-    return not any(key not in result for key in ('plugin', 'data'))
-
-
 def get_version_number():
     # See if we're sending data
     try:
@@ -154,73 +100,6 @@ def get_install_type():
         return 'docker'
     else:
         return 'bare'
-
-
-def get_plugin_scripts(plugin, hash_only=False, script_name=None):
-    # Try to get all files in the plugins 'scripts' dir
-
-    script_output = None
-    if os.path.exists(os.path.join(plugin.path, 'scripts')):
-        scripts_dir = os.path.join(plugin.path, 'scripts')
-    elif os.path.exists(os.path.abspath(os.path.join(os.path.join(plugin.path), '..', 'scripts'))):
-        scripts_dir = os.path.abspath(os.path.join(
-            os.path.join(plugin.path), '..', 'scripts'))
-    else:
-        return None
-
-    for script in os.listdir(scripts_dir):
-        if script_name:
-            if script_name != script:
-                break
-        script_content = open(os.path.join(scripts_dir, script), "r").read()
-        script_output = {}
-        if not hash_only:
-            script_output['content'] = script_content
-        script_output['plugin'] = plugin.name
-        script_output['filename'] = script
-        script_output['hash'] = hashlib.sha256(script_content).hexdigest()
-        return script_output
-
-
-def run_plugin_processing(machine, report_data):
-    # Build the manager
-    manager = PluginManager()
-    # Tell it the default place(s) where to find plugins
-    manager.setPluginPlaces([settings.PLUGIN_DIR, os.path.join(
-        settings.PROJECT_DIR, 'server/plugins')])
-    # Load all plugins
-    manager.collectPlugins()
-
-    enabled_reports = Report.objects.all()
-    for enabled_report in enabled_reports:
-        for plugin in manager.getAllPlugins():
-            if enabled_report.name == plugin.name:
-                # Not all plugins will have a checkin_processor
-                try:
-                    plugin.plugin_object.checkin_processor(machine, report_data)
-                except Exception:
-                    pass
-    # Get all the enabled plugins
-    enabled_plugins = Plugin.objects.all()
-    for enabled_plugin in enabled_plugins:
-        # Loop round the plugins and print their names.
-        for plugin in manager.getAllPlugins():
-            # Not all plugins will have a checkin_processor
-            try:
-                plugin.plugin_object.checkin_processor(machine, report_data)
-            except Exception:
-                pass
-
-    # Get all the enabled plugins
-    enabled_plugins = MachineDetailPlugin.objects.all()
-    for enabled_plugin in enabled_plugins:
-        # Loop round the plugins and print their names.
-        for plugin in manager.getAllPlugins():
-            # Not all plugins will have a checkin_processor
-            try:
-                plugin.plugin_object.checkin_processor(machine, report_data)
-            except Exception:
-                pass
 
 
 def send_report():
@@ -275,6 +154,233 @@ def listify_condition_data(data):
     return str(data)
 
 
+def is_postgres():
+    if settings.DATABASES['default']['ENGINE'] == 'django.db.backends.postgresql_psycopg2':
+        return True
+    else:
+        return False
+
+
+def flatten_and_sort_list(the_list):
+    output = ''
+    counter = 1
+    for item in sorted(the_list):
+        if counter == 1:
+            output = item
+        else:
+            output = output + ', ' + item
+        counter += 1
+    return output
+
+
+def getBUmachines(theid):
+    business_unit = get_object_or_404(BusinessUnit, pk=theid)
+    machines = Machine.objects.filter(machine_group__business_unit=business_unit)
+
+    return machines
+
+
+def decode_to_string(data, compression='base64bz2'):
+    '''Decodes a string that is optionally bz2 compressed and always base64 encoded.'''
+
+    if compression == 'base64bz2':
+        try:
+            bz2data = base64.b64decode(data)
+            return bz2.decompress(bz2data)
+        except Exception:
+            return ''
+    elif compression == 'base64':
+        try:
+            return base64.b64decode(data)
+        except Exception:
+            return
+            ''
+    else:
+        return ''
+
+
+def friendly_machine_model(machine):
+    # See if the machine's model already has one (and only one) friendly name
+    output = None
+    friendly_names = Machine.objects.filter(machine_model=machine.machine_model).\
+        values('machine_model_friendly').\
+        annotate(num_models=Count('machine_model_friendly', distinct=True)).distinct()
+    for name in friendly_names:
+        if name['num_models'] == 1:
+            output = name['machine_model_friendly']
+            break
+
+    if not output and not machine.serial.startswith('VM'):
+        if len(machine.serial) == 12:
+            serial_snippet = machine.serial[-4:]
+        else:
+            # older models product code is the last three characters of the serial
+            serial_snippet = machine.serial[-3:]
+        payload = {'cc': serial_snippet}
+        output = None
+        try:
+            r = requests.get('http://support-sp.apple.com/sp/product', params=payload)
+        except requests.exceptions.RequestException as e:
+            print machine.serial
+            print e
+
+        try:
+            output = ET.fromstring(r.text).find('configCode').text
+        except Exception:
+            print 'Did not receive a model name for %s, %s. Error:' % (
+                machine.serial, machine.machine_model)
+
+    return output
+
+
+def display_time(seconds, granularity=2):
+    result = []
+    intervals = (
+        ('weeks', 604800),  # 60 * 60 * 24 * 7
+        ('days', 86400),    # 60 * 60 * 24
+        ('hours', 3600),    # 60 * 60
+        ('minutes', 60),
+        ('seconds', 1),
+    )
+    for name, count in intervals:
+        value = seconds // count
+        if value:
+            seconds -= value * count
+            if value == 1:
+                name = name.rstrip('s')
+            result.append("{} {}".format(value, name))
+    return ', '.join(result[:granularity])
+
+
+# Plugin utilities
+
+def get_all_plugins():
+    """Get all plugins from the yapsy manager."""
+    # Build the manager
+    manager = PluginManager()
+    # Tell it the default place(s) where to find plugins
+    manager.setPluginPlaces([settings.PLUGIN_DIR, os.path.join(
+        settings.PROJECT_DIR, 'server/plugins')])
+    # Load all plugins
+    manager.collectPlugins()
+    return manager.getAllPlugins()
+
+
+def process_plugin_script(results, machine):
+    rows_to_create = []
+
+    results = get_newest_plugin_results(results)
+
+    for plugin in results:
+        plugin_name = plugin['plugin']
+        historical = plugin.get('historical', False)
+        if not historical:
+            PluginScriptSubmission.objects.filter(
+                machine=machine, plugin=safe_unicode(plugin_name)).delete()
+
+        plugin_script = PluginScriptSubmission(
+            machine=machine, plugin=safe_unicode(plugin_name), historical=historical)
+        plugin_script.save()
+        data = plugin.get('data')
+        for key, value in data.items():
+            plugin_row = PluginScriptRow(
+                submission=safe_unicode(plugin_script),
+                pluginscript_name=safe_unicode(key),
+                pluginscript_data=safe_unicode(value),
+                submission_and_script_name=(
+                    safe_unicode(
+                        plugin_name + ': ' + key)))
+            if is_postgres():
+                rows_to_create.append(plugin_row)
+            else:
+                plugin_row.save()
+
+    if is_postgres():
+        PluginScriptRow.objects.bulk_create(rows_to_create)
+
+
+def get_newest_plugin_results(results):
+    """Get the newest, correct results from plugin scripts.
+
+    If the sal scripts fail to complete the plugin process, duplicate
+    entries can be introduced into the results. Filter out all but the
+    newest result for each plugin.
+    Drop any results that don't have the required keys.
+    """
+    results = [result for result in results if is_valid_plugin_result(result)]
+
+    # Since the last write to each dictionary key in this comprehension is
+    # also the newest, (the sal_postflight appends results to the end), we can
+    # then use just the `values()` method to get back a list of plugin results
+    # dicts.
+    return {result['plugin']: result for result in results}.values()
+
+
+def is_valid_plugin_result(result):
+    return not any(key not in result for key in ('plugin', 'data'))
+
+
+def get_plugin_scripts(plugin, hash_only=False, script_name=None):
+    # Try to get all files in the plugins 'scripts' dir
+
+    script_output = None
+    if os.path.exists(os.path.join(plugin.path, 'scripts')):
+        scripts_dir = os.path.join(plugin.path, 'scripts')
+    elif os.path.exists(os.path.abspath(os.path.join(os.path.join(plugin.path), '..', 'scripts'))):
+        scripts_dir = os.path.abspath(os.path.join(
+            os.path.join(plugin.path), '..', 'scripts'))
+    else:
+        return None
+
+    for script in os.listdir(scripts_dir):
+        if script_name:
+            if script_name != script:
+                break
+        script_content = open(os.path.join(scripts_dir, script), "r").read()
+        script_output = {}
+        if not hash_only:
+            script_output['content'] = script_content
+        script_output['plugin'] = plugin.name
+        script_output['filename'] = script
+        script_output['hash'] = hashlib.sha256(script_content).hexdigest()
+        return script_output
+
+
+def run_plugin_processing(machine, report_data):
+    yapsy_plugins = get_all_plugins()
+
+    enabled_reports = Report.objects.all()
+    for enabled_report in enabled_reports:
+        for plugin in yapsy_plugins:
+            if enabled_report.name == plugin.name:
+                # Not all plugins will have a checkin_processor
+                try:
+                    plugin.plugin_object.checkin_processor(machine, report_data)
+                except Exception:
+                    pass
+    # Get all the enabled plugins
+    enabled_plugins = Plugin.objects.all()
+    for enabled_plugin in enabled_plugins:
+        # Loop round the plugins and print their names.
+        for plugin in yapsy_plugins:
+            # Not all plugins will have a checkin_processor
+            try:
+                plugin.plugin_object.checkin_processor(machine, report_data)
+            except Exception:
+                pass
+
+    # Get all the enabled plugins
+    enabled_plugins = MachineDetailPlugin.objects.all()
+    for enabled_plugin in enabled_plugins:
+        # Loop round the plugins and print their names.
+        for plugin in yapsy_plugins:
+            # Not all plugins will have a checkin_processor
+            try:
+                plugin.plugin_object.checkin_processor(machine, report_data)
+            except Exception:
+                pass
+
+
 def loadDefaultPlugins():
     """Add in default plugins if there are none configured."""
     if not Plugin.objects.exists():
@@ -289,14 +395,7 @@ def reloadPluginsModel():
 
     loadDefaultPlugins()
 
-    # Build the manager
-    manager = PluginManager()
-    # Tell it the default place(s) where to find plugins
-    manager.setPluginPlaces([settings.PLUGIN_DIR, os.path.join(
-        settings.PROJECT_DIR, 'server/plugins')])
-    # Load all plugins
-    manager.collectPlugins()
-    yapsy_plugins = manager.getAllPlugins()
+    yapsy_plugins = get_all_plugins()
     found = {plugin.name for plugin in yapsy_plugins}
 
     for model in (Plugin, Report, MachineDetailPlugin):
@@ -346,96 +445,32 @@ def _update_plugin_record(model, yapsy_plugins, found):
                 dbplugin.name, ", ".join(err.messages))
 
 
-def is_postgres():
-    if settings.DATABASES['default']['ENGINE'] == 'django.db.backends.postgresql_psycopg2':
-        return True
-    else:
-        return False
-
-
 def disabled_plugins(plugin_kind='main'):
-    enabled_plugins = Plugin.objects.all()  # noqa: F841
-    # Build the manager
-    manager = PluginManager()
-    # Tell it the default place(s) where to find plugins
-    manager.setPluginPlaces([settings.PLUGIN_DIR, os.path.join(
-        settings.PROJECT_DIR, 'server/plugins')])
-    # Load all plugins
-    manager.collectPlugins()
+    plugin_models = {'main': Plugin, 'report': Report, 'machine_detail': MachineDetailPlugin}
     output = []
     default_families = ['Darwin', 'Windows', 'Linux']
-    if plugin_kind == 'main':
-        for plugin in manager.getAllPlugins():
+
+    for plugin in get_all_plugins():
+        try:
+            plugin_type = plugin.plugin_object.plugin_type()
+        except AttributeError:
+            plugin_type = None
+
+        try:
+            supported_os_families = plugin.plugin_object.supported_os_families()
+        except AttributeError:
+            supported_os_families = ['Darwin', 'Windows', 'Linux']
+
+        model = plugin_models.get(plugin_type)
+        if model:
             try:
-                plugin_type = plugin.plugin_object.plugin_type()
-            except Exception:
-                plugin_type = 'builtin'
-            try:
-                supported_os_families = plugin.plugin_object.supported_os_families()
-            except Exception:
-                supported_os_families = default_families
-            if plugin_type == 'builtin':
-                try:
-                    Plugin.objects.get(name=plugin.name)
-                except Plugin.DoesNotExist:
-                    item = {}
-                    item['name'] = plugin.name
-                    item['os_families'] = supported_os_families
-                    output.append(item)
+                model.objects.get(name=plugin.name)
+            except model.DoesNotExist:
+                item = {}
+                item['name'] = plugin.name
+                item['os_families'] = supported_os_families
+                output.append(item)
 
-    if plugin_kind == 'report':
-        for plugin in manager.getAllPlugins():
-            try:
-                plugin_type = plugin.plugin_object.plugin_type()
-            except Exception:
-                plugin_type = 'builtin'
-
-            try:
-                supported_os_families = plugin.plugin_object.supported_os_families()
-            except Exception:
-                supported_os_families = default_families
-
-            if plugin_type == 'report':
-                try:
-                    Report.objects.get(name=plugin.name)
-                except Report.DoesNotExist:
-                    item = {}
-                    item['name'] = plugin.name
-                    item['os_families'] = supported_os_families
-                    output.append(item)
-
-    if plugin_kind == 'machine_detail':
-        for plugin in manager.getAllPlugins():
-            try:
-                plugin_type = plugin.plugin_object.plugin_type()
-            except Exception:
-                plugin_type = 'builtin'
-
-            try:
-                supported_os_families = plugin.plugin_object.supported_os_families()
-            except Exception:
-                supported_os_families = default_families
-
-            if plugin_type == 'machine_detail':
-                try:
-                    MachineDetailPlugin.objects.get(name=plugin.name)
-                except MachineDetailPlugin.DoesNotExist:
-                    item = {}
-                    item['name'] = plugin.name
-                    item['os_families'] = supported_os_families
-                    output.append(item)
-    return output
-
-
-def flatten_and_sort_list(the_list):
-    output = ''
-    counter = 1
-    for item in sorted(the_list):
-        if counter == 1:
-            output = item
-        else:
-            output = output + ', ' + item
-        counter += 1
     return output
 
 
@@ -538,80 +573,3 @@ def orderPluginOutput(pluginOutput, page='front', theID=None):
     return output
 
 
-def getBUmachines(theid):
-    business_unit = get_object_or_404(BusinessUnit, pk=theid)
-    machines = Machine.objects.filter(machine_group__business_unit=business_unit)
-
-    return machines
-
-
-def decode_to_string(data, compression='base64bz2'):
-    '''Decodes a string that is optionally bz2 compressed and always base64 encoded.'''
-
-    if compression == 'base64bz2':
-        try:
-            bz2data = base64.b64decode(data)
-            return bz2.decompress(bz2data)
-        except Exception:
-            return ''
-    elif compression == 'base64':
-        try:
-            return base64.b64decode(data)
-        except Exception:
-            return
-            ''
-    else:
-        return ''
-
-
-def friendly_machine_model(machine):
-    # See if the machine's model already has one (and only one) friendly name
-    output = None
-    friendly_names = Machine.objects.filter(machine_model=machine.machine_model).\
-        values('machine_model_friendly').\
-        annotate(num_models=Count('machine_model_friendly', distinct=True)).distinct()
-    for name in friendly_names:
-        if name['num_models'] == 1:
-            output = name['machine_model_friendly']
-            break
-
-    if not output and not machine.serial.startswith('VM'):
-        if len(machine.serial) == 12:
-            serial_snippet = machine.serial[-4:]
-        else:
-            # older models product code is the last three characters of the serial
-            serial_snippet = machine.serial[-3:]
-        payload = {'cc': serial_snippet}
-        output = None
-        try:
-            r = requests.get('http://support-sp.apple.com/sp/product', params=payload)
-        except requests.exceptions.RequestException as e:
-            print machine.serial
-            print e
-
-        try:
-            output = ET.fromstring(r.text).find('configCode').text
-        except Exception:
-            print 'Did not receive a model name for %s, %s. Error:' % (
-                machine.serial, machine.machine_model)
-
-    return output
-
-
-def display_time(seconds, granularity=2):
-    result = []
-    intervals = (
-        ('weeks', 604800),  # 60 * 60 * 24 * 7
-        ('days', 86400),    # 60 * 60 * 24
-        ('hours', 3600),    # 60 * 60
-        ('minutes', 60),
-        ('seconds', 1),
-    )
-    for name, count in intervals:
-        value = seconds // count
-        if value:
-            seconds -= value * count
-            if value == 1:
-                name = name.rstrip('s')
-            result.append("{} {}".format(value, name))
-    return ', '.join(result[:granularity])

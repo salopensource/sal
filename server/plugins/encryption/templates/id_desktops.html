@@ -5,35 +5,35 @@
         </div>
         <!-- /.panel-heading -->
         <div class="panel-body">
-          <a href="{% url 'machine_list_id' plugin 'laptopok' page theid %}" title="{{ laptop_label }}" class="btn btn-success">
+          <a href="{% url 'machine_list_id' plugin 'laptopok' page theid %}" title="Encrypted {{ laptop_label }}" class="btn btn-success">
             <span class="bigger">{{ laptop_ok_count }}</span><br />
             <i class="fa fa-laptop fa-2x"></i>
           </a>
 
-          <a href="{% url 'machine_list_id' plugin 'desktopok' page theid %}" title="{{ desktop_label }}" class="btn btn-success">
+          <a href="{% url 'machine_list_id' plugin 'desktopok' page theid %}" title="Encrypted {{ desktop_label }}" class="btn btn-success">
             <span class="bigger">{{ desktop_ok_count }}</span><br />
             <i class="fa fa-desktop fa-2x"></i>
           </a>
 
-          <a href="{% url 'machine_list_id' plugin 'laptopalert' page theid %}" title="{{ laptop_label }}" class="btn btn-danger">
+          <a href="{% url 'machine_list_id' plugin 'laptopalert' page theid %}" title="Unencrypted {{ laptop_label }}" class="btn btn-danger">
             <span class="bigger">{{ laptop_alert_count }}</span><br />
             <i class="fa fa-laptop fa-2x"></i>
           </a>
 
-          <a href="{% url 'machine_list_id' plugin 'desktopalert' page theid %}" title="{{ desktop_label }}" class="btn btn-danger">
+          <a href="{% url 'machine_list_id' plugin 'desktopalert' page theid %}" title="Unencrypted {{ desktop_label }}" class="btn btn-danger">
             <span class="bigger">{{ desktop_alert_count }}</span><br />
             <i class="fa fa-desktop fa-2x"></i>
           </a>
 
           {% if laptop_unknown_count > 0 %}
-          <a href="{% url 'machine_list_id' plugin 'laptopunk' page theid %}" title="{{ laptop_label }}" class="btn btn-danger">
+          <a href="{% url 'machine_list_id' plugin 'laptopunk' page theid %}" title="Unknown {{ laptop_label }}" class="btn btn-warning">
             <span class="bigger">{{ laptop_unknown_count }}</span><br />
             <i class="fa fa-laptop fa-2x"></i>
           </a>
           {% endif %}
 
           {% if desktop_unknown_count > 0 %}
-          <a href="{% url 'machine_list_id' plugin 'desktopunk' page theid %}" title="{{ desktop_label }}" class="btn btn-danger">
+          <a href="{% url 'machine_list_id' plugin 'desktopunk' page theid %}" title="Unknown {{ desktop_label }}" class="btn btn-warning">
             <span class="bigger">{{ desktop_unknown_count }}</span><br />
             <i class="fa fa-desktop fa-2x"></i>
           </a>

@@ -75,7 +75,7 @@ def index(request):
                 break
 
     # Load in the default plugins if needed
-    utils.loadDefaultPlugins()
+    utils.load_default_plugins()
     # Build the manager
     manager = PluginManager()
     # Tell it the default place(s) where to find plugins
@@ -1414,7 +1414,7 @@ def machine_detail(request, machine_id):
 
     # Woo, plugin time
     # Load in the default plugins if needed
-    utils.loadDefaultPlugins()
+    utils.load_default_plugins()
     # Build the manager
     manager = PluginManager()
     # Tell it the default place(s) where to find plugins
@@ -1636,7 +1636,7 @@ def plugins_page(request):
     if user_level != 'GA':
         return redirect(index)
     # Load the plugins
-    utils.reloadPluginsModel()
+    utils.reload_plugins_model()
     enabled_plugins = Plugin.objects.all()
     disabled_plugins = utils.disabled_plugins(plugin_kind='main')
     c = {'user': request.user, 'request': request,
@@ -1651,7 +1651,7 @@ def settings_reports(request):
     if user_level != 'GA':
         return redirect(index)
     # Load the plugins
-    utils.reloadPluginsModel()
+    utils.reload_plugins_model()
     enabled_plugins = Report.objects.all()
     disabled_plugins = utils.disabled_plugins(plugin_kind='report')
     c = {'user': request.user, 'request': request,
@@ -1666,7 +1666,7 @@ def settings_machine_detail_plugins(request):
     if user_level != 'GA':
         return redirect(index)
     # Load the plugins
-    utils.reloadPluginsModel()
+    utils.reload_plugins_model()
     enabled_plugins = MachineDetailPlugin.objects.all()
     disabled_plugins = utils.disabled_plugins(plugin_kind='machine_detail')
     c = {'user': request.user, 'request': request,
@@ -1951,7 +1951,7 @@ def preflight(request):
 def preflight_v2(request):
     # find plugins that have embedded preflight scripts
     # Load in the default plugins if needed
-    utils.loadDefaultPlugins()
+    utils.load_default_plugins()
     # Build the manager
     manager = PluginManager()
     # Tell it the default place(s) where to find plugins

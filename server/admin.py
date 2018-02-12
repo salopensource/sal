@@ -2,6 +2,7 @@ from django.contrib import admin
 from django.forms import ModelForm, ModelMultipleChoiceField
 
 from server.models import *
+from server.utils import reloadPluginsModel
 
 
 class BusinessUnitFilter(admin.SimpleListFilter):
@@ -30,10 +31,6 @@ class MachineGroupFilter(admin.SimpleListFilter):
             return queryset.filter(machine__machine_group__name=self.value())
         else:
             return queryset
-
-
-class ApiKeyAdmin(admin.ModelAdmin):
-    list_display = ('name', 'public_key', 'private_key')
 
 
 class MachineGroupInline(admin.TabularInline):
@@ -68,6 +65,14 @@ def number_of_machines(obj):
         return Machine.objects.filter(machine_group__in=obj.machinegroup_set.all()).count()
 
 
+def business_unit(obj):
+    return obj.machine_group.business_unit.name
+
+
+class ApiKeyAdmin(admin.ModelAdmin):
+    list_display = ('name', 'public_key', 'private_key')
+
+
 class BusinessUnitAdmin(admin.ModelAdmin):
     inlines = [MachineGroupInline,]
     form = BusinessUnitForm
@@ -95,10 +100,6 @@ class HistoricalFactAdmin(admin.ModelAdmin):
     list_filter = (BusinessUnitFilter, MachineGroupFilter, 'fact_name')
 
 
-def business_unit(obj):
-    return obj.machine_group.business_unit.name
-
-
 class MachineAdmin(admin.ModelAdmin):
     list_display = ('hostname', 'serial', 'machine_model', 'operating_system', 'deployed')
     list_filter = (BusinessUnitFilter, MachineGroupFilter, 'operating_system', 'machine_model',
@@ -119,6 +120,20 @@ class MachineAdmin(admin.ModelAdmin):
                        'report_format')
 
 
+class MachineDetailPluginAdmin(admin.ModelAdmin):
+    list_display = ('name', 'description', 'os_families', 'type')
+    list_filter = ('os_families', 'type')
+
+    def get_queryset(self, request):
+        """Update db prior to retrieving plugins.
+
+        Views listing MachineDetailPlugins must first update the list of
+        installed plugins and update their descriptions and types.
+        """
+        reloadPluginsModel()
+        return super(MachineDetailPluginAdmin, self).get_queryset(request)
+
+
 class MachineGroupAdmin(admin.ModelAdmin):
     list_display = ('name', 'business_unit', number_of_machines)
     list_filter = (BusinessUnitFilter,)
@@ -133,7 +148,7 @@ admin.site.register(Fact, FactAdmin)
 admin.site.register(HistoricalFact, HistoricalFactAdmin)
 admin.site.register(InstalledUpdate, InstalledUpdateAdmin)
 admin.site.register(Machine, MachineAdmin)
-admin.site.register(MachineDetailPlugin)
+admin.site.register(MachineDetailPlugin, MachineDetailPluginAdmin)
 admin.site.register(MachineGroup, MachineGroupAdmin)
 admin.site.register(PendingAppleUpdate)
 admin.site.register(PendingUpdate)

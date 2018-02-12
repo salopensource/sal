@@ -464,17 +464,14 @@ class Plugin(models.Model):
 
 class MachineDetailPlugin(models.Model):
     PLUGIN_TYPES = (
-        ('facter', 'Facter'),
-        ('munkicondition', 'Munki Condition'),
-        ('builtin', 'Built In'),
-        ('custom', 'Custom Script'),
+        ('machine_detail', 'Machine Detail'),
     )
     name = models.CharField(max_length=255, unique=True)
     description = models.TextField(blank=True, null=True)
     order = models.IntegerField()
     os_families = models.CharField(db_index=True, max_length=256,
                                    verbose_name="OS Family", default="Darwin")
-    type = models.CharField(max_length=255, choices=PLUGIN_TYPES, default='builtin')
+    type = models.CharField(max_length=255, choices=PLUGIN_TYPES, default='machine_detail')
 
     def __unicode__(self):
         return self.name

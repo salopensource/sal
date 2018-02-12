@@ -4,6 +4,7 @@
 from django.test import TestCase
 
 from server import utils
+from server.models import *
 
 
 class UtilsTest(TestCase):
@@ -49,3 +50,34 @@ class UtilsTest(TestCase):
         catalogs = [5, 5.0, {'a': 'test'}]
         result = utils.listify_condition_data(catalogs)
         self.assertEqual(result, "5, 5.0, {'a': 'test'}")
+
+
+class PluginUtilsTest(TestCase):
+    """Test the plugin utilities."""
+
+    def test_remove_missing_plugins(self):
+        """Ensure removed from disk are also removed from the DB."""
+        Plugin.objects.create(name='Test', order=0, type='builtin')
+        utils.reload_plugins_model()
+        self.assertEqual(len(Plugin.objects.all()), 0)
+
+    def test_misconfigured_plugin_ignored(self):
+        """Plugin instances must use one of a few types.
+
+        Sal ignores it otherwise. Check to make sure this behavior is
+        working.
+        """
+        utils.reload_plugins_model()
+        # In the absence of Mock...
+        all_plugins = utils.get_all_plugins()
+        all_plugins[0].plugin_object.plugin_type = lambda: 'This is not a valid type'
+
+        utils._update_plugin_record(Plugin, all_plugins, {p.name for p in all_plugins})
+        for plugin in Plugin.objects.all():
+            self.assertIn(plugin.type, (i[0] for i in Plugin.PLUGIN_TYPES))
+
+    def test_default_plugin_load(self):
+        """Ensure that no plugins result in a default loadout."""
+        self.assertEqual(Plugin.objects.count(), 0)
+        utils.load_default_plugins()
+        self.assertNotEqual(Plugin.objects.count(), 0)

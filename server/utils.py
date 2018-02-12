@@ -6,12 +6,19 @@ import time
 import xml.etree.ElementTree as ET
 
 from django.conf import settings
+from django.core.exceptions import ValidationError
 from django.db.models import Max, Count
 from django.shortcuts import get_object_or_404
 import requests
 from yapsy.PluginManager import PluginManager
 
 from server.models import *
+
+
+PLUGIN_ORDER = [
+    'Activity', 'Status', 'OperatingSystem', 'MunkiVersion', 'Uptime', 'Memory', 'DiskSpace',
+    'PendingAppleUpdates', 'Pending3rdPartyUpdates', 'Encryption', 'Gatekeeper', 'Sip',
+    'XprotectVersion']
 
 
 def safe_unicode(s):
@@ -269,45 +276,18 @@ def listify_condition_data(data):
 
 
 def loadDefaultPlugins():
-    # Are there any plugin objects? If not, add in the defaults
-    plugin_objects = Plugin.objects.all().count()
-    if plugin_objects == 0:
-        order = 0
-        PLUGIN_ORDER = ['Activity', 'Status', 'OperatingSystem', 'MunkiVersion', 'Uptime',
-                        'Memory', 'DiskSpace', 'PendingAppleUpdates', 'Pending3rdPartyUpdates']
-        for item in PLUGIN_ORDER:
-            order = order + 1
-            plugin = Plugin(name=item, order=order)
-            plugin.save()
+    """Add in default plugins if there are none configured."""
+    if not Plugin.objects.exists():
+        for order, item in enumerate(PLUGIN_ORDER):
+            Plugin.objects.create(name=item, order=order)
 
 
 def reloadPluginsModel():
+    """Set plugin types and descriptions, and remove now-absent from db."""
     if settings.DEBUG:
         logging.getLogger('yapsy').setLevel(logging.WARNING)
-    # Are there any plugin objects? If not, add in the defaults
-    plugin_objects = Plugin.objects.all().count()
-    if plugin_objects == 0:
-        order = 0
-        PLUGIN_ORDER = [
-            'Activity',
-            'Status',
-            'OperatingSystem',
-            'MunkiVersion',
-            'Uptime',
-            'Memory',
-            'DiskSpace',
-            'PendingAppleUpdates',
-            'Pending3rdPartyUpdates',
-            'Encryption',
-            'Gatekeeper',
-            'Sip',
-            'XprotectVersion'
-        ]
 
-        for item in PLUGIN_ORDER:
-            order = order + 1
-            plugin = Plugin(name=item, order=order)
-            plugin.save()
+    loadDefaultPlugins()
 
     # Build the manager
     manager = PluginManager()
@@ -316,70 +296,54 @@ def reloadPluginsModel():
         settings.PROJECT_DIR, 'server/plugins')])
     # Load all plugins
     manager.collectPlugins()
-    found = []
-    for plugin in manager.getAllPlugins():
-        found.append(plugin.name)
+    yapsy_plugins = manager.getAllPlugins()
+    found = {plugin.name for plugin in yapsy_plugins}
 
-    # Get all of the plugin objects - if it's in here not installed, remove it
-    all_plugins = Plugin.objects.all()
+    for model in (Plugin, Report, MachineDetailPlugin):
+        _update_plugin_record(model, yapsy_plugins, found)
+
+
+def _update_plugin_record(model, yapsy_plugins, found):
+    """Remove absent plugins, and refresh plugin type and description.
+
+    Values are validated prior to saving, and will log errors.
+
+    Args:
+        model (plugin subclassing django.db.models.Model): Model to
+            refresh and clean.
+        yapsy_plugins (list): Loaded plugins from yapsy manager.
+        found (container): Names of plugins found by yapsy manager.
+    """
+    all_plugins = getattr(model, 'objects').all()
     for plugin in all_plugins:
         if plugin.name not in found:
             plugin.delete()
 
-    # And go over again to update the plugin's type
-    for dbplugin in all_plugins:
-        for plugin in manager.getAllPlugins():
-            if plugin.name == dbplugin.name:
-                try:
-                    dbplugin.type = plugin.plugin_object.plugin_type()
-                except Exception:
-                    dbplugin.type = 'builtin'
+    default_type = 'machine_detail' if model == MachineDetailPlugin else 'builtin'
 
-                try:
-                    dbplugin.description = plugin.plugin_object.get_description()
-                except Exception:
-                    pass
-                dbplugin.save()
+    for plugin in yapsy_plugins:
+        try:
+            dbplugin = all_plugins.get(name=plugin.name)
+        except model.DoesNotExist:
+            continue
 
-    all_plugins = Report.objects.all()
-    for plugin in all_plugins:
-        if plugin.name not in found:
-            plugin.delete()
+        try:
+            declared_type = plugin.plugin_object.plugin_type()
+            dbplugin.type = declared_type if declared_type in model.PLUGIN_TYPES else default_type
+        except Exception:
+            dbplugin.type = default_type
 
-    # And go over again to update the plugin's type
-    for dbplugin in all_plugins:
-        for plugin in manager.getAllPlugins():
-            if plugin.name == dbplugin.name:
-                try:
-                    dbplugin.type = plugin.plugin_object.plugin_type()
-                except Exception:
-                    dbplugin.type = 'builtin'
+        try:
+            dbplugin.description = plugin.plugin_object.get_description()
+        except Exception:
+            pass
 
-                try:
-                    dbplugin.description = plugin.plugin_object.get_description()
-                except Exception:
-                    pass
-                dbplugin.save()
-
-    all_plugins = MachineDetailPlugin.objects.all()
-    for plugin in all_plugins:
-        if plugin.name not in found:
-            plugin.delete()
-
-    # And go over again to update the plugin's type
-    for dbplugin in all_plugins:
-        for plugin in manager.getAllPlugins():
-            if plugin.name == dbplugin.name:
-                try:
-                    dbplugin.type = plugin.plugin_object.plugin_type()
-                except Exception:
-                    dbplugin.type = 'builtin'
-
-                try:
-                    dbplugin.description = plugin.plugin_object.get_description()
-                except Exception:
-                    pass
-                dbplugin.save()
+        try:
+            dbplugin.full_clean()
+            dbplugin.save()
+        except ValidationError as err:
+            print "Plugin: '{}' could not be validated due to error(s): '{}', removing.".format(
+                dbplugin.name, ", ".join(err.messages))
 
 
 def is_postgres():

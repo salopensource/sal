@@ -1,7 +1,6 @@
 '''
 Cleans up old searches and rebuilds search fields cache
 '''
-import datetime
 import operator
 from time import sleep
 
@@ -14,6 +13,9 @@ from inventory.models import *
 from server.models import *
 from search.models import *
 import server.utils
+
+# This is down here because an import * from above is clobbering
+import datetime
 
 
 class Command(BaseCommand):

@@ -448,7 +448,6 @@ def _update_plugin_record(model, yapsy_plugins, found):
 def disabled_plugins(plugin_kind='main'):
     plugin_models = {'main': Plugin, 'report': Report, 'machine_detail': MachineDetailPlugin}
     output = []
-    default_families = ['Darwin', 'Windows', 'Linux']
 
     for plugin in get_all_plugins():
         try:
@@ -571,5 +570,3 @@ def orderPluginOutput(pluginOutput, page='front', theID=None):
             counter = counter + 1
             # print item['name']+' total: '+str(total_width)
     return output
-
-

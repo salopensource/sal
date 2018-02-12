@@ -17,6 +17,7 @@ import server.utils
 # This is down here because an import * from above is clobbering
 import datetime
 
+
 class Command(BaseCommand):
     help = 'Cleans up old searches and rebuilds search fields cache'
 

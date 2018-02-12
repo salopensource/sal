@@ -381,19 +381,19 @@ def run_plugin_processing(machine, report_data):
                 pass
 
 
-def loadDefaultPlugins():
+def load_default_plugins():
     """Add in default plugins if there are none configured."""
     if not Plugin.objects.exists():
         for order, item in enumerate(PLUGIN_ORDER):
             Plugin.objects.create(name=item, order=order)
 
 
-def reloadPluginsModel():
+def reload_plugins_model():
     """Set plugin types and descriptions, and remove now-absent from db."""
     if settings.DEBUG:
         logging.getLogger('yapsy').setLevel(logging.WARNING)
 
-    loadDefaultPlugins()
+    load_default_plugins()
 
     yapsy_plugins = get_all_plugins()
     found = {plugin.name for plugin in yapsy_plugins}

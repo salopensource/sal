@@ -446,28 +446,36 @@ def _update_plugin_record(model, yapsy_plugins, found):
 
 
 def disabled_plugins(plugin_kind='main'):
-    plugin_models = {'main': Plugin, 'report': Report, 'machine_detail': MachineDetailPlugin}
+    plugin_models = {'main': (Plugin, 'builtin'), 'report': (Report, 'report'),
+                     'machine_detail': (MachineDetailPlugin, 'machine_detail')}
     output = []
 
     for plugin in get_all_plugins():
         try:
             plugin_type = plugin.plugin_object.plugin_type()
         except AttributeError:
-            plugin_type = None
+            # Assume the plugin is of type 'builtin'
+            # continue
+            plugin_type = 'builtin'
 
-        try:
-            supported_os_families = plugin.plugin_object.supported_os_families()
-        except AttributeError:
-            supported_os_families = ['Darwin', 'Windows', 'Linux']
+        # Filter out plugins of other types.
+        if plugin_type != plugin_models[plugin_kind][1]:
+            continue
 
-        model = plugin_models.get(plugin_type)
+        model, _ = plugin_models.get(plugin_kind, (None, None))
         if model:
             try:
                 model.objects.get(name=plugin.name)
             except model.DoesNotExist:
                 item = {}
                 item['name'] = plugin.name
-                item['os_families'] = supported_os_families
+                if model == MachineDetailPlugin:
+                    try:
+                        supported_os_families = plugin.plugin_object.supported_os_families()
+                    except AttributeError:
+                        supported_os_families = ['Darwin', 'Windows', 'Linux']
+                    item['os_families'] = supported_os_families
+
                 output.append(item)
 
     return output

@@ -3,6 +3,10 @@ from licenses.models import License
 
 
 class LicenseAdmin(admin.ModelAdmin):
+    list_display = ('item_name', 'cost_per_seat', 'total', 'used', 'available',
+                    'inventory_filter')
+    search_fields = ('item_name',)
+
     def inventory_filter(self, obj):
         filter_string = ''
         if obj.inventory_name:
@@ -16,9 +20,6 @@ class LicenseAdmin(admin.ModelAdmin):
         if obj.inventory_path:
             filter_string += "path: '%s' " % obj.inventory_path
         return filter_string
-
-    list_display = ('item_name', 'cost_per_seat', 'total', 'used', 'available',
-                    'inventory_filter')
 
 
 admin.site.register(License, LicenseAdmin)

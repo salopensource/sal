@@ -84,7 +84,7 @@ class ApiKeyAdmin(admin.ModelAdmin):
 
 
 class BusinessUnitAdmin(admin.ModelAdmin):
-    inlines = [MachineGroupInline,]
+    inlines = [MachineGroupInline, ]
     form = BusinessUnitForm
     list_display = ('name', number_of_users, number_of_machine_groups, number_of_machines)
     fields = (('name', number_of_users, number_of_machine_groups, number_of_machines), 'users')
@@ -183,7 +183,7 @@ class PluginScriptRowAdmin(admin.ModelAdmin):
 
 
 class PluginScriptSubmissionAdmin(admin.ModelAdmin):
-    inlines = [PluginScriptRowInline,]
+    inlines = [PluginScriptRowInline, ]
     list_display = ('plugin', 'machine', 'recorded', 'historical')
     list_filter = (BusinessUnitFilter, MachineGroupFilter, 'plugin', 'historical', 'recorded')
     search_fields = ('plugin', 'machine__hostname')
@@ -208,7 +208,7 @@ class SalSettingAdmin(admin.ModelAdmin):
 
 
 class UpdateHistoryAdmin(admin.ModelAdmin):
-    inlines = [UpdateHistoryItemInline,]
+    inlines = [UpdateHistoryItemInline, ]
     list_display = ('name', 'machine', 'update_type', 'version')
     list_filter = ('update_type', BusinessUnitFilter, MachineGroupFilter)
     search_fields = ('name', 'machine__hostname', 'version')

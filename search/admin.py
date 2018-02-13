@@ -13,7 +13,7 @@ class SearchRowInline(admin.StackedInline):
 
 
 class SavedSearchAdmin(admin.ModelAdmin):
-    inlines = [SearchGroupInline,]
+    inlines = [SearchGroupInline, ]
     list_display = ('name', 'created_by', 'created', 'save_search')
     list_filter = ('created', 'save_search')
     date_hierarchy = 'created'
@@ -21,7 +21,7 @@ class SavedSearchAdmin(admin.ModelAdmin):
 
 
 class SearchGroupAdmin(admin.ModelAdmin):
-    inlines = [SearchRowInline]
+    inlines = [SearchRowInline, ]
     list_display = ('id', 'saved_search', 'and_or', 'position')
 
 

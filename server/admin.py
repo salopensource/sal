@@ -107,6 +107,7 @@ class HistoricalFactAdmin(admin.ModelAdmin):
     list_display = ('fact_name', 'fact_data', 'machine', 'fact_recorded')
     list_filter = (BusinessUnitFilter, MachineGroupFilter, 'fact_name')
     search_fields = ('fact_name', 'fact_data', 'machine__hostname')
+    date_hierarchy = 'fact_recorded'
 
 
 class InstalledUpdateAdmin(admin.ModelAdmin):
@@ -186,6 +187,7 @@ class PluginScriptSubmissionAdmin(admin.ModelAdmin):
     list_display = ('plugin', 'machine', 'recorded', 'historical')
     list_filter = (BusinessUnitFilter, MachineGroupFilter, 'plugin', 'historical', 'recorded')
     search_fields = ('plugin', 'machine__hostname')
+    date_hierarchy = 'recorded'
 
 
 class ReportAdmin(admin.ModelAdmin):
@@ -213,7 +215,9 @@ class UpdateHistoryAdmin(admin.ModelAdmin):
 
 
 class UpdateHistoryItemAdmin(admin.ModelAdmin):
-    search_fields = ('name',)
+    search_fields = ('update_history__name', 'update_history__machine__hostname')
+    list_display = ('update_history', 'recorded', 'status')
+    date_hierarchy = 'recorded'
 
 
 class UserProfileAdmin(admin.ModelAdmin):

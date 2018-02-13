@@ -40,6 +40,7 @@ class OperatingSystem(IPlugin):
         mac_os_info = []
         windows_os_info = []
         linux_os_info = []
+        chrome_os_info = []
 
         for machine in os_info:
             if machine['os_family'] == 'Darwin':
@@ -48,6 +49,8 @@ class OperatingSystem(IPlugin):
                 windows_os_info.append(machine)
             elif machine['os_family'] == 'Linux':
                 linux_os_info.append(machine)
+            elif machine['os_family'] == 'ChromeOS':
+                chrome_os_info.append(machine)
 
         # you and your lanbda's @sheacraig...
         os_key = lambda x: LooseVersion(x["operating_system"])  # noqa: E731
@@ -55,12 +58,14 @@ class OperatingSystem(IPlugin):
         mac_os_info = sorted(mac_os_info, key=os_key, reverse=True)
         windows_os_info = sorted(windows_os_info, key=os_key, reverse=True)
         linux_os_info = sorted(linux_os_info, key=os_key, reverse=True)
+        chrome_os_info = sorted(chrome_os_info, key=os_key, reverse=True)
 
         c = Context({
             'title': 'Operating Systems',
             'mac_data': mac_os_info,
             'windows_data': windows_os_info,
             'linux_data': linux_os_info,
+            'chrome_data': chrome_os_info,
             'theid': theid,
             'page': page
         })

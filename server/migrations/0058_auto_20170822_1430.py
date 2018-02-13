@@ -25,7 +25,7 @@ def update_os_families(apps, schema_editor):
     manager.collectPlugins()
     enabled_plugins = apps.get_model("server", "MachineDetailPlugin")
     for item in enabled_plugins.objects.all():
-        default_families = ['Darwin', 'Windows', 'Linux']
+        default_families = ['Darwin', 'Windows', 'Linux', 'ChromeOS']
         for plugin in manager.getAllPlugins():
             if plugin.name == item.name:
 

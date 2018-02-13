@@ -2,12 +2,11 @@
 
 
 from django.test import TestCase, Client
-# from django.urls import reverse
+from django.urls import reverse
 
 from rest_framework import status
 
 from server.models import ApiKey, User
-# from api.v2.tests.tools import SalAPITestCase
 
 
 class AdminTest(TestCase):
@@ -26,9 +25,11 @@ class AdminTest(TestCase):
     def test_no_access(self):
         """Test that unauthenticated requests redirected to login."""
         for path in self.admin_endpoints:
-            response = self.client.get('/admin/server/{}'.format(path))
+            url = reverse('admin:server_{}_changelist'.format(path))
+            response = self.client.get(url)
             # Redirect to login page.
-            self.assertEqual(response.status_code, status.HTTP_301_MOVED_PERMANENTLY)
+            self.assertEqual(response.status_code, status.HTTP_302_FOUND)
+            self.assertEqual(response.url, '{}?next={}'.format(reverse('admin:login'), url))
 
     def test_ro_access(self):
         """Test that ro requests are rejected.
@@ -41,11 +42,11 @@ class AdminTest(TestCase):
         self.client.force_login(self.user)
 
         for path in self.admin_endpoints:
-            url = '/admin/server/{}/'.format(path)
+            url = reverse('admin:server_{}_changelist'.format(path))
             response = self.client.get(url)
             msg = 'Failed for path: "{}"'.format(path)
             self.assertEqual(response.status_code, status.HTTP_302_FOUND, msg=msg)
-            self.assertEqual(response.url, '/admin/login/?next=/admin/server/{}/'.format(path),
+            self.assertEqual(response.url, '{}?next={}'.format(reverse('admin:login'), url),
                              msg=msg)
 
     def test_ga_access(self):
@@ -55,7 +56,7 @@ class AdminTest(TestCase):
         self.client.force_login(self.user)
 
         for path in self.admin_endpoints:
-            url = '/admin/server/{}/'.format(path)
+            url = reverse('admin:server_{}_changelist'.format(path))
             response = self.client.get(url, follow=True)
             msg = 'Failed for path: "{}"'.format(path)
             self.assertEqual(response.status_code, status.HTTP_200_OK, msg=msg)

@@ -39,6 +39,12 @@ class MachineGroupInline(admin.TabularInline):
 
 class PluginScriptRowInline(admin.StackedInline):
     model = PluginScriptRow
+    extra = 0
+
+
+class UpdateHistoryItemInline(admin.TabularInline):
+    model = UpdateHistoryItem
+    extra = 0
 
 
 class BusinessUnitForm(ModelForm):
@@ -87,21 +93,26 @@ class BusinessUnitAdmin(admin.ModelAdmin):
 
 class ConditionAdmin(admin.ModelAdmin):
     list_filter = (BusinessUnitFilter, MachineGroupFilter, 'condition_name')
+    list_display = ('condition_name', 'condition_data', 'machine')
+    search_fields = ('condition_name', 'condition_data', 'machine__hostname')
 
 
 class FactAdmin(admin.ModelAdmin):
-    list_display = ('fact_name', 'fact_data')
+    list_display = ('fact_name', 'fact_data', 'machine')
     list_filter = (BusinessUnitFilter, MachineGroupFilter, 'fact_name')
+    search_fields = ('fact_name', 'fact_data', 'machine__hostname')
+
+
+class HistoricalFactAdmin(admin.ModelAdmin):
+    list_display = ('fact_name', 'fact_data', 'machine', 'fact_recorded')
+    list_filter = (BusinessUnitFilter, MachineGroupFilter, 'fact_name')
+    search_fields = ('fact_name', 'fact_data', 'machine__hostname')
 
 
 class InstalledUpdateAdmin(admin.ModelAdmin):
     list_display = ('update', 'display_name', 'machine', 'update_version', 'installed')
     list_filter = (BusinessUnitFilter, MachineGroupFilter, 'update')
-
-
-class HistoricalFactAdmin(admin.ModelAdmin):
-    list_display = ('fact_name', 'fact_data', 'fact_recorded')
-    list_filter = (BusinessUnitFilter, MachineGroupFilter, 'fact_name')
+    search_fields = ('machine__hostname', 'display_name', 'update')
 
 
 class MachineAdmin(admin.ModelAdmin):
@@ -122,6 +133,7 @@ class MachineAdmin(admin.ModelAdmin):
     )
     readonly_fields = (business_unit, 'first_checkin', 'last_checkin', 'last_puppet_run',
                        'report_format')
+    search_fields = ('hostname', 'console_user')
 
 
 class MachineDetailPluginAdmin(admin.ModelAdmin):
@@ -148,6 +160,7 @@ class MachineGroupAdmin(admin.ModelAdmin):
 class PendingUpdateAdmin(admin.ModelAdmin):
     list_filter = (BusinessUnitFilter, MachineGroupFilter)
     list_display = ('update', 'display_name', 'update_version', 'machine')
+    search_fields = ('update', 'display_name', 'machine__hostname')
 
 
 class PluginAdmin(admin.ModelAdmin):
@@ -164,10 +177,15 @@ class PluginAdmin(admin.ModelAdmin):
         return super(PluginAdmin, self).get_queryset(request)
 
 
+class PluginScriptRowAdmin(admin.ModelAdmin):
+    search_fields = ('plugin',)
+
+
 class PluginScriptSubmissionAdmin(admin.ModelAdmin):
     inlines = [PluginScriptRowInline,]
     list_display = ('plugin', 'machine', 'recorded', 'historical')
     list_filter = (BusinessUnitFilter, MachineGroupFilter, 'plugin', 'historical', 'recorded')
+    search_fields = ('plugin', 'machine__hostname')
 
 
 class ReportAdmin(admin.ModelAdmin):
@@ -183,6 +201,27 @@ class ReportAdmin(admin.ModelAdmin):
         return super(ReportAdmin, self).get_queryset(request)
 
 
+class SalSettingAdmin(admin.ModelAdmin):
+    list_display = ('name', 'value')
+
+
+class UpdateHistoryAdmin(admin.ModelAdmin):
+    inlines = [UpdateHistoryItemInline,]
+    list_display = ('name', 'machine', 'update_type', 'version')
+    list_filter = ('update_type', BusinessUnitFilter, MachineGroupFilter)
+    search_fields = ('name', 'machine__hostname', 'version')
+
+
+class UpdateHistoryItemAdmin(admin.ModelAdmin):
+    search_fields = ('name',)
+
+
+class UserProfileAdmin(admin.ModelAdmin):
+    list_display = ('user', 'level')
+    list_filter = ('level',)
+    search_fields = ('user', )
+
+
 admin.site.register(ApiKey, ApiKeyAdmin)
 admin.site.register(BusinessUnit, BusinessUnitAdmin)
 admin.site.register(Condition, ConditionAdmin)
@@ -195,10 +234,10 @@ admin.site.register(MachineGroup, MachineGroupAdmin)
 admin.site.register(PendingAppleUpdate, PendingUpdateAdmin)
 admin.site.register(PendingUpdate, PendingUpdateAdmin)
 admin.site.register(Plugin, PluginAdmin)
-admin.site.register(PluginScriptRow)
+admin.site.register(PluginScriptRow, PluginScriptRowAdmin)
 admin.site.register(PluginScriptSubmission, PluginScriptSubmissionAdmin)
 admin.site.register(Report, ReportAdmin)
-admin.site.register(SalSetting)
-admin.site.register(UpdateHistory)
-admin.site.register(UpdateHistoryItem)
-admin.site.register(UserProfile)
+admin.site.register(SalSetting, SalSettingAdmin)
+admin.site.register(UpdateHistory, UpdateHistoryAdmin)
+admin.site.register(UpdateHistoryItem, UpdateHistoryItemAdmin)
+admin.site.register(UserProfile, UserProfileAdmin)

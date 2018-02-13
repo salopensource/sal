@@ -118,8 +118,9 @@ class InstalledUpdateAdmin(admin.ModelAdmin):
 
 class MachineAdmin(admin.ModelAdmin):
     list_display = ('hostname', 'serial', 'machine_model', 'operating_system', 'deployed')
-    list_filter = (BusinessUnitFilter, MachineGroupFilter, 'operating_system', 'machine_model',
-                   'last_checkin', 'errors', 'warnings', 'puppet_errors', 'deployed')
+    list_filter = (BusinessUnitFilter, MachineGroupFilter, 'operating_system', 'os_family',
+                   'machine_model', 'last_checkin', 'errors', 'warnings', 'puppet_errors',
+                   'deployed')
     fields = (
         (business_unit, 'machine_group'),
         ('hostname', 'serial', 'console_user'),

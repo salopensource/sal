@@ -1,14 +1,17 @@
-from yapsy.IPlugin import IPlugin
-from yapsy.PluginManager import PluginManager
-from django.template import loader, Context
-from django.db.models import Count
-from server.models import *
-from django.shortcuts import get_object_or_404
-import server.utils as utils
-from django.conf import settings
 import requests
 from datetime import datetime
+
+from django.conf import settings
+from django.db.models import Count
+from django.shortcuts import get_object_or_404
+from django.template import loader, Context
 from django.utils.dateparse import parse_datetime
+
+from yapsy.IPlugin import IPlugin
+from yapsy.PluginManager import PluginManager
+
+from server.models import *
+import server.utils as utils
 
 
 class CryptStatus(IPlugin):
@@ -61,10 +64,16 @@ class CryptStatus(IPlugin):
             if output['escrowed']:
                 date_escrowed = parse_datetime(output['date_escrowed'])
 
+        try:
+            crypt_url = SalSetting.objects.get(name='crypt_url').value
+        except SalSetting.DoesNotExist:
+            crypt_url = None
+
         c = Context({
             'title': 'FileVault Escrow',
             'date_escrowed': date_escrowed,
             'escrowed': escrowed,
+            'crypt_url': crypt_url
         })
         return t.render(c)
 

@@ -267,7 +267,7 @@ def get_setting(name, default=None):
     try:
         setting = SalSetting.objects.get(name=name)
     except SalSetting.DoesNotExist:
-        return None
+        return None or default
 
     # Cast values to python datatypes.
     value = setting.value.strip()

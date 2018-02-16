@@ -20,6 +20,10 @@
 		"value": ""
 	},
 	{
+		"name": "crypt_url",
+		"value": ""
+	},
+	{
 		"name": "datatable_page_length",
 		"value": "20"
 	}

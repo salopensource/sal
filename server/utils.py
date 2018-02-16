@@ -1,4 +1,5 @@
 import hashlib
+from itertools import chain
 import logging
 import os
 import plistlib
@@ -22,6 +23,8 @@ PLUGIN_ORDER = [
 TRUTHY = {'TRUE', 'YES'}
 FALSY = {'FALSE', 'NO'}
 STRINGY_BOOLS = TRUTHY.union(FALSY)
+TWENTY_FOUR_HOURS = 86400
+
 
 def safe_unicode(s):
     if isinstance(s, unicode):
@@ -61,40 +64,19 @@ def csvrelated(header_item, facts, kind):
 
 
 def get_version_number():
-    # See if we're sending data
-    try:
-        senddata_setting = SalSetting.objects.get(name='send_data')
-    except SalSetting.DoesNotExist:
-        # it's not been set up yet, just return true
-        return True
+    """Get the currently available Sal version.
 
+    Returns:
+        (str) Version number if it could be retrieved, otherwise None.
+    """
+    current_version = None
     try:
-        last_sent = SalSetting.objects.get(name='last_sent_data')
-    except SalSetting.DoesNotExist:
-        last_sent = SalSetting(name='last_sent_data', value='0')
-        last_sent.save()
-
-    current_time = int(time.time())
-    if int(last_sent.value) < (current_time - 86400) or int(last_sent.value) == 0:
-        try:
-            current_version = SalSetting.objects.get(name='current_version')
-        except SalSetting.DoesNotExist:
-            current_version = SalSetting(name='current_version', value='0')
-            current_version.save()
-        last_sent.value = current_time
-        last_sent.save()
-        if senddata_setting.value == 'yes':
-            version = send_report()
-            current_version.value = version
-            current_version.save()
-        else:
-            try:
-                r = requests.get('https://version.salopensource.com')
-                if r.status_code == 200:
-                    current_version.value = r.text
-                    current_version.save()
-            except Exception:
-                return True
+        response = requests.get('https://version.salopensource.com')
+        if response.status_code == 200:
+            current_version = response.text
+    except requests.exceptions.RequestException:
+        pass
+    return current_version
 
 
 def get_install_type():
@@ -105,34 +87,48 @@ def get_install_type():
 
 
 def send_report():
-    output = {}
-    # get total number of machines
-    output['machines'] = Machine.objects.all().count()
-    # get list of plugins
-    plugins = []
-    for plugin in Plugin.objects.all():
-        plugins.append(plugin.name)
+    """Send report data if last report was sent over 24 hours ago.
 
-    for plugin in Report.objects.all():
-        plugins.append(plugin.name)
-    output['plugins'] = plugins
-    # get install type
-    output['install_type'] = get_install_type()
-    # get database type
-    output['database'] = settings.DATABASES['default']['ENGINE']
+    Returns:
+        (str) current Sal version number or None if there was a problem
+        retrieving it. This will return regardless of whether the report
+        needed to be sent.
+    """
+    last_sent = get_setting('last_sent_data', 0)
 
-    # version
-    current_dir = os.path.dirname(os.path.realpath(__file__))
-    version = plistlib.readPlist(os.path.join(os.path.dirname(current_dir), 'sal', 'version.plist'))
-    output['version'] = version['version']
-    # plist encode output
-    post_data = plistlib.writePlistToString(output)
-    r = requests.post('https://version.salopensource.com', data={"data": post_data})
-    print r.status_code
-    if r.status_code == 200:
-        return r.text
+    current_time = int(time.time())
+
+    if last_sent < (current_time - TWENTY_FOUR_HOURS):
+        output = {}
+
+        # get total number of machines
+        output['machines'] = Machine.objects.all().count()
+
+        # get list of plugins
+        output['plugins'] = [p.name for p in chain(Plugin.objects.all(), Report.objects.all())]
+
+        # get install type
+        output['install_type'] = get_install_type()
+
+        # get database type
+        output['database'] = settings.DATABASES['default']['ENGINE']
+
+        # version
+        current_dir = os.path.dirname(os.path.realpath(__file__))
+        version = plistlib.readPlist(
+            os.path.join(os.path.dirname(current_dir), 'sal', 'version.plist'))
+        output['version'] = version['version']
+        # plist encode output
+        post_data = plistlib.writePlistToString(output)
+        response = requests.post('https://version.salopensource.com', data={"data": post_data})
+        set_setting('last_sent_data', current_time)
+        print response.status_code
+        if response.status_code == 200:
+            return response.text
+        else:
+            return None
     else:
-        return 'Error'
+        return get_version_number()
 
 
 def listify_condition_data(data):

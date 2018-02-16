@@ -2508,7 +2508,15 @@ def checkin(request):
                     condition.save()
 
     utils.run_plugin_processing(machine, report_data)
-    utils.get_version_number()
+
+    if utils.get_setting('send_data') in (None, True):
+        # If setting is None, it hasn't been configured yet; assume True
+        current_version = utils.send_report()
+    else:
+        current_version = utils.get_version_number()
+    if current_version:
+        utils.set_setting('current_version', current_version)
+
     return HttpResponse("Sal report submmitted for %s"
                         % data.get('name'))
 

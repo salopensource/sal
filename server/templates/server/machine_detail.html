@@ -49,6 +49,8 @@ $( document ).ready(function() {
     <p style="text-align: center;">
         {% if machine.os_family == 'Darwin' %}
       <img src='https://km.support.apple.com/kb/securedImage.jsp?configcode={{machine.serial|slice:"8:" }}&size=120x120'>
+      {% elif machine.os_family == 'ChromeOS' %}
+      <img src="{% static 'img/Chrome.png' %}" height="120" width="120" alt="Chrome OS"/>
       {% else %}
       <img src="{% static 'img/generic_pc.png' %}" height="120" width="120" alt="Generic PC"/>
       {% endif %}
@@ -116,14 +118,20 @@ $( document ).ready(function() {
            Client has broken Python / MSC 
           </dd>
           {% endif %}
+          {% if machine.machine_model %}
           <dt>Model:</dt>
           <dd>
-            {% if machine.machine_model_friendly %}
-            {{ machine.machine_model_friendly }}
+            {% if machine.os_family == 'Darwin' %}
+              {% if machine.machine_model_friendly %}
+              {{ machine.machine_model_friendly }}
+              {% else %}
+              {{ machine.machine_model }}
+              {% endif %}
             {% else %}
-            {{ machine.machine_model }}
-            {% endif %}
+               {{ machine.machine_model }}
+              {% endif %}
           </dd>
+          {% endif %}
           <dt>Processor:</dt>
           <dd>
             {{ machine.cpu_type }}

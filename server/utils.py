@@ -254,15 +254,19 @@ def display_time(seconds, granularity=2):
     return ', '.join(result[:granularity])
 
 
-def get_setting(name):
+def get_setting(name, default=None):
     """Get a SalSetting from the database.
 
     Args:
         name (str): Name of SalSetting to retrieve.
+        default (str, bool, float, int, None): Default value to return
+            if setting has no value specified.
 
     Returns:
-        None, float, int, bool, or str depending on whether value
-            could be identified as one of those types.
+        None: Value is an empty string or if the setting is absent from the database.
+        int: Value is all digits with no decimal place.
+        float: Value is all digits with a decimal place.
+
     """
     try:
         setting = SalSetting.objects.get(name=name)
@@ -272,12 +276,11 @@ def get_setting(name):
     # Cast values to python datatypes.
     value = setting.value.strip()
     if not value:
-        return None
+        return None if default is None else default
     elif value.isdigit():
-        if '.' in value:
-            return float(value)
-        else:
-            return int(value)
+        return int(value)
+    elif is_float(value):
+        return float(value)
     elif value.upper() in STRINGY_BOOLS:
         return True if value.upper() in TRUTHY else False
     else:
@@ -306,6 +309,14 @@ def set_setting(name, value):
         obj.value = value
         obj.save()
     return True
+
+
+def is_float(value):
+    try:
+        float(value)
+        return True
+    except ValueError:
+        return False
 
 
 # Plugin utilities

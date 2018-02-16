@@ -10,7 +10,6 @@ from django.utils.dateparse import parse_datetime
 from yapsy.IPlugin import IPlugin
 from yapsy.PluginManager import PluginManager
 
-from server.models import *
 import server.utils as utils
 
 
@@ -64,16 +63,11 @@ class CryptStatus(IPlugin):
             if output['escrowed']:
                 date_escrowed = parse_datetime(output['date_escrowed'])
 
-        try:
-            crypt_url = SalSetting.objects.get(name='crypt_url').value
-        except SalSetting.DoesNotExist:
-            crypt_url = None
-
         c = Context({
             'title': 'FileVault Escrow',
             'date_escrowed': date_escrowed,
             'escrowed': escrowed,
-            'crypt_url': crypt_url
+            'crypt_url': utils.get_setting('crypt_url')
         })
         return t.render(c)
 

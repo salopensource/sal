@@ -23,7 +23,6 @@ from forms import *
 import pprint
 import re
 import os
-from distutils.version import LooseVersion
 from yapsy.PluginManager import PluginManager
 from django.core.exceptions import PermissionDenied
 import utils
@@ -133,107 +132,44 @@ def index(request):
     else:
         business_units = user.businessunit_set.all()
 
-    # This isn't ready. These can just be false / none for now
-    # (new_version_available, new_version, current_version) = check_version()
-    new_version_available = False
-    new_version = False
-    current_version = False
-    c = {
+    context = {
         'user': request.user,
         'business_units': business_units,
         'output': output,
         'data_setting_decided': data_choice,
-        'new_version_available': new_version_available,
-        'new_version': new_version,
-        'reports': reports,
-        'current_version': current_version}
-    return render(request, 'server/index.html', c)
+        'reports': reports}
 
+    context.update(utils.check_version())
 
-def check_version():
-    # Get current version
-    new_version_available = False
-    new_version = None
-    current_dir = os.path.dirname(os.path.realpath(__file__))
-    version = plistlib.readPlist(os.path.join(os.path.dirname(current_dir), 'sal', 'version.plist'))
-    current_version = version['version']
-    try:
-        # Get version from the server
-        current_version_lookup = SalSetting.objects.get(name='current_version')
-        server_version = current_version_lookup.value
-    except SalSetting.DoesNotExist:
-        server_version = None
-
-    # if we've looked for the server version, check to see what we're running
-    if server_version:
-        should_notify = False
-        if LooseVersion(server_version) > LooseVersion(current_version):
-            # Have we notified about this version before?
-            try:
-                last_version_notified_lookup = SalSetting.objects.get(name='last_notified_version')
-                last_notified_version = last_version_notified_lookup.value
-            except SalSetting.DoesNotExist:
-                last_notified_version = None
-            # if last version notified version is equal to the server version
-            if last_notified_version == server_version:
-                try:
-                    next_notify_date_lookup = SalSetting.objects.get(name='next_notify_date')
-                    next_notify_date = next_notify_date_lookup.value
-                except Exception:
-                    # They've not chosen yet, show it
-                    should_notify = True
-                    next_notify_date = None
-            else:
-                should_notify = True
-                next_notify_date = None
-            # Try and get the last notified date - if it's never, no new version avaialble
-            if next_notify_date:
-                if next_notify_date != 'never':
-                    current_time = time.time()
-                    if current_time > next_notify_date:
-                        should_notify = True
-
-            if should_notify:
-                new_version_available = True
-                new_version = server_version
-        else:
-            try:
-                next_notify_date_lookup = SalSetting.objects.get(name='next_notify_date')
-                next_notify_date_lookup.delete()
-            except SalSetting.DoesNotExist:
-                pass
-
-    return new_version_available, new_version, current_version
+    return render(request, 'server/index.html', context)
 
 
 @login_required
 def new_version_never(request):
+    update_notify_date(request)
+    return redirect(index)
+
+
+def update_notify_date(request, length='never'):
     if request.user.userprofile.level != 'GA':
         return redirect(index)
     # Don't notify about a new version until there is a new one
-    current_version_lookup = SalSetting.objects.get(name='current_version')
-    server_version = current_version_lookup.value
-    try:
-        last_version_notified = SalSetting.objects.get(name='last_notified_version')
-    except SalSetting.DoesNotExist:
-        last_version_notified = SalSetting(name='last_notified_version')
-    last_version_notified.value = server_version
-    last_version_notified.save()
-
-    try:
-        next_notify_date = SalSetting.objects.get(name='next_notify_date')
-    except SalSetting.DoesNotExist:
-        next_notify_date = SalSetting(name='next_notify_date')
-
-    next_notify_date.value = 'never'
-    next_notify_date.save()
-    return redirect(index)
+    version_report = utils.check_version()
+    if version_report['new_version_available']:
+        next_notify_date = utils.get_setting('next_notify_date', time.time()) + length
+        utils.set_setting('next_notify_date', next_notify_date)
 
 
 @login_required
 def new_version_week(request):
-    # Notify again in a week
-    pass
+    update_notify_date(request, length=604800)
+    return redirect(index)
+
+
+@login_required
+def new_version_day(request):
+    update_notify_date(request, length=86400)
+    return redirect(index)
 
 # Manage Users
 
@@ -2513,7 +2449,7 @@ def checkin(request):
         # If setting is None, it hasn't been configured yet; assume True
         current_version = utils.send_report()
     else:
-        current_version = utils.get_version_number()
+        current_version = utils.get_current_release_version_number()
     if current_version:
         utils.set_setting('current_version', current_version)
 

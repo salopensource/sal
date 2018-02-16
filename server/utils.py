@@ -1,3 +1,4 @@
+from distutils.version import LooseVersion
 import hashlib
 from itertools import chain
 import logging
@@ -63,7 +64,13 @@ def csvrelated(header_item, facts, kind):
         return ''
 
 
-def get_version_number():
+def get_server_version():
+    current_dir = os.path.dirname(os.path.realpath(__file__))
+    version = plistlib.readPlist(os.path.join(os.path.dirname(current_dir), 'sal', 'version.plist'))
+    return version['version']
+
+
+def get_current_release_version_number():
     """Get the currently available Sal version.
 
     Returns:
@@ -96,7 +103,7 @@ def send_report():
     """
     last_sent = get_setting('last_sent_data', 0)
 
-    current_time = int(time.time())
+    current_time = time.time()
 
     if last_sent < (current_time - TWENTY_FOUR_HOURS):
         output = {}
@@ -121,14 +128,53 @@ def send_report():
         # plist encode output
         post_data = plistlib.writePlistToString(output)
         response = requests.post('https://version.salopensource.com', data={"data": post_data})
-        set_setting('last_sent_data', current_time)
+        set_setting('last_sent_data', int(current_time))
         print response.status_code
         if response.status_code == 200:
             return response.text
         else:
             return None
     else:
-        return get_version_number()
+        return get_current_release_version_number()
+
+
+def check_version():
+    """Compare running version to available version and return info.
+
+    This function honors the `next_notify_date` = 'never' setting, and only
+    returns data if a notification is due to be delivered.
+
+    Returns:
+        dict:
+            'new_version_available': (bool)
+            'new_version': (str) Version number of available update.
+            'current_version': (str) Version of running server.
+    """
+    # TODO: This is just to keep the values the same from existing code.
+    result = {'new_version_available': False, 'new_version': False, 'server_version': False}
+
+    server_version = get_server_version()
+    # Grab this from the database so we're not making requests all
+    # the time.
+    current_release_version = get_setting('current_version', '0')
+
+    # Only do something if running version is out of date.
+    if LooseVersion(current_release_version) > LooseVersion(server_version):
+        # Determine whether to notify, or just not bother.
+        next_notify_date = get_setting('next_notify_date', 0)
+        if next_notify_date == 'never':
+            last_notified_version = get_setting('last_notified_version')
+            if last_notified_version != current_release_version:
+                set_setting('last_notified_version', current_release_version)
+                set_setting('next_notify_date', '')
+
+        current_time = time.time()
+        if current_time > next_notify_date:
+            result['new_version_available'] = True
+            result['server_version'] = server_version
+            result['current_release_version'] = current_release_version
+
+    return result
 
 
 def listify_condition_data(data):

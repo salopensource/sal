@@ -19,7 +19,9 @@ PLUGIN_ORDER = [
     'Activity', 'Status', 'OperatingSystem', 'MunkiVersion', 'Uptime', 'Memory', 'DiskSpace',
     'PendingAppleUpdates', 'Pending3rdPartyUpdates', 'Encryption', 'Gatekeeper', 'Sip',
     'XprotectVersion']
-
+TRUTHY = {'TRUE', 'YES'}
+FALSY = {'FALSE', 'NO'}
+STRINGY_BOOLS = TRUTHY.union(FALSY)
 
 def safe_unicode(s):
     if isinstance(s, unicode):
@@ -250,6 +252,27 @@ def display_time(seconds, granularity=2):
                 name = name.rstrip('s')
             result.append("{} {}".format(value, name))
     return ', '.join(result[:granularity])
+
+
+def get_setting(name):
+    try:
+        setting = SalSetting.objects.get(name=name)
+    except SalSetting.DoesNotExist:
+        return None
+
+    # Cast values to python datatypes.
+    value = setting.value.strip()
+    if not value:
+        return None
+    elif value.isdigit():
+        if '.' in value:
+            return float(value)
+        else:
+            return int(value)
+    elif value.upper() in STRINGY_BOOLS:
+        return True if value.upper() in TRUTHY else False
+    else:
+        return value
 
 
 # Plugin utilities

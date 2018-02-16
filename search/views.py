@@ -40,7 +40,7 @@ def index(request):
     machines = quick_search(machines, query_string)
 
     title = "Search results for %s" % query_string
-    page_length = utils.get_setting('datatable_page_length')
+    page_length = server.utils.get_setting('datatable_page_length')
     c = {'user': request.user, 'machines': machines, 'title': title, 'request': request,
          'page_length': page_length}
     return render(request, template, c)
@@ -95,7 +95,7 @@ def list(request):
     saved_searches = SavedSearch.objects.filter(save_search=True)
     user = request.user
     user_level = user.userprofile.level
-    page_length = utils.get_setting('datatable_page_length')
+    page_length = server.utils.get_setting('datatable_page_length')
     c = {'request': request,
          'user': request.user,
          'saved_searches': saved_searches,
@@ -266,7 +266,7 @@ def run_search(request, search_id):
 
     machines = search_machines(search_id, machines)
     saved_search = get_object_or_404(SavedSearch, pk=search_id)
-    page_length = utils.get_setting('datatable_page_length')
+    page_length = server.utils.get_setting('datatable_page_length')
     c = {'request': request, 'user': request.user, 'search': saved_search, 'machines': machines,
          'page_length': page_length}
     return render(request, 'search/search_machines.html', c)
@@ -306,7 +306,7 @@ def save_search(request, search_id):
     else:
         form = SaveSearchForm(instance=saved_search)
 
-    page_length = utils.get_setting('datatable_page_length')
+    page_length = server.utils.get_setting('datatable_page_length')
     c = {'form': form, 'saved_search': saved_search, 'page_length': page_length}
     return render(request, 'search/save_search_form.html', c)
 
@@ -317,7 +317,7 @@ def save_search(request, search_id):
 def build_search(request, search_id):
     new_search = get_object_or_404(SavedSearch, pk=search_id)
     search_groups = SearchGroup.objects.filter(saved_search=new_search)
-    page_length = utils.get_setting('datatable_page_length')
+    page_length = server.utils.get_setting('datatable_page_length')
     c = {
         'request': request,
         'user': request.user,
@@ -429,7 +429,7 @@ def new_search_row(request, search_group_id):
     else:
         form = SearchRowForm(search_group=search_group)
 
-    page_length = utils.get_setting('datatable_page_length')
+    page_length = server.utils.get_setting('datatable_page_length')
     c = {'form': form, 'search_group': search_group, 'page_length': page_length}
 
     return render(request, 'search/new_search_form.html', c)
@@ -476,7 +476,7 @@ def edit_search_row(request, search_row_id):
             form.fields['search_field'].choices = sorted(search_fields)
 
         form.fields['search_field'].initial = search_row.search_field
-    page_length = utils.get_setting('datatable_page_length')
+    page_length = server.utils.get_setting('datatable_page_length')
     c = {'form': form, 'search_row': search_row, 'page_length': page_length}
     return render(request, 'search/edit_search_form.html', c)
 

@@ -255,6 +255,15 @@ def display_time(seconds, granularity=2):
 
 
 def get_setting(name):
+    """Get a SalSetting from the database.
+
+    Args:
+        name (str): Name of SalSetting to retrieve.
+
+    Returns:
+        None, float, int, bool, or str depending on whether value
+            could be identified as one of those types.
+    """
     try:
         setting = SalSetting.objects.get(name=name)
     except SalSetting.DoesNotExist:
@@ -273,6 +282,30 @@ def get_setting(name):
         return True if value.upper() in TRUTHY else False
     else:
         return value
+
+
+def set_setting(name, value):
+    """Set SalSetting with `name` to `value`.
+
+    Args:
+        name (str): Name of SalSetting to set.
+        value (str or with __str__ method): Value to set. Must be
+            castable to str.
+
+    Returns:
+        False if setting was not set (value conversion failed) or True
+        if setting was successfully set.
+    """
+    try:
+        value = str(value)
+    except ValueError:
+        return False
+
+    obj, created = SalSetting.objects.get_or_create(name=name, defaults={'value': value})
+    if not created:
+        obj.value = value
+        obj.save()
+    return True
 
 
 # Plugin utilities

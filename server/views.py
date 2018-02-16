@@ -121,15 +121,15 @@ def index(request):
                 break
 
     output = utils.orderPluginOutput(output)
+
+    # If the user is GA level, and hasn't decided on a data sending
+    # choice, template will reflect this.
+    data_choice = False if (user_level == 'GA' and utils.get_setting('send_data') is None) else True
+
     # get the user level - if they're a global admin, show all of the
     # machines. If not, show only the machines they have access to
-    data_setting_decided = True
     if user_level == 'GA':
         business_units = BusinessUnit.objects.all()
-        try:
-            SalSetting.objects.get(name='send_data')
-        except SalSetting.DoesNotExist:
-            data_setting_decided = False
     else:
         business_units = user.businessunit_set.all()
 
@@ -142,7 +142,7 @@ def index(request):
         'user': request.user,
         'business_units': business_units,
         'output': output,
-        'data_setting_decided': data_setting_decided,
+        'data_setting_decided': data_choice,
         'new_version_available': new_version_available,
         'new_version': new_version,
         'reports': reports,

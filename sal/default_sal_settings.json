@@ -18,6 +18,10 @@
 	{
 		"name": "ssh_account",
 		"value": ""
+	},
+	{
+		"name": "datatable_page_length",
+		"value": "20"
 	}
 ]
 

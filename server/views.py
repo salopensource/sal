@@ -438,8 +438,10 @@ def tableajax(request, pluginName, data, page='front', theID=None):
 def machine_list(request, pluginName, data, page='front', theID=None):
     (machines, title) = plugin_machines(request, pluginName, data, page, theID, get_machines=False)
     user = request.user
+    page_length = utils.get_setting('datatable_page_length')
     c = {'user': user, 'plugin_name': pluginName, 'machines': machines, 'req_type': page,
-         'title': title, 'bu_id': theID, 'request': request, 'data': data}
+         'title': title, 'bu_id': theID, 'request': request, 'data': data,
+         'page_length': page_length}
 
     return render(request, 'server/overview_list_all.html', c)
 
@@ -1013,7 +1015,11 @@ def overview_list_all(request, req_type, data, bu_id=None):
 
     if req_type == 'pending_apple_updates':
         machines = all_machines.filter(pendingappleupdate__update=pending_apple_update)
-    c = {'user': user, 'machines': machines, 'req_type': req_type, 'data': data, 'bu_id': bu_id}
+
+    page_length = utils.get_setting('datatable_page_length')
+
+    c = {'user': user, 'machines': machines, 'req_type': req_type, 'data': data, 'bu_id': bu_id,
+         'page_length': page_length}
 
     return render(request, 'server/overview_list_all.html', c)
 

@@ -1,6 +1,5 @@
 from django.db import models
 from server.models import *
-# Create your models here.
 
 
 class Catalog(models.Model):

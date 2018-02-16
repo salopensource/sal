@@ -1487,10 +1487,10 @@ def settings_page(request):
     if user_level != 'GA':
         return redirect(index)
 
-    historical_setting = utils.get_setting('historical_retention', 180)
+    historical_setting = utils.get_setting('historical_retention')
     historical_setting_form = SettingsHistoricalDataForm(initial={'days': historical_setting})
 
-    senddata_setting = utils.get_setting('send_data', True)
+    senddata_setting = utils.get_setting('send_data')
 
     context = {
         'user': request.user,
@@ -1987,7 +1987,7 @@ def checkin(request):
     else:
         machine.broken_client = False
 
-    historical_days = utils.get_setting('historical_retention', 180)
+    historical_days = utils.get_setting('historical_retention')
 
     machine.hostname = data.get('name', '<NO NAME>')
 

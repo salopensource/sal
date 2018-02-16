@@ -1,6 +1,7 @@
 from distutils.version import LooseVersion
 import hashlib
 from itertools import chain
+import json
 import logging
 import os
 import plistlib
@@ -299,21 +300,37 @@ def display_time(seconds, granularity=2):
 def get_setting(name, default=None):
     """Get a SalSetting from the database.
 
+    If a setting is not in the database, and a default has been provided
+    in 'sal/default_sal_settings.json', create it with that value.
+    If no setting exists, and it's not in the defaults file, return
+    default argument (default of `None`).
+
     Args:
         name (str): Name of SalSetting to retrieve.
         default (str, bool, float, int, None): Default value to return
-            if setting has no value specified.
+            if setting has no value, the settings file has no configured
+            defaults. Defaults to `None`.
 
     Returns:
-        None: Value is an empty string or if the setting is absent from the database.
+        None: Value is an empty string or if the setting is absent from
+            the database and has no default setting.
         int: Value is all digits with no decimal place.
-        float: Value is all digits with a decimal place.
+        float: Value can be cast to a float.
+        bool: If value is (any case) True, False, Yes, No.
+        str: Anything else.
 
     """
     try:
         setting = SalSetting.objects.get(name=name)
     except SalSetting.DoesNotExist:
-        return None or default
+        # Let's just refresh all of the missing defaults.
+        add_default_sal_settings()
+        # And try one more time.
+        try:
+            setting = SalSetting.objects.get(name=name)
+        except SalSetting.DoesNotExist:
+            # Otherwise, fall back to the default argument.
+            return default
 
     # Cast values to python datatypes.
     value = setting.value.strip()
@@ -327,6 +344,27 @@ def get_setting(name, default=None):
         return True if value.upper() in TRUTHY else False
     else:
         return value
+
+
+def add_default_sal_settings():
+    """Add in missing default settings to database."""
+    default_sal_settings = get_defaults()
+    for setting in default_sal_settings:
+        _, created = SalSetting.objects.get_or_create(
+            name=setting['name'], defaults={'value': setting['value']})
+        # if created:
+        #     print "Created Sal Setting: '{name}' with value: '{value}'.".format(**setting)
+
+
+def get_defaults():
+    """Get the default settings from our defaults file."""
+    # The file is stored in the project root /sal folder.
+    default_sal_settings_path = os.path.join(
+        os.path.dirname(os.path.abspath(__file__)), "../sal", 'default_sal_settings.json')
+    with open(default_sal_settings_path) as handle:
+        default_sal_settings = json.load(handle)
+
+    return default_sal_settings
 
 
 def set_setting(name, value):

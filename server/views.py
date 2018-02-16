@@ -1484,29 +1484,20 @@ def delete_machine(request, machine_id):
 def settings_page(request):
     user = request.user
     user_level = user.userprofile.level
-
-    # Pull the historical_data setting
-    try:
-        historical_setting = SalSetting.objects.get(name='historical_retention')
-    except SalSetting.DoesNotExist:
-        historical_setting = SalSetting(name='historical_retention', value='180')
-        historical_setting.save()
-    historical_setting_form = SettingsHistoricalDataForm(initial={'days': historical_setting.value})
     if user_level != 'GA':
         return redirect(index)
 
-    try:
-        senddata_setting = SalSetting.objects.get(name='send_data')
-    except SalSetting.DoesNotExist:
-        senddata_setting = SalSetting(name='send_data', value='yes')
-        senddata_setting.save()
+    historical_setting = utils.get_setting('historical_retention', 180)
+    historical_setting_form = SettingsHistoricalDataForm(initial={'days': historical_setting})
 
-    c = {
+    senddata_setting = utils.get_setting('send_data', True)
+
+    context = {
         'user': request.user,
         'request': request,
         'historical_setting_form': historical_setting_form,
-        'senddata_setting': senddata_setting.value}
-    return render(request, 'server/settings.html', c)
+        'senddata_setting': senddata_setting}
+    return render(request, 'server/settings.html', context)
 
 
 @login_required
@@ -1515,12 +1506,8 @@ def senddata_enable(request):
     user_level = user.userprofile.level
     if user_level != 'GA':
         return redirect(index)
-    try:
-        senddata_setting = SalSetting.objects.get(name='send_data')
-    except SalSetting.DoesNotExist:
-        senddata_setting = SalSetting(name='send_data', value='yes')
-    senddata_setting.value = 'yes'
-    senddata_setting.save()
+
+    utils.set_setting('send_data', True)
     return HttpResponseRedirect(request.META.get('HTTP_REFERER'))
 
 
@@ -1530,12 +1517,8 @@ def senddata_disable(request):
     user_level = user.userprofile.level
     if user_level != 'GA':
         return redirect(index)
-    try:
-        senddata_setting = SalSetting.objects.get(name='send_data')
-    except SalSetting.DoesNotExist:
-        senddata_setting = SalSetting(name='send_data', value='no')
-    senddata_setting.value = 'no'
-    senddata_setting.save()
+
+    utils.set_setting('send_data', False)
     return HttpResponseRedirect(request.META.get('HTTP_REFERER'))
 
 
@@ -1545,18 +1528,11 @@ def settings_historical_data(request):
     user_level = user.userprofile.level
     if user_level != 'GA':
         return redirect(index)
-    if request.method == 'POST':
-        # create a form instance and populate it with data from the request:
-        form = SettingsHistoricalDataForm(request.POST)
-        # check whether it's valid:
-        if form.is_valid():
-            try:
-                historical_setting = SalSetting.objects.get(name='historical_retention')
-            except SalSetting.DoesNotExist:
-                historical_setting = SalSetting(name='historical_retention')
 
-            historical_setting.value = form.cleaned_data['days']
-            historical_setting.save()
+    if request.method == 'POST':
+        form = SettingsHistoricalDataForm(request.POST)
+        if form.is_valid():
+            utils.set_setting('historical_retention', form.cleaned_data['days'])
             messages.success(request, 'Data retention settings saved.')
 
             return redirect('settings_page')
@@ -2011,13 +1987,7 @@ def checkin(request):
     else:
         machine.broken_client = False
 
-    try:
-        historical_setting = SalSetting.objects.get(name='historical_retention')
-        historical_days = historical_setting.value
-    except SalSetting.DoesNotExist:
-        historical_setting = SalSetting(name='historical_retention', value='180')
-        historical_setting.save()
-        historical_days = '180'
+    historical_days = utils.get_setting('historical_retention', 180)
 
     machine.hostname = data.get('name', '<NO NAME>')
 

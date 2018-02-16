@@ -1,0 +1,23 @@
+[
+	{
+		"name": "send_data",
+		"value": "true"
+	},
+	{
+		"name": "historical_retention",
+		"value": "180"
+	},
+	{
+		"name": "inventory_exclusion_pattern",
+		"value": ""
+	},
+	{
+		"name": "filter_proxied_virtualization_apps",
+		"value": "true"
+	},
+	{
+		"name": "ssh_account",
+		"value": ""
+	}
+]
+

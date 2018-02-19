@@ -107,15 +107,6 @@ except Exception:
     CRYPT_URL = None
 
 
-# Read the SSH_ACCOUNT setting from env var
-try:
-    if getenv('DOCKER_SAL_SSH_ACCOUNT'):
-        SSH_ACCOUNT = getenv('DOCKER_SAL_SSH_ACCOUNT')
-    else:
-        SSH_ACCOUNT = None
-except Exception:
-    SSH_ACCOUNT = None
-
 # Do machines turn to 'deployed' when they check in?
 try:
     if getenv('DOCKER_SAL_DEPLOYED_ON_CHECKIN').lower() == 'true':

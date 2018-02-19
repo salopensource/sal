@@ -6,7 +6,7 @@ from django.conf import settings
 from django.template import loader, Context
 from yapsy.IPlugin import IPlugin
 
-from server.models import Machine
+from server.models import Machine, SalSetting
 
 
 class RemoteConnection(IPlugin):
@@ -38,9 +38,9 @@ class RemoteConnection(IPlugin):
             except Machine.DoesNotExist:
                 pass
 
-        if hasattr(settings, "SSH_ACCOUNT") and settings.SSH_ACCOUNT:
-            ssh_account = settings.SSH_ACCOUNT + "@"
-        else:
+        try:
+            ssh_account = SalSetting.objects.get(name='ssh_account').value
+        except SalSetting.DoesNotExist:
             ssh_account = ""
 
         context = Context({

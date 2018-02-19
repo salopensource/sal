@@ -210,7 +210,7 @@ def friendly_machine_model(machine):
             output = name['machine_model_friendly']
             break
 
-    if not output and not machine.serial.startswith('VM'):
+    if not output and not machine.serial.startswith('VM') and machine.os_family == 'Darwin':
         if len(machine.serial) == 12:
             serial_snippet = machine.serial[-4:]
         else:

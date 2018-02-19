@@ -16,7 +16,7 @@ class Command(BaseCommand):
         no_friendly = Machine.objects.filter(
             Q(machine_model_friendly__isnull=True) |
             Q(machine_model_friendly='')
-        ).exclude(machine_model__isnull=True).exclude(machine_model='')
+        ).exclude(machine_model__isnull=True).exclude(machine_model='').filter(os_family='Darwin')
         for machine in no_friendly:
             machine.machine_model_friendly = utils.friendly_machine_model(machine)
             machine.save()

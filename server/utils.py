@@ -473,7 +473,7 @@ def disabled_plugins(plugin_kind='main'):
                     try:
                         supported_os_families = plugin.plugin_object.supported_os_families()
                     except AttributeError:
-                        supported_os_families = ['Darwin', 'Windows', 'Linux']
+                        supported_os_families = ['Darwin', 'Windows', 'Linux', 'ChromeOS']
                     item['os_families'] = supported_os_families
 
                 output.append(item)

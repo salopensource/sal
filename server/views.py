@@ -1439,7 +1439,7 @@ def machine_detail(request, machine_id):
             try:
                 supported_os_families = plugin.plugin_object.supported_os_families()
             except Exception:
-                supported_os_families = ['Darwin', 'Windows', 'Linux']
+                supported_os_families = ['Darwin', 'Windows', 'Linux', 'ChromeOS']
             if plugin.name == enabled_plugin.name and \
                     plugin_type != 'builtin' and plugin_type != 'report' and \
                     machine.os_family in supported_os_families:
@@ -1810,7 +1810,7 @@ def machine_detail_plugin_enable(request, plugin_name):
         # Load all plugins
         manager.collectPlugins()
 
-        default_families = ['Darwin', 'Windows', 'Linux']
+        default_families = ['Darwin', 'Windows', 'Linux', 'ChromeOS']
         for plugin in manager.getAllPlugins():
             if plugin.name == plugin_name:
 

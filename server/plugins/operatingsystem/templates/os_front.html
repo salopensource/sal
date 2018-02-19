@@ -62,6 +62,25 @@
                 {% endfor %}
             
             {% endif %}
+
+            {% if chrome_data %}
+            <tr>
+                <th>Chrome OS</th>
+            </tr>
+            {% for item in chrome_data %}
+                {% if item.operating_system %}
+                    <tr>
+                        <td>
+                            <a href="{% url 'machine_list_front' 'OperatingSystem' item.operating_system %}">
+                            {{ item.operating_system }}
+                            <span class="badge pull-right">{{ item.count }}</span>
+                            </a>
+                        </td>
+                    </tr>
+                    {% endif %}
+                {% endfor %}
+            
+            {% endif %}
         
         </table>
     </div>

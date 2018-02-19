@@ -14,6 +14,7 @@ OS_CHOICES = (
     ('Darwin', 'macOS'),
     ('Windows', 'Windows'),
     ('Linux', 'Linux'),
+    ('ChromeOS', 'Chrome OS'),
 )
 
 REPORT_CHOICES = (

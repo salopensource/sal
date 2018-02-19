@@ -1,4 +1,7 @@
+from distutils.version import LooseVersion
 import hashlib
+from itertools import chain
+import json
 import logging
 import os
 import plistlib
@@ -19,6 +22,10 @@ PLUGIN_ORDER = [
     'Activity', 'Status', 'OperatingSystem', 'MunkiVersion', 'Uptime', 'Memory', 'DiskSpace',
     'PendingAppleUpdates', 'Pending3rdPartyUpdates', 'Encryption', 'Gatekeeper', 'Sip',
     'XprotectVersion']
+TRUTHY = {'TRUE', 'YES'}
+FALSY = {'FALSE', 'NO'}
+STRINGY_BOOLS = TRUTHY.union(FALSY)
+TWENTY_FOUR_HOURS = 86400
 
 
 def safe_unicode(s):
@@ -58,41 +65,26 @@ def csvrelated(header_item, facts, kind):
         return ''
 
 
-def get_version_number():
-    # See if we're sending data
-    try:
-        senddata_setting = SalSetting.objects.get(name='send_data')
-    except SalSetting.DoesNotExist:
-        # it's not been set up yet, just return true
-        return True
+def get_server_version():
+    current_dir = os.path.dirname(os.path.realpath(__file__))
+    version = plistlib.readPlist(os.path.join(os.path.dirname(current_dir), 'sal', 'version.plist'))
+    return version['version']
 
-    try:
-        last_sent = SalSetting.objects.get(name='last_sent_data')
-    except SalSetting.DoesNotExist:
-        last_sent = SalSetting(name='last_sent_data', value='0')
-        last_sent.save()
 
-    current_time = int(time.time())
-    if int(last_sent.value) < (current_time - 86400) or int(last_sent.value) == 0:
-        try:
-            current_version = SalSetting.objects.get(name='current_version')
-        except SalSetting.DoesNotExist:
-            current_version = SalSetting(name='current_version', value='0')
-            current_version.save()
-        last_sent.value = current_time
-        last_sent.save()
-        if senddata_setting.value == 'yes':
-            version = send_report()
-            current_version.value = version
-            current_version.save()
-        else:
-            try:
-                r = requests.get('https://version.salopensource.com')
-                if r.status_code == 200:
-                    current_version.value = r.text
-                    current_version.save()
-            except Exception:
-                return True
+def get_current_release_version_number():
+    """Get the currently available Sal version.
+
+    Returns:
+        (str) Version number if it could be retrieved, otherwise None.
+    """
+    current_version = None
+    try:
+        response = requests.get('https://version.salopensource.com')
+        if response.status_code == 200:
+            current_version = response.text
+    except requests.exceptions.RequestException:
+        pass
+    return current_version
 
 
 def get_install_type():
@@ -103,34 +95,87 @@ def get_install_type():
 
 
 def send_report():
-    output = {}
-    # get total number of machines
-    output['machines'] = Machine.objects.all().count()
-    # get list of plugins
-    plugins = []
-    for plugin in Plugin.objects.all():
-        plugins.append(plugin.name)
+    """Send report data if last report was sent over 24 hours ago.
 
-    for plugin in Report.objects.all():
-        plugins.append(plugin.name)
-    output['plugins'] = plugins
-    # get install type
-    output['install_type'] = get_install_type()
-    # get database type
-    output['database'] = settings.DATABASES['default']['ENGINE']
+    Returns:
+        (str) current Sal version number or None if there was a problem
+        retrieving it. This will return regardless of whether the report
+        needed to be sent.
+    """
+    last_sent = get_setting('last_sent_data', 0)
 
-    # version
-    current_dir = os.path.dirname(os.path.realpath(__file__))
-    version = plistlib.readPlist(os.path.join(os.path.dirname(current_dir), 'sal', 'version.plist'))
-    output['version'] = version['version']
-    # plist encode output
-    post_data = plistlib.writePlistToString(output)
-    r = requests.post('https://version.salopensource.com', data={"data": post_data})
-    print r.status_code
-    if r.status_code == 200:
-        return r.text
+    current_time = time.time()
+
+    if last_sent < (current_time - TWENTY_FOUR_HOURS):
+        output = {}
+
+        # get total number of machines
+        output['machines'] = Machine.objects.all().count()
+
+        # get list of plugins
+        output['plugins'] = [p.name for p in chain(Plugin.objects.all(), Report.objects.all())]
+
+        # get install type
+        output['install_type'] = get_install_type()
+
+        # get database type
+        output['database'] = settings.DATABASES['default']['ENGINE']
+
+        # version
+        current_dir = os.path.dirname(os.path.realpath(__file__))
+        version = plistlib.readPlist(
+            os.path.join(os.path.dirname(current_dir), 'sal', 'version.plist'))
+        output['version'] = version['version']
+        # plist encode output
+        post_data = plistlib.writePlistToString(output)
+        response = requests.post('https://version.salopensource.com', data={"data": post_data})
+        set_setting('last_sent_data', int(current_time))
+        print response.status_code
+        if response.status_code == 200:
+            return response.text
+        else:
+            return None
     else:
-        return 'Error'
+        return get_current_release_version_number()
+
+
+def check_version():
+    """Compare running version to available version and return info.
+
+    This function honors the `next_notify_date` = 'never' setting, and only
+    returns data if a notification is due to be delivered.
+
+    Returns:
+        dict:
+            'new_version_available': (bool)
+            'new_version': (str) Version number of available update.
+            'current_version': (str) Version of running server.
+    """
+    # TODO: This is just to keep the values the same from existing code.
+    result = {'new_version_available': False, 'new_version': False, 'server_version': False}
+
+    server_version = get_server_version()
+    # Grab this from the database so we're not making requests all
+    # the time.
+    current_release_version = get_setting('current_version', '0')
+
+    # Only do something if running version is out of date.
+    if LooseVersion(current_release_version) > LooseVersion(server_version):
+        # Determine whether to notify, or just not bother.
+        next_notify_date = get_setting('next_notify_date', 0)
+        if next_notify_date == 'never':
+            last_notified_version = get_setting('last_notified_version')
+            if last_notified_version != current_release_version:
+                set_setting('last_notified_version', current_release_version)
+                set_setting('next_notify_date', '')
+
+        current_time = time.time()
+        if current_time > next_notify_date:
+            result['new_version_available'] = True
+            result['server_version'] = server_version
+            result['current_release_version'] = current_release_version
+
+    return result
 
 
 def listify_condition_data(data):
@@ -250,6 +295,108 @@ def display_time(seconds, granularity=2):
                 name = name.rstrip('s')
             result.append("{} {}".format(value, name))
     return ', '.join(result[:granularity])
+
+
+def get_setting(name, default=None):
+    """Get a SalSetting from the database.
+
+    If a setting is not in the database, and a default has been provided
+    in 'sal/default_sal_settings.json', create it with that value.
+    If no setting exists, and it's not in the defaults file, return
+    default argument (default of `None`).
+
+    Args:
+        name (str): Name of SalSetting to retrieve.
+        default (str, bool, float, int, None): Default value to return
+            if setting has no value, the settings file has no configured
+            defaults. Defaults to `None`.
+
+    Returns:
+        None: Value is an empty string or if the setting is absent from
+            the database and has no default setting.
+        int: Value is all digits with no decimal place.
+        float: Value can be cast to a float.
+        bool: If value is (any case) True, False, Yes, No.
+        str: Anything else.
+
+    """
+    try:
+        setting = SalSetting.objects.get(name=name)
+    except SalSetting.DoesNotExist:
+        # Let's just refresh all of the missing defaults.
+        add_default_sal_settings()
+        # And try one more time.
+        try:
+            setting = SalSetting.objects.get(name=name)
+        except SalSetting.DoesNotExist:
+            # Otherwise, fall back to the default argument.
+            return default
+
+    # Cast values to python datatypes.
+    value = setting.value.strip()
+    if not value:
+        return None if default is None else default
+    elif value.isdigit():
+        return int(value)
+    elif is_float(value):
+        return float(value)
+    elif value.upper() in STRINGY_BOOLS:
+        return True if value.upper() in TRUTHY else False
+    else:
+        return value
+
+
+def add_default_sal_settings():
+    """Add in missing default settings to database."""
+    default_sal_settings = get_defaults()
+    for setting in default_sal_settings:
+        _, created = SalSetting.objects.get_or_create(
+            name=setting['name'], defaults={'value': setting['value']})
+        # if created:
+        #     print "Created Sal Setting: '{name}' with value: '{value}'.".format(**setting)
+
+
+def get_defaults():
+    """Get the default settings from our defaults file."""
+    # The file is stored in the project root /sal folder.
+    default_sal_settings_path = os.path.join(
+        os.path.dirname(os.path.abspath(__file__)), "../sal", 'default_sal_settings.json')
+    with open(default_sal_settings_path) as handle:
+        default_sal_settings = json.load(handle)
+
+    return default_sal_settings
+
+
+def set_setting(name, value):
+    """Set SalSetting with `name` to `value`.
+
+    Args:
+        name (str): Name of SalSetting to set.
+        value (str or with __str__ method): Value to set. Must be
+            castable to str.
+
+    Returns:
+        False if setting was not set (value conversion failed) or True
+        if setting was successfully set.
+    """
+    try:
+        value = str(value)
+    except ValueError:
+        return False
+
+    obj, created = SalSetting.objects.get_or_create(name=name, defaults={'value': value})
+    if not created:
+        obj.value = value
+        obj.save()
+    return True
+
+
+def is_float(value):
+    try:
+        float(value)
+        return True
+    except ValueError:
+        return False
 
 
 # Plugin utilities

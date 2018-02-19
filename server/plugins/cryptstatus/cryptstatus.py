@@ -1,14 +1,16 @@
-from yapsy.IPlugin import IPlugin
-from yapsy.PluginManager import PluginManager
-from django.template import loader, Context
-from django.db.models import Count
-from server.models import *
-from django.shortcuts import get_object_or_404
-import server.utils as utils
-from django.conf import settings
 import requests
 from datetime import datetime
+
+from django.conf import settings
+from django.db.models import Count
+from django.shortcuts import get_object_or_404
+from django.template import loader, Context
 from django.utils.dateparse import parse_datetime
+
+from yapsy.IPlugin import IPlugin
+from yapsy.PluginManager import PluginManager
+
+import server.utils as utils
 
 
 class CryptStatus(IPlugin):
@@ -28,11 +30,8 @@ class CryptStatus(IPlugin):
 
         t = loader.get_template('cryptstatus/templates/cryptstatus.html')
 
-        try:
-            crypt_url = settings.CRYPT_URL
-            crypt_url = crypt_url.rstrip('/')
-        except Exception:
-            crypt_url = None
+        crypt_url = utils.get_setting('crypt_url', '').rstrip()
+        machine_url = crypt_url
 
         try:
             cert = settings.ROOT_CA
@@ -50,9 +49,10 @@ class CryptStatus(IPlugin):
             else:
                 verify = True
             try:
-                r = requests.get(request_url, verify=verify)
-                if r.status_code == requests.codes.ok:
-                    output = r.json()
+                response = requests.get(request_url, verify=verify)
+                if response.status_code == requests.codes.ok:
+                    output = response.json()
+                    machine_url = '{}/info/{}'.format(crypt_url, serial)
             except Exception:
                 pass
 
@@ -65,6 +65,7 @@ class CryptStatus(IPlugin):
             'title': 'FileVault Escrow',
             'date_escrowed': date_escrowed,
             'escrowed': escrowed,
+            'crypt_url': machine_url
         })
         return t.render(c)
 

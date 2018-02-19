@@ -150,5 +150,7 @@ urlpatterns = [
     # Settings
     url(r'^settings/', settings_page, name='settings_page'),
     # never remind about new version
-    url(r'^new_version/never/', new_version_never, name='new_version_never')
+    url(r'^new_version/never/', new_version_never, name='new_version_never'),
+    url(r'^new_version/week/', new_version_week, name='new_version_week'),
+    url(r'^new_version/day/', new_version_day, name='new_version_day')
 ]

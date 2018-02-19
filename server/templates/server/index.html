@@ -134,7 +134,7 @@ $( document ).ready(function() {
     <h4 class="modal-title" id="newVersionLabel">New version available</h4>
   </div>
   <div class="modal-body">
-    <p>Version <strong>{{ new_version }}</strong> of Sal has been released. You are currently running {{ current_version }}.</p>
+    <p>Version <strong>{{ current_release_version }}</strong> of Sal has been released. You are currently running {{ server_version }}.</p>
   </div>
   <div class="modal-footer">
     <a href="https://github.com/salopensource/sal/wiki" target="_blank" class="btn btn-success">How to upgrade</a>
@@ -144,8 +144,8 @@ $( document ).ready(function() {
     Don't remind me again... <span class="caret"></span>
   </button>
   <ul class="dropdown-menu new_version_dropdown">
-    <li class="new_version"><a href="#">For a day</a></li>
-    <li class="new_version"><a href="#">For a week</a></li>
+    <li class="new_version"><a href="{% url 'new_version_day' %}">For a day</a></li>
+    <li class="new_version"><a href="{% url 'new_version_week' %}">For a week</a></li>
     <li class="new_version"><a href="{% url 'new_version_never' %}">Until the next version</a></li>
   </ul>
 </div>

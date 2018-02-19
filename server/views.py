@@ -23,7 +23,6 @@ from forms import *
 import pprint
 import re
 import os
-from distutils.version import LooseVersion
 from yapsy.PluginManager import PluginManager
 from django.core.exceptions import PermissionDenied
 import utils
@@ -121,119 +120,56 @@ def index(request):
                 break
 
     output = utils.orderPluginOutput(output)
+
+    # If the user is GA level, and hasn't decided on a data sending
+    # choice, template will reflect this.
+    data_choice = False if (user_level == 'GA' and utils.get_setting('send_data') is None) else True
+
     # get the user level - if they're a global admin, show all of the
     # machines. If not, show only the machines they have access to
-    data_setting_decided = True
     if user_level == 'GA':
         business_units = BusinessUnit.objects.all()
-        try:
-            SalSetting.objects.get(name='send_data')
-        except SalSetting.DoesNotExist:
-            data_setting_decided = False
     else:
         business_units = user.businessunit_set.all()
 
-    # This isn't ready. These can just be false / none for now
-    # (new_version_available, new_version, current_version) = check_version()
-    new_version_available = False
-    new_version = False
-    current_version = False
-    c = {
+    context = {
         'user': request.user,
         'business_units': business_units,
         'output': output,
-        'data_setting_decided': data_setting_decided,
-        'new_version_available': new_version_available,
-        'new_version': new_version,
-        'reports': reports,
-        'current_version': current_version}
-    return render(request, 'server/index.html', c)
+        'data_setting_decided': data_choice,
+        'reports': reports}
 
+    context.update(utils.check_version())
 
-def check_version():
-    # Get current version
-    new_version_available = False
-    new_version = None
-    current_dir = os.path.dirname(os.path.realpath(__file__))
-    version = plistlib.readPlist(os.path.join(os.path.dirname(current_dir), 'sal', 'version.plist'))
-    current_version = version['version']
-    try:
-        # Get version from the server
-        current_version_lookup = SalSetting.objects.get(name='current_version')
-        server_version = current_version_lookup.value
-    except SalSetting.DoesNotExist:
-        server_version = None
-
-    # if we've looked for the server version, check to see what we're running
-    if server_version:
-        should_notify = False
-        if LooseVersion(server_version) > LooseVersion(current_version):
-            # Have we notified about this version before?
-            try:
-                last_version_notified_lookup = SalSetting.objects.get(name='last_notified_version')
-                last_notified_version = last_version_notified_lookup.value
-            except SalSetting.DoesNotExist:
-                last_notified_version = None
-            # if last version notified version is equal to the server version
-            if last_notified_version == server_version:
-                try:
-                    next_notify_date_lookup = SalSetting.objects.get(name='next_notify_date')
-                    next_notify_date = next_notify_date_lookup.value
-                except Exception:
-                    # They've not chosen yet, show it
-                    should_notify = True
-                    next_notify_date = None
-            else:
-                should_notify = True
-                next_notify_date = None
-            # Try and get the last notified date - if it's never, no new version avaialble
-            if next_notify_date:
-                if next_notify_date != 'never':
-                    current_time = time.time()
-                    if current_time > next_notify_date:
-                        should_notify = True
-
-            if should_notify:
-                new_version_available = True
-                new_version = server_version
-        else:
-            try:
-                next_notify_date_lookup = SalSetting.objects.get(name='next_notify_date')
-                next_notify_date_lookup.delete()
-            except SalSetting.DoesNotExist:
-                pass
-
-    return new_version_available, new_version, current_version
+    return render(request, 'server/index.html', context)
 
 
 @login_required
 def new_version_never(request):
+    update_notify_date(request)
+    return redirect(index)
+
+
+def update_notify_date(request, length='never'):
     if request.user.userprofile.level != 'GA':
         return redirect(index)
     # Don't notify about a new version until there is a new one
-    current_version_lookup = SalSetting.objects.get(name='current_version')
-    server_version = current_version_lookup.value
-    try:
-        last_version_notified = SalSetting.objects.get(name='last_notified_version')
-    except SalSetting.DoesNotExist:
-        last_version_notified = SalSetting(name='last_notified_version')
-    last_version_notified.value = server_version
-    last_version_notified.save()
-
-    try:
-        next_notify_date = SalSetting.objects.get(name='next_notify_date')
-    except SalSetting.DoesNotExist:
-        next_notify_date = SalSetting(name='next_notify_date')
-
-    next_notify_date.value = 'never'
-    next_notify_date.save()
-    return redirect(index)
+    version_report = utils.check_version()
+    if version_report['new_version_available']:
+        next_notify_date = utils.get_setting('next_notify_date', time.time()) + length
+        utils.set_setting('next_notify_date', next_notify_date)
 
 
 @login_required
 def new_version_week(request):
-    # Notify again in a week
-    pass
+    update_notify_date(request, length=604800)
+    return redirect(index)
+
+
+@login_required
+def new_version_day(request):
+    update_notify_date(request, length=86400)
+    return redirect(index)
 
 # Manage Users
 
@@ -502,8 +438,10 @@ def tableajax(request, pluginName, data, page='front', theID=None):
 def machine_list(request, pluginName, data, page='front', theID=None):
     (machines, title) = plugin_machines(request, pluginName, data, page, theID, get_machines=False)
     user = request.user
+    page_length = utils.get_setting('datatable_page_length')
     c = {'user': user, 'plugin_name': pluginName, 'machines': machines, 'req_type': page,
-         'title': title, 'bu_id': theID, 'request': request, 'data': data}
+         'title': title, 'bu_id': theID, 'request': request, 'data': data,
+         'page_length': page_length}
 
     return render(request, 'server/overview_list_all.html', c)
 
@@ -1077,7 +1015,11 @@ def overview_list_all(request, req_type, data, bu_id=None):
 
     if req_type == 'pending_apple_updates':
         machines = all_machines.filter(pendingappleupdate__update=pending_apple_update)
-    c = {'user': user, 'machines': machines, 'req_type': req_type, 'data': data, 'bu_id': bu_id}
+
+    page_length = utils.get_setting('datatable_page_length')
+
+    c = {'user': user, 'machines': machines, 'req_type': req_type, 'data': data, 'bu_id': bu_id,
+         'page_length': page_length}
 
     return render(request, 'server/overview_list_all.html', c)
 
@@ -1548,29 +1490,20 @@ def delete_machine(request, machine_id):
 def settings_page(request):
     user = request.user
     user_level = user.userprofile.level
-
-    # Pull the historical_data setting
-    try:
-        historical_setting = SalSetting.objects.get(name='historical_retention')
-    except SalSetting.DoesNotExist:
-        historical_setting = SalSetting(name='historical_retention', value='180')
-        historical_setting.save()
-    historical_setting_form = SettingsHistoricalDataForm(initial={'days': historical_setting.value})
     if user_level != 'GA':
         return redirect(index)
 
-    try:
-        senddata_setting = SalSetting.objects.get(name='send_data')
-    except SalSetting.DoesNotExist:
-        senddata_setting = SalSetting(name='send_data', value='yes')
-        senddata_setting.save()
+    historical_setting = utils.get_setting('historical_retention')
+    historical_setting_form = SettingsHistoricalDataForm(initial={'days': historical_setting})
 
-    c = {
+    senddata_setting = utils.get_setting('send_data')
+
+    context = {
         'user': request.user,
         'request': request,
         'historical_setting_form': historical_setting_form,
-        'senddata_setting': senddata_setting.value}
-    return render(request, 'server/settings.html', c)
+        'senddata_setting': senddata_setting}
+    return render(request, 'server/settings.html', context)
 
 
 @login_required
@@ -1579,12 +1512,8 @@ def senddata_enable(request):
     user_level = user.userprofile.level
     if user_level != 'GA':
         return redirect(index)
-    try:
-        senddata_setting = SalSetting.objects.get(name='send_data')
-    except SalSetting.DoesNotExist:
-        senddata_setting = SalSetting(name='send_data', value='yes')
-    senddata_setting.value = 'yes'
-    senddata_setting.save()
+
+    utils.set_setting('send_data', True)
     return HttpResponseRedirect(request.META.get('HTTP_REFERER'))
 
 
@@ -1594,12 +1523,8 @@ def senddata_disable(request):
     user_level = user.userprofile.level
     if user_level != 'GA':
         return redirect(index)
-    try:
-        senddata_setting = SalSetting.objects.get(name='send_data')
-    except SalSetting.DoesNotExist:
-        senddata_setting = SalSetting(name='send_data', value='no')
-    senddata_setting.value = 'no'
-    senddata_setting.save()
+
+    utils.set_setting('send_data', False)
     return HttpResponseRedirect(request.META.get('HTTP_REFERER'))
 
 
@@ -1609,18 +1534,11 @@ def settings_historical_data(request):
     user_level = user.userprofile.level
     if user_level != 'GA':
         return redirect(index)
-    if request.method == 'POST':
-        # create a form instance and populate it with data from the request:
-        form = SettingsHistoricalDataForm(request.POST)
-        # check whether it's valid:
-        if form.is_valid():
-            try:
-                historical_setting = SalSetting.objects.get(name='historical_retention')
-            except SalSetting.DoesNotExist:
-                historical_setting = SalSetting(name='historical_retention')
 
-            historical_setting.value = form.cleaned_data['days']
-            historical_setting.save()
+    if request.method == 'POST':
+        form = SettingsHistoricalDataForm(request.POST)
+        if form.is_valid():
+            utils.set_setting('historical_retention', form.cleaned_data['days'])
             messages.success(request, 'Data retention settings saved.')
 
             return redirect('settings_page')
@@ -2075,13 +1993,7 @@ def checkin(request):
     else:
         machine.broken_client = False
 
-    try:
-        historical_setting = SalSetting.objects.get(name='historical_retention')
-        historical_days = historical_setting.value
-    except SalSetting.DoesNotExist:
-        historical_setting = SalSetting(name='historical_retention', value='180')
-        historical_setting.save()
-        historical_days = '180'
+    historical_days = utils.get_setting('historical_retention')
 
     machine.hostname = data.get('name', '<NO NAME>')
 
@@ -2508,7 +2420,15 @@ def checkin(request):
                     condition.save()
 
     utils.run_plugin_processing(machine, report_data)
-    utils.get_version_number()
+
+    if utils.get_setting('send_data') in (None, True):
+        # If setting is None, it hasn't been configured yet; assume True
+        current_version = utils.send_report()
+    else:
+        current_version = utils.get_current_release_version_number()
+    if current_version:
+        utils.set_setting('current_version', current_version)
+
     return HttpResponse("Sal report submmitted for %s"
                         % data.get('name'))
 

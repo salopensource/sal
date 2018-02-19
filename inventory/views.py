@@ -27,7 +27,7 @@ from datatableview.views import DatatableView
 from models import Application, Inventory, InventoryItem, Machine
 from server import utils
 from sal.decorators import *
-from server.models import BusinessUnit, MachineGroup, Machine, SalSetting  # noqa: F811
+from server.models import BusinessUnit, MachineGroup, Machine  # noqa: F811
 
 
 class GroupMixin(object):
@@ -178,6 +178,7 @@ class InventoryList(Datatable):
         processors = {
             'hostname': 'get_machine_link', 'last_checkin': 'format_date'}
         structure_template = 'datatableview/bootstrap_structure.html'
+        page_length = utils.get_setting('datatable_page_length')
 
     def get_machine_link(self, instance, **kwargs):
         url = reverse(
@@ -264,6 +265,7 @@ class ApplicationList(Datatable):
         labels = {'bundleid': 'Bundle ID', 'bundlename': 'Bundle Name'}
         processors = {'name': 'link_to_detail'}
         structure_template = 'datatableview/bootstrap_structure.html'
+        page_length = utils.get_setting('datatable_page_length')
 
     def link_to_detail(self, instance, **kwargs):
         link_kwargs = copy.copy(kwargs['view'].kwargs)
@@ -308,11 +310,7 @@ class ApplicationListView(DatatableView, GroupMixin):
         # the python re module's syntax. You may delimit multiple
         # patterns with the '|' operator, e.g.:
         # 'com\.[aA]dobe.*|com\.apple\..*'
-        try:
-            inventory_pattern = SalSetting.objects.get(
-                name='inventory_exclusion_pattern').value
-        except SalSetting.DoesNotExist:
-            inventory_pattern = None
+        inventory_pattern = utils.get_setting('inventory_exclusion_pattern')
 
         if inventory_pattern:
             crufty_bundles.append(inventory_pattern)
@@ -321,16 +319,7 @@ class ApplicationListView(DatatableView, GroupMixin):
         # VMWare and Parallels VMs. If you would like to disable this,
         # set the SalSetting 'filter_proxied_virtualization_apps' to
         # 'no' or 'false' (it's a string).
-        try:
-            setting_value = SalSetting.objects.get(
-                name='filter_proxied_virtualization_apps').value
-        except SalSetting.DoesNotExist:
-            setting_value = ''
-
-        filter_proxy_apps = (
-            setting_value.strip().upper() not in ('NO', 'FALSE'))
-
-        if filter_proxy_apps:
+        if utils.get_setting('filter_proxied_virtualization_apps', True):
             # Virtualization proxied apps
             crufty_bundles.extend([
                 "com\.vmware\.proxyApp\..*", "com\.parallels\.winapp\..*"])

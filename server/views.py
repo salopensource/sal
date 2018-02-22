@@ -56,6 +56,7 @@ def index(request):
                 return redirect('bu_dashboard', bu_id=bu.id)
                 break
 
+    # TODO: Plugin code smell
     # Load in the default plugins if needed
     utils.load_default_plugins()
     # Build the manager
@@ -83,6 +84,7 @@ def index(request):
                     reports.append(data)
 
                     break
+    # TODO: Plugin code smell
     # Get all the enabled plugins
     enabled_plugins = Plugin.objects.all().order_by('order')
     for enabled_plugin in enabled_plugins:
@@ -209,23 +211,14 @@ def really_delete_business_unit(request, bu_id):
 @login_required
 @access_required()
 def bu_dashboard(request, **kwargs):
-    # TODO: This can be factored out.
-    # user = request.user
-    # user_level = user.userprofile.level
-    # business_unit = get_object_or_404(BusinessUnit, pk=bu_id)
-    # bu = business_unit
-    # if business_unit not in user.businessunit_set.all() and user_level != 'GA':
-    #     print 'not letting you in ' + user_level
-    #     return redirect(index)
-    # Get the groups within the Business Unit
     business_unit = kwargs['business_unit']
-
     machine_groups = business_unit.machinegroup_set.all()
+    machines = utils.getBUmachines(business_unit.id)  # noqa: F841
+
     if request.user.userprofile.level in ('GA', 'RW'):
         is_editor = True
     else:
         is_editor = False
-    machines = utils.getBUmachines(business_unit.id)  # noqa: F841
 
     now = django.utils.timezone.now()
     hour_ago = now - timedelta(hours=1)  # noqa: F841
@@ -234,6 +227,7 @@ def bu_dashboard(request, **kwargs):
     month_ago = today - timedelta(days=30)  # noqa: F841
     three_months_ago = today - timedelta(days=90)  # noqa: F841
 
+    # TODO: Busted! Code smell
     # Build the manager
     manager = PluginManager()
     # Tell it the default place(s) where to find plugins
@@ -315,33 +309,23 @@ def really_delete_machine_group(request, group_id):
 
 
 @login_required
-def group_dashboard(request, group_id):
-    # check user is allowed to access this
-    user = request.user
-    user_level = user.userprofile.level
-    machine_group = get_object_or_404(MachineGroup, pk=group_id)
-    business_unit = machine_group.business_unit
-    # TODO: factor to access decorator
-    if business_unit not in user.businessunit_set.all():
-        if user_level != 'GA':
-            return redirect(index)
-    if user_level == 'GA' or user_level == 'RW':
+@access_required(MachineGroup)
+def group_dashboard(request, **kwargs):
+    if request.user.userprofile.level in ('GA', 'RW'):
         is_editor = True
     else:
         is_editor = False
+
+    machine_group = kwargs['instance']
     machines = machine_group.machine_set.all().filter(deployed=True)  # noqa: F841
-    # Build the manager
-    manager = PluginManager()
-    # Tell it the default place(s) where to find plugins
-    manager.setPluginPlaces([settings.PLUGIN_DIR, os.path.join(
-        settings.PROJECT_DIR, 'server/plugins')])
-    # Load all plugins
-    manager.collectPlugins()
+
+    all_plugins = utils.get_all_plugins()
+
+    # TODO: Code smell
     output = []
     reports = []
-    enabled_reports = Report.objects.all()
-    for enabled_report in enabled_reports:
-        for plugin in manager.getAllPlugins():
+    for enabled_report in Report.objects.all():
+        for plugin in all_plugins:
             if plugin.name == enabled_report.name:
                 # If plugin_type isn't set, it can't be a report
                 try:
@@ -353,37 +337,39 @@ def group_dashboard(request, group_id):
                     data['name'] = plugin.name
                     data['title'] = plugin.plugin_object.get_title()
                     reports.append(data)
-
                     break
+
     # Get all the enabled plugins
     enabled_plugins = Plugin.objects.all().order_by('order')
     for enabled_plugin in enabled_plugins:
         # Loop round the plugins and print their names.
-        for plugin in manager.getAllPlugins():
+        for plugin in all_plugins:
             try:
-                plugin_type = plugin.plugin_object.plugin_type()
+                p_type = plugin.plugin_object.plugin_type()
             except Exception:
-                plugin_type = 'widget'
-            if plugin.name == enabled_plugin.name and \
-                    plugin_type != 'machine_info' and plugin_type != 'full_page':
-                data = {}
-                data['name'] = plugin.name
+                p_type = 'widget'
+
+            if plugin.name == enabled_plugin.name and p_type not in ('machine_info', 'full_page'):
+                data = {'name': plugin.name}
                 data['width'] = plugin.plugin_object.widget_width()
-                data['html'] = '<div id="plugin-%s" class="col-md-%s"><img class="center-block blue-spinner" src="%s"/></div>' % (data['name'], str(data['width']), static('img/blue-spinner.gif'))  # noqa: E501
+                data['html'] = (
+                    '<div id="plugin-%s" class="col-md-%s">'
+                    '<img class="center-block blue-spinner" src="%s"/></div>') % (
+                        data['name'], str(data['width']), static('img/blue-spinner.gif'))
                 output.append(data)
                 break
 
     output = utils.orderPluginOutput(output, 'group_dashboard', machine_group.id)
-    c = {
+    context = {
         'user': request.user,
         'machine_group': machine_group,
-        'user_level': user_level,
+        'user_level': request.user.userprofile.level,
         'is_editor': is_editor,
-        'business_unit': business_unit,
+        'business_unit': kwargs['business_unit'],
         'output': output,
         'request': request,
         'reports': reports}
-    return render(request, 'server/group_dashboard.html', c)
+    return render(request, 'server/group_dashboard.html', context)
 
 
 @login_required
@@ -409,7 +395,7 @@ def new_machine_group(request, bu_id):
     else:
         is_editor = False
 
-    # TODO: Factor to access decorator
+    # TODO: Factor to access decorator; waiting to hear that RW should be allowed to do this.
     if business_unit not in user.businessunit_set.all() or is_editor is False:
         if user_level != 'GA':
             return redirect(index)
@@ -430,7 +416,7 @@ def edit_machine_group(request, group_id):
     else:
         is_editor = False
 
-    # TODO: Factor to access decorator
+    # TODO: Factor to access decorator; waiting to hear that RW should be allowed to do this.
     if business_unit not in user.businessunit_set.all() or is_editor is False:
         if user_level != 'GA':
             return redirect(index)
@@ -472,7 +458,7 @@ def new_machine(request, group_id):
     else:
         is_editor = False
 
-    # TODO: Factor to access decorator
+    # TODO: Factor to access decorator; waiting to hear that RW should be allowed to do this.
     if business_unit not in user.businessunit_set.all() or is_editor is False:
         if user_level != 'GA':
             return redirect(index)
@@ -481,29 +467,19 @@ def new_machine(request, group_id):
 
 
 @login_required
-def machine_detail(request, machine_id):
-    try:
-        machine = Machine.objects.get(pk=machine_id)
-    except (ValueError, Machine.DoesNotExist):
-        machine = get_object_or_404(Machine, serial=machine_id)
+@access_required(Machine)
+def machine_detail(request, **kwargs):
+    machine = kwargs['instance']
     machine_group = machine.machine_group
     business_unit = machine_group.business_unit
-    # check the user is in a BU that's allowed to see this Machine
-    user = request.user
-    user_level = user.userprofile.level
-    # TODO: Factor to access decorator
-    if business_unit not in user.businessunit_set.all():
-        if user_level != 'GA':
-            return redirect(index)
 
     report = machine.get_report()
 
-    ip_address = None
     try:
-        ip_address = machine.conditions.get(condition_name='ipv4_address')
-        ip_address = ip_address.condition_data
+        ip_address_condition = machine.conditions.get(condition_name='ipv4_address')
+        ip_address = ip_address_condition.condition_data
     except (Condition.MultipleObjectsReturned, Condition.DoesNotExist):
-        pass
+        ip_address = None
 
     install_results = {}
     for result in report.get('InstallResults', []):
@@ -523,17 +499,10 @@ def machine_detail(request, machine_id):
 
         # Get the update history
         try:
-            update_history = UpdateHistory.objects.get(machine=machine,
-                                                       version=item['version_to_install'],
-                                                       name=item['name'], update_type='third_party')
-        except IndexError:
-            pass
-        except UpdateHistory.DoesNotExist:
-            pass
-
-        try:
-            item['update_history'] = UpdateHistoryItem.objects.filter(update_history=update_history)
-        except Exception:
+            item['update_history'] = UpdateHistory.objects.get(
+                machine=machine, version=item['version_to_install'], name=item['name'],
+                update_type='third_party').updatehistoryitem_set.all()
+        except (IndexError, UpdateHistory.DoesNotExist):
             pass
 
     for item in report.get('ManagedInstalls', []):
@@ -552,10 +521,9 @@ def machine_detail(request, machine_id):
             item['version'] = version
             # Get the update history
             try:
-                update_history = UpdateHistory.objects.get(
-                    machine=machine, version=version, name=item['name'], update_type='third_party')
-                item['update_history'] = UpdateHistoryItem.objects.filter(
-                    update_history=update_history)
+                item['update_history'] = UpdateHistory.objects.get(
+                    machine=machine, version=version, name=item['name'],
+                    update_type='third_party').updatehistoryitem_set.all()
             except Exception:
                 pass
 
@@ -609,6 +577,7 @@ def machine_detail(request, machine_id):
     if 'managed_uninstalls_list' in report:
         report['managed_uninstalls_list'].sort()
 
+    # TODO: Plugin code smell
     # Woo, plugin time
     # Load in the default plugins if needed
     utils.load_default_plugins()
@@ -621,6 +590,7 @@ def machine_detail(request, machine_id):
     manager.collectPlugins()
     output = []
 
+    # TODO: Plugin code smell
     # Get all the enabled plugins
     enabled_plugins = MachineDetailPlugin.objects.all().order_by('order')
     for enabled_plugin in enabled_plugins:
@@ -638,18 +608,17 @@ def machine_detail(request, machine_id):
             except Exception:
                 supported_os_families = ['Darwin', 'Windows', 'Linux', 'ChromeOS']
             if plugin.name == enabled_plugin.name and \
-                    plugin_type != 'builtin' and plugin_type != 'report' and \
+                    plugin_type not in ('builtin', 'report') and \
                     machine.os_family in supported_os_families:
-                data = {}
-                data['name'] = plugin.name
+                data = {'name': plugin.name}
                 data['html'] = '<div id="plugin-%s"><img class="center-block blue-spinner" src="%s"/></div>' % (data['name'], static('img/blue-spinner.gif'))  # noqa: E501
                 output.append(data)
                 break
 
     output = utils.orderPluginOutput(output, page="machine_detail")
 
-    c = {
-        'user': user,
+    context = {
+        'user': request.user,
         'machine_group': machine_group,
         'business_unit': business_unit,
         'report': report,
@@ -660,7 +629,7 @@ def machine_detail(request, machine_id):
         'uptime_enabled': uptime_enabled,
         'uptime': uptime,
         'output': output}
-    return render(request, 'server/machine_detail.html', c)
+    return render(request, 'server/machine_detail.html', context)
 
 
 @login_required

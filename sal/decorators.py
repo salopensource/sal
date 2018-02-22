@@ -128,3 +128,20 @@ def ga_required(function):
             return function(*args, **kwargs)
 
     return wrapper
+
+
+def staff_required(function):
+    """View decorator to redirect non staff users.
+
+    Wrapped function must have the request object as the first argument.
+    """
+
+    @wraps(function)
+    def wrapper(*args, **kwargs):
+        if not args[0].user.is_staff:
+            return redirect(reverse('home'))
+        else:
+            return function(*args, **kwargs)
+
+    return wrapper
+

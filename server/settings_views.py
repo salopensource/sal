@@ -55,16 +55,12 @@ def new_version_day(request):
 
 @login_required
 @ga_required
+@staff_required
 def manage_users(request):
     try:
         brute_protect = settings.BRUTE_PROTECT
     except Exception:
         brute_protect = False
-    # We require you to be staff to manage users
-    # TODO:
-    user = request.user
-    if not user.is_staff:
-        return redirect(index)
     users = User.objects.all()
     c = {'user': request.user, 'users': users, 'request': request, 'brute_protect': brute_protect}
     return render(request, 'server/manage_users.html', c)
@@ -72,12 +68,8 @@ def manage_users(request):
 
 @login_required
 @ga_required
+@staff_required
 def new_user(request):
-    # We require you to be staff to manage users
-    # TODO
-    user = request.user
-    if not user.is_staff:
-        return redirect(index)
     c = {}
     c.update(csrf(request))
     if request.method == 'POST':
@@ -97,12 +89,8 @@ def new_user(request):
 
 @login_required
 @ga_required
+@staff_required
 def edit_user(request, user_id):
-    # TODO
-    user = request.user
-    # We require you to be staff to manage users
-    if not user.is_staff:
-        return redirect(index)
     the_user = get_object_or_404(User, pk=int(user_id))
     c = {}
     c.update(csrf(request))

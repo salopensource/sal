@@ -150,9 +150,8 @@ def new_version_never(request):
     return redirect(index)
 
 
+@ga_required
 def update_notify_date(request, length='never'):
-    if request.user.userprofile.level != 'GA':
-        return redirect(index)
     # Don't notify about a new version until there is a new one
     version_report = utils.check_version()
     if version_report['new_version_available']:
@@ -175,17 +174,15 @@ def new_version_day(request):
 
 
 @login_required
+@ga_required
 def manage_users(request):
-    user = request.user
-    user_level = user.userprofile.level
-    if user_level != 'GA':
-        return redirect(index)
-
     try:
         brute_protect = settings.BRUTE_PROTECT
     except Exception:
         brute_protect = False
     # We require you to be staff to manage users
+    # TODO:
+    user = request.user
     if not user.is_staff:
         return redirect(index)
     users = User.objects.all()
@@ -195,12 +192,11 @@ def manage_users(request):
 
 # New User
 @login_required
+@ga_required
 def new_user(request):
-    user = request.user
-    user_level = user.userprofile.level
-    if user_level != 'GA':
-        return redirect(index)
     # We require you to be staff to manage users
+    # TODO
+    user = request.user
     if not user.is_staff:
         return redirect(index)
     c = {}
@@ -221,11 +217,10 @@ def new_user(request):
 
 
 @login_required
+@ga_required
 def edit_user(request, user_id):
+    # TODO
     user = request.user
-    user_level = user.userprofile.level
-    if user_level != 'GA':
-        return redirect(index)
     # We require you to be staff to manage users
     if not user.is_staff:
         return redirect(index)
@@ -259,10 +254,8 @@ def edit_user(request, user_id):
 
 
 @login_required
+@ga_required
 def user_add_staff(request, user_id):
-    user_level = request.user.userprofile.level
-    if user_level != 'GA':
-        return redirect(index)
     if request.user.id == int(user_id):
         # You shouldn't have been able to get here anyway
         return redirect('manage_users')
@@ -273,10 +266,8 @@ def user_add_staff(request, user_id):
 
 
 @login_required
+@ga_required
 def user_remove_staff(request, user_id):
-    user_level = request.user.userprofile.level
-    if user_level != 'GA':
-        return redirect(index)
     if request.user.id == int(user_id):
         # You shouldn't have been able to get here anyway
         return redirect('manage_users')
@@ -286,10 +277,8 @@ def user_remove_staff(request, user_id):
     return redirect('manage_users')
 
 
+@ga_required
 def delete_user(request, user_id):
-    user_level = request.user.userprofile.level
-    if user_level != 'GA':
-        return redirect(index)
     if request.user.id == int(user_id):
         # You shouldn't have been able to get here anyway
         return redirect('manage_users')
@@ -710,6 +699,7 @@ def export_csv(request, pluginName, data, page='front', theID=None):
 
 
 @login_required
+@ga_required
 def new_business_unit(request):
     c = {}
     c.update(csrf(request))
@@ -723,24 +713,19 @@ def new_business_unit(request):
     else:
         form = BusinessUnitForm()
     c = {'form': form}
-    user = request.user
-    user_level = user.userprofile.level
-    if user_level != 'GA':
-        return redirect(index)
     return render(request, 'forms/new_business_unit.html', c)
 
 # Edit BU
 
 
 @login_required
+@ga_required
 def edit_business_unit(request, bu_id):
-    user = request.user
-    user_level = user.userprofile.level
-    if user_level != 'GA':
-        return redirect(index)
     business_unit = get_object_or_404(BusinessUnit, pk=int(bu_id))
     c = {}
     c.update(csrf(request))
+    # TODO: Remove
+    user = request.user
     if request.method == 'POST':
         if user.is_staff:
             form = EditUserBusinessUnitForm(request.POST, instance=business_unit)
@@ -757,19 +742,12 @@ def edit_business_unit(request, bu_id):
         else:
             form = EditBusinessUnitForm(instance=business_unit)
     c = {'form': form, 'business_unit': business_unit}
-    user = request.user
-    user_level = user.userprofile.level
-    if user_level != 'GA':
-        return redirect(index)
     return render(request, 'forms/edit_business_unit.html', c)
 
 
 @login_required
+@ga_required
 def delete_business_unit(request, bu_id):
-    user = request.user
-    user_level = user.userprofile.level
-    if user_level != 'GA':
-        return redirect(index)
     business_unit = get_object_or_404(BusinessUnit, pk=int(bu_id))
 
     machine_groups = business_unit.machinegroup_set.all()
@@ -777,17 +755,14 @@ def delete_business_unit(request, bu_id):
 
     machines = Machine.deployed_objects.filter(machine_group__business_unit=business_unit)
 
-    c = {'user': user, 'business_unit': business_unit,
+    c = {'user': request.user, 'business_unit': business_unit,
          'machine_groups': machine_groups, 'machines': machines}
     return render(request, 'server/business_unit_delete_confirm.html', c)
 
 
 @login_required
+@ga_required
 def really_delete_business_unit(request, bu_id):
-    user = request.user
-    user_level = user.userprofile.level
-    if user_level != 'GA':
-        return redirect(index)
     business_unit = get_object_or_404(BusinessUnit, pk=int(bu_id))
     business_unit.delete()
     return redirect(index)
@@ -1025,11 +1000,8 @@ def overview_list_all(request, req_type, data, bu_id=None):
 
 
 @login_required
+@ga_required
 def delete_machine_group(request, group_id):
-    user = request.user
-    user_level = user.userprofile.level
-    if user_level != 'GA':
-        return redirect(index)
     machine_group = get_object_or_404(MachineGroup, pk=int(group_id))
 
     machines = []
@@ -1038,16 +1010,13 @@ def delete_machine_group(request, group_id):
 
     machines = Machine.deployed_objects.filter(machine_group=machine_group)
 
-    c = {'user': user, 'machine_group': machine_group, 'machines': machines}
+    c = {'user': request.user, 'machine_group': machine_group, 'machines': machines}
     return render(request, 'server/machine_group_delete_confirm.html', c)
 
 
 @login_required
+@ga_required
 def really_delete_machine_group(request, group_id):
-    user = request.user
-    user_level = user.userprofile.level
-    if user_level != 'GA':
-        return redirect(index)
     machine_group = get_object_or_404(MachineGroup, pk=int(group_id))
     business_unit = machine_group.business_unit
     machine_group.delete()
@@ -1487,12 +1456,8 @@ def delete_machine(request, machine_id):
 
 
 @login_required
+@ga_required
 def settings_page(request):
-    user = request.user
-    user_level = user.userprofile.level
-    if user_level != 'GA':
-        return redirect(index)
-
     historical_setting = utils.get_setting('historical_retention')
     historical_setting_form = SettingsHistoricalDataForm(initial={'days': historical_setting})
 
@@ -1507,34 +1472,22 @@ def settings_page(request):
 
 
 @login_required
+@ga_required
 def senddata_enable(request):
-    user = request.user
-    user_level = user.userprofile.level
-    if user_level != 'GA':
-        return redirect(index)
-
     utils.set_setting('send_data', True)
     return HttpResponseRedirect(request.META.get('HTTP_REFERER'))
 
 
 @login_required
+@ga_required
 def senddata_disable(request):
-    user = request.user
-    user_level = user.userprofile.level
-    if user_level != 'GA':
-        return redirect(index)
-
     utils.set_setting('send_data', False)
     return HttpResponseRedirect(request.META.get('HTTP_REFERER'))
 
 
 @login_required
+@ga_required
 def settings_historical_data(request):
-    user = request.user
-    user_level = user.userprofile.level
-    if user_level != 'GA':
-        return redirect(index)
-
     if request.method == 'POST':
         form = SettingsHistoricalDataForm(request.POST)
         if form.is_valid():
@@ -1548,11 +1501,8 @@ def settings_historical_data(request):
 
 
 @login_required
+@ga_required
 def plugins_page(request):
-    user = request.user
-    user_level = user.userprofile.level
-    if user_level != 'GA':
-        return redirect(index)
     # Load the plugins
     utils.reload_plugins_model()
     enabled_plugins = Plugin.objects.all()
@@ -1563,11 +1513,8 @@ def plugins_page(request):
 
 
 @login_required
+@ga_required
 def settings_reports(request):
-    user = request.user
-    user_level = user.userprofile.level
-    if user_level != 'GA':
-        return redirect(index)
     # Load the plugins
     utils.reload_plugins_model()
     enabled_plugins = Report.objects.all()
@@ -1578,11 +1525,8 @@ def settings_reports(request):
 
 
 @login_required
+@ga_required
 def settings_machine_detail_plugins(request):
-    user = request.user
-    user_level = user.userprofile.level
-    if user_level != 'GA':
-        return redirect(index)
     # Load the plugins
     utils.reload_plugins_model()
     enabled_plugins = MachineDetailPlugin.objects.all()
@@ -1604,13 +1548,9 @@ def plugin_minus(request, plugin_id):
     return redirect('plugins_page')
 
 
+@login_required
+@ga_required
 def _swap_plugin(request, plugin_id, direction):
-    user = request.user
-    profile = UserProfile.objects.get(user=user)
-    user_level = profile.level
-    if user_level != 'GA':
-        return redirect('server.views.index')
-
     # get current plugin order
     current_plugin = get_object_or_404(Plugin, pk=plugin_id)
 
@@ -1636,12 +1576,8 @@ def _swap_plugin(request, plugin_id, direction):
 
 
 @login_required
+@ga_required
 def plugin_disable(request, plugin_id):
-    user = request.user
-    profile = UserProfile.objects.get(user=user)
-    user_level = profile.level
-    if user_level != 'GA':
-        return redirect('server.views.index')
     plugin = get_object_or_404(Plugin, pk=plugin_id)
     plugin.delete()
     return redirect('plugins_page')
@@ -1659,13 +1595,8 @@ def plugin_enable(request, plugin_name):
 
 
 @login_required
+@ga_required
 def machine_detail_plugin_plus(request, plugin_id):
-    user = request.user
-    profile = UserProfile.objects.get(user=user)
-    user_level = profile.level
-    if user_level != 'GA':
-        return redirect('server.views.index')
-
     # get current plugin order
     current_plugin = get_object_or_404(MachineDetailPlugin, pk=plugin_id)
 
@@ -1680,13 +1611,8 @@ def machine_detail_plugin_plus(request, plugin_id):
 
 
 @login_required
+@ga_required
 def machine_detail_plugin_minus(request, plugin_id):
-    user = request.user
-    profile = UserProfile.objects.get(user=user)
-    user_level = profile.level
-    if user_level != 'GA':
-        return redirect('server.views.index')
-
     # get current plugin order
     current_plugin = get_object_or_404(MachineDetailPlugin, pk=plugin_id)
     # print current_plugin
@@ -1702,12 +1628,8 @@ def machine_detail_plugin_minus(request, plugin_id):
 
 
 @login_required
+@ga_required
 def machine_detail_plugin_disable(request, plugin_id):
-    user = request.user
-    profile = UserProfile.objects.get(user=user)
-    user_level = profile.level
-    if user_level != 'GA':
-        return redirect('server.views.index')
     plugin = get_object_or_404(MachineDetailPlugin, pk=plugin_id)
     plugin.delete()
     return redirect('settings_machine_detail_plugins')
@@ -1744,12 +1666,8 @@ def machine_detail_plugin_enable(request, plugin_name):
 
 
 @login_required
+@ga_required
 def settings_report_disable(request, plugin_id):
-    user = request.user
-    profile = UserProfile.objects.get(user=user)
-    user_level = profile.level
-    if user_level != 'GA':
-        return redirect('server.views.index')
     plugin = get_object_or_404(Report, pk=plugin_id)
     plugin.delete()
     return redirect('settings_reports')
@@ -1767,18 +1685,15 @@ def settings_report_enable(request, plugin_name):
 
 
 @login_required
+@ga_required
 def api_keys(request):
-    user = request.user
-    user_level = user.userprofile.level
-    if user_level != 'GA':
-        return redirect(index)
-
     api_keys = ApiKey.objects.all()
     c = {'user': request.user, 'api_keys': api_keys, 'request': request}
     return render(request, 'server/api_keys.html', c)
 
 
 @login_required
+@ga_required
 def new_api_key(request):
     c = {}
     c.update(csrf(request))
@@ -1790,19 +1705,12 @@ def new_api_key(request):
     else:
         form = ApiKeyForm()
     c = {'form': form}
-    user = request.user
-    user_level = user.userprofile.level
-    if user_level != 'GA':
-        return redirect(index)
     return render(request, 'forms/new_api_key.html', c)
 
 
 @login_required
+@ga_required
 def display_api_key(request, key_id):
-    user = request.user
-    user_level = user.userprofile.level
-    if user_level != 'GA':
-        return redirect(index)
     api_key = get_object_or_404(ApiKey, pk=int(key_id))
     if api_key.has_been_seen:
         return redirect(index)
@@ -1814,11 +1722,8 @@ def display_api_key(request, key_id):
 
 
 @login_required
+@ga_required
 def edit_api_key(request, key_id):
-    user = request.user
-    user_level = user.userprofile.level
-    if user_level != 'GA':
-        return redirect(index)
     api_key = get_object_or_404(ApiKey, pk=int(key_id))
     c = {}
     c.update(csrf(request))
@@ -1831,19 +1736,12 @@ def edit_api_key(request, key_id):
     else:
         form = ApiKeyForm(instance=api_key)
     c = {'form': form, 'api_key': api_key}
-    user = request.user
-    user_level = user.userprofile.level
-    if user_level != 'GA':
-        return redirect(index)
     return render(request, 'forms/edit_api_key.html', c)
 
 
 @login_required
+@ga_required
 def delete_api_key(request, key_id):
-    user = request.user
-    user_level = user.userprofile.level
-    if user_level != 'GA':
-        return redirect(index)
     api_key = get_object_or_404(ApiKey, pk=int(key_id))
     api_key.delete()
     return redirect(api_keys)

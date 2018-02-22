@@ -9,7 +9,7 @@ from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
 from django.http import HttpResponse
-from django.http.response import Http404
+from django.http.response import Http404, HttpResponseServerError
 from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse
 from django.utils.decorators import method_decorator
@@ -17,12 +17,23 @@ from django.views.generic import View
 
 from server.models import BusinessUnit, Machine, MachineGroup
 
-
 def class_login_required(cls):
     """Class decorator for View subclasses to restrict to logged in."""
-    if not isinstance(cls, type) or not issubclass(cls, View):
-        raise Exception("Must be applied to subclass of View")
     decorator = method_decorator(login_required)
+    cls.dispatch = decorator(cls.dispatch)
+    return cls
+
+
+def class_ga_required(cls):
+    """Class decorator for View subclasses to restrict to GA."""
+    decorator = method_decorator(ga_required)
+    cls.dispatch = decorator(cls.dispatch)
+    return cls
+
+
+def class_staff_required(cls):
+    """Class decorator for View subclasses to restrict to staff."""
+    decorator = method_decorator(staff_required)
     cls.dispatch = decorator(cls.dispatch)
     return cls
 
@@ -66,11 +77,56 @@ def class_access_required(cls):
     return cls
 
 
+def access_required(model=BusinessUnit):
+
+    def decorator(function):
+
+        @wraps(function)
+        def wrapper(*args, **kwargs):
+            # The request object is the first arg to a view
+            request = args[0]
+            user = request.user
+            try:
+                business_unit = _get_business_unit(model, **kwargs)
+            except Http404:
+                business_unit = Http404
+
+            if is_global_admin(user) or has_access(user, business_unit):
+                if business_unit is Http404:
+                    raise Http404
+                kwargs['business_unit'] = business_unit
+                return function(*args, **kwargs)
+            else:
+                # Hide the 404 response from users without perms.
+                raise PermissionDenied()
+
+        return wrapper
+
+    return decorator
+
+
+def _get_business_unit(model, **kwargs):
+    try:
+        pk = [v for k, v in kwargs.items() if k.endswith('_id')].pop()
+    except IndexError:
+        raise HttpResponseServerError
+
+    instance = get_object_or_404(model, pk=pk)
+    if isinstance(instance, MachineGroup):
+        return instance.machine_group
+    elif isinstance(instance, Machine):
+        return instance.machine_group.business_unit
+    else:
+        return instance
+
+
 def is_global_admin(user):
     return user.userprofile.level == "GA"
 
 
 def key_auth_required(function):
+
+    @wraps(function)
     def wrap(request, *args, **kwargs):
         # Check for valid basic auth header
         if hasattr(settings, 'BASIC_AUTH'):
@@ -101,8 +157,7 @@ def key_auth_required(function):
         response.status_code = 401
         response['WWW-Authenticate'] = 'Basic realm=Sal'
         return response
-    wrap.__doc__ = function.__doc__
-    wrap.__name__ = function.__name__
+
     return wrap
 
 

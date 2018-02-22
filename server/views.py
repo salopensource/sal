@@ -164,10 +164,8 @@ def edit_business_unit(request, bu_id):
     business_unit = get_object_or_404(BusinessUnit, pk=int(bu_id))
     c = {}
     c.update(csrf(request))
-    # TODO: Remove
-    user = request.user
     if request.method == 'POST':
-        if user.is_staff:
+        if request.user.is_staff:
             form = EditUserBusinessUnitForm(request.POST, instance=business_unit)
         else:
             form = EditBusinessUnitForm(request.POST, instance=business_unit)
@@ -177,7 +175,7 @@ def edit_business_unit(request, bu_id):
             form.save_m2m()
             return redirect('bu_dashboard', new_business_unit.id)
     else:
-        if user.is_staff:
+        if request.user.is_staff:
             form = EditUserBusinessUnitForm(instance=business_unit)
         else:
             form = EditBusinessUnitForm(instance=business_unit)
@@ -209,22 +207,26 @@ def really_delete_business_unit(request, bu_id):
 
 
 @login_required
-def bu_dashboard(request, bu_id):
-    user = request.user
-    user_level = user.userprofile.level
-    business_unit = get_object_or_404(BusinessUnit, pk=bu_id)
-    bu = business_unit
+@access_required()
+def bu_dashboard(request, **kwargs):
     # TODO: This can be factored out.
-    if business_unit not in user.businessunit_set.all() and user_level != 'GA':
-        print 'not letting you in ' + user_level
-        return redirect(index)
+    # user = request.user
+    # user_level = user.userprofile.level
+    # business_unit = get_object_or_404(BusinessUnit, pk=bu_id)
+    # bu = business_unit
+    # if business_unit not in user.businessunit_set.all() and user_level != 'GA':
+    #     print 'not letting you in ' + user_level
+    #     return redirect(index)
     # Get the groups within the Business Unit
+    business_unit = kwargs['business_unit']
+
     machine_groups = business_unit.machinegroup_set.all()
-    if user_level == 'GA' or user_level == 'RW':
+    if request.user.userprofile.level in ('GA', 'RW'):
         is_editor = True
     else:
         is_editor = False
-    machines = utils.getBUmachines(bu_id)  # noqa: F841
+    machines = utils.getBUmachines(business_unit.id)  # noqa: F841
+
     now = django.utils.timezone.now()
     hour_ago = now - timedelta(hours=1)  # noqa: F841
     today = now - timedelta(hours=24)

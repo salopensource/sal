@@ -277,166 +277,17 @@ def bu_dashboard(request, **kwargs):
                 output.append(data)
                 break
 
-    output = utils.orderPluginOutput(output, 'bu_dashboard', bu.id)
+    output = utils.orderPluginOutput(output, 'bu_dashboard', business_unit.id)
 
     c = {
         'user': request.user,
         'machine_groups': machine_groups,
         'is_editor': is_editor,
         'business_unit': business_unit,
-        'user_level': user_level,
+        'user_level': request.user.userprofile.level,
         'output': output,
         'reports': reports}
     return render(request, 'server/bu_dashboard.html', c)
-
-
-@login_required
-def overview_list_all(request, req_type, data, bu_id=None):
-    # get all the BU's that the user has access to
-    user = request.user
-    user_level = user.userprofile.level
-    operating_system = None
-    activity = None
-    inactivity = None
-    disk_space = None  # noqa: F841
-    now = django.utils.timezone.now()
-    hour_ago = now - timedelta(hours=1)
-    today = now - timedelta(hours=24)
-    week_ago = today - timedelta(days=7)
-    month_ago = today - timedelta(days=30)
-    three_months_ago = today - timedelta(days=90)
-    mem_4_gb = 4 * 1024 * 1024
-    mem_415_gb = 4.15 * 1024 * 1024  # noqa: F841
-    mem_775_gb = 7.75 * 1024 * 1024
-    mem_8_gb = 8 * 1024 * 1024
-    if req_type == 'operating_system':
-        operating_system = data
-
-    if req_type == 'activity':
-        activity = data
-
-    if req_type == 'inactivity':
-        inactivity = data
-
-    if req_type == 'disk_space_ok':
-        disk_space_ok = data  # noqa: F841
-
-    if req_type == 'disk_space_warning':
-        disk_space_warning = data  # noqa: F841
-
-    if req_type == 'disk_space_alert':
-        disk_space_alert = data
-
-    if req_type == 'mem_ok':
-        disk_space_alert = data
-
-    if req_type == 'mem_warning':
-        disk_space_alert = data
-
-    if req_type == 'mem_alert':
-        disk_space_alert = data  # noqa: F841
-
-    if req_type == 'pending_updates':
-        pending_update = data  # noqa: F841
-
-    if req_type == 'pending_apple_updates':
-        pending_apple_update = data  # noqa: F841
-
-    if bu_id is not None:
-        business_units = get_object_or_404(BusinessUnit, pk=bu_id)
-        machine_groups = MachineGroup.objects.filter(business_unit=business_units).all()
-
-        machines_unsorted = machine_groups[0].machine_set.all()
-        for machine_group in machine_groups[1:]:
-            machines_unsorted = machines_unsorted | machine_group.machine_set.all()
-        all_machines = machines_unsorted
-        # check user is allowed to see it
-        # TODO: Factor to decorator
-        if business_units not in user.businessunit_set.all():
-            if user_level != 'GA':
-                print 'not letting you in ' + user_level
-                return redirect(index)
-    else:
-        # all BUs the user has access to
-        business_units = user.businessunit_set.all()
-        # get all the machine groups
-        # business_unit = business_units[0].machinegroup_set.all()
-        machines_unsorted = Machine.objects.none()
-        for business_unit in business_units:
-            for machine_group in business_unit.machinegroup_set.all():
-                # print machines_unsorted
-                machines_unsorted = machines_unsorted | machine_group.machine_set.all().\
-                    filter(deployed=True)
-
-        all_machines = machines_unsorted
-        if user_level == 'GA':
-            business_units = BusinessUnit.objects.all()
-            all_machines = Machine.deployed_objects.all()
-
-    if req_type == 'errors':
-        machines = all_machines.filter(errors__gt=0)
-
-    if req_type == 'warnings':
-        machines = all_machines.filter(warnings__gt=0)
-
-    if req_type == 'active':
-        machines = all_machines.filter(activity__isnull=False)
-
-    if req_type == 'disk_space_ok':
-        machines = all_machines.filter(hd_percent__lt=80)
-
-    if req_type == 'disk_space_warning':
-        machines = all_machines.filter(hd_percent__range=["80", "89"])
-
-    if req_type == 'disk_space_alert':
-        machines = all_machines.filter(hd_percent__gte=90)
-
-    if req_type == 'mem_ok':
-        machines = all_machines.filter(memory_kb__gte=mem_8_gb)
-
-    if req_type == 'mem_warning':
-        machines = all_machines.filter(memory_kb__range=[mem_4_gb, mem_775_gb])
-
-    if req_type == 'mem_alert':
-        machines = all_machines.filter(memory_kb__lt=mem_4_gb)
-
-    if req_type == 'uptime_ok':
-        machines = all_machines.filter(fact__fact_name='uptime_days', fact__fact_data__lte=1)
-
-    if req_type == 'uptime_warning':
-        machines = all_machines.filter(fact__fact_name='uptime_days', fact__fact_data__range=[1, 7])
-
-    if req_type == 'uptime_alert':
-        machines = all_machines.filter(fact__fact_name='uptime_days', fact__fact_data__gt=7)
-
-    if activity is not None:
-        if data == '1-hour':
-            machines = all_machines.filter(last_checkin__gte=hour_ago)
-        if data == 'today':
-            machines = all_machines.filter(last_checkin__gte=today)
-        if data == '1-week':
-            machines = all_machines.filter(last_checkin__gte=week_ago)
-    if inactivity is not None:
-        if data == '1-month':
-            machines = all_machines.filter(last_checkin__range=(three_months_ago, month_ago))
-        if data == '3-months':
-            machines = all_machines.exclude(last_checkin__gte=three_months_ago)
-
-    if operating_system is not None:
-        machines = all_machines.filter(operating_system__exact=operating_system)
-
-    if req_type == 'pending_updates':
-        machines = all_machines.filter(pendingupdate__update=pending_update)
-
-    if req_type == 'pending_apple_updates':
-        machines = all_machines.filter(pendingappleupdate__update=pending_apple_update)
-
-    page_length = utils.get_setting('datatable_page_length')
-
-    c = {'user': user, 'machines': machines, 'req_type': req_type, 'data': data, 'bu_id': bu_id,
-         'page_length': page_length}
-
-    return render(request, 'server/overview_list_all.html', c)
 
 
 @login_required

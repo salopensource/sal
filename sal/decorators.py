@@ -87,14 +87,17 @@ def access_required(model=BusinessUnit):
             request = args[0]
             user = request.user
             try:
-                business_unit = _get_business_unit(model, **kwargs)
+                instance, business_unit = _get_business_unit(model, **kwargs)
             except Http404:
                 business_unit = Http404
 
             if is_global_admin(user) or has_access(user, business_unit):
                 if business_unit is Http404:
                     raise Http404
+                # Stash the business unit and instance to minimize
+                # later DB queries.
                 kwargs['business_unit'] = business_unit
+                kwargs['instance'] = instance
                 return function(*args, **kwargs)
             else:
                 # Hide the 404 response from users without perms.
@@ -111,13 +114,23 @@ def _get_business_unit(model, **kwargs):
     except IndexError:
         raise HttpResponseServerError
 
-    instance = get_object_or_404(model, pk=pk)
+    try:
+        instance = get_object_or_404(model, pk=pk)
+    except ValueError as err:
+        # Sal allows machine serials instead of machine ID in URLs.
+        # Handle that special case.
+        if model is Machine:
+            try:
+                instance = get_object_or_404(model, serial=pk)
+            except Http404 as err:
+                raise err
+
     if isinstance(instance, MachineGroup):
-        return instance.machine_group
+        return (instance, instance.business_unit)
     elif isinstance(instance, Machine):
-        return instance.machine_group.business_unit
+        return (instance, instance.machine_group.business_unit)
     else:
-        return instance
+        return (instance, instance)
 
 
 def is_global_admin(user):

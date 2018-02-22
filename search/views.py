@@ -581,6 +581,16 @@ def export_csv(request, search_id):
 
     machines = search_machines(search_id, machines, full=True)
 
+    # clear up machines that the user has no access to
+    user_level = request.user.userprofile.level
+    machines = Machine.objects.all()
+    if user_level != 'GA':
+        for business_unit in BusinessUnit.objects.all():
+            if business_unit not in request.user.businessunit_set.all():
+                machines = machines.exclude(
+                    machine_group__business_unit=business_unit
+                )
+
     saved_search = get_object_or_404(SavedSearch, pk=search_id)
     pseudo_buffer = Echo()
     writer = csv.writer(pseudo_buffer)

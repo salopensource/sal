@@ -62,7 +62,7 @@ def tableajax(request, pluginName, data, page='front', theID=None):
         deployed = False  # noqa: F841
     else:
         deployed = True  # noqa: F841
-    (machines, title) = plugin_machines(request, pluginName, data, page, theID)
+    (machines, title) = utils.plugin_machines(request, pluginName, data, page, theID)
     # machines = machines.filter(deployed=deployed)
     if len(order_name) != 0:
         if order_direction == 'desc':
@@ -112,7 +112,7 @@ def tableajax(request, pluginName, data, page='front', theID=None):
 
 @login_required
 def machine_list(request, pluginName, data, page='front', theID=None):
-    (machines, title) = plugin_machines(request, pluginName, data, page, theID, get_machines=False)
+    (machines, title) = utils.plugin_machines(request, pluginName, data, page, theID, get_machines=False)
     user = request.user
     page_length = utils.get_setting('datatable_page_length')
     c = {'user': user, 'plugin_name': pluginName, 'machines': machines, 'req_type': page,

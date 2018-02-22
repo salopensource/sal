@@ -1,38 +1,38 @@
-# Create your views here.
-from models import *
-from inventory.models import *
-from django.contrib.auth.decorators import login_required, permission_required
-from django.template import RequestContext, Template, Context
-import json
-from django.views.decorators.csrf import csrf_exempt, csrf_protect
-from django.http import (
-    HttpResponse, Http404, HttpResponseNotFound, HttpResponseRedirect,
-    JsonResponse, StreamingHttpResponse)
-from django.contrib.auth.models import Permission, User
-from django.conf import settings
-from django.template.context_processors import csrf
-from django.shortcuts import render, get_object_or_404, redirect
-from datetime import datetime, timedelta, date
-from django.db.models import Count, Sum, Max, Q
-from django.contrib import messages
-from django.contrib.staticfiles.templatetags.staticfiles import static
-from django.core.urlresolvers import reverse
-import plistlib
 import ast
-from forms import *
+import hashlib
+import json
+import os
+import plistlib
 import pprint
 import re
-import os
-from yapsy.PluginManager import PluginManager
-from django.core.exceptions import PermissionDenied
-import utils
-import pytz
-# from watson import search as watson
-import unicodecsv as csv
-import django.utils.timezone
-import dateutil.parser
-import hashlib
 import time
+from datetime import date, datetime, timedelta
+
+import dateutil.parser
+import pytz
+import unicodecsv as csv
+from yapsy.PluginManager import PluginManager
+
+import django.utils.timezone
+from django.conf import settings
+from django.contrib import messages
+from django.contrib.auth.decorators import login_required, permission_required
+from django.contrib.auth.models import Permission, User
+from django.contrib.staticfiles.templatetags.staticfiles import static
+from django.core.exceptions import PermissionDenied
+from django.core.urlresolvers import reverse
+from django.db.models import Count, Max, Q, Sum
+from django.http import (Http404, HttpResponse, HttpResponseNotFound, HttpResponseRedirect,
+                         JsonResponse, StreamingHttpResponse)
+from django.shortcuts import get_object_or_404, redirect, render
+from django.template import Context, RequestContext, Template
+from django.template.context_processors import csrf
+from django.views.decorators.csrf import csrf_exempt, csrf_protect
+
+import utils
+from forms import *
+from inventory.models import *
+from models import *
 from sal.decorators import *
 
 if settings.DEBUG:
@@ -170,8 +170,6 @@ def new_version_day(request):
     update_notify_date(request, length=86400)
     return redirect(index)
 
-# Manage Users
-
 
 @login_required
 @ga_required
@@ -190,7 +188,6 @@ def manage_users(request):
     return render(request, 'server/manage_users.html', c)
 
 
-# New User
 @login_required
 @ga_required
 def new_user(request):
@@ -341,11 +338,11 @@ def plugin_machines(request, pluginName, data, page='front', theID=None, get_mac
 
     return machines, title
 
-# Table ajax for dataTables
 
 
 @login_required
 def tableajax(request, pluginName, data, page='front', theID=None):
+    """Table ajax for dataTables"""
     # Pull our variables out of the GET request
     get_data = request.GET['args']
     get_data = json.loads(get_data.decode('string_escape'))
@@ -419,8 +416,6 @@ def tableajax(request, pluginName, data, page='front', theID=None):
         return_data['data'].append(list_data)
 
     return JsonResponse(return_data)
-
-# Plugin machine list
 
 
 @login_required
@@ -551,8 +546,7 @@ def report_load(request, pluginName, page='front', theID=None):
 
 
 class Echo(object):
-    """An object that implements just the write method of the file-like interface.
-    """
+    """Implements just the write method of the file-like interface."""
 
     def write(self, value):
         """Write the value by returning it, instead of storing in a buffer."""
@@ -579,8 +573,8 @@ def get_csv_row(machine, facter_headers, condition_headers, plugin_script_header
     return row
 
 
-# Helper function to inject headers
 def stream_csv(header_row, machines, facter_headers, condition_headers, plugin_script_headers):
+    """Helper function to inject headers"""
     if header_row:
         yield header_row
     for machine in machines:
@@ -695,8 +689,6 @@ def export_csv(request, pluginName, data, page='front', theID=None):
     #     writer.writerow(['</body>'])
     return response
 
-# New BU
-
 
 @login_required
 @ga_required
@@ -714,8 +706,6 @@ def new_business_unit(request):
         form = BusinessUnitForm()
     c = {'form': form}
     return render(request, 'forms/new_business_unit.html', c)
-
-# Edit BU
 
 
 @login_required
@@ -767,8 +757,6 @@ def really_delete_business_unit(request, bu_id):
     business_unit.delete()
     return redirect(index)
 
-# BU Dashboard
-
 
 @login_required
 def bu_dashboard(request, bu_id):
@@ -776,6 +764,7 @@ def bu_dashboard(request, bu_id):
     user_level = user.userprofile.level
     business_unit = get_object_or_404(BusinessUnit, pk=bu_id)
     bu = business_unit
+    # TODO: This can be factored out.
     if business_unit not in user.businessunit_set.all() and user_level != 'GA':
         print 'not letting you in ' + user_level
         return redirect(index)
@@ -848,8 +837,6 @@ def bu_dashboard(request, bu_id):
         'reports': reports}
     return render(request, 'server/bu_dashboard.html', c)
 
-# Overview list (all)
-
 
 @login_required
 def overview_list_all(request, req_type, data, bu_id=None):
@@ -912,6 +899,7 @@ def overview_list_all(request, req_type, data, bu_id=None):
             machines_unsorted = machines_unsorted | machine_group.machine_set.all()
         all_machines = machines_unsorted
         # check user is allowed to see it
+        # TODO: Factor to decorator
         if business_units not in user.businessunit_set.all():
             if user_level != 'GA':
                 print 'not letting you in ' + user_level
@@ -1022,8 +1010,6 @@ def really_delete_machine_group(request, group_id):
     machine_group.delete()
     return redirect('bu_dashboard', business_unit.id)
 
-# Machine Group Dashboard
-
 
 @login_required
 def group_dashboard(request, group_id):
@@ -1032,6 +1018,7 @@ def group_dashboard(request, group_id):
     user_level = user.userprofile.level
     machine_group = get_object_or_404(MachineGroup, pk=group_id)
     business_unit = machine_group.business_unit
+    # TODO: factor to access decorator
     if business_unit not in user.businessunit_set.all():
         if user_level != 'GA':
             return redirect(index)
@@ -1095,8 +1082,6 @@ def group_dashboard(request, group_id):
         'reports': reports}
     return render(request, 'server/group_dashboard.html', c)
 
-# New Group
-
 
 @login_required
 def new_machine_group(request, bu_id):
@@ -1121,13 +1106,12 @@ def new_machine_group(request, bu_id):
     else:
         is_editor = False
 
+    # TODO: Factor to access decorator
     if business_unit not in user.businessunit_set.all() or is_editor is False:
         if user_level != 'GA':
             return redirect(index)
     c = {'form': form, 'is_editor': is_editor, 'business_unit': business_unit, }
     return render(request, 'forms/new_machine_group.html', c)
-
-# Edit Group
 
 
 @login_required
@@ -1143,6 +1127,7 @@ def edit_machine_group(request, group_id):
     else:
         is_editor = False
 
+    # TODO: Factor to access decorator
     if business_unit not in user.businessunit_set.all() or is_editor is False:
         if user_level != 'GA':
             return redirect(index)
@@ -1158,8 +1143,6 @@ def edit_machine_group(request, group_id):
     c = {'form': form, 'is_editor': is_editor,
          'business_unit': business_unit, 'machine_group': machine_group}
     return render(request, 'forms/edit_machine_group.html', c)
-
-# New machine
 
 
 @login_required
@@ -1186,13 +1169,12 @@ def new_machine(request, group_id):
     else:
         is_editor = False
 
+    # TODO: Factor to access decorator
     if business_unit not in user.businessunit_set.all() or is_editor is False:
         if user_level != 'GA':
             return redirect(index)
     c = {'form': form, 'is_editor': is_editor, 'machine_group': machine_group, }
     return render(request, 'forms/new_machine.html', c)
-
-# Machine detail
 
 
 @login_required
@@ -1206,6 +1188,7 @@ def machine_detail(request, machine_id):
     # check the user is in a BU that's allowed to see this Machine
     user = request.user
     user_level = user.userprofile.level
+    # TODO: Factor to access decorator
     if business_unit not in user.businessunit_set.all():
         if user_level != 'GA':
             return redirect(index)
@@ -1440,7 +1423,6 @@ def machine_detail_conditions(request, machine_id):
     return render(request, 'server/machine_detail_table.html', c)
 
 
-# Delete Machine
 @login_required
 def delete_machine(request, machine_id):
     machine = get_object_or_404(Machine, pk=machine_id)
@@ -1448,6 +1430,7 @@ def delete_machine(request, machine_id):
     business_unit = machine_group.business_unit
     user = request.user
     user_level = user.userprofile.level
+    # TODO: Factor to access decorator
     if business_unit not in user.businessunit_set.all():
         if user_level != 'GA':
             return redirect(index)
@@ -1746,8 +1729,6 @@ def delete_api_key(request, key_id):
     api_key.delete()
     return redirect(api_keys)
 
-# preflight
-
 
 @csrf_exempt
 @key_auth_required
@@ -1808,8 +1789,6 @@ def preflight_v2(request):
 
     return HttpResponse(json.dumps(output))
 
-# Get script for plugin
-
 
 @csrf_exempt
 @key_auth_required
@@ -1829,7 +1808,6 @@ def preflight_v2_get_script(request, pluginName, scriptName):
                 output.append(content)
             break
     return HttpResponse(json.dumps(output))
-# checkin
 
 
 @csrf_exempt

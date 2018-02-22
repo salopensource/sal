@@ -725,3 +725,60 @@ def orderPluginOutput(pluginOutput, page='front', theID=None):
             counter = counter + 1
             # print item['name']+' total: '+str(total_width)
     return output
+
+
+def plugin_machines(request, pluginName, data, page='front', theID=None, get_machines=True):
+    user = request.user
+    title = None
+    # Build the manager
+    manager = PluginManager()
+    # Tell it the default place(s) where to find plugins
+    manager.setPluginPlaces([settings.PLUGIN_DIR, os.path.join(
+        settings.PROJECT_DIR, 'server/plugins')])
+    # Load all plugins
+    manager.collectPlugins()
+    if pluginName == 'Status' and data == 'undeployed_machines':
+        deployed = False
+    else:
+        deployed = True
+    # get a list of machines (either from the BU or the group)
+    if get_machines:
+        if page == 'front':
+            # get all machines
+            if user.userprofile.level == 'GA':
+                machines = Machine.objects.all().filter(deployed=deployed)
+            else:
+                machines = Machine.objects.none()
+                for business_unit in user.businessunit_set.all():
+                    for group in business_unit.machinegroup_set.all():
+                        machines = machines | group.machine_set.all().filter(deployed=deployed)
+        if page == 'bu_dashboard':
+            # only get machines for that BU
+            # Need to make sure the user is allowed to see this
+            business_unit = get_object_or_404(BusinessUnit, pk=theID)
+            machine_groups = MachineGroup.objects.filter(business_unit=business_unit).all()
+
+            if machine_groups.count() != 0:
+                machines_unsorted = machine_groups[0].machine_set.all().filter(deployed=deployed)
+                for machine_group in machine_groups[1:]:
+                    machines_unsorted = machines_unsorted | \
+                        machine_group.machine_set.all().filter(deployed=deployed)
+            else:
+                machines_unsorted = None
+            machines = machines_unsorted
+
+        if page == 'group_dashboard':
+            # only get machines from that group
+            machine_group = get_object_or_404(MachineGroup, pk=theID)
+            # check that the user has access to this
+            machines = Machine.objects.filter(machine_group=machine_group).filter(deployed=deployed)
+    else:
+        machines = Machine.objects.none()
+    # send the machines and the data to the plugin
+    for plugin in manager.getAllPlugins():
+        if plugin.name == pluginName:
+            (machines, title) = plugin.plugin_object.filter_machines(machines, data)
+
+    return machines, title
+
+

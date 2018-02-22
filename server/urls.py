@@ -1,5 +1,10 @@
 from django.conf.urls import *
+
+from server.settings_views import *
+from server.non_ui_views import *
 from server.views import *
+
+
 urlpatterns = [
     # front page
     url(r'^$', index, name='home'),
@@ -59,7 +64,6 @@ urlpatterns = [
     url(r'^machine/delete/(?P<machine_id>.+)/', delete_machine, name='delete_machine'),
     # New Machine
     url(r'^machine/new/(?P<group_id>.+)/', new_machine, name='new_machine'),
-
     # New Business Unit
     url(r'^new-bu/', new_business_unit, name='new_business_unit'),
     # Edit Business Unit
@@ -92,12 +96,10 @@ urlpatterns = [
     # Remove User Staff
     url(r'^settings/users/removestaff/(?P<user_id>.+)/',
         user_remove_staff, name='user_remove_staff'),
-
     # Delete User Staff
     url(r'^settings/users/delete/(?P<user_id>.+)/', delete_user, name='delete_user'),
     # Manage Users
     url(r'^settings/users/', manage_users, name='manage_users'),
-
     # Edit API Key
     url(r'^settings/api-keys/edit/(?P<key_id>.+)/', edit_api_key, name='edit_api_key'),
     # Delete API Key
@@ -149,7 +151,6 @@ urlpatterns = [
     ),
     # Settings
     url(r'^settings/', settings_page, name='settings_page'),
-    # never remind about new version
     url(r'^new_version/never/', new_version_never, name='new_version_never'),
     url(r'^new_version/week/', new_version_week, name='new_version_week'),
     url(r'^new_version/day/', new_version_day, name='new_version_day')

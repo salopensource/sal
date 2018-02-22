@@ -1,16 +1,19 @@
 """Decorators for class based views."""
 
 
+import base64
+from functools import wraps
+
+
+from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
+from django.http import HttpResponse
 from django.http.response import Http404
-from django.shortcuts import get_object_or_404
+from django.shortcuts import get_object_or_404, redirect
+from django.urls import reverse
 from django.utils.decorators import method_decorator
 from django.views.generic import View
-from django.conf import settings
-from django.http import HttpResponse
-
-import base64
 
 from server.models import BusinessUnit, Machine, MachineGroup
 
@@ -109,3 +112,19 @@ def has_access(user, business_unit):
     else:
         # If a user is in ALL business units, they don't need GA.
         return all(bu in user.businessunit_set.all() for bu in BusinessUnit.objects.all())
+
+
+def ga_required(function):
+    """View decorator to redirect non GA users.
+
+    Wrapped function must have the request object as the first argument.
+    """
+
+    @wraps(function)
+    def wrapper(*args, **kwargs):
+        if args[0].user.userprofile.level != 'GA':
+            return redirect(reverse('home'))
+        else:
+            return function(*args, **kwargs)
+
+    return wrapper

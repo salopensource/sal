@@ -1,17 +1,16 @@
-from django.http import HttpResponse, HttpRequest, HttpResponseRedirect
-from django.template import RequestContext, Template, Context
-from django.shortcuts import render, get_object_or_404, redirect
-from django.http import Http404
-from django.contrib.auth.decorators import login_required, permission_required
-from django.template.context_processors import csrf
-from forms import *
-
-import plistlib
 import json
+import plistlib
+
+from django.contrib.auth.decorators import login_required, permission_required
+from django.http import (Http404, HttpRequest, HttpResponse, HttpResponseRedirect)
+from django.shortcuts import get_object_or_404, redirect, render
+from django.template import Context, RequestContext, Template
+from django.template.context_processors import csrf
+
+from forms import *
+from licenses.models import *
 from sal.decorators import *
 from server.models import *
-from licenses.models import *
-from server import views as server_views
 
 
 @login_required

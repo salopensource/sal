@@ -8,19 +8,17 @@ from forms import *
 
 import plistlib
 import json
+from sal.decorators import *
 from server.models import *
 from licenses.models import *
 from server import views as server_views
 
 
 @login_required
+@ga_required
 def license_index(request):
     '''Sal index page for licenses.'''
     all_licenses = License.objects.all()
-    user = request.user
-    user_level = user.userprofile.level
-    if user_level != 'GA':
-        return redirect(server_views.index)
     c = {'request': request,
          'licenses': all_licenses,
          'user': request.user,
@@ -29,13 +27,10 @@ def license_index(request):
 
 
 @login_required
+@ga_required
 def new_license(request):
     '''Creates a new License object'''
     c = {}
-    user = request.user
-    user_level = user.userprofile.level
-    if user_level != 'GA':
-        return redirect(server_views.index)
     c.update(csrf(request))
     if request.method == 'POST':
         form = LicenseForm(request.POST)
@@ -50,11 +45,8 @@ def new_license(request):
 
 
 @login_required
+@ga_required
 def edit_license(request, license_id):
-    user = request.user
-    user_level = user.userprofile.level
-    if user_level != 'GA':
-        raise Http404
     license = get_object_or_404(License, pk=license_id)
     c = {}
     c.update(csrf(request))
@@ -73,11 +65,8 @@ def edit_license(request, license_id):
 
 
 @login_required
+@ga_required
 def delete_license(request, license_id):
-    user = request.user
-    user_level = user.userprofile.level
-    if user_level != 'GA':
-        return redirect(index)
     license = get_object_or_404(License, pk=license_id)
     license.delete()
     return redirect(license_index)

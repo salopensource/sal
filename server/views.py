@@ -688,16 +688,12 @@ def machine_detail_conditions(request, machine_id):
 
 
 @login_required
-def delete_machine(request, machine_id):
-    machine = get_object_or_404(Machine, pk=machine_id)
-    machine_group = machine.machine_group
-    business_unit = machine_group.business_unit
-    user = request.user
-    user_level = user.userprofile.level
-    # TODO: Factor to access decorator
-    if business_unit not in user.businessunit_set.all():
-        if user_level != 'GA':
-            return redirect(index)
+@access_required(Machine)
+def delete_machine(request, **kwargs):
+    # TODO: The delete computer is still shown on the template even if the user doesn't have perms.
+    # They just can't click on it.
+    machine = kwargs['instance']
+    machine_group_id = machine.machine_group.id
     machine.delete()
-    return redirect('group_dashboard', machine_group.id)
+    return redirect('group_dashboard', machine_group_id)
 

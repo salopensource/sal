@@ -7,6 +7,7 @@ from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
+from django.core.urlresolvers import reverse
 from django.http import HttpResponseRedirect
 from django.shortcuts import get_object_or_404, redirect, render
 from django.template.context_processors import csrf
@@ -29,7 +30,7 @@ IS_POSTGRES = utils.is_postgres()
 @login_required
 def new_version_never(request):
     update_notify_date(request)
-    return redirect(index)
+    return redirect(reverse('home'))
 
 
 @ga_required
@@ -37,7 +38,10 @@ def update_notify_date(request, length='never'):
     # Don't notify about a new version until there is a new one
     version_report = utils.check_version()
     if version_report['new_version_available']:
-        next_notify_date = utils.get_setting('next_notify_date', time.time()) + length
+        if isinstance(length, int):
+            next_notify_date = utils.get_setting('next_notify_date', time.time()) + length
+        else:
+            next_notify_date = length
         utils.set_setting('next_notify_date', next_notify_date)
 
 

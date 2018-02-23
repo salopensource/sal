@@ -36,8 +36,6 @@ class AdminTestCase(TestCase):
         RO users should not have access to the admin site (unless they have
         `is_staff = True`.
         """
-        self.user.user_profile = 'RO'
-        self.user.save()
         self.client.force_login(self.user)
 
         for path in self.admin_endpoints:
@@ -50,8 +48,9 @@ class AdminTestCase(TestCase):
 
     def test_ga_access(self):
         """Ensure GA userprofile grants admin page access."""
-        self.user.user_profile = 'GA'
-        self.user.save()
+        user_profile = self.user.userprofile
+        user_profile.level = 'GA'
+        user_profile.save()
         self.client.force_login(self.user)
 
         for path in self.admin_endpoints:

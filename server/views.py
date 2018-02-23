@@ -209,7 +209,7 @@ def really_delete_business_unit(request, bu_id):
 
 
 @login_required
-@access_required()
+@access_required
 def bu_dashboard(request, **kwargs):
     business_unit = kwargs['business_unit']
     machine_groups = business_unit.machinegroup_set.all()

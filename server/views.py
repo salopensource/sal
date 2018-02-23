@@ -209,23 +209,15 @@ def really_delete_business_unit(request, bu_id):
 
 
 @login_required
-@access_required
+@access_required(BusinessUnit)
 def bu_dashboard(request, **kwargs):
     business_unit = kwargs['business_unit']
     machine_groups = business_unit.machinegroup_set.all()
-    machines = utils.get_business_unit_machines(business_unit.id)  # noqa: F841
 
     if request.user.userprofile.level in ('GA', 'RW'):
         is_editor = True
     else:
         is_editor = False
-
-    now = django.utils.timezone.now()
-    hour_ago = now - timedelta(hours=1)  # noqa: F841
-    today = now - timedelta(hours=24)
-    week_ago = today - timedelta(days=7)  # noqa: F841
-    month_ago = today - timedelta(days=30)  # noqa: F841
-    three_months_ago = today - timedelta(days=90)  # noqa: F841
 
     # TODO: Busted! Code smell
     # Build the manager
@@ -273,7 +265,7 @@ def bu_dashboard(request, **kwargs):
 
     output = utils.orderPluginOutput(output, 'bu_dashboard', business_unit.id)
 
-    c = {
+    context = {
         'user': request.user,
         'machine_groups': machine_groups,
         'is_editor': is_editor,
@@ -281,7 +273,7 @@ def bu_dashboard(request, **kwargs):
         'user_level': request.user.userprofile.level,
         'output': output,
         'reports': reports}
-    return render(request, 'server/bu_dashboard.html', c)
+    return render(request, 'server/bu_dashboard.html', context)
 
 
 @login_required

@@ -17,6 +17,7 @@ from django.views.generic import View
 
 from server.models import BusinessUnit, Machine, MachineGroup
 
+
 def class_login_required(cls):
     """Class decorator for View subclasses to restrict to logged in."""
     decorator = method_decorator(login_required)
@@ -59,15 +60,9 @@ def class_access_required(cls):
             # The request object is the first arg to a view
             request = args[0]
             user = request.user
-            try:
-                business_unit = cls.get_business_unit(**kwargs)
-            except Http404:
-                business_unit = Http404
+            business_unit = cls.get_business_unit(**kwargs)
 
             if is_global_admin(user) or has_access(user, business_unit):
-                # Hide the 404 response from users without perms.
-                if business_unit is Http404:
-                    raise Http404
                 return function(*args, **kwargs)
             else:
                 raise PermissionDenied()
@@ -105,14 +100,9 @@ def access_required(model=BusinessUnit):
             # The request object is the first arg to a view
             request = args[0]
             user = request.user
-            try:
-                instance, business_unit = _get_business_unit(model, **kwargs)
-            except Http404:
-                business_unit = Http404
+            instance, business_unit = _get_business_unit(model, **kwargs)
 
             if is_global_admin(user) or has_access(user, business_unit):
-                if business_unit is Http404:
-                    raise Http404
                 # Stash the business unit and instance to minimize
                 # later DB queries.
                 kwargs['business_unit'] = business_unit
@@ -139,10 +129,7 @@ def _get_business_unit(model, **kwargs):
         # Sal allows machine serials instead of machine ID in URLs.
         # Handle that special case.
         if model is Machine:
-            try:
-                instance = get_object_or_404(model, serial=pk)
-            except Http404 as err:
-                raise err
+            instance = get_object_or_404(model, serial=pk)
 
     if isinstance(instance, MachineGroup):
         return (instance, instance.business_unit)
@@ -197,7 +184,8 @@ def has_access(user, business_unit):
     if business_unit:
         return business_unit in user.businessunit_set.all()
     else:
-        # If a user is in ALL business units, they don't need GA.
+        # Special case: If a user is in ALL business units, they don't
+        # need GA.
         return user.businessunit_set.count() == BusinessUnit.objects.count()
 
 
@@ -206,7 +194,6 @@ def ga_required(function):
 
     Wrapped function must have the request object as the first argument.
     """
-
     @wraps(function)
     def wrapper(*args, **kwargs):
         if args[0].user.userprofile.level != 'GA':
@@ -222,7 +209,6 @@ def staff_required(function):
 
     Wrapped function must have the request object as the first argument.
     """
-
     @wraps(function)
     def wrapper(*args, **kwargs):
         if not args[0].user.is_staff:

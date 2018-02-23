@@ -62,7 +62,7 @@ def class_access_required(cls):
             user = request.user
             business_unit = cls.get_business_unit(**kwargs)
 
-            if is_global_admin(user) or has_access(user, business_unit):
+            if has_access(user, business_unit):
                 return function(*args, **kwargs)
             else:
                 raise PermissionDenied()
@@ -101,7 +101,7 @@ def access_required(model):
             user = request.user
             instance, business_unit = _get_business_unit(model, **kwargs)
 
-            if is_global_admin(user) or has_access(user, business_unit):
+            if has_access(user, business_unit):
                 # Stash the business unit and instance to minimize
                 # later DB queries.
                 kwargs['business_unit'] = business_unit

@@ -121,7 +121,7 @@ def _get_business_unit(model, **kwargs):
     try:
         pk = [v for k, v in kwargs.items() if k.endswith('_id')].pop()
     except IndexError:
-        raise HttpResponseServerError
+        raise ValueError('View lacks an ID parameter!')
 
     try:
         instance = get_object_or_404(model, pk=pk)
@@ -181,8 +181,11 @@ def key_auth_required(function):
 
 
 def has_access(user, business_unit):
+    if is_global_admin(user):
+        return True
+
     if business_unit:
-        return business_unit in user.businessunit_set.all()
+        return user.businessunit_set.filter(pk=business_unit.pk).exists()
     else:
         # Special case: If a user is in ALL business units, they don't
         # need GA.

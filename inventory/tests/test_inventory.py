@@ -30,12 +30,12 @@ class AccessTestCase(TestCase):
         response = self.client.get('/inventory/machine/1/')
         self.assertEqual(response.status_code, 403)
 
-    def test_access_404(self):
+    def test_access_403(self):
         self.client.force_login(self.test_user)
 
-        # User should not have access to anything yet (403)
+        # User should not have access to anything yet (404)
         response = self.client.get('/inventory/machine/3/')
-        self.assertEqual(response.status_code, 403)
+        self.assertEqual(response.status_code, 404)
 
         # Add GA privileges to user and try again
         # Expect 404 since it doesn't exist!

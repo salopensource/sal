@@ -73,7 +73,7 @@ def class_access_required(cls):
     return cls
 
 
-def access_required(model=BusinessUnit):
+def access_required(model):
     """Decorator for view functions to restrict by business unit.
 
     This decorator requires the view to have a parameter whose name
@@ -82,8 +82,7 @@ def access_required(model=BusinessUnit):
 
     Args:
         model (BusinessUnit, MachineGroup, Machine): The model class
-            that will be retrieved by URL parameter. Defaults to
-            BusinessUnit.
+            that will be retrieved by URL parameter.
 
     Returns:
         Decorated view function.

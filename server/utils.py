@@ -218,11 +218,9 @@ def flatten_and_sort_list(the_list):
     return output
 
 
-def getBUmachines(theid):
-    business_unit = get_object_or_404(BusinessUnit, pk=theid)
-    machines = Machine.objects.filter(machine_group__business_unit=business_unit)
-
-    return machines
+def get_business_unit_machines(the_id):
+    business_unit = get_object_or_404(BusinessUnit, pk=the_id)
+    return Machine.objects.filter(machine_group__business_unit=business_unit)
 
 
 def decode_to_string(data, compression='base64bz2'):

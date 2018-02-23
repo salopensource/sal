@@ -213,7 +213,7 @@ def really_delete_business_unit(request, bu_id):
 def bu_dashboard(request, **kwargs):
     business_unit = kwargs['business_unit']
     machine_groups = business_unit.machinegroup_set.all()
-    machines = utils.getBUmachines(business_unit.id)  # noqa: F841
+    machines = utils.get_business_unit_machines(business_unit.id)  # noqa: F841
 
     if request.user.userprofile.level in ('GA', 'RW'):
         is_editor = True

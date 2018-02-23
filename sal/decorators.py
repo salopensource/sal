@@ -52,8 +52,9 @@ def class_access_required(cls):
 
     Raises:
         403 Pemission Denied if current user does not have access.
+        404 if requested group doesn't exist.
     """
-    def access_required(f):
+    def access_required(function):
         def decorator(*args, **kwargs):
             # The request object is the first arg to a view
             request = args[0]
@@ -67,7 +68,7 @@ def class_access_required(cls):
                 # Hide the 404 response from users without perms.
                 if business_unit is Http404:
                     raise Http404
-                return f(*args, **kwargs)
+                return function(*args, **kwargs)
             else:
                 raise PermissionDenied()
         return decorator
@@ -78,6 +79,24 @@ def class_access_required(cls):
 
 
 def access_required(model=BusinessUnit):
+    """Decorator for view functions to restrict by business unit.
+
+    This decorator requires the view to have a parameter whose name
+    ends with '_id'. If there is more than on parameter that meets that
+    criteria, who knows what will happen!
+
+    Args:
+        model (BusinessUnit, MachineGroup, Machine): The model class
+            that will be retrieved by URL parameter. Defaults to
+            BusinessUnit.
+
+    Returns:
+        Decorated view function.
+
+    Raises:
+        403 Pemission Denied if current user does not have access.
+        404 if requested group doesn't exist.
+    """
 
     def decorator(function):
 
@@ -179,7 +198,7 @@ def has_access(user, business_unit):
         return business_unit in user.businessunit_set.all()
     else:
         # If a user is in ALL business units, they don't need GA.
-        return all(bu in user.businessunit_set.all() for bu in BusinessUnit.objects.all())
+        return user.businessunit_set.count() == BusinessUnit.objects.count()
 
 
 def ga_required(function):

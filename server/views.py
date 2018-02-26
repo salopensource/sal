@@ -86,7 +86,7 @@ def index(request):
                     break
     # TODO: Plugin code smell
     # Get all the enabled plugins
-    enabled_plugins = Plugin.objects.all().order_by('order')
+    enabled_plugins = Plugin.objects.order_by('order')
     for enabled_plugin in enabled_plugins:
         # Loop round the plugins and print their names.
         for plugin in manager.getAllPlugins():
@@ -241,7 +241,7 @@ def bu_dashboard(request, **kwargs):
 
                     break
     # Get all the enabled plugins
-    enabled_plugins = Plugin.objects.all().order_by('order')
+    enabled_plugins = Plugin.objects.order_by('order')
     for enabled_plugin in enabled_plugins:
         # Loop round the plugins and print their names.
         for plugin in manager.getAllPlugins():
@@ -320,7 +320,7 @@ def group_dashboard(request, **kwargs):
                     break
 
     # Get all the enabled plugins
-    enabled_plugins = Plugin.objects.all().order_by('order')
+    enabled_plugins = Plugin.objects.order_by('order')
     for enabled_plugin in enabled_plugins:
         # Loop round the plugins and print their names.
         for plugin in all_plugins:
@@ -534,7 +534,7 @@ def machine_detail(request, **kwargs):
 
     # TODO: Plugin code smell
     # Get all the enabled plugins
-    enabled_plugins = MachineDetailPlugin.objects.all().order_by('order')
+    enabled_plugins = MachineDetailPlugin.objects.order_by('order')
     for enabled_plugin in enabled_plugins:
         # Loop round the plugins and print their names.
         for plugin in manager.getAllPlugins():

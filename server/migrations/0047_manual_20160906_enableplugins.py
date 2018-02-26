@@ -21,7 +21,7 @@ def enable_plugins(apps, schema_editor):
 
     Plugin = apps.get_model("server", "Plugin")
     new_plugins = ['Encryption', 'Gatekeeper', 'Sip', 'XprotectVersion']
-    if Plugin.objects.all().count() != 0:
+    if Plugin.objects.count() != 0:
         for plugin_name in new_plugins:
             try:
                 plugin = Plugin.objects.get(name=plugin_name)

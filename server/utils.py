@@ -110,7 +110,7 @@ def send_report():
         output = {}
 
         # get total number of machines
-        output['machines'] = Machine.objects.all().count()
+        output['machines'] = Machine.objects.count()
 
         # get list of plugins
         output['plugins'] = [p.name for p in chain(Plugin.objects.all(), Report.objects.all())]

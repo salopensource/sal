@@ -40,11 +40,12 @@ def index(request):
         except UserProfile.DoesNotExist:
             profile = UserProfile(user=user)
 
-        profile.level = 'GA'
+        profile.level = ProfileLevel.global_admin
         profile.save()
-    user_level = user.userprofile.level
 
-    if user_level != 'GA':
+    user_is_ga = is_global_admin(user)
+
+    if user_is_ga:
         # user has many BU's display them all in a friendly manner
         business_units = user.businessunit_set.all()
         if user.businessunit_set.count() == 0:
@@ -108,11 +109,11 @@ def index(request):
 
     # If the user is GA level, and hasn't decided on a data sending
     # choice, template will reflect this.
-    data_choice = False if (user_level == 'GA' and utils.get_setting('send_data') is None) else True
+    data_choice = False if (user_is_ga and utils.get_setting('send_data') is None) else True
 
     # get the user level - if they're a global admin, show all of the
     # machines. If not, show only the machines they have access to
-    if user_level == 'GA':
+    if user_is_ga:
         business_units = BusinessUnit.objects.all()
     else:
         business_units = user.businessunit_set.all()
@@ -264,7 +265,6 @@ def bu_dashboard(request, **kwargs):
         'user': request.user,
         'machine_groups': machine_groups,
         'business_unit': business_unit,
-        'user_level': request.user.userprofile.level,
         'output': output,
         'reports': reports}
     return render(request, 'server/bu_dashboard.html', context)
@@ -343,7 +343,6 @@ def group_dashboard(request, **kwargs):
     context = {
         'user': request.user,
         'machine_group': machine_group,
-        'user_level': request.user.userprofile.level,
         'business_unit': kwargs['business_unit'],
         'output': output,
         'request': request,

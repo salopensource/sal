@@ -71,7 +71,7 @@ $( document ).ready(function() {
         <li>
         <a href="#"><i class="fa fa-wrench fa-fw"></i> Tools<span class="fa arrow"></span></a>
         <ul class="nav nav-second-level">
-            {% if user_level in ('GA', 'RW') %}
+            {% if user.userprofile.level == 'GA' or user.userprofile.level == 'RW' %}
               <li><a href="{% url 'edit_business_unit' business_unit.id %}"><i class="fa fa-fw fa-pencil"></i> Edit Business Unit</a></li>
               <li><a href="{% url 'new_machine_group' business_unit.id %}"><i class="fa fa-plus fa-fw"></i> New Machine Group</a></li>
             {% endif %}

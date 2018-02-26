@@ -80,7 +80,7 @@ $( document ).ready(function() {
 <div class="row">
     <div class="col-md-12">
         <h3>{{ machine_group.name }}</h3>
-        {% if user_level == "GA" %}
+        {% if user.userprofile.level == "GA" %}
           {% if not CONFIG_INSTALLED %}
             <legend>Key</legend>
             <pre class="scrollable">{{ machine_group.key }}</pre>

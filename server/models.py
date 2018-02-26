@@ -1,14 +1,18 @@
-from django.db import models
-from django.contrib.auth.models import User
-import random
-import string
-import plistlib
-from xml.parsers.expat import ExpatError
 import base64
 import bz2
+import plistlib
+import random
+import string
 from datetime import datetime
-from watson import search as watson
+from xml.parsers.expat import ExpatError
+
 from dateutil.parser import *
+
+from django.contrib.auth.models import User
+from django.db import models
+
+from watson import search as watson
+
 
 OS_CHOICES = (
     ('Darwin', 'macOS'),

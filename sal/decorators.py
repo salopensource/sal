@@ -15,7 +15,7 @@ from django.urls import reverse
 from django.utils.decorators import method_decorator
 from django.views.generic import View
 
-from server.models import BusinessUnit, Machine, MachineGroup
+from server.models import BusinessUnit, Machine, MachineGroup, ProfileLevel
 
 
 def class_login_required(cls):
@@ -139,7 +139,7 @@ def _get_business_unit(model, **kwargs):
 
 
 def is_global_admin(user):
-    return user.userprofile.level == "GA"
+    return user.userprofile.level == ProfileLevel.global_admin
 
 
 def key_auth_required(function):
@@ -199,7 +199,7 @@ def ga_required(function):
     # TODO: This can be removed once a class_required_level decoratir is created
     @wraps(function)
     def wrapper(*args, **kwargs):
-        if args[0].user.userprofile.level != 'GA':
+        if args[0].user.userprofile.level != ProfileLevel.global_admin:
             return redirect(reverse('home'))
         else:
             return function(*args, **kwargs)

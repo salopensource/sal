@@ -15,11 +15,11 @@ def clean_inventory(apps, schema_editor):
     Inventory = apps.get_model("inventory", "Inventory")
     Machine = apps.get_model("server", "Machine")
     for machine in Machine.objects.all():
-        all_inventory = Inventory.objects.all().filter(machine=machine)
+        all_inventory = Inventory.objects.filter(machine=machine)
         if all_inventory.count() != 0:
-            first_inventory = Inventory.objects.all().filter(
+            first_inventory = Inventory.objects.filter(
                 machine=machine)[:1].values_list("id", flat=True)
-            Inventory.objects.all().filter(machine=machine).exclude(pk__in=list(first_inventory)).delete()
+            Inventory.objects.filter(machine=machine).exclude(pk__in=list(first_inventory)).delete()
 
 
 class Migration(migrations.Migration):

@@ -298,8 +298,7 @@ def really_delete_machine_group(request, group_id):
 @access_required(MachineGroup)
 def group_dashboard(request, **kwargs):
     machine_group = kwargs['instance']
-    machines = machine_group.machine_set.all().filter(deployed=True)  # noqa: F841
-
+    machines = machine_group.machine_set.filter(deployed=True)  # noqa: F841
     all_plugins = utils.get_all_plugins()
 
     # TODO: Code smell

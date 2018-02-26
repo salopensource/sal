@@ -108,7 +108,7 @@ class Command(BaseCommand):
             if inactive_undeploy > 0:
                 now = django.utils.timezone.now()
                 inactive_days = now - datetime.timedelta(days=inactive_undeploy)
-                Machine.deployed_objects.all().filter(
+                Machine.deployed_objects.filter(
                     last_checkin__lte=inactive_days).update(deployed=False)
         except Exception:
             pass

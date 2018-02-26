@@ -744,12 +744,12 @@ def plugin_machines(request, pluginName, data, page='front', theID=None, get_mac
         if page == 'front':
             # get all machines
             if user.userprofile.level == 'GA':
-                machines = Machine.objects.all().filter(deployed=deployed)
+                machines = Machine.objects.filter(deployed=deployed)
             else:
                 machines = Machine.objects.none()
                 for business_unit in user.businessunit_set.all():
                     for group in business_unit.machinegroup_set.all():
-                        machines = machines | group.machine_set.all().filter(deployed=deployed)
+                        machines = machines | group.machine_set.filter(deployed=deployed)
         if page == 'bu_dashboard':
             # only get machines for that BU
             # Need to make sure the user is allowed to see this
@@ -757,10 +757,10 @@ def plugin_machines(request, pluginName, data, page='front', theID=None, get_mac
             machine_groups = MachineGroup.objects.filter(business_unit=business_unit).all()
 
             if machine_groups.count() != 0:
-                machines_unsorted = machine_groups[0].machine_set.all().filter(deployed=deployed)
+                machines_unsorted = machine_groups[0].machine_set.filter(deployed=deployed)
                 for machine_group in machine_groups[1:]:
                     machines_unsorted = machines_unsorted | \
-                        machine_group.machine_set.all().filter(deployed=deployed)
+                        machine_group.machine_set.filter(deployed=deployed)
             else:
                 machines_unsorted = None
             machines = machines_unsorted

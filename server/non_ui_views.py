@@ -143,7 +143,7 @@ def plugin_load(request, pluginName, page='front', theID=None):
             machines = Machine.objects.none()
             for business_unit in user.businessunit_set.all():
                 for group in business_unit.machinegroup_set.all():
-                    machines = machines | group.machine_set.all().filter(deployed=True)
+                    machines = machines | group.machine_set.filter(deployed=True)
     if page == 'bu_dashboard':
         # only get machines for that BU
         # Need to make sure the user is allowed to see this
@@ -190,7 +190,7 @@ def report_load(request, pluginName, page='front', theID=None):
             machines = Machine.objects.none()
             for business_unit in user.businessunit_set.all():
                 for group in business_unit.machinegroup_set.all():
-                    machines = machines | group.machine_set.all().filter(deployed=True)
+                    machines = machines | group.machine_set.filter(deployed=True)
     if page == 'bu_dashboard':
         # only get machines for that BU
         # Need to make sure the user is allowed to see this
@@ -292,14 +292,14 @@ def export_csv(request, pluginName, data, page='front', theID=None):
     if page == 'front':
         # get all machines
         if user.userprofile.level == 'GA':
-            machines = Machine.objects.all().filter(deployed=deployed).defer(
+            machines = Machine.objects.filter(deployed=deployed).defer(
                 'report', 'activity', 'os_family', 'install_log', 'install_log_hash')
         else:
             machines = Machine.objects.none().defer('report', 'activity', 'os_family',
                                                     'install_log', 'install_log_hash')
             for business_unit in user.businessunit_set.all():
                 for group in business_unit.machinegroup_set.all():
-                    machines = machines | group.machine_set.all().filter(deployed=deployed)
+                    machines = machines | group.machine_set.filter(deployed=deployed)
     if page == 'bu_dashboard':
         # only get machines for that BU
         # Need to make sure the user is allowed to see this
@@ -310,7 +310,7 @@ def export_csv(request, pluginName, data, page='front', theID=None):
         if machine_groups.count() != 0:
             machines = machine_groups[0].machine_set.all()
             for machine_group in machine_groups[1:]:
-                machines = machines | machine_group.machine_set.all().filter(deployed=deployed).\
+                machines = machines | machine_group.machine_set.filter(deployed=deployed).\
                     defer('report', 'activity', 'os_family', 'install_log', 'install_log_hash')
         else:
             machines = None

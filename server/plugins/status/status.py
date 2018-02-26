@@ -28,7 +28,7 @@ class Status(IPlugin):
     def widget_content(self, page, machines=None, theid=None):
         if page == 'front':
             t = loader.get_template('status/templates/front.html')
-            undeployed_machines = Machine.objects.all().filter(deployed=False).count()
+            undeployed_machines = Machine.objects.filter(deployed=False).count()
 
         if page == 'bu_dashboard':
             t = loader.get_template('status/templates/id.html')

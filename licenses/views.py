@@ -96,7 +96,7 @@ def available(request, key, item_name=''):
                 pass
     else:
         # return everything
-        licenses = License.objects.all().filter(business_unit=business_unit)
+        licenses = License.objects.filter(business_unit=business_unit)
         for license in licenses:
             info[license.item_name] = license.available()
 

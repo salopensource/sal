@@ -143,7 +143,7 @@ def machine_list(request, pluginName, data, page='front', theID=None):
 
 
 @login_required
-@ga_required
+@required_level(ProfileLevel.global_admin)
 def new_business_unit(request):
     c = {}
     c.update(csrf(request))
@@ -161,7 +161,7 @@ def new_business_unit(request):
 
 
 @login_required
-@ga_required
+@required_level(ProfileLevel.global_admin)
 def edit_business_unit(request, bu_id):
     business_unit = get_object_or_404(BusinessUnit, pk=int(bu_id))
     c = {}
@@ -186,7 +186,7 @@ def edit_business_unit(request, bu_id):
 
 
 @login_required
-@ga_required
+@required_level(ProfileLevel.global_admin)
 def delete_business_unit(request, bu_id):
     business_unit = get_object_or_404(BusinessUnit, pk=int(bu_id))
 
@@ -201,7 +201,7 @@ def delete_business_unit(request, bu_id):
 
 
 @login_required
-@ga_required
+@required_level(ProfileLevel.global_admin)
 def really_delete_business_unit(request, bu_id):
     business_unit = get_object_or_404(BusinessUnit, pk=int(bu_id))
     business_unit.delete()
@@ -271,7 +271,7 @@ def bu_dashboard(request, **kwargs):
 
 
 @login_required
-@ga_required
+@required_level(ProfileLevel.global_admin)
 def delete_machine_group(request, group_id):
     machine_group = get_object_or_404(MachineGroup, pk=int(group_id))
 
@@ -286,7 +286,7 @@ def delete_machine_group(request, group_id):
 
 
 @login_required
-@ga_required
+@required_level(ProfileLevel.global_admin)
 def really_delete_machine_group(request, group_id):
     machine_group = get_object_or_404(MachineGroup, pk=int(group_id))
     business_unit = machine_group.business_unit
@@ -575,8 +575,9 @@ def machine_detail(request, **kwargs):
 
 
 @login_required
-def machine_detail_facter(request, machine_id):
-    machine = get_object_or_404(Machine, pk=machine_id)
+@access_required(Machine)
+def machine_detail_facter(request, machine_id, **kwargs):
+    machine = kwargs['instance']
     table_data = []
     if machine.facts.count() != 0:
         facts = machine.facts.all()
@@ -606,8 +607,10 @@ def machine_detail_facter(request, machine_id):
     return render(request, 'server/machine_detail_table.html', c)
 
 
-def machine_detail_conditions(request, machine_id):
-    machine = get_object_or_404(Machine, pk=machine_id)
+@login_required
+@access_required(Machine)
+def machine_detail_conditions(request, machine_id, **kwargs):
+    machine = kwargs['instance']
     table_data = []
     if machine.conditions.count() != 0:
         conditions = machine.conditions.all()
@@ -638,6 +641,7 @@ def machine_detail_conditions(request, machine_id):
 
 
 @login_required
+@required_level(ProfileLevel.global_admin, ProfileLevel.read_write)
 @access_required(Machine)
 def delete_machine(request, **kwargs):
     machine = kwargs['instance']

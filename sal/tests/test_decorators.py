@@ -131,6 +131,36 @@ class FunctionDecoratorsTest(TestCase):
         # - BASIC_AUTH = True
         pass
 
+    def test_required_level(self):
+
+        @required_level(ProfileLevel.global_admin, ProfileLevel.read_write)
+        def test_view(request, *args, **kwargs):
+            return SUCCESS
+
+        request = self.factory.get('/test/')
+        request.user = self.normal_user
+        response = test_view(request)
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.url, '/')
+
+        # Elevate user to RW status.
+        request = self.factory.get('/test/')
+        user_profile = self.normal_user.userprofile
+        user_profile.level = 'RW'
+        user_profile.save()
+        request.user = self.normal_user
+        response = test_view(request)
+        self.assertEqual(response, SUCCESS)
+
+        # Elevate staff user to GA status.
+        request = self.factory.get('/test/')
+        user_profile = self.staff_user.userprofile
+        user_profile.level = 'GA'
+        user_profile.save()
+        request.user = self.staff_user
+        response = test_view(request)
+        self.assertEqual(response, SUCCESS)
+
     def test_ga_required(self):
 
         @ga_required

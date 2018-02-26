@@ -26,6 +26,12 @@ REPORT_CHOICES = (
     ('base64bz2', 'base64bz2'),
 )
 
+class ProfileLevel():
+    stats_only = 'SO'
+    read_only = 'RO'
+    read_write = 'RW'
+    global_admin = 'GA'
+
 
 def GenerateKey():
     key = ''.join(random.choice(string.ascii_lowercase + string.digits) for x in range(128))

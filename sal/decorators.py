@@ -206,6 +206,30 @@ def ga_required(function):
     return wrapper
 
 
+def required_level(*decorator_args):
+    """View decorator to redirect users without acceptable userprofile..
+
+    Wrapped function must have the request object as the first argument.
+
+    Args:
+        *args (server.model.UserProfile.LEVEL_CHOICES) Any number of
+            user profile level choices that should be permitted access.
+    """
+
+    def decorator(function):
+
+        @wraps(function)
+        def wrapper(*args, **kwargs):
+            if args[0].user.userprofile.level not in decorator_args:
+                return redirect(reverse('home'))
+            else:
+                return function(*args, **kwargs)
+
+        return wrapper
+
+    return decorator
+
+
 def staff_required(function):
     """View decorator to redirect non staff users.
 

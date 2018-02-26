@@ -81,10 +81,10 @@ $( document ).ready(function() {
     <div class="col-md-12">
         <h3>{{ machine_group.name }}</h3>
         {% if user_level == "GA" %}
-        {% if not CONFIG_INSTALLED %}
-        <legend>Key</legend>
-        <pre class="scrollable">{{ machine_group.key }}</pre>
-        {% endif %}
+          {% if not CONFIG_INSTALLED %}
+            <legend>Key</legend>
+            <pre class="scrollable">{{ machine_group.key }}</pre>
+          {% endif %}
         {% endif %}
     </div>
 </div>

@@ -214,11 +214,6 @@ def bu_dashboard(request, **kwargs):
     business_unit = kwargs['business_unit']
     machine_groups = business_unit.machinegroup_set.all()
 
-    if request.user.userprofile.level in ('GA', 'RW'):
-        is_editor = True
-    else:
-        is_editor = False
-
     # TODO: Busted! Code smell
     # Build the manager
     manager = PluginManager()
@@ -268,7 +263,6 @@ def bu_dashboard(request, **kwargs):
     context = {
         'user': request.user,
         'machine_groups': machine_groups,
-        'is_editor': is_editor,
         'business_unit': business_unit,
         'user_level': request.user.userprofile.level,
         'output': output,
@@ -303,11 +297,6 @@ def really_delete_machine_group(request, group_id):
 @login_required
 @access_required(MachineGroup)
 def group_dashboard(request, **kwargs):
-    if request.user.userprofile.level in ('GA', 'RW'):
-        is_editor = True
-    else:
-        is_editor = False
-
     machine_group = kwargs['instance']
     machines = machine_group.machine_set.all().filter(deployed=True)  # noqa: F841
 
@@ -356,7 +345,6 @@ def group_dashboard(request, **kwargs):
         'user': request.user,
         'machine_group': machine_group,
         'user_level': request.user.userprofile.level,
-        'is_editor': is_editor,
         'business_unit': kwargs['business_unit'],
         'output': output,
         'request': request,

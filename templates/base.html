@@ -92,7 +92,7 @@
                     </a>
                     <ul class="dropdown-menu dropdown-user">
                         {% if user.has_usable_password %}
-													<li><a href="#"><i class="fa fa-check-square-o fa-fw"></i>{{ user.get_username }} ({{ user.userprofile.level}})</a></li>
+													<li><a href="#"><i class="fa fa-check-square-o fa-fw"></i> {{ user.get_username }} ({{ user.userprofile.level}})</a></li>
 													<li><a href="{% url 'password_change' %}"><i class="fa fa-user fa-fw"></i> {% trans "Change password" %}</a></li>
                         {% endif %}
                         {% if user.userprofile.level == 'GA' %}

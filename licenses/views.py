@@ -14,23 +14,20 @@ from server.models import *
 
 
 @login_required
-@ga_required
+@required_level(ProfileLevel.global_admin)
 def license_index(request):
-    '''Sal index page for licenses.'''
-    all_licenses = License.objects.all()
-    c = {'request': request,
-         'licenses': all_licenses,
-         'user': request.user,
-         'page': 'licenses'}
-    return render(request, 'licenses/index.html', c)
+    """Sal index page for licenses."""
+    context = {'request': request,
+               'licenses': License.objects.all(),
+               'user': request.user,
+               'page': 'licenses'}
+    return render(request, 'licenses/index.html', context)
 
 
 @login_required
-@ga_required
+@required_level(ProfileLevel.global_admin)
 def new_license(request):
-    '''Creates a new License object'''
-    c = {}
-    c.update(csrf(request))
+    """Creates a new License object"""
     if request.method == 'POST':
         form = LicenseForm(request.POST)
         if form.is_valid():
@@ -38,33 +35,32 @@ def new_license(request):
             return redirect(license_index)
     else:
         form = LicenseForm()
-    c = {'form': form}
 
-    return render(request, 'forms/new_license.html', c)
+    context = {'form': form}
+
+    return render(request, 'forms/new_license.html', context)
 
 
 @login_required
-@ga_required
+@required_level(ProfileLevel.global_admin)
 def edit_license(request, license_id):
     license = get_object_or_404(License, pk=license_id)
-    c = {}
-    c.update(csrf(request))
 
     if request.method == 'POST':
-
         form = LicenseForm(request.POST, instance=license)
         if form.is_valid():
             license = form.save()
             return redirect(license_index)
     else:
         form = LicenseForm(instance=license)
-    c = {'form': form, 'license': license}
 
-    return render(request, 'forms/edit_license.html', c)
+    context = {'form': form, 'license': license}
+
+    return render(request, 'forms/edit_license.html', context)
 
 
 @login_required
-@ga_required
+@required_level(ProfileLevel.global_admin)
 def delete_license(request, license_id):
     license = get_object_or_404(License, pk=license_id)
     license.delete()

@@ -1,36 +1,37 @@
-from django.shortcuts import render, get_object_or_404, redirect
+import json
+import re
+
+import unicodecsv as csv
+
 from django.contrib.auth.decorators import login_required
-from django.views.decorators.csrf import csrf_exempt, csrf_protect
-from django.template.context_processors import csrf
 from django.db.models import CharField, Q
 from django.http import JsonResponse, StreamingHttpResponse
-import sal.settings as settings
+from django.shortcuts import get_object_or_404, redirect, render
+from django.template.context_processors import csrf
+from django.views.decorators.csrf import csrf_exempt, csrf_protect
 
+import sal.settings as settings
 import search.utils as utils
-from server.models import *
-from search.models import *
-from search.forms import *
 import search.views
 import server.utils
 from inventory.models import *
-
-import json
-import re
-import unicodecsv as csv
+from sal.decorators import *
+from search.forms import *
+from search.models import *
+from server.models import *
 
 
 @login_required
 @csrf_exempt
 def index(request):
-    user = request.user
-    user_level = user.userprofile.level
     if ('q' in request.GET) and request.GET['q'].strip():
         query_string = request.GET['q'].strip()
     else:
         return redirect(search.views.list)
+
     # Make sure we're searching across Machines the user has access to:
     machines = Machine.objects.all()
-    if user_level != 'GA':
+    if not is_global_admin(request.user):
         for business_unit in BusinessUnit.objects.all():
             if business_unit not in request.user.businessunit_set.all():
                 machines = machines.exclude(machine_group__business_unit=business_unit)
@@ -254,10 +255,8 @@ def search_machines(search_id, machines, full=False):
 
 @login_required
 def run_search(request, search_id):
-    # Placeholder
-    user_level = request.user.userprofile.level
     machines = Machine.objects.all()
-    if user_level != 'GA':
+    if not is_global_admin(request.user):
         for business_unit in BusinessUnit.objects.all():
             if business_unit not in request.user.businessunit_set.all():
                 machines = machines.exclude(
@@ -332,9 +331,8 @@ def build_search(request, search_id):
 
 @login_required
 def delete_search(request, search_id):
-    user_level = request.user.userprofile.level
     saved_search = get_object_or_404(SavedSearch, pk=search_id)
-    if user_level == 'GA' or request.user == saved_search.created_by:
+    if is_global_admin(request.user) or request.user == saved_search.created_by:
         saved_search.delete()
     return redirect(search.views.list)
 
@@ -342,9 +340,7 @@ def delete_search(request, search_id):
 @login_required
 def edit_search(request, search_id):
     saved_search = get_object_or_404(SavedSearch, pk=search_id)
-    user = request.user
-    user_level = user.userprofile.level
-    if user_level != 'GA' and saved_search.created_by != request.user:
+    if not is_global_admin(request.user) and saved_search.created_by != request.user:
         return redirect(search.views.list)
     if request.method == 'POST':
         form = SearchRowForm(request.POST, instance=search_row)
@@ -376,8 +372,7 @@ def new_search_group(request, search_id):
 # def edit_group(request, search_group_id):
 #     search_group = get_object_or_404(SearchGroup, pk=search_group_id)
 #     saved_search = search_group.saved_search
-#     user_level = request.user.userprofile.level
-#     if user_level == 'GA' or request.user == saved_search.created_by:
+#     if is_global_admin(request.user) or request.user == saved_search.created_by:
 #         search_group.delete()
 #     return redirect(search.views.build_search, saved_search.id)
 
@@ -388,8 +383,7 @@ def new_search_group(request, search_id):
 def group_and_or(request, search_group_id):
     search_group = get_object_or_404(SearchGroup, pk=search_group_id)
     saved_search = search_group.saved_search
-    user_level = request.user.userprofile.level
-    if user_level == 'GA' or request.user == saved_search.created_by:
+    if is_global_admin(request.user) or request.user == saved_search.created_by:
         if search_group.and_or == 'AND':
             search_group.and_or = 'OR'
         else:
@@ -404,8 +398,7 @@ def group_and_or(request, search_group_id):
 def delete_group(request, search_group_id):
     search_group = get_object_or_404(SearchGroup, pk=search_group_id)
     saved_search = search_group.saved_search
-    user_level = request.user.userprofile.level
-    if user_level == 'GA' or request.user == saved_search.created_by:
+    if is_global_admin(request.user) or request.user == saved_search.created_by:
         search_group.delete()
     return redirect(search.views.build_search, saved_search.id)
 
@@ -415,8 +408,7 @@ def delete_group(request, search_group_id):
 @login_required
 def new_search_row(request, search_group_id):
     search_group = get_object_or_404(SearchGroup, pk=search_group_id)
-    if (request.user.userprofile.level != 'GA' and
-            search_group.saved_search.created_by != request.user):
+    if not is_global_admin(request.user) and search_group.saved_search.created_by != request.user:
         return redirect(search.views.list)
     if request.method == 'POST':
         form = SearchRowForm(request.POST)
@@ -488,8 +480,7 @@ def delete_row(request, search_row_id):
     search_row = get_object_or_404(SearchRow, pk=search_row_id)
     search_group = search_row.search_group
     saved_search = search_group.saved_search
-    user_level = request.user.userprofile.level
-    if user_level == 'GA' or request.user == saved_search.created_by:
+    if is_global_admin(request.user) or request.user == saved_search.created_by:
         search_row.delete()
     return redirect(search.views.build_search, saved_search.id)
 

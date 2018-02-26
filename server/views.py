@@ -690,8 +690,6 @@ def machine_detail_conditions(request, machine_id):
 @login_required
 @access_required(Machine)
 def delete_machine(request, **kwargs):
-    # TODO: The delete computer is still shown on the template even if the user doesn't have perms.
-    # They just can't click on it.
     machine = kwargs['instance']
     machine_group_id = machine.machine_group.id
     machine.delete()

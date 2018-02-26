@@ -124,7 +124,7 @@ def _get_business_unit(model, **kwargs):
 
     try:
         instance = get_object_or_404(model, pk=pk)
-    except ValueError as err:
+    except ValueError:
         # Sal allows machine serials instead of machine ID in URLs.
         # Handle that special case.
         if model is Machine:
@@ -244,4 +244,3 @@ def staff_required(function):
             return function(*args, **kwargs)
 
     return wrapper
-

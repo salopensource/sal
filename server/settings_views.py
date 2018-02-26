@@ -452,4 +452,3 @@ def delete_api_key(request, key_id):
     api_key = get_object_or_404(ApiKey, pk=int(key_id))
     api_key.delete()
     return redirect(api_keys)
-

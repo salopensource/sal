@@ -647,4 +647,3 @@ def delete_machine(request, **kwargs):
     machine_group_id = machine.machine_group.id
     machine.delete()
     return redirect('group_dashboard', machine_group_id)
-

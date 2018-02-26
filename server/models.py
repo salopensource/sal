@@ -26,6 +26,7 @@ REPORT_CHOICES = (
     ('base64bz2', 'base64bz2'),
 )
 
+
 class ProfileLevel():
     stats_only = 'SO'
     read_only = 'RO'

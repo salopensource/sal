@@ -112,7 +112,8 @@ def tableajax(request, pluginName, data, page='front', theID=None):
 
 @login_required
 def machine_list(request, pluginName, data, page='front', theID=None):
-    (machines, title) = utils.plugin_machines(request, pluginName, data, page, theID, get_machines=False)
+    machines, title = utils.plugin_machines(
+        request, pluginName, data, page, theID, get_machines=False)
     user = request.user
     page_length = utils.get_setting('datatable_page_length')
     c = {'user': user, 'plugin_name': pluginName, 'machines': machines, 'req_type': page,

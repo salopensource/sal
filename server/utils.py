@@ -778,5 +778,3 @@ def plugin_machines(request, pluginName, data, page='front', theID=None, get_mac
             (machines, title) = plugin.plugin_object.filter_machines(machines, data)
 
     return machines, title
-
-

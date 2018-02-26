@@ -86,6 +86,7 @@ class FunctionDecoratorsTest(TestCase):
         self.factory = RequestFactory()
         self.normal_user = User.objects.get(pk=2)
         self.staff_user = User.objects.get(pk=1)
+
         @access_required(BusinessUnit)
         def test_view(request, **kwargs):
             return SUCCESS
@@ -177,4 +178,3 @@ class FunctionDecoratorsTest(TestCase):
         request.user = self.staff_user
         response = test_view(request)
         self.assertEqual(response, SUCCESS)
-

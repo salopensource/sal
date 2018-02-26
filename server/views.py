@@ -365,97 +365,60 @@ def group_dashboard(request, **kwargs):
 
 
 @login_required
-def new_machine_group(request, bu_id):
-    c = {}
-    c.update(csrf(request))
-    business_unit = get_object_or_404(BusinessUnit, pk=bu_id)
+@required_level(ProfileLevel.global_admin, ProfileLevel.read_write)
+@access_required(BusinessUnit)
+def new_machine_group(request, bu_id, **kwargs):
+    business_unit = kwargs['business_unit']
+
     if request.method == 'POST':
         form = MachineGroupForm(request.POST)
         if form.is_valid():
             new_machine_group = form.save(commit=False)
             new_machine_group.business_unit = business_unit
             new_machine_group.save()
-            # form.save_m2m()
             return redirect('group_dashboard', new_machine_group.id)
     else:
         form = MachineGroupForm()
 
-    user = request.user
-    user_level = user.userprofile.level
-    if user_level == 'GA' or user_level == 'RW':
-        is_editor = True
-    else:
-        is_editor = False
-
-    # TODO: Factor to access decorator; waiting to hear that RW should be allowed to do this.
-    if business_unit not in user.businessunit_set.all() or is_editor is False:
-        if user_level != 'GA':
-            return redirect(index)
-    c = {'form': form, 'is_editor': is_editor, 'business_unit': business_unit, }
-    return render(request, 'forms/new_machine_group.html', c)
+    context = {'form': form, 'business_unit': business_unit}
+    return render(request, 'forms/new_machine_group.html', context)
 
 
 @login_required
-def edit_machine_group(request, group_id):
-    c = {}
-    c.update(csrf(request))
-    machine_group = get_object_or_404(MachineGroup, pk=group_id)
-    business_unit = machine_group.business_unit
-    user = request.user
-    user_level = user.userprofile.level
-    if user_level == 'GA' or user_level == 'RW':
-        is_editor = True
-    else:
-        is_editor = False
-
-    # TODO: Factor to access decorator; waiting to hear that RW should be allowed to do this.
-    if business_unit not in user.businessunit_set.all() or is_editor is False:
-        if user_level != 'GA':
-            return redirect(index)
+@required_level(ProfileLevel.global_admin, ProfileLevel.read_write)
+@access_required(MachineGroup)
+def edit_machine_group(request, group_id, **kwargs):
+    machine_group = kwargs['instance']
     if request.method == 'POST':
         form = EditMachineGroupForm(request.POST, instance=machine_group)
         if form.is_valid():
             machine_group.save()
-            # form.save_m2m()
             return redirect('group_dashboard', machine_group.id)
     else:
         form = EditMachineGroupForm(instance=machine_group)
 
-    c = {'form': form, 'is_editor': is_editor,
-         'business_unit': business_unit, 'machine_group': machine_group}
-    return render(request, 'forms/edit_machine_group.html', c)
+    context = {'form': form, 'business_unit': kwargs['business_unit'], 'machine_group':
+               machine_group}
+    return render(request, 'forms/edit_machine_group.html', context)
 
 
 @login_required
-def new_machine(request, group_id):
-    c = {}
-    c.update(csrf(request))
-    machine_group = get_object_or_404(MachineGroup, pk=group_id)
-    business_unit = machine_group.business_unit
+@required_level(ProfileLevel.global_admin, ProfileLevel.read_write)
+@access_required(MachineGroup)
+def new_machine(request, group_id, **kwargs):
+    machine_group = kwargs['instance']
     if request.method == 'POST':
         form = NewMachineForm(request.POST)
         if form.is_valid():
             new_machine = form.save(commit=False)
             new_machine.machine_group = machine_group
             new_machine.save()
-            # form.save_m2m()
             return redirect('machine_detail', new_machine.id)
     else:
         form = NewMachineForm()
 
-    user = request.user
-    user_level = user.userprofile.level
-    if user_level == 'GA' or user_level == 'RW':
-        is_editor = True
-    else:
-        is_editor = False
-
-    # TODO: Factor to access decorator; waiting to hear that RW should be allowed to do this.
-    if business_unit not in user.businessunit_set.all() or is_editor is False:
-        if user_level != 'GA':
-            return redirect(index)
-    c = {'form': form, 'is_editor': is_editor, 'machine_group': machine_group, }
-    return render(request, 'forms/new_machine.html', c)
+    context = {'form': form, 'machine_group': machine_group}
+    return render(request, 'forms/new_machine.html', context)
 
 
 @login_required

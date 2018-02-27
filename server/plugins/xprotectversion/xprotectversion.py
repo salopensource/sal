@@ -13,6 +13,9 @@ class XprotectVersion(IPlugin):
     def widget_width(self):
         return 4
 
+    def plugin_type(self):
+        return 'builtin'
+
     def get_description(self):
         return 'Xprotect version'
 

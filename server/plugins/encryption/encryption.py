@@ -21,6 +21,9 @@ class Encryption(IPlugin):
     def widget_width(self):
         return 4
 
+    def plugin_type(self):
+        return 'builtin'
+
     def widget_content(self, page, machines=None, theid=None):
         show_desktops = getattr(settings, 'ENCRYPTION_SHOW_DESKTOPS', False)
         template_page = page if page == 'front' else 'id'

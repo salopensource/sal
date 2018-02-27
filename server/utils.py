@@ -411,6 +411,10 @@ def get_all_plugins():
     # Load all plugins
     manager.collectPlugins()
     plugins = manager.getAllPlugins()
+
+    # TODO (sheagcraig): Reevaluate the continued need for this after
+    # further work on the plugin system and ongoing support of existing
+    # plugins.
     for plugin in plugins:
         if not hasattr(plugin.plugin_object, 'plugin_type'):
             plugin.plugin_object.plugin_type = lambda: 'widget'
@@ -805,8 +809,6 @@ def get_report_data(plugins):
 
 def get_plugin_data(plugins, page='front', the_id=None):
     result = []
-
-
     yapsy_plugins = {p.name: p for p in plugins
                      if p.plugin_object.plugin_type() not in ('machine_detail', 'report')}
 
@@ -828,6 +830,8 @@ def get_machine_detail_plugin_data(machine):
     result = []
     yapsy_plugins = {
         p.name: p for p in get_all_plugins()
+        # TODO (sheagcraig): This used to be excluding 'builtin' and 'full_page',
+        # but I assumed that `full_page` at some point became `report`.
         if p.plugin_object.plugin_type() not in ('builtin', 'report') and
         machine.os_family in getattr(p.plugin_object, 'supported_os_families', lambda: [])()}
 

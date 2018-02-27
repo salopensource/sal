@@ -1,14 +1,13 @@
-import requests
 from datetime import datetime
+
+import requests
+from yapsy.IPlugin import IPlugin
 
 from django.conf import settings
 from django.db.models import Count
 from django.shortcuts import get_object_or_404
-from django.template import loader, Context
+from django.template import Context, loader
 from django.utils.dateparse import parse_datetime
-
-from yapsy.IPlugin import IPlugin
-from yapsy.PluginManager import PluginManager
 
 import server.utils as utils
 

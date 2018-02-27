@@ -1,12 +1,14 @@
-from datetime import datetime, timedelta, date, time
+from datetime import date, datetime, time, timedelta
+
+from yapsy.IPlugin import IPlugin
+
+import django.utils.timezone
 from django.db.models import Count
 from django.shortcuts import get_object_or_404
-from django.template import loader, Context
-from server.models import *
-from yapsy.IPlugin import IPlugin
-from yapsy.PluginManager import PluginManager
-import django.utils.timezone
+from django.template import Context, loader
+
 import server.utils as utils
+from server.models import *
 
 
 now = django.utils.timezone.now()

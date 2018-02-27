@@ -45,17 +45,14 @@ def index(request):
 
     user_is_ga = is_global_admin(user)
 
-    if user_is_ga:
+    if not user_is_ga:
         # user has many BU's display them all in a friendly manner
-        business_units = user.businessunit_set.all()
         if user.businessunit_set.count() == 0:
             c = {'user': request.user, }
             return render(request, 'server/no_access.html', c)
         if user.businessunit_set.count() == 1:
             # user only has one BU, redirect to it
-            for bu in user.businessunit_set.all():
-                return redirect('bu_dashboard', bu_id=bu.id)
-                break
+            return redirect('bu_dashboard', bu_id=user.businessunit_set.all()[0].id)
 
     # TODO: Plugin code smell
     # Load in the default plugins if needed

@@ -2,8 +2,6 @@ import os
 import re
 from datetime import timedelta
 
-from yapsy.PluginManager import PluginManager
-
 import django.utils.timezone
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
@@ -54,55 +52,12 @@ def index(request):
             # user only has one BU, redirect to it
             return redirect('bu_dashboard', bu_id=user.businessunit_set.all()[0].id)
 
-    # TODO: Plugin code smell
     # Load in the default plugins if needed
     utils.load_default_plugins()
-    # Build the manager
-    manager = PluginManager()
-    # Tell it the default place(s) where to find plugins
-    manager.setPluginPlaces([settings.PLUGIN_DIR, os.path.join(
-        settings.PROJECT_DIR, 'server/plugins')])
-    # Load all plugins
-    manager.collectPlugins()
-    output = []
-    reports = []
-    enabled_reports = Report.objects.all()
-    for enabled_report in enabled_reports:
-        for plugin in manager.getAllPlugins():
-            if enabled_report.name == plugin.name:
-                # If plugin_type isn't set, it can't be a report
-                try:
-                    plugin_type = plugin.plugin_object.plugin_type()
-                except Exception:
-                    plugin_type = 'widget'
-                if plugin_type == 'report':
-                    data = {}
-                    data['name'] = plugin.name
-                    data['title'] = plugin.plugin_object.get_title()
-                    reports.append(data)
+    plugins = utils.get_all_plugins()
 
-                    break
-    # TODO: Plugin code smell
-    # Get all the enabled plugins
-    enabled_plugins = Plugin.objects.order_by('order')
-    for enabled_plugin in enabled_plugins:
-        # Loop round the plugins and print their names.
-        for plugin in manager.getAllPlugins():
-            # If plugin_type isn't set, assume its an old style one
-            try:
-                plugin_type = plugin.plugin_object.plugin_type()
-            except Exception:
-                plugin_type = 'widget'
-            if plugin.name == enabled_plugin.name and \
-                    plugin_type != 'machine_info' and plugin_type != 'report':
-                data = {}
-                data['name'] = plugin.name
-                data['width'] = plugin.plugin_object.widget_width()
-                data['html'] = '<div id="plugin-%s" class="col-md-%s"><img class="center-block blue-spinner" src="%s"/></div>' % (data['name'], str(data['width']), static('img/blue-spinner.gif'))  # noqa: E501
-                output.append(data)
-                break
-
-    output = utils.orderPluginOutput(output)
+    reports = utils.get_report_data(plugins)
+    output = utils.get_plugin_data(plugins)
 
     # If the user is GA level, and hasn't decided on a data sending
     # choice, template will reflect this.
@@ -212,51 +167,12 @@ def bu_dashboard(request, **kwargs):
     business_unit = kwargs['business_unit']
     machine_groups = business_unit.machinegroup_set.all()
 
-    # TODO: Busted! Code smell
-    # Build the manager
-    manager = PluginManager()
-    # Tell it the default place(s) where to find plugins
-    manager.setPluginPlaces([settings.PLUGIN_DIR, os.path.join(
-        settings.PROJECT_DIR, 'server/plugins')])
-    # Load all plugins
-    manager.collectPlugins()
-    output = []
-    reports = []
-    enabled_reports = Report.objects.all()
-    for enabled_report in enabled_reports:
-        for plugin in manager.getAllPlugins():
-            if plugin.name == enabled_report.name:
-                # If plugin_type isn't set, it can't be a report
-                try:
-                    plugin_type = plugin.plugin_object.plugin_type()
-                except Exception:
-                    plugin_type = 'widget'
-                if plugin_type == 'report':
-                    data = {}
-                    data['name'] = plugin.name
-                    data['title'] = plugin.plugin_object.get_title()
-                    reports.append(data)
+    # Load in the default plugins if needed
+    utils.load_default_plugins()
+    plugins = utils.get_all_plugins()
 
-                    break
-    # Get all the enabled plugins
-    enabled_plugins = Plugin.objects.order_by('order')
-    for enabled_plugin in enabled_plugins:
-        # Loop round the plugins and print their names.
-        for plugin in manager.getAllPlugins():
-            try:
-                plugin_type = plugin.plugin_object.plugin_type()
-            except Exception:
-                plugin_type = 'widget'
-            if plugin.name == enabled_plugin.name and \
-                    plugin_type != 'machine_info' and plugin_type != 'full_page':
-                data = {}
-                data['name'] = plugin.name
-                data['width'] = plugin.plugin_object.widget_width()
-                data['html'] = '<div id="plugin-%s" class="col-md-%s"><img class="center-block blue-spinner" src="%s"/></div>' % (data['name'], str(data['width']), static('img/blue-spinner.gif'))  # noqa: E501
-                output.append(data)
-                break
-
-    output = utils.orderPluginOutput(output, 'bu_dashboard', business_unit.id)
+    reports = utils.get_report_data(plugins)
+    output = utils.get_plugin_data(plugins, 'bu_dashboard', business_unit.id)
 
     context = {
         'user': request.user,
@@ -296,47 +212,10 @@ def really_delete_machine_group(request, group_id):
 def group_dashboard(request, **kwargs):
     machine_group = kwargs['instance']
     machines = machine_group.machine_set.filter(deployed=True)  # noqa: F841
-    all_plugins = utils.get_all_plugins()
+    plugins = utils.get_all_plugins()
+    output = utils.get_plugin_data(plugins, 'group_dashboard', machine_group.id)
+    reports = utils.get_report_data(plugins)
 
-    # TODO: Code smell
-    output = []
-    reports = []
-    for enabled_report in Report.objects.all():
-        for plugin in all_plugins:
-            if plugin.name == enabled_report.name:
-                # If plugin_type isn't set, it can't be a report
-                try:
-                    plugin_type = plugin.plugin_object.plugin_type()
-                except Exception:
-                    plugin_type = 'widget'
-                if plugin_type == 'report':
-                    data = {}
-                    data['name'] = plugin.name
-                    data['title'] = plugin.plugin_object.get_title()
-                    reports.append(data)
-                    break
-
-    # Get all the enabled plugins
-    enabled_plugins = Plugin.objects.order_by('order')
-    for enabled_plugin in enabled_plugins:
-        # Loop round the plugins and print their names.
-        for plugin in all_plugins:
-            try:
-                p_type = plugin.plugin_object.plugin_type()
-            except Exception:
-                p_type = 'widget'
-
-            if plugin.name == enabled_plugin.name and p_type not in ('machine_info', 'full_page'):
-                data = {'name': plugin.name}
-                data['width'] = plugin.plugin_object.widget_width()
-                data['html'] = (
-                    '<div id="plugin-%s" class="col-md-%s">'
-                    '<img class="center-block blue-spinner" src="%s"/></div>') % (
-                        data['name'], str(data['width']), static('img/blue-spinner.gif'))
-                output.append(data)
-                break
-
-    output = utils.orderPluginOutput(output, 'group_dashboard', machine_group.id)
     context = {
         'user': request.user,
         'machine_group': machine_group,
@@ -515,45 +394,7 @@ def machine_detail(request, **kwargs):
     if 'managed_uninstalls_list' in report:
         report['managed_uninstalls_list'].sort()
 
-    # TODO: Plugin code smell
-    # Woo, plugin time
-    # Load in the default plugins if needed
-    utils.load_default_plugins()
-    # Build the manager
-    manager = PluginManager()
-    # Tell it the default place(s) where to find plugins
-    manager.setPluginPlaces([settings.PLUGIN_DIR, os.path.join(
-        settings.PROJECT_DIR, 'server/plugins')])
-    # Load all plugins
-    manager.collectPlugins()
-    output = []
-
-    # TODO: Plugin code smell
-    # Get all the enabled plugins
-    enabled_plugins = MachineDetailPlugin.objects.order_by('order')
-    for enabled_plugin in enabled_plugins:
-        # Loop round the plugins and print their names.
-        for plugin in manager.getAllPlugins():
-            # If plugin_type isn't set, assume its an old style one
-            try:
-                plugin_type = plugin.plugin_object.plugin_type()
-            except Exception:
-                plugin_type = 'widget'
-
-            # If we can't get supported OS Families, assume it's for all
-            try:
-                supported_os_families = plugin.plugin_object.supported_os_families()
-            except Exception:
-                supported_os_families = ['Darwin', 'Windows', 'Linux', 'ChromeOS']
-            if plugin.name == enabled_plugin.name and \
-                    plugin_type not in ('builtin', 'report') and \
-                    machine.os_family in supported_os_families:
-                data = {'name': plugin.name}
-                data['html'] = '<div id="plugin-%s"><img class="center-block blue-spinner" src="%s"/></div>' % (data['name'], static('img/blue-spinner.gif'))  # noqa: E501
-                output.append(data)
-                break
-
-    output = utils.orderPluginOutput(output, page="machine_detail")
+    output = utils.get_machine_detail_plugin_data(machine)
 
     context = {
         'user': request.user,

@@ -1,19 +1,21 @@
-from distutils.version import LooseVersion
 import hashlib
-from itertools import chain
 import json
 import logging
 import os
 import plistlib
 import time
 import xml.etree.ElementTree as ET
+from distutils.version import LooseVersion
+from itertools import chain
 
-from django.conf import settings
-from django.core.exceptions import ValidationError
-from django.db.models import Max, Count
-from django.shortcuts import get_object_or_404
 import requests
 from yapsy.PluginManager import PluginManager
+
+from django.conf import settings
+from django.contrib.staticfiles.templatetags.staticfiles import static
+from django.core.exceptions import ValidationError
+from django.db.models import Count, Max
+from django.shortcuts import get_object_or_404
 
 from server.models import *
 
@@ -400,7 +402,7 @@ def is_float(value):
 # Plugin utilities
 
 def get_all_plugins():
-    """Get all plugins from the yapsy manager."""
+    """Return all Yapsy plugins"""
     # Build the manager
     manager = PluginManager()
     # Tell it the default place(s) where to find plugins
@@ -408,7 +410,16 @@ def get_all_plugins():
         settings.PROJECT_DIR, 'server/plugins')])
     # Load all plugins
     manager.collectPlugins()
-    return manager.getAllPlugins()
+    plugins = manager.getAllPlugins()
+    for plugin in plugins:
+        if not hasattr(plugin.plugin_object, 'plugin_type'):
+            plugin.plugin_object.plugin_type = lambda: 'widget'
+            if settings.DEBUG:
+                logger = logging.getLogger('yapsy')
+                logger.warning(
+                    "Please update plugin: '%s' to include a `plugin_type` method!", plugin.name)
+
+    return plugins
 
 
 def process_plugin_script(results, machine):
@@ -778,3 +789,56 @@ def plugin_machines(request, pluginName, data, page='front', theID=None, get_mac
             (machines, title) = plugin.plugin_object.filter_machines(machines, data)
 
     return machines, title
+
+
+def get_report_data(plugins):
+    result = []
+    report_plugins = {p.name: p for p in plugins if p.plugin_object.plugin_type() == 'report'}
+
+    for report in Report.objects.all():
+        plugin = report_plugins.get(report.name)
+        if plugin:
+            result.append({'name': plugin.name, 'title': plugin.plugin_object.get_title()})
+
+    return result
+
+
+def get_plugin_data(plugins, page='front', the_id=None):
+    result = []
+
+
+    yapsy_plugins = {p.name: p for p in plugins
+                     if p.plugin_object.plugin_type() not in ('machine_detail', 'report')}
+
+    for enabled_plugin in Plugin.objects.order_by('order'):
+        name = enabled_plugin.name
+        yapsy_plugin = yapsy_plugins.get(name)
+        if yapsy_plugin:
+            width = yapsy_plugin.plugin_object.widget_width()
+            html = ('<div id="plugin-{}" class="col-md-{}">'
+                    '    <img class="center-block blue-spinner" src="{}"/>'
+                    '</div>'.format(name, str(width), static('img/blue-spinner.gif')))
+
+            result.append({'name': name, 'width': width, 'html': html})
+
+    return orderPluginOutput(result, page, the_id)
+
+
+def get_machine_detail_plugin_data(machine):
+    result = []
+    yapsy_plugins = {
+        p.name: p for p in get_all_plugins()
+        if p.plugin_object.plugin_type() not in ('builtin', 'report') and
+        machine.os_family in getattr(p.plugin_object, 'supported_os_families', lambda: [])()}
+
+    for enabled_plugin in MachineDetailPlugin.objects.order_by('order'):
+        name = enabled_plugin.name
+        yapsy_plugin = yapsy_plugins.get(name)
+        if yapsy_plugin:
+            html = ('<div id="plugin-{}">'
+                    '    <img class="center-block blue-spinner" src="{}"/>'
+                    '</div>'.format(name, static('img/blue-spinner.gif')))
+
+            result.append({'name': name, 'html': html})
+
+    return orderPluginOutput(result, 'machine_detail')

@@ -559,7 +559,7 @@ def inventory_submit(request):
                         inventory_items_to_be_created)
             machine.save()
             return HttpResponse(
-                "Inventory submmitted for %s.\n" %
+                "Inventory submitted for %s.\n" %
                 submission.get('serial'))
 
     return HttpResponse("No inventory submitted.\n")

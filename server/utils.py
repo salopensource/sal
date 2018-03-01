@@ -202,10 +202,9 @@ def listify_condition_data(data):
 
 
 def is_postgres():
-    if settings.DATABASES['default']['ENGINE'] == 'django.db.backends.postgresql_psycopg2':
-        return True
-    else:
-        return False
+    postgres_backend = 'django.db.backends.postgresql_psycopg2'
+    db_setting = settings.DATABASES['default']['ENGINE']
+    return db_setting == postgres_backend
 
 
 def flatten_and_sort_list(the_list):

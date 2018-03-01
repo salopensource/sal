@@ -3,7 +3,6 @@ import copy
 import hashlib
 import plistlib
 from datetime import datetime
-from django.utils import timezone
 from urllib import quote, urlencode
 
 # third-party
@@ -17,8 +16,10 @@ from django.http import (
     HttpResponse, HttpResponseNotFound, HttpResponseBadRequest)
 from django.shortcuts import get_object_or_404, render_to_response
 from django.template import RequestContext
+from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import DetailView, View
+
 from datatableview import Datatable
 from datatableview.columns import DisplayColumn
 from datatableview.views import DatatableView
@@ -129,6 +130,23 @@ class GroupMixin(object):
         return queryset
 
 
+class DatatableQuerystringMixin(object):
+    """Mixin to allow querystrings to work with DatatableViews
+
+    Must come in a higher precedence spot in the MRO. (i.e. <<<---)
+    """
+
+    def get_datatable_kwargs(self, **kwargs):
+        """Override DatatableView's func to allow querystrings."""
+        # Currently this is only used by InventoryListView, but it may
+        # prove useful elsewhere in the future, thus the Mixin vs.
+        # just declaring it on the aforementioned view.
+        kwargs = super(DatatableQuerystringMixin, self).get_datatable_kwargs(**kwargs)
+        if hasattr(self, 'request'):
+            kwargs['url'] = self.request.get_full_path
+        return kwargs
+
+
 class CSVResponseMixin(object):
     csv_filename = "sal_inventory"
     csv_ext = ".csv"
@@ -206,7 +224,7 @@ class InventoryList(Datatable):
 
 @class_login_required
 @class_access_required
-class InventoryListView(DatatableView, GroupMixin):
+class InventoryListView(DatatableQuerystringMixin, DatatableView, GroupMixin):
     model = Machine
     template_name = "inventory/inventory_list.html"
     datatable_class = InventoryList

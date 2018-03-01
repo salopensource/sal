@@ -10,7 +10,7 @@ def plugin_enable(request, plugin_name):
     try:
         plugin = Plugin.objects.get(name=plugin_name)
     except Plugin.DoesNotExist:
-        plugin = Plugin(name=plugin_name, order=utils.UniquePluginOrder())
+        plugin = Plugin(name=plugin_name, order=utils.unique_plugin_order())
         plugin.save()
     return redirect('plugins_page')
 
@@ -26,7 +26,7 @@ def enable_plugins(apps, schema_editor):
             try:
                 plugin = Plugin.objects.get(name=plugin_name)
             except Plugin.DoesNotExist:
-                plugin = Plugin(name=plugin_name, order=utils.UniquePluginOrder())
+                plugin = Plugin(name=plugin_name, order=utils.unique_plugin_order())
                 plugin.save()
 
 

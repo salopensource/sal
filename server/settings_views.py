@@ -294,7 +294,7 @@ def plugin_enable(request, plugin_name):
     try:
         plugin = Plugin.objects.get(name=plugin_name)
     except Plugin.DoesNotExist:
-        plugin = Plugin(name=plugin_name, order=utils.UniquePluginOrder())
+        plugin = Plugin(name=plugin_name, order=utils.unique_plugin_order())
         plugin.save()
     return redirect('plugins_page')
 
@@ -365,7 +365,7 @@ def machine_detail_plugin_enable(request, plugin_name):
                 except Exception:
                     supported_os_families = default_families
         plugin = MachineDetailPlugin(name=plugin_name,
-                                     order=utils.UniquePluginOrder(plugin_type='machine_detail'),
+                                     order=utils.unique_plugin_order(plugin_type='machine_detail'),
                                      os_families=utils.flatten_and_sort_list(supported_os_families))
         plugin.save()
     return redirect('settings_machine_detail_plugins')

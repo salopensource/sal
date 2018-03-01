@@ -641,7 +641,7 @@ def disabled_plugins(plugin_kind='main'):
     return output
 
 
-def UniquePluginOrder(plugin_type='builtin'):
+def unique_plugin_order(plugin_type='builtin'):
     if plugin_type == 'builtin':
         plugins = Plugin.objects.all()
     elif plugin_type == 'report':
@@ -655,24 +655,7 @@ def UniquePluginOrder(plugin_type='builtin'):
     return id_next
 
 
-def orderPlugins(output):
-    # Sort by name initially
-    output = sorted(output, key=lambda k: k['name'])
-    # Order by the list specified in settings
-    # Run through all of the names in pluginOutput.
-    # If they're not in the PLUGIN_ORDER list, we'll add them to a new one
-    not_ordered = []
-    for item in output:
-        if item['name'] not in settings.PLUGIN_ORDER:
-            not_ordered.append(item['name'])
-
-    search_items = settings.PLUGIN_ORDER + not_ordered
-    lookup = {s: i for i, s in enumerate(search_items)}
-    output = sorted(output, key=lambda o: lookup[o['name']])
-    return output
-
-
-def orderPluginOutput(pluginOutput, page='front', theID=None):
+def order_plugin_output(pluginOutput, page='front', theID=None):
     output = pluginOutput
     if page == 'front':
         # remove the plugins that are in the list
@@ -823,7 +806,7 @@ def get_plugin_data(plugins, page='front', the_id=None):
 
             result.append({'name': name, 'width': width, 'html': html})
 
-    return orderPluginOutput(result, page, the_id)
+    return order_plugin_output(result, page, the_id)
 
 
 def get_machine_detail_plugin_data(machine):
@@ -845,4 +828,4 @@ def get_machine_detail_plugin_data(machine):
 
             result.append({'name': name, 'html': html})
 
-    return orderPluginOutput(result, 'machine_detail')
+    return order_plugin_output(result, 'machine_detail')

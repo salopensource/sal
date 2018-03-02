@@ -25,11 +25,10 @@ urlpatterns = [
     # url(r'^search/', search, name='search'),
     # BU Dashboard
     url(r'^dashboard/(?P<bu_id>.+)/', bu_dashboard, name='bu_dashboard'),
-    # pluginload (front page)
-    url(r'^pluginload/(?P<pluginName>.+)/$', plugin_load, name='plugin_load_front'),
-    # pluginload (id)
-    url(r'^id_pluginload/(?P<pluginName>.+)/(?P<page>.+)/(?P<theID>.+)/$',
-        plugin_load, name='plugin_load_id'),
+
+    url(r'^load_plugin/(?P<plugin_name>.+)/(?P<group_type>.+)/(?P<group_id>.+)/$',
+        plugin_load, name='load_plugin'),
+
     # tableajax (front page)
     url(r'^tableajax/(?P<pluginName>.+)/(?P<data>.+)/$', tableajax, name='tableajax_front'),
     # tableajax (id)

@@ -27,7 +27,7 @@ $( document ).ready(function() {
 
     $.ajaxWithRetries(
     {
-        url: "{% url 'plugin_load_id' widget.name 'bu_dashboard' business_unit.id %}",
+        url: "{% url 'load_plugin' widget.name 'business_unit' business_unit.id %}",
         error: function(){
             console.log('{{ widget.name }} Failed');
         },

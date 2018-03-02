@@ -7,13 +7,14 @@ from datetime import datetime, timedelta
 import dateutil.parser
 import pytz
 import unicodecsv as csv
-from yapsy.PluginManager import PluginManager
+from yapsy.PluginManager import PluginManagerSingleton
 
 import django.utils.timezone
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.core.urlresolvers import reverse
 from django.http import (HttpResponse, HttpResponseNotFound, JsonResponse, StreamingHttpResponse)
+from django.http.response import Http404
 from django.shortcuts import get_object_or_404, render
 from django.views.decorators.csrf import csrf_exempt
 
@@ -22,6 +23,7 @@ from forms import *
 from inventory.models import *
 from models import *
 from sal.decorators import *
+from sal.plugin import MachinesPlugin
 
 if settings.DEBUG:
     import logging
@@ -30,6 +32,12 @@ if settings.DEBUG:
 
 # The database probably isn't going to change while this is loaded.
 IS_POSTGRES = utils.is_postgres()
+# This global is a lookup table for converting the group_type param of
+# URLs to the new-style name.
+# TODO (sheagcraig) This can be removed at the next major version update.
+DEPRECATED_PAGES = {
+    'all': 'front', 'business_unit': 'bu_dashboard', 'machine_group': 'group_dashboard',
+    'machine': 'machine_detail'}
 
 
 @login_required
@@ -122,52 +130,64 @@ def machine_list(request, pluginName, data, page='front', theID=None):
 
     return render(request, 'server/overview_list_all.html', c)
 
-# Plugin machine list
-
 
 @login_required
-def plugin_load(request, pluginName, page='front', theID=None):
-    user = request.user
-    # Build the manager
-    manager = PluginManager()
-    # Tell it the default place(s) where to find plugins
-    manager.setPluginPlaces([settings.PLUGIN_DIR, os.path.join(
-        settings.PROJECT_DIR, 'server/plugins')])
-    # Load all plugins
-    manager.collectPlugins()
-    # get a list of machines (either from the BU or the group)
-    if page == 'front':
-        # get all machines
-        if user.userprofile.level == 'GA':
-            machines = Machine.deployed_objects.all()
+def plugin_load(request, plugin_name, group_type='all', group_id=None):
+    handle_access(request, group_type, group_id)
+    machines = get_machines_for_group(request, group_type, group_id)
+
+    # Ensure the request is not for a disabled plugin.
+    _ = get_object_or_404(Plugin, name=plugin_name)
+
+    plugin = PluginManagerSingleton.get().getPluginByName(plugin_name)
+
+    # Ensure that a plugin was instantiated before proceeding.
+    if not plugin:
+        raise Http404
+
+    if isinstance(plugin, MachinesPlugin):
+        return HttpResponse(plugin.plugin_object.widget_content(group_type, machines, group_id))
+    else:
+        # Handle plugins which haven't been updated.
+        # TODO: This can be removed at the next major version.
+        logging.warning("Plugin '%s' needs to be updated to subclass a Sal Plugin!", plugin.name)
+        html = plugin.plugin_object.widget_content(DEPRECATED_PAGES[group_type], machines, group_id)
+        return HttpResponse(html)
+
+
+# TODO: Move elsewhere
+def handle_access(request, group_type, group_id):
+    models = {
+        'all': None,
+        'machine_group': MachineGroup,
+        'business_unit': BusinessUnit,
+        'machine': Machine}
+    if group_type == "all":
+        return
+    instance, business_unit  = get_business_unit_by(models[group_type], group_id=group_id)
+    if not has_access(request.user, business_unit):
+        return Http404
+
+
+# TODO: Move elsewhere.
+def get_machines_for_group(request, group_type="all", group_id=0):
+    if group_type == "machine":
+        return get_object_or_404(Machine, pk=group_id)
+
+    machines = Machine.deployed_objects.all()
+    if group_type == "business_unit":
+        machines = machines.filter(machine_group__business_unit__pk=group_id)
+    elif group_type == "machine_group":
+        machines = machines.filter(machine_group__pk=group_id)
+    else:
+        if is_global_admin(request.user):
+            # GA users won't have business units, so just do nothing.
+            pass
         else:
-            machines = Machine.objects.none()
-            for business_unit in user.businessunit_set.all():
-                for group in business_unit.machinegroup_set.all():
-                    machines = machines | group.machine_set.filter(deployed=True)
-    if page == 'bu_dashboard':
-        # only get machines for that BU
-        # Need to make sure the user is allowed to see this
-        business_unit = get_object_or_404(BusinessUnit, pk=theID)
-        machine_groups = MachineGroup.objects.filter(business_unit=business_unit).all()
+            machines = machines.filter(
+                machine_group__business_unit__in=user.businessunit_set.all())
 
-        machines = Machine.deployed_objects.filter(machine_group__in=machine_groups)
-
-    if page == 'group_dashboard':
-        # only get machines from that group
-        machine_group = get_object_or_404(MachineGroup, pk=theID)
-        # check that the user has access to this
-        machines = Machine.deployed_objects.filter(machine_group=machine_group)
-
-    if page == 'machine_detail':
-        machines = Machine.objects.get(pk=theID)
-
-    # send the machines and the data to the plugin
-    for plugin in manager.getAllPlugins():
-        if plugin.name == pluginName:
-            html = plugin.plugin_object.widget_content(page, machines, theID)
-
-    return HttpResponse(html)
+    return machines
 
 
 @login_required

@@ -99,7 +99,7 @@ def access_required(model):
             # The request object is the first arg to a view
             request = args[0]
             user = request.user
-            instance, business_unit = _get_business_unit(model, **kwargs)
+            instance, business_unit = get_business_unit_by(model, **kwargs)
 
             if has_access(user, business_unit):
                 # Stash the business unit and instance to minimize
@@ -116,7 +116,7 @@ def access_required(model):
     return decorator
 
 
-def _get_business_unit(model, **kwargs):
+def get_business_unit_by(model, **kwargs):
     try:
         pk = [v for k, v in kwargs.items() if k.endswith('_id')].pop()
     except IndexError:

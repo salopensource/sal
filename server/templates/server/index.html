@@ -13,7 +13,7 @@ $( document ).ready(function() {
 
    $.ajaxWithRetries(
     {
-        url: "{% url 'plugin_load_front' widget.name %}",
+        url: "{% url 'load_plugin' widget.name 'all' 0 %}",
         error: function(){
             console.log('{{ widget.name }} Failed');
         },

@@ -34,11 +34,10 @@ urlpatterns = [
     # tableajax (id)
     url(r'^id_tableajax/(?P<pluginName>.+)/(?P<data>.+)/(?P<page>.+)/(?P<theID>.+)/$',
         tableajax, name='tableajax_id'),
-    # reporload (front page)
-    url(r'^report/(?P<pluginName>.+)/$', report_load, name='report_load_front'),
-    # report (id)
-    url(r'^id_report/(?P<pluginName>.+)/(?P<page>.+)/(?P<theID>.+)/$', report_load,
-        name='report_load_id'),
+
+    url(r'^report/(?P<plugin_name>.+)/(?P<group_type>.+)/(?P<group_id>.+)/$', report_load,
+        name='report_load'),
+
     url(r'^list/(?P<plugin_name>.+)/(?P<data>.+)/(?P<page>.+)/(?P<instance_id>.+)/$',
         machine_list, name='machine_list_id'),
     url(r'^list/(?P<plugin_name>.+)/(?P<data>.+)/$', machine_list, name='machine_list_front'),

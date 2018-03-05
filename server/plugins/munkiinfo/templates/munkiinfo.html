@@ -7,7 +7,7 @@
             <div class="panel-body" id="display-body">
                 <div class="row">
                     <div class="col-md-3">
-                        <a href="{% url 'machine_list_id' 'MunkiInfo' 'http_only?' page theid %}">
+                        <a href="{% url 'machine_list_id' 'MunkiInfo' 'http_only?' group_type group_id %}">
                         {% if http_only == 0 %}
                         <div class="panel panel-green">
                         {% else %}
@@ -31,7 +31,7 @@
                     </div>
 
                     <div class="col-md-3">
-                        <a href="{% url 'machine_list_id' 'MunkiInfo' 'https_only?' page theid %}">
+                        <a href="{% url 'machine_list_id' 'MunkiInfo' 'https_only?' group_type group_id %}">
                         {% if https_only == 0 %}
                         <div class="panel panel-red">
                         {% else %}
@@ -55,7 +55,7 @@
                     </div>
 
                     <div class="col-md-3">
-                        <a href="{% url 'machine_list_id' 'MunkiInfo' 'http_munki?' page theid %}">
+                        <a href="{% url 'machine_list_id' 'MunkiInfo' 'http_munki?' group_type group_id %}">
                         {% if http_munki == 0 %}
                         <div class="panel panel-green">
                         {% else %}
@@ -79,7 +79,7 @@
                     </div>
 
                     <div class="col-md-3">
-                        <a href="{% url 'machine_list_id' 'MunkiInfo' 'client_certs?' page theid %}">
+                        <a href="{% url 'machine_list_id' 'MunkiInfo' 'client_certs?' group_type group_id %}">
                         <div class="panel panel-green">
                             <div class="panel-heading">
                                 <div class="row">
@@ -114,7 +114,7 @@
                 {% for item in repo_urls %}
                     <tr>
                         <td>
-                            <a href="{% url 'machine_list_id' 'MunkiInfo' item.item_link page theid %}">
+                            <a href="{% url 'machine_list_id' 'MunkiInfo' item.item_link group_type group_id %}">
                             {{ item.pluginscript_data }}
                             <span class="badge pull-right">{{ item.count }}</span>
                             </a>
@@ -136,7 +136,7 @@
                 {% for item in package_urls %}
                     <tr>
                         <td>
-                            <a href="{% url 'machine_list_id' 'MunkiInfo' item.item_link page theid %}">
+                            <a href="{% url 'machine_list_id' 'MunkiInfo' item.item_link group_type group_id %}">
                             {{ item.pluginscript_data }}
                             <span class="badge pull-right">{{ item.count }}</span>
                             </a>
@@ -160,7 +160,7 @@
                 {% for item in manifest_urls %}
                     <tr>
                         <td>
-                            <a href="{% url 'machine_list_id' 'MunkiInfo' item.item_link page theid %}">
+                            <a href="{% url 'machine_list_id' 'MunkiInfo' item.item_link group_type group_id %}">
                             {{ item.pluginscript_data }}
                             <span class="badge pull-right">{{ item.count }}</span>
                             </a>
@@ -183,7 +183,7 @@
                 {% for item in catalog_urls %}
                     <tr>
                         <td>
-                            <a href="{% url 'machine_list_id' 'MunkiInfo' item.item_link page theid %}">
+                            <a href="{% url 'machine_list_id' 'MunkiInfo' item.item_link group_type group_id %}">
                             {{ item.pluginscript_data }}
                             <span class="badge pull-right">{{ item.count }}</span>
                             </a>

@@ -85,7 +85,7 @@ def index(request):
 
 
 @login_required
-def machine_list(request, plugin_name, data, page='front', instance_id=None):
+def machine_list(request, plugin_name, data, page='all', instance_id=None):
     (machines, title) = utils.plugin_machines(
         request, plugin_name, data, page, instance_id)
     user = request.user

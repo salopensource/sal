@@ -750,15 +750,7 @@ def order_plugin_output(pluginOutput, page='front', theID=None):
 
 
 def get_report_data(plugins):
-    result = []
-    report_plugins = {p.name: p for p in plugins if p.plugin_object.plugin_type() == 'report'}
-
-    for report in Report.objects.all():
-        plugin = report_plugins.get(report.name)
-        if plugin:
-            result.append({'name': plugin.name, 'title': plugin.plugin_object.get_title()})
-
-    return result
+    return Report.objects.values_list('name', flat=True)
 
 
 def get_plugin_data(plugins, page='front', the_id=None):

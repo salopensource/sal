@@ -9,7 +9,7 @@
     </a>
     <ul class="dropdown-menu dropdown-plugin">
         {% for report in reports %}
-        <li><a href="{% url 'report_load_id' report.name 'group_dashboard' machine_group.id %}">{{report.title}}</a></li>
+        <li><a href="{% url 'report_load' report 'machine_group' machine_group.id %}">{{ report }}</a></li>
         {% endfor %}
     </ul>
     <!-- /.dropdown-plugin -->

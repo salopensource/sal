@@ -150,6 +150,7 @@ def plugin_load(request, plugin_name, group_type='all', group_id=None):
 
         return HttpResponse(
             plugin.plugin_object.widget_content(machines, group_type=group_type, group_id=group_id))
+
     else:
         # Handle plugins which haven't been updated.
         # TODO: This can be removed at the next major version.
@@ -180,71 +181,39 @@ def handle_access(request, group_type, group_id):
 
 
 @login_required
-def report_load(request, pluginName, page='front', theID=None):
-    user = request.user
-    business_unit = None
-    machine_group = None
-    # Build the manager
-    manager = PluginManager()
-    # Tell it the default place(s) where to find plugins
-    manager.setPluginPlaces([settings.PLUGIN_DIR, os.path.join(
-        settings.PROJECT_DIR, 'server/plugins')])
-    # Load all plugins
-    manager.collectPlugins()
-    # get a list of machines (either from the BU or the group)
-    if page == 'front':
-        # get all machines
-        if user.userprofile.level == 'GA':
-            machines = Machine.deployed_objects.all()
-        else:
-            machines = Machine.objects.none()
-            for business_unit in user.businessunit_set.all():
-                for group in business_unit.machinegroup_set.all():
-                    machines = machines | group.machine_set.filter(deployed=True)
-    if page == 'bu_dashboard':
-        # only get machines for that BU
-        # Need to make sure the user is allowed to see this
-        business_unit = get_object_or_404(BusinessUnit, pk=theID)
-        machine_groups = MachineGroup.objects.filter(business_unit=business_unit).all()
+def report_load(request, plugin_name, group_type='all', group_id=None):
+    handle_access(request, group_type, group_id)
+    machines = utils.get_machines_for_group(request, group_type, group_id)
+    plugin = PluginManagerSingleton.get().getPluginByName(plugin_name)
+    reports = Report.objects.values_list('name', flat=True)
 
-        machines = Machine.deployed_objects.filter(machine_group=machine_groups)
+    # Ensure that a plugin was instantiated before proceeding.
+    if not plugin:
+        raise Http404
 
-    if page == 'group_dashboard':
-        # only get machines from that group
-        machine_group = get_object_or_404(MachineGroup, pk=theID)
-        # check that the user has access to this
-        machines = Machine.deployed_objects.filter(machine_group=machine_group)
+    if isinstance(plugin.plugin_object, ReportPlugin):
+        # Ensure the request is not for a disabled plugin.
+        _ = get_object_or_404(Report, name=plugin_name)
 
-    if page == 'machine_detail':
-        machines = Machine.objects.get(pk=theID)
+        report_html = plugin.plugin_object.widget_content(
+            machines, group_type=group_type, group_id=group_id)
 
-    output = ''
-    # send the machines and the data to the plugin
-    for plugin in manager.getAllPlugins():
-        if plugin.name == pluginName:
-            output = plugin.plugin_object.widget_content(page, machines, theID)
+    else:
+        # Handle plugins which haven't been updated.
+        # TODO: This can be removed at the next major version.
+        # TODO: This func is slightly different than plugin_load; so it
+        # will need a little more refactoring to just merge.
+        logging.warning("Report '%s' needs to be updated to subclass a Sal Plugin!", plugin.name)
 
-    reports = []
-    enabled_reports = Report.objects.all()
-    for enabled_report in enabled_reports:
-        for plugin in manager.getAllPlugins():
-            if enabled_report.name == plugin.name:
-                # If plugin_type isn't set, it can't be a report
-                try:
-                    plugin_type = plugin.plugin_object.plugin_type()
-                except Exception:
-                    plugin_type = 'widget'
-                if plugin_type == 'report':
-                    data = {}
-                    data['name'] = plugin.name
-                    data['title'] = plugin.plugin_object.get_title()
-                    reports.append(data)
+        # Ensure the request is not for a disabled plugin.
+        plugin = plugin.plugin_object
+        _ = get_object_or_404(Report, name=plugin_name)
 
-                    break
+        report_html = plugin.widget_content(DEPRECATED_PAGES[group_type], machines, group_id)
 
-    c = {'user': request.user, 'output': output, 'page': page,
-         'business_unit': business_unit, 'machine_group': machine_group, 'reports': reports}
-    return render(request, 'server/display_report.html', c)
+    context = {'output': report_html, 'group_type': group_type, 'group_id': group_id, 'reports':
+                reports}
+    return render(request, 'server/display_report.html', context)
 
 
 class Echo(object):

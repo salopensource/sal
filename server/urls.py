@@ -39,16 +39,16 @@ urlpatterns = [
     # report (id)
     url(r'^id_report/(?P<pluginName>.+)/(?P<page>.+)/(?P<theID>.+)/$', report_load,
         name='report_load_id'),
-    # Machine List (front page)
-    url(r'^list/(?P<pluginName>.+)/(?P<data>.+)/$', machine_list, name='machine_list_front'),
-    # Machine List (id)
-    url(r'^id_list/(?P<pluginName>.+)/(?P<data>.+)/(?P<page>.+)/(?P<theID>.+)/$',
+    url(r'^list/(?P<plugin_name>.+)/(?P<data>.+)/(?P<page>.+)/(?P<instance_id>.+)/$',
         machine_list, name='machine_list_id'),
-    # CSV Export (front page)
+    url(r'^list/(?P<plugin_name>.+)/(?P<data>.+)/$', machine_list, name='machine_list_front'),
+
+    # # CSV Export (front page)
     url(r'^csv/(?P<pluginName>.+)/(?P<data>.+)/$', export_csv, name='export_csv_front'),
     # CSS Ecport (id)
     url(r'^id_csv/(?P<pluginName>.+)/(?P<data>.+)/(?P<page>.+)/(?P<theID>.+)/$',
         export_csv, name='export_csv_id'),
+
     # Group Dashboard
     url(r'^machinegroup/(?P<group_id>.+)/', group_dashboard, name='group_dashboard'),
     # Machine detail facter

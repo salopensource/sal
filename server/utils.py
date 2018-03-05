@@ -9,7 +9,7 @@ from distutils.version import LooseVersion
 from itertools import chain
 
 import requests
-from yapsy.PluginManager import PluginManager
+from yapsy.PluginManager import PluginManagerSingleton
 
 from django.conf import settings
 from django.contrib.staticfiles.templatetags.staticfiles import static
@@ -17,6 +17,7 @@ from django.core.exceptions import ValidationError
 from django.db.models import Count, Max
 from django.shortcuts import get_object_or_404
 
+from sal.decorators import is_global_admin
 from server.models import *
 
 
@@ -398,18 +399,34 @@ def is_float(value):
         return False
 
 
+def get_machines_for_group(request, group_type="all", group_id=0, deployed=True):
+    if group_type == "machine":
+        return get_object_or_404(Machine, pk=group_id)
+
+    machines = Machine.deployed_objects.all()
+    if not deployed:
+        machines = machines.filter(deployed=deployed)
+
+    if group_type == "business_unit":
+        machines = machines.filter(machine_group__business_unit__pk=group_id)
+    elif group_type == "machine_group":
+        machines = machines.filter(machine_group__pk=group_id)
+    else:
+        if is_global_admin(request.user):
+            # GA users won't have business units, so just do nothing.
+            pass
+        else:
+            machines = machines.filter(
+                machine_group__business_unit__in=user.businessunit_set.all())
+
+    return machines
+
+
 # Plugin utilities
 
 def get_all_plugins():
     """Return all Yapsy plugins"""
-    # Build the manager
-    manager = PluginManager()
-    # Tell it the default place(s) where to find plugins
-    manager.setPluginPlaces([settings.PLUGIN_DIR, os.path.join(
-        settings.PROJECT_DIR, 'server/plugins')])
-    # Load all plugins
-    manager.collectPlugins()
-    plugins = manager.getAllPlugins()
+    plugins = PluginManagerSingleton.get().getAllPlugins()
 
     # TODO (sheagcraig): Reevaluate the continued need for this after
     # further work on the plugin system and ongoing support of existing
@@ -421,8 +438,18 @@ def get_all_plugins():
                 logger = logging.getLogger('yapsy')
                 logger.warning(
                     "Please update plugin: '%s' to include a `plugin_type` method!", plugin.name)
-
     return plugins
+
+
+def plugin_machines(request, plugin_name, data, page='front', theID=None):
+    title = None
+    deployed = False if (plugin_name == 'Status' and data == 'undeployed_machines') else True
+
+    machines = get_machines_for_group(request, group_type=page, group_id=theID, deployed=deployed)
+    plugin = PluginManagerSingleton.get().getPluginByName(plugin_name)
+    machines, title = plugin.plugin_object.filter_machines(machines, data)
+
+    return machines, title
 
 
 def process_plugin_script(results, machine):
@@ -720,61 +747,6 @@ def order_plugin_output(pluginOutput, page='front', theID=None):
             counter = counter + 1
             # print item['name']+' total: '+str(total_width)
     return output
-
-
-def plugin_machines(request, pluginName, data, page='front', theID=None, get_machines=True):
-    user = request.user
-    title = None
-    # Build the manager
-    manager = PluginManager()
-    # Tell it the default place(s) where to find plugins
-    manager.setPluginPlaces([settings.PLUGIN_DIR, os.path.join(
-        settings.PROJECT_DIR, 'server/plugins')])
-    # Load all plugins
-    manager.collectPlugins()
-    if pluginName == 'Status' and data == 'undeployed_machines':
-        deployed = False
-    else:
-        deployed = True
-    # get a list of machines (either from the BU or the group)
-    if get_machines:
-        if page == 'front':
-            # get all machines
-            if user.userprofile.level == 'GA':
-                machines = Machine.objects.filter(deployed=deployed)
-            else:
-                machines = Machine.objects.none()
-                for business_unit in user.businessunit_set.all():
-                    for group in business_unit.machinegroup_set.all():
-                        machines = machines | group.machine_set.filter(deployed=deployed)
-        if page == 'bu_dashboard':
-            # only get machines for that BU
-            # Need to make sure the user is allowed to see this
-            business_unit = get_object_or_404(BusinessUnit, pk=theID)
-            machine_groups = MachineGroup.objects.filter(business_unit=business_unit).all()
-
-            if machine_groups.count() != 0:
-                machines_unsorted = machine_groups[0].machine_set.filter(deployed=deployed)
-                for machine_group in machine_groups[1:]:
-                    machines_unsorted = machines_unsorted | \
-                        machine_group.machine_set.filter(deployed=deployed)
-            else:
-                machines_unsorted = None
-            machines = machines_unsorted
-
-        if page == 'group_dashboard':
-            # only get machines from that group
-            machine_group = get_object_or_404(MachineGroup, pk=theID)
-            # check that the user has access to this
-            machines = Machine.objects.filter(machine_group=machine_group).filter(deployed=deployed)
-    else:
-        machines = Machine.objects.none()
-    # send the machines and the data to the plugin
-    for plugin in manager.getAllPlugins():
-        if plugin.name == pluginName:
-            (machines, title) = plugin.plugin_object.filter_machines(machines, data)
-
-    return machines, title
 
 
 def get_report_data(plugins):

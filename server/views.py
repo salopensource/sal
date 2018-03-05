@@ -10,6 +10,8 @@ from django.contrib.staticfiles.templatetags.staticfiles import static
 from django.shortcuts import get_object_or_404, redirect, render
 from django.template.context_processors import csrf
 
+from yapsy.PluginManager import PluginManagerSingleton
+
 import utils
 from forms import *
 from inventory.models import *
@@ -83,16 +85,16 @@ def index(request):
 
 
 @login_required
-def machine_list(request, pluginName, data, page='front', theID=None):
+def machine_list(request, plugin_name, data, page='front', instance_id=None):
     (machines, title) = utils.plugin_machines(
-        request, pluginName, data, page, theID, get_machines=False)
+        request, plugin_name, data, page, instance_id)
     user = request.user
     page_length = utils.get_setting('datatable_page_length')
-    c = {'user': user, 'plugin_name': pluginName, 'machines': machines, 'req_type': page,
-         'title': title, 'bu_id': theID, 'request': request, 'data': data,
-         'page_length': page_length}
+    context = {
+        'user': user, 'plugin_name': plugin_name, 'machines': machines, 'req_type': page, 'title':
+        title, 'bu_id': instance_id, 'request': request, 'data': data, 'page_length': page_length}
 
-    return render(request, 'server/overview_list_all.html', c)
+    return render(request, 'server/overview_list_all.html', context)
 
 
 @login_required

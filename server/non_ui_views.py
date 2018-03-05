@@ -23,7 +23,7 @@ from forms import *
 from inventory.models import *
 from models import *
 from sal.decorators import *
-from sal.plugin import MachinesPlugin
+from sal.plugin import MachinesPlugin, DetailPlugin, ReportPlugin
 
 if settings.DEBUG:
     import logging
@@ -70,6 +70,7 @@ def tableajax(request, pluginName, data, page='front', theID=None):
         deployed = False  # noqa: F841
     else:
         deployed = True  # noqa: F841
+    import server.views
     (machines, title) = utils.plugin_machines(request, pluginName, data, page, theID)
     # machines = machines.filter(deployed=deployed)
     if len(order_name) != 0:
@@ -134,10 +135,7 @@ def machine_list(request, pluginName, data, page='front', theID=None):
 @login_required
 def plugin_load(request, plugin_name, group_type='all', group_id=None):
     handle_access(request, group_type, group_id)
-    machines = get_machines_for_group(request, group_type, group_id)
-
-    # Ensure the request is not for a disabled plugin.
-    _ = get_object_or_404(Plugin, name=plugin_name)
+    machines = utils.get_machines_for_group(request, group_type, group_id)
 
     plugin = PluginManagerSingleton.get().getPluginByName(plugin_name)
 
@@ -145,13 +143,25 @@ def plugin_load(request, plugin_name, group_type='all', group_id=None):
     if not plugin:
         raise Http404
 
-    if isinstance(plugin, MachinesPlugin):
-        return HttpResponse(plugin.plugin_object.widget_content(group_type, machines, group_id))
+    if isinstance(plugin.plugin_object, (MachinesPlugin, DetailPlugin)):
+        # Ensure the request is not for a disabled plugin.
+        model = Plugin if isinstance(plugin.plugin_object, MachinesPlugin) else MachineDetailPlugin
+        _ = get_object_or_404(model, name=plugin_name)
+
+        return HttpResponse(
+            plugin.plugin_object.widget_content(machines, group_type=group_type, group_id=group_id))
     else:
         # Handle plugins which haven't been updated.
         # TODO: This can be removed at the next major version.
         logging.warning("Plugin '%s' needs to be updated to subclass a Sal Plugin!", plugin.name)
-        html = plugin.plugin_object.widget_content(DEPRECATED_PAGES[group_type], machines, group_id)
+
+        # Ensure the request is not for a disabled plugin.
+        plugin = plugin.plugin_object
+        plugin_type = plugin.plugin_type() if hasattr(plugin, 'plugin_type') else 'builtin'
+        model = MachineDetailPlugin if plugin_type == "machine_detail" else Plugin
+        _ = get_object_or_404(model, name=plugin_name)
+
+        html = plugin.widget_content(DEPRECATED_PAGES[group_type], machines, group_id)
         return HttpResponse(html)
 
 
@@ -167,27 +177,6 @@ def handle_access(request, group_type, group_id):
     instance, business_unit  = get_business_unit_by(models[group_type], group_id=group_id)
     if not has_access(request.user, business_unit):
         return Http404
-
-
-# TODO: Move elsewhere.
-def get_machines_for_group(request, group_type="all", group_id=0):
-    if group_type == "machine":
-        return get_object_or_404(Machine, pk=group_id)
-
-    machines = Machine.deployed_objects.all()
-    if group_type == "business_unit":
-        machines = machines.filter(machine_group__business_unit__pk=group_id)
-    elif group_type == "machine_group":
-        machines = machines.filter(machine_group__pk=group_id)
-    else:
-        if is_global_admin(request.user):
-            # GA users won't have business units, so just do nothing.
-            pass
-        else:
-            machines = machines.filter(
-                machine_group__business_unit__in=user.businessunit_set.all())
-
-    return machines
 
 
 @login_required

@@ -8,7 +8,7 @@ def plugin_enable(request, plugin_name):
     try:
         plugin = Plugin.objects.get(name=plugin_name)
     except Plugin.DoesNotExist:
-        plugin = Plugin(name=plugin_name, order=utils.UniquePluginOrder())
+        plugin = Plugin(name=plugin_name, order=utils.unique_plugin_order())
         plugin.save()
     return redirect('plugins_page')
 
@@ -20,7 +20,7 @@ def clean_model_names(apps, schema_editor):
     """
 
     Machine = apps.get_model("server", "Machine")
-    machines_to_clean = Machine.objects.all().exclude(os_family='Darwin')
+    machines_to_clean = Machine.objects.exclude(os_family='Darwin')
     for machine_to_clean in machines_to_clean:
         machine_to_clean.machine_model_friendly = ''
         machine_to_clean.save()

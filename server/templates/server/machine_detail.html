@@ -39,10 +39,12 @@ $( document ).ready(function() {
 {% endblock %}
 
 {% block nav %}
-{% include 'server/machine_detail_nav.html' %}
-  <li><a href="#myModal" data-toggle="modal"><i class="fa fa-times fa-fw"></i> Computer</a></i>
-
+  {% include 'server/machine_detail_nav.html' %}
+  {% if user.userprofile.level == 'GA' or user.userprofile.level == 'RW' %}
+    <li><a href="#myModal" data-toggle="modal"><i class="fa fa-times fa-fw"></i> Computer</a></i>
+  {% endif %}
 {% endblock %}
+
 {% block content %}
 <div class="row">
   <div class="col-md-5">

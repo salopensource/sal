@@ -11,4 +11,4 @@ class ServerAdminTest(AdminTestCase):
         'installedupdate', 'machinedetailplugin', 'machinegroup', 'machine',
         'pendingappleupdate', 'pendingupdate', 'pluginscriptrow',
         'pluginscriptsubmission', 'plugin', 'report', 'salsetting', 'updatehistoryitem',
-        'updatehistory', 'userprofile'}
+        'updatehistory'}

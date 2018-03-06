@@ -389,7 +389,7 @@ class ApplicationDetailView(DetailView, GroupMixin):
 
     def _get_unique_items(self, details):
         """Use optimized DB methods for getting unique items if possible."""
-        if is_postgres():
+        if utils.is_postgres():
             versions = details.order_by("version").distinct(
                 "version").values_list("version", flat=True)
             paths = details.order_by("path").distinct("path").values_list(
@@ -459,7 +459,7 @@ class CSVExportView(CSVResponseMixin, GroupMixin, View):
             if group_type != "all":
                 self.components.append(group_id)
 
-            if is_postgres():
+            if utils.is_postgres():
                 apps = [self.get_application_entry(item, queryset) for item in
                         queryset.select_related("application").order_by(
                 ).distinct("application")]
@@ -565,14 +565,14 @@ def inventory_submit(request):
                             path=item.get('path', ''),
                             machine=machine
                         )
-                        if is_postgres():
+                        if utils.is_postgres():
                             inventory_items_to_be_created.append(i_item)
                         else:
                             i_item.save()
                 machine.last_inventory_update = timezone.now()
                 inventory_meta.save()
 
-                if is_postgres():
+                if utils.is_postgres():
                     InventoryItem.objects.bulk_create(
                         inventory_items_to_be_created)
             machine.save()
@@ -598,9 +598,3 @@ def inventory_hash(request, serial):
     else:
         return HttpResponse("MACHINE NOT FOUND")
     return HttpResponse(sha256hash)
-
-
-def is_postgres():
-    postgres_backend = 'django.db.backends.postgresql_psycopg2'
-    db_setting = settings.DATABASES['default']['ENGINE']
-    return db_setting == postgres_backend

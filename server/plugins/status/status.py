@@ -1,12 +1,15 @@
+from datetime import date, datetime, timedelta
+
 from yapsy.IPlugin import IPlugin
-from yapsy.PluginManager import PluginManager
-from django.template import loader, Context
-from django.db.models import Count
-from server.models import *
-from django.shortcuts import get_object_or_404
-import server.utils as utils
-from datetime import datetime, timedelta, date
+
 import django.utils.timezone
+from django.db.models import Count
+from django.shortcuts import get_object_or_404
+from django.template import Context, loader
+
+import server.utils as utils
+from server.models import *
+
 
 now = django.utils.timezone.now()
 today = now - timedelta(hours=24)
@@ -28,7 +31,7 @@ class Status(IPlugin):
     def widget_content(self, page, machines=None, theid=None):
         if page == 'front':
             t = loader.get_template('status/templates/front.html')
-            undeployed_machines = Machine.objects.all().filter(deployed=False).count()
+            undeployed_machines = Machine.objects.filter(deployed=False).count()
 
         if page == 'bu_dashboard':
             t = loader.get_template('status/templates/id.html')

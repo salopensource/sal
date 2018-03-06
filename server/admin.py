@@ -47,6 +47,10 @@ class UpdateHistoryItemInline(admin.TabularInline):
     extra = 0
 
 
+class UserProfileInline(admin.StackedInline):
+    model = UserProfile
+
+
 class BusinessUnitForm(ModelForm):
 
     class Meta:
@@ -221,10 +225,19 @@ class UpdateHistoryItemAdmin(admin.ModelAdmin):
     date_hierarchy = 'recorded'
 
 
-class UserProfileAdmin(admin.ModelAdmin):
-    list_display = ('user', 'level')
-    list_filter = ('level',)
-    search_fields = ('user', )
+class CustomUserAdmin(admin.ModelAdmin):
+    inlines = (UserProfileInline,)
+    list_display = ('username', 'profile_level', 'last_login')
+    list_filter = ('userprofile__level',)
+    search_fields = ('username', )
+    fields = (
+        ('username', 'first_name', 'last_name', 'email'),
+        ('is_staff', 'is_active'),
+        ('last_login', 'date_joined'),
+    )
+
+    def profile_level(self, user):
+        return user.userprofile.level
 
 
 admin.site.register(ApiKey, ApiKeyAdmin)
@@ -245,4 +258,5 @@ admin.site.register(Report, ReportAdmin)
 admin.site.register(SalSetting, SalSettingAdmin)
 admin.site.register(UpdateHistory, UpdateHistoryAdmin)
 admin.site.register(UpdateHistoryItem, UpdateHistoryItemAdmin)
-admin.site.register(UserProfile, UserProfileAdmin)
+admin.site.unregister(User)
+admin.site.register(User, CustomUserAdmin)

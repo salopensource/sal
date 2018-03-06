@@ -1,16 +1,20 @@
 from yapsy.IPlugin import IPlugin
-from yapsy.PluginManager import PluginManager
-from django.template import loader, Context
-from django.db.models import Count
-from server.models import *
-from django.shortcuts import get_object_or_404
-import server.utils as utils
+
 from django.conf import settings
+from django.db.models import Count
+from django.shortcuts import get_object_or_404
+from django.template import Context, loader
+
+import server.utils as utils
+from server.models import *
 
 
 class Gatekeeper(IPlugin):
     def widget_width(self):
         return 4
+
+    def plugin_type(self):
+        return 'builtin'
 
     def widget_content(self, page, machines=None, theid=None):
 

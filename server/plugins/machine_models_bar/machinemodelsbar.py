@@ -3,14 +3,14 @@
 
 from collections import Counter
 
+from yapsy.IPlugin import IPlugin
+
 from django.db.models import Count, Q
 from django.shortcuts import get_object_or_404
-from django.template import loader, Context
-from yapsy.IPlugin import IPlugin
-from yapsy.PluginManager import PluginManager
+from django.template import Context, loader
 
-from server.models import *
 import server.utils as utils
+from server.models import *
 
 
 class MachineModelsBar(IPlugin):

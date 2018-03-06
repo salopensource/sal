@@ -1,42 +1,25 @@
 from distutils.version import LooseVersion
 
-from yapsy.IPlugin import IPlugin
-
 from django.db.models import Count
-from django.shortcuts import get_object_or_404
-from django.template import Context, loader
 
-import server.utils as utils
-from server.models import *
+# from sal.plugin import MachinesPlugin
+import sal.plugin
 
 
-class OperatingSystem(IPlugin):
-    def plugin_type(self):
-        return 'builtin'
+class OperatingSystem(sal.plugin.MachinesPlugin):
 
-    def widget_width(self):
-        return 4
+    description = 'List of operating system versions'
+    template = 'operatingsystem/templates/operatingsystem.html'
 
-    def get_description(self):
-        return 'List of operating system versions'
-
-    def widget_content(self, page, machines=None, theid=None):
-        if page == 'front':
-            t = loader.get_template('operatingsystem/templates/os_front.html')
-
-        if page == 'bu_dashboard':
-            t = loader.get_template('operatingsystem/templates/os_id.html')
-
-        if page == 'group_dashboard':
-            t = loader.get_template('operatingsystem/templates/os_id.html')
-
+    def get_context(self, machines, **kwargs):
         # Remove invalid versions, then count and sort the results.
-        os_info = machines.exclude(
-            operating_system__isnull=True).exclude(
-                operating_system__exact='').values(
-                'operating_system', 'os_family').annotate(
-                    count=Count('operating_system')).order_by(
-                        'os_family', 'operating_system')
+        os_info = (
+            machines
+            .exclude(operating_system__isnull=True)
+            .exclude(operating_system__exact='')
+            .values('operating_system', 'os_family')
+            .annotate(count=Count('operating_system'))
+            .order_by('os_family', 'operating_system'))
 
         mac_os_info = []
         windows_os_info = []
@@ -61,16 +44,15 @@ class OperatingSystem(IPlugin):
         linux_os_info = sorted(linux_os_info, key=os_key, reverse=True)
         chrome_os_info = sorted(chrome_os_info, key=os_key, reverse=True)
 
-        c = Context({
+        context = {
             'title': 'Operating Systems',
             'mac_data': mac_os_info,
             'windows_data': windows_os_info,
             'linux_data': linux_os_info,
             'chrome_data': chrome_os_info,
-            'theid': theid,
-            'page': page
-        })
-        return t.render(c)
+            'group_type': kwargs['group_type'],
+            'group_id': kwargs['group_id']}
+        return context
 
     def filter_machines(self, machines, data):
         # You will be passed a QuerySet of machines, you then need to perform

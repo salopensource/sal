@@ -22,22 +22,21 @@ FILTERS_AND_TITLES = {
 
 class Activity(MachinesPlugin):
 
-    class Meta(object):
-        widget_width = 12
-        description = 'Current Munki activity'
+    widget_width = 12
+    description = 'Current Munki activity'
 
-    def get_context(self, machines, group_type='all', group_id=None):
+    def get_context(self, queryset, **kwargs):
         context = {
             'title': 'Activity',
-            'group_id': group_id,
-            'group_type': group_type}
+            'group_id': kwargs['group_id'],
+            'group_type': kwargs['group_type']}
 
         for key in FILTERS_AND_TITLES:
-            filtered_machines, _ = self.filter_machines(machines, key)
+            filtered_machines, _ = self.filter_machines(queryset, key)
             context[key] = filtered_machines.count()
 
         return context
 
-    def filter_machines(self, machines, data):
+    def filter(self, queryset, data):
         time_filter, title = FILTERS_AND_TITLES[data]
-        return machines.filter(time_filter), title
+        return queryset.filter(time_filter), title

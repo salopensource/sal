@@ -166,18 +166,6 @@ def plugin_load(request, plugin_name, group_type='all', group_id=None):
         return HttpResponse(html)
 
 
-# TODO: Move elsewhere
-def handle_access(request, group_type, group_id):
-    models = {
-        'all': None,
-        'machine_group': MachineGroup,
-        'business_unit': BusinessUnit,
-        'machine': Machine}
-    if group_type == "all":
-        return
-    instance, business_unit  = get_business_unit_by(models[group_type], group_id=group_id)
-    if not has_access(request.user, business_unit):
-        return Http404
 
 
 @login_required

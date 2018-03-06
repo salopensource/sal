@@ -2,6 +2,7 @@
 
 
 import base64
+import logging
 from functools import wraps
 
 
@@ -244,3 +245,19 @@ def staff_required(function):
             return function(*args, **kwargs)
 
     return wrapper
+
+
+def handle_access(request, group_type, group_id):
+    models = {
+        'machine_group': MachineGroup,
+        'business_unit': BusinessUnit,
+        'machine': Machine}
+    if group_type == 'all':
+        business_unit = None
+    else:
+        _, business_unit  = get_business_unit_by(models[group_type], group_id=group_id)
+
+    if not has_access(request.user, business_unit):
+        logging.warning("%s attempted to access %s for which they have no permissions.",
+                        request.user, group_type)
+        raise Http404

@@ -212,7 +212,7 @@ def report_load(request, plugin_name, group_type='all', group_id=None):
         report_html = plugin.widget_content(DEPRECATED_PAGES[group_type], machines, group_id)
 
     context = {'output': report_html, 'group_type': group_type, 'group_id': group_id, 'reports':
-                reports}
+                reports, 'active_report': plugin_name}
     return render(request, 'server/display_report.html', context)
 
 

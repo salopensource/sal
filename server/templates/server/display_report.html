@@ -22,7 +22,9 @@
   <a href="#"><i class="fa fa-th-large fa-fw"></i> Reports<span class="fa arrow"></span></a>
   <ul class="nav nav-second-level">
     {% for report in reports %}
-      <li><a href="{% url 'report_load' report group_type group_id %}">{{ report }}</a></li>
+    <li class="{% if active_report == report %}active{% else %}{% endif %}">
+      <a href="{% url 'report_load' report group_type group_id %}">{{ report }}</a>
+    </li>
     {% endfor %}
   </ul>
   <!-- /.nav-second-level -->

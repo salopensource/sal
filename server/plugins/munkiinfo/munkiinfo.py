@@ -16,8 +16,6 @@ class MunkiInfo(ReportPlugin):
 
     class Meta(object):
         description = 'Information on Munki configuration.'
-        plugin_type = 'report'
-        width = 12
 
     def get_http_only(self, machines):
         return machines.filter(
@@ -116,7 +114,7 @@ class MunkiInfo(ReportPlugin):
         }
         return context
 
-    def filter_machines(self, machines, data):
+    def filter(self, machines, data):
         if data.startswith('http_only?'):
             machines = self.get_http_only(machines)
             title = 'Machines using HTTP'

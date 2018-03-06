@@ -7,7 +7,6 @@ from datetime import datetime, timedelta
 import dateutil.parser
 import pytz
 import unicodecsv as csv
-from yapsy.PluginManager import PluginManagerSingleton
 
 import django.utils.timezone
 from django.conf import settings
@@ -23,7 +22,8 @@ from forms import *
 from inventory.models import *
 from models import *
 from sal.decorators import *
-from sal.plugin import MachinesPlugin, DetailPlugin, ReportPlugin
+from sal.plugin import (BasePlugin, MachinesPlugin, DetailPlugin, ReportPlugin, OldPluginWrapper,
+                        PluginManager)
 
 if settings.DEBUG:
     import logging
@@ -133,75 +133,48 @@ def machine_list(request, pluginName, data, page='front', theID=None):
 
 
 @login_required
-def plugin_load(request, plugin_name, group_type='all', group_id=None):
-    handle_access(request, group_type, group_id)
-    machines = utils.get_machines_for_group(request, group_type, group_id)
-
-    plugin = PluginManagerSingleton.get().getPluginByName(plugin_name)
-
-    # Ensure that a plugin was instantiated before proceeding.
-    if not plugin:
-        raise Http404
-
-    if isinstance(plugin.plugin_object, (MachinesPlugin, DetailPlugin)):
-        # Ensure the request is not for a disabled plugin.
-        model = Plugin if isinstance(plugin.plugin_object, MachinesPlugin) else MachineDetailPlugin
-        _ = get_object_or_404(model, name=plugin_name)
-
-        return HttpResponse(
-            plugin.plugin_object.widget_content(machines, group_type=group_type, group_id=group_id))
-
-    else:
-        # Handle plugins which haven't been updated.
-        # TODO: This can be removed at the next major version.
-        logging.warning("Plugin '%s' needs to be updated to subclass a Sal Plugin!", plugin.name)
-
-        # Ensure the request is not for a disabled plugin.
-        plugin = plugin.plugin_object
-        plugin_type = plugin.plugin_type() if hasattr(plugin, 'plugin_type') else 'builtin'
-        model = MachineDetailPlugin if plugin_type == "machine_detail" else Plugin
-        _ = get_object_or_404(model, name=plugin_name)
-
-        html = plugin.widget_content(DEPRECATED_PAGES[group_type], machines, group_id)
-        return HttpResponse(html)
-
-
-
-
-@login_required
 def report_load(request, plugin_name, group_type='all', group_id=None):
-    handle_access(request, group_type, group_id)
-    machines = utils.get_machines_for_group(request, group_type, group_id)
-    plugin = PluginManagerSingleton.get().getPluginByName(plugin_name)
+    report_html = process_plugin(request, plugin_name, group_type, group_id)
     reports = Report.objects.values_list('name', flat=True)
-
-    # Ensure that a plugin was instantiated before proceeding.
-    if not plugin:
-        raise Http404
-
-    if isinstance(plugin.plugin_object, ReportPlugin):
-        # Ensure the request is not for a disabled plugin.
-        _ = get_object_or_404(Report, name=plugin_name)
-
-        report_html = plugin.plugin_object.widget_content(
-            machines, group_type=group_type, group_id=group_id)
-
-    else:
-        # Handle plugins which haven't been updated.
-        # TODO: This can be removed at the next major version.
-        # TODO: This func is slightly different than plugin_load; so it
-        # will need a little more refactoring to just merge.
-        logging.warning("Report '%s' needs to be updated to subclass a Sal Plugin!", plugin.name)
-
-        # Ensure the request is not for a disabled plugin.
-        plugin = plugin.plugin_object
-        _ = get_object_or_404(Report, name=plugin_name)
-
-        report_html = plugin.widget_content(DEPRECATED_PAGES[group_type], machines, group_id)
-
     context = {'output': report_html, 'group_type': group_type, 'group_id': group_id, 'reports':
                 reports, 'active_report': plugin_name}
     return render(request, 'server/display_report.html', context)
+
+
+@login_required
+def plugin_load(request, plugin_name, group_type='all', group_id=None):
+    html = process_plugin(request, plugin_name, group_type, group_id)
+    return HttpResponse(html)
+
+
+def process_plugin(request, plugin_name, group_type='all', group_id=None):
+    plugin = PluginManager().get_plugin_by_name(plugin_name)
+
+    # Ensure that a plugin was instantiated before proceeding.
+    if not plugin:
+        raise Http404
+
+    # Grab the actual plugin instance out of the Yapsy container.
+    plugin_object = plugin.plugin_object
+
+    # Ensure the request is not for a disabled plugin.
+    if isinstance(plugin_object, OldPluginWrapper):
+        plugin_type = plugin_object.get_plugin_type(None)
+        if plugin_type == 'machine_detail':
+            model = MachineDetailPlugin
+        elif plugin_type == 'report':
+            model = Report
+        else:
+            model = Plugin
+    elif isinstance(plugin_object, MachinesPlugin):
+        model = Plugin
+    elif isinstance(plugin_object, ReportPlugin):
+        model = Report
+    else:
+        model = MachineDetailPlugin
+    _ = get_object_or_404(model, name=plugin_name)
+
+    return plugin_object.widget_content(request, group_type=group_type, group_id=group_id)
 
 
 class Echo(object):

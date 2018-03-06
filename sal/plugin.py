@@ -1,11 +1,20 @@
+import logging
 import os
 
 from yapsy.IPlugin import IPlugin
-from yapsy.PluginManager import PluginManagerSingleton
+import yapsy.PluginManager
 
+from django.shortcuts import get_object_or_404
 from django.template import loader
 
 from sal import settings
+from sal.decorators import handle_access, is_global_admin
+from server.models import Machine
+
+
+DEPRECATED_PAGES = {
+    'all': 'front', 'business_unit': 'bu_dashboard', 'machine_group': 'group_dashboard',
+    'machine': 'machine_detail'}
 
 
 class OSFamilies(object):
@@ -37,86 +46,104 @@ class BasePlugin(IPlugin):
         get_context: All subclasses need to reimplement this.
     """
 
-    _description = ''
-    _plugin_type = 'base'
-    _template = ''
-    _widget_width = 4
+    description = ''
+    model = Machine
+    plugin_type = 'base'
+    template = ''
+    widget_width = 4
 
-    class Meta(object):
-        """Configuration object for plugins
-
-        Specify any of the below attributes to customize the behavior of
-        subclasses plugins.
-
-        Attributes:
-            description (str): Plugin description. Defaults to ''.
-            plugin_type (PluginType): Type of plugin. Defaults to
-                'builtin'.
-            template (str): Subpath to plugin's template. If not
-                specified, will try to use the plugin's class
-                name, lowercased, formatted into
-                '{name}/templates/{name}.html'.
-            widget_width (int): Width of the plugin's widget. Defaults
-                to 4.
-        """
-        pass
-
-    def __init__(self):
-        super(BasePlugin, self).__init__()
-
-    def _get_from_meta_or_default(self, name):
-        return getattr(self.Meta, name, None) or getattr(self, "_" + name, None)
-
-    def get_template(self, *args, **kwargs):
+    def get_template(self, **kwargs):
         """Get the plugin's django template.
 
-        This method by default looks up the self._template attribute.
+        This method by default looks up the template attribute.
         If that's not available, it tries to construct a template path
         from the name of the plugin's class, lowercased. (i.e. BasePlugin
         would have a computed template path of
         'baseplugin/templates/baseplugin.html').
 
         To allow this method to be overridden by clients, it accepts
-        *args and **kwargs. See the `widget_content` method to see the
+        **kwargs. See the `widget_content` method to see the
         primary use of this method; it's called with the machines
         queryset, the `group_type`, and `group_id`, so an overriden
         `get_template` could select from different templates based
         on the contextual data.
 
         Args:
-            args: Unused in this implementation.
             kwargs: Unused in this implementation.
 
         Returns:
             Django template for this plugin.
         """
-        template = self._get_from_meta_or_default('template')
-        if not template:
-            template = "{0}/templates/{0}.html".format(self.__class__.__name__.lower())
+        template = self.template if self.template else "{0}/templates/{0}.html".format(
+            self.__class__.__name__.lower())
         return loader.get_template(template)
 
-    def plugin_type(self):
-        return self._get_from_meta_or_default('plugin_type')
+    # TODO: This is on the chopping block.
+    def get_plugin_type(self, request, **kwargs):
+        return self.plugin_type
 
-    def widget_width(self):
-        return self._get_from_meta_or_default('widget_width')
+    def get_widget_width(self, request, **kwargs):
+        return self.widget_width
 
-    def get_description(self):
-        return self._get_from_meta_or_default('description')
+    def get_description(self, request, **kwargs):
+        return self.description
 
-    def widget_content(self, machines, group_type='all', group_id=None):
-        context = self.get_context(machines, group_type=group_type, group_id=group_id)
-        return self.get_template(machines, group_type, group_id).render(context)
+    def get_queryset(self, request, **kwargs):
+        """Get a filtered queryset for this plugin's Machine model.
 
-    def get_context(self, machines, group_type, group_id):
+        Args:
+            request (Request): The request passed from the View.
+            **kwargs: Expected kwargs follow
+                group_type (str): One of 'all' (the default),
+                    'business_unit', or 'machine_group'.
+                group_id (int, str): ID of the group_type's object to
+                    filter by. Default to 0.
+                deployed (bool): Filter by Machine.deployed. Defaults
+                    to True.
+
+        Returns:
+            Filtered queryset.
+        """
+        group_type = kwargs.get('group_type', 'all')
+        group_id = kwargs.get('group_id', 0)
+        deployed = kwargs.get('deployed', True)
+
+        # Check access before doing anything else.
+        handle_access(request, group_type, group_id)
+
+        # By default, plugins filter out undeployed machines.
+        queryset = self.model.objects.filter(deployed=deployed)
+
+        if group_type == "business_unit":
+            queryset = queryset.filter(machine_group__business_unit__pk=group_id)
+        elif group_type == "machine_group":
+            queryset = queryset.filter(machine_group__pk=group_id)
+        elif is_global_admin(request.user):
+            # GA users won't have business units, so just do nothing.
+            pass
+        else:
+            # The 'all' / 'front' type is being requested.
+            queryset = queryset.filter(
+                machine_group__business_unit__in=request.user.businessunit_set.all())
+
+        return queryset
+
+    def widget_content(self, request, **kwargs):
+        queryset = self.get_queryset(request, **kwargs)
+        context = self.get_context(queryset, **kwargs)
+        template = self.get_template(**kwargs)
+        return template.render(context)
+
+    def get_context(self, queryset, **kwargs):
         """Process input into a context suitable for rendering.
 
         This method must be overridden by subclasses; the base class
         implementation does NOTHING.
 
         Args:
-            machines (QuerySet of Machines or Machine): Machine(s) to
+            queryset (QuerySet of Machines or Machine): Machine(s) to
                 consider while generating plugin's output.
+            **kwargs: (Expected keys below)
             group_type (str): One of 'all', 'business_unit',
                 'machine_group', or 'machine', determining the limits of
                 the machines query.
@@ -143,7 +170,8 @@ class FilterMixin(object):
     def filter(self, machines, data):
         """Filter machines further for redirect to a machine list view
 
-        This method is used when a link originating from the output of the plugin needs to redirect to a machine list view. This
+        This method is used when a link originating from the output of
+        the plugin needs to redirect to a machine list view. This
         method is then used by the machine list view to filter the
         machines prior to list display.
 
@@ -163,7 +191,7 @@ class FilterMixin(object):
 
 class MachinesPlugin(FilterMixin, BasePlugin):
 
-    _plugin_type = 'builtin'
+    plugin_type = 'builtin'
 
 
 class DetailPlugin(BasePlugin):
@@ -172,23 +200,103 @@ class DetailPlugin(BasePlugin):
     Public Methods:
         supported_os_families
     """
-    _plugin_type = 'machine_detail'
-    _supported_os_families = [OSFamilies.darwin]
+    plugin_type = 'machine_detail'
+    supported_os_families = [OSFamilies.darwin]
 
-    def supported_os_families(self):
-        return self._get_from_meta_or_default('supported_os_families')
+    def get_supported_os_families(self, **kwargs):
+        return self.supported_os_families
+
+    def get_queryset(self, request, **kwargs):
+        group_id = kwargs.get('group_id', 0)
+
+        # Check access before doing anything else.
+        handle_access(request, 'machine', group_id)
+
+        return get_object_or_404(self.model, pk=group_id)
 
 
 class ReportPlugin(FilterMixin, BasePlugin):
 
-    _plugin_type = 'report'
-    _widget_width = 12
+    plugin_type = 'report'
+    widget_width = 12
 
 
-# Load all plugins at import time. Then all plugin users can call
-# the `PluginManagerSingleton.get()` classmethod to get a manager that's
-# ready to look up plugins.
-manager = PluginManagerSingleton.get()
-manager.setPluginPlaces([settings.PLUGIN_DIR, os.path.join(
-    settings.PROJECT_DIR, 'server/plugins')])
-manager.collectPlugins()
+class OldPluginWrapper(BasePlugin):
+    """Provides current Plugin interface by wrapping old-style plugin"""
+
+    model = Machine
+
+    def __init__(self, plugin):
+        self.plugin = plugin
+
+    def get_template(self, **kwargs):
+        return None
+
+    def get_plugin_type(self, request, **kwargs):
+        try:
+            return self.plugin.plugin_type()
+        except AttributeError:
+            return 'builtin'
+
+    def get_widget_width(self, request, **kwargs):
+        return self.plugin.widget_width()
+
+    def get_description(self, request, **kwargs):
+        try:
+            return self.plugin.get_description()
+        except AttributeError:
+            return ""
+
+    def get_supported_os_families(self):
+        if hasattr(self.plugin, 'supported_os_families'):
+            return self.plugin.supported_os_families()
+
+        return [OSFamilies.darwin]
+
+    def get_context(self, queryset, **kwargs):
+        return {}
+
+    def get_queryset(self, request, **kwargs):
+        # Override BasePlugin get_queryset to return a single machine
+        # instead of a Queryset. This is mostly just here to avoid
+        # having to create a bunch of support wrapper subclasses
+        # when this stuff is going away anyway.
+        queryset = super(OldPluginWrapper, self).get_queryset(request, **kwargs)
+        if self.get_plugin_type(request, **kwargs) == 'machine_detail':
+            queryset = queryset[0]
+        return queryset
+
+    def widget_content(self, request, **kwargs):
+        group_type = kwargs.get('group_type', 'all')
+        # Old plugins expect the page name 'front'.
+        group_type = DEPRECATED_PAGES[group_type]
+        group_id = kwargs.get('group_id', 0)
+        queryset = self.get_queryset(request, **kwargs)
+        # Calling convention was different back then...
+        return self.plugin.widget_content(group_type, queryset, group_id)
+
+
+class PluginManager(object):
+
+    def __init__(self):
+        self.manager = yapsy.PluginManager.PluginManager()
+        self.manager.setPluginPlaces([settings.PLUGIN_DIR, os.path.join(
+            settings.PROJECT_DIR, 'server/plugins')])
+        self.manager.collectPlugins()
+
+    def get_plugin_by_name(self, name):
+        plugin = self.wrap_old_plugins([self.manager.getPluginByName(name)])[0]
+        return plugin
+
+    def get_all_plugins(self):
+        return self.wrap_old_plugins(self.manager.getAllPlugins())
+
+    def wrap_old_plugins(self, plugins):
+        wrapped = []
+        for plugin in plugins:
+            if plugin.plugin_object and not isinstance(plugin.plugin_object, BasePlugin):
+                logging.warning(
+                    "Plugin '%s' needs to be updated to subclass a Sal Plugin!", plugin.name)
+                plugin.plugin_object = OldPluginWrapper(plugin.plugin_object)
+            wrapped.append(plugin)
+        return wrapped

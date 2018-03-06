@@ -9,7 +9,6 @@ from distutils.version import LooseVersion
 from itertools import chain
 
 import requests
-from yapsy.PluginManager import PluginManagerSingleton
 
 from django.conf import settings
 from django.contrib.staticfiles.templatetags.staticfiles import static
@@ -18,6 +17,7 @@ from django.db.models import Count, Max
 from django.shortcuts import get_object_or_404
 
 from sal.decorators import is_global_admin
+from sal.plugin import BasePlugin, MachinesPlugin, OldPluginWrapper, PluginManager
 from server.models import *
 
 
@@ -426,7 +426,7 @@ def get_machines_for_group(request, group_type="all", group_id=0, deployed=True)
 
 def get_all_plugins():
     """Return all Yapsy plugins"""
-    plugins = PluginManagerSingleton.get().getAllPlugins()
+    plugins = PluginManager().get_all_plugins()
 
     # TODO (sheagcraig): Reevaluate the continued need for this after
     # further work on the plugin system and ongoing support of existing
@@ -446,7 +446,7 @@ def plugin_machines(request, plugin_name, data, page='front', instance_id=None):
     deployed = False if (plugin_name == 'Status' and data == 'undeployed_machines') else True
 
     machines = get_machines_for_group(request, group_type=page, group_id=instance_id, deployed=deployed)
-    plugin = PluginManagerSingleton.get().getPluginByName(plugin_name)
+    plugin = PluginManager().get_plugin_by_name(plugin_name)
     machines, title = plugin.plugin_object.filter_machines(machines, data)
 
     return machines, title
@@ -599,7 +599,9 @@ def _update_plugin_record(model, yapsy_plugins, found):
         yapsy_plugins (list): Loaded plugins from yapsy manager.
         found (container): Names of plugins found by yapsy manager.
     """
-    all_plugins = getattr(model, 'objects').all()
+    all_plugins = model.objects.all()
+    # First, clean out all DB plugins that no-longer exist in plugins
+    # folder.
     for plugin in all_plugins:
         if plugin.name not in found:
             plugin.delete()
@@ -610,18 +612,21 @@ def _update_plugin_record(model, yapsy_plugins, found):
         except model.DoesNotExist:
             continue
 
+        plugin_object = plugin.plugin_object
+        if not isinstance(plugin_object, BasePlugin):
+            plugin_object = OldPluginWrapper(plugin_object)
+
         if hasattr(model, 'type'):
             try:
-                declared_type = plugin.plugin_object.plugin_type()
+                # TODO: Investigate whether we should include the request in this call.
+                declared_type = plugin.plugin_object.get_plugin_type(None)
             except AttributeError:
                 declared_type = model._meta.get_field('type').default
 
             dbplugin.type = declared_type
 
-        try:
-            dbplugin.description = plugin.plugin_object.get_description()
-        except AttributeError:
-            dbplugin.description = ''
+        # TODO: Investigate whether we should include the request in this call.
+        dbplugin.description = plugin_object.get_description(None)
 
         try:
             dbplugin.full_clean()
@@ -637,12 +642,7 @@ def disabled_plugins(plugin_kind='main'):
     output = []
 
     for plugin in get_all_plugins():
-        try:
-            plugin_type = plugin.plugin_object.plugin_type()
-        except AttributeError:
-            # Assume the plugin is of type 'builtin'
-            # continue
-            plugin_type = 'builtin'
+        plugin_type = plugin.plugin_object.get_plugin_type(None)
 
         # Filter out plugins of other types.
         if plugin_type != plugin_models[plugin_kind][1]:
@@ -657,7 +657,7 @@ def disabled_plugins(plugin_kind='main'):
                 item['name'] = plugin.name
                 if model == MachineDetailPlugin:
                     try:
-                        supported_os_families = plugin.plugin_object.supported_os_families()
+                        supported_os_families = plugin.plugin_object.get_supported_os_families()
                     except AttributeError:
                         supported_os_families = ['Darwin', 'Windows', 'Linux', 'ChromeOS']
                     item['os_families'] = supported_os_families
@@ -755,19 +755,17 @@ def get_report_data(plugins):
 
 def get_plugin_data(plugins, page='front', the_id=None):
     result = []
-    yapsy_plugins = {p.name: p for p in plugins
-                     if p.plugin_object.plugin_type() not in ('machine_detail', 'report')}
+    manager = PluginManager()
 
     for enabled_plugin in Plugin.objects.order_by('order'):
         name = enabled_plugin.name
-        yapsy_plugin = yapsy_plugins.get(name)
-        if yapsy_plugin:
-            width = yapsy_plugin.plugin_object.widget_width()
-            html = ('<div id="plugin-{}" class="col-md-{}">'
-                    '    <img class="center-block blue-spinner" src="{}"/>'
-                    '</div>'.format(name, str(width), static('img/blue-spinner.gif')))
-
-            result.append({'name': name, 'width': width, 'html': html})
+        yapsy_plugin = manager.get_plugin_by_name(name)
+        plugin_object = yapsy_plugin.plugin_object
+        width = plugin_object.get_widget_width(None)
+        html = ('<div id="plugin-{}" class="col-md-{}">\n'
+                '    <img class="center-block blue-spinner" src="{}"/>\n'
+                '</div>\n'.format(name, width, static('img/blue-spinner.gif')))
+        result.append({'name': name, 'width': width, 'html': html})
 
     return order_plugin_output(result, page, the_id)
 
@@ -778,8 +776,8 @@ def get_machine_detail_plugin_data(machine):
         p.name: p for p in get_all_plugins()
         # TODO (sheagcraig): This used to be excluding 'builtin' and 'full_page',
         # but I assumed that `full_page` at some point became `report`.
-        if p.plugin_object.plugin_type() not in ('builtin', 'report') and
-        machine.os_family in getattr(p.plugin_object, 'supported_os_families', lambda: [])()}
+        if p.plugin_object.get_plugin_type(None) not in ('builtin', 'report') and
+        machine.os_family in p.plugin_object.get_supported_os_families()}
 
     for enabled_plugin in MachineDetailPlugin.objects.order_by('order'):
         name = enabled_plugin.name

@@ -293,6 +293,10 @@ class OldPluginWrapper(BasePlugin):
             queryset = queryset[0]
         return queryset
 
+    def filter_machines(self, machines, data):
+        if hasattr(self.plugin, 'filter_machines'):
+            return self.plugin.filter_machines(machines, data)
+
     def widget_content(self, request, **kwargs):
         group_type = kwargs.get('group_type', 'all')
         # Old plugins expect the page name 'front'.

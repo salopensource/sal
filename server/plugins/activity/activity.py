@@ -32,7 +32,7 @@ class Activity(MachinesPlugin):
             'group_type': kwargs['group_type']}
 
         for key in FILTERS_AND_TITLES:
-            filtered_machines, _ = self.filter_machines(queryset, key)
+            filtered_machines, _ = self.filter(queryset, key)
             context[key] = filtered_machines.count()
 
         return context

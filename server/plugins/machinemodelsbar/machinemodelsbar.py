@@ -1,47 +1,28 @@
-#!/usr/bin/python
-
-
 from collections import Counter
+from operator import itemgetter
 
-from yapsy.IPlugin import IPlugin
+from django.db.models import Q
 
-from django.db.models import Count, Q
-from django.shortcuts import get_object_or_404
-from django.template import Context, loader
-
-import server.utils as utils
+import sal.plugin
 from server.models import *
 
 
-class MachineModelsBar(IPlugin):
-    name = "MachineModelsBar"
+class MachineModelsBar(sal.plugin.MachinesPlugin):
 
-    def widget_width(self):
-        return 12
+    description = "Machine Models"
+    widget_width = 12
 
-    def plugin_type(self):
-        return "builtin"
-
-    def get_description(self):
-        return "Machine Models"
-
-    def widget_content(self, page, machines=None, theid=None):
-        if page == "front":
-            t = loader.get_template(
-                "machine_models_bar/templates/front.html")
-        elif page in ("bu_dashboard", "group_dashboard"):
-            t = loader.get_template(
-                "machine_models_bar/templates/id.html")
-
+    def get_context(self, queryset, **kwargs):
+        context = self.super_context(queryset, **kwargs)
         # TODO: This works around the potential for Sal to not be able
         # to grab the friendly model name from Apple at inventory time.
         # Eventually this situation will be corrected by using a cached
         # lookup table.
         model_conversion = {
             machine.machine_model: machine.machine_model_friendly
-            for machine in machines if machine.machine_model_friendly}
+            for machine in queryset if machine.machine_model_friendly}
         machine_models = Counter()
-        for machine in machines:
+        for machine in queryset:
             if machine.machine_model_friendly:
                 machine_model_friendly = machine.machine_model_friendly
             else:
@@ -51,17 +32,13 @@ class MachineModelsBar(IPlugin):
 
         data = [{"label": model, "value": machine_models[model]}
                 for model in machine_models]
-        sorted_data = sorted(data, key=lambda x: x["value"])
+        sorted_data = sorted(data, key=itemgetter("value"))
 
-        c = Context({
-            "title": "Hardware Models",
-            "data": sorted_data,
-            "theid": theid,
-            "page": page})
+        context["data"] = sorted_data
 
-        return t.render(c)
+        return context
 
-    def filter_machines(self, machines, data):
+    def filter(self, machines, data):
         # TODO: See above.
         model_conversion = {
             machine.machine_model_friendly: machine.machine_model

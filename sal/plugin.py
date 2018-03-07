@@ -1,5 +1,6 @@
 import logging
 import os
+import re
 
 from yapsy.IPlugin import IPlugin
 import yapsy.PluginManager
@@ -51,6 +52,17 @@ class BasePlugin(IPlugin):
     plugin_type = 'base'
     template = ''
     widget_width = 4
+
+    @property
+    def title(self):
+        """Return the title of the plugin.
+
+        This uses the class name, broken along capital letters (and
+        handling multiple capitals in a row). Subclasses can simply
+        declare a `title` str if they just want to set something
+        other than the class name.
+        """
+        return class_to_title(self.__class__.__name__)
 
     def get_template(self, **kwargs):
         """Get the plugin's django template.
@@ -137,8 +149,8 @@ class BasePlugin(IPlugin):
     def get_context(self, queryset, **kwargs):
         """Process input into a context suitable for rendering.
 
-        This method must be overridden by subclasses; the base class
-        implementation does NOTHING.
+        This method must be overridden by subclasses; You can't call
+        super on this because of the way yapsy constructs the instance.
 
         Args:
             queryset (QuerySet of Machines or Machine): Machine(s) to
@@ -150,9 +162,21 @@ class BasePlugin(IPlugin):
             group_id (int): Primary key value of the associated group.
 
         Returns:
-            Dict suitable for plugin's template to render.
+            Dict suitable for plugin's template to render. Default
+            implementation returns the method's **kwargs, and adds in
+            the plugin itself with key 'plugin'.
         """
-        return {}
+        kwargs['plugin'] = self
+        return kwargs
+
+    def super_context(self, queryset, **kwargs):
+        """Helper method to call the base Plugin classes' get_context.
+        Yapsy munges the class of instantiated plugins, so you can't
+        simply call `super(ClassName, self)...`. This method will dig
+        the correct `get_context` out and call it.
+        """
+        method = eval('super(self.__class__.__bases__[0], self).get_context')
+        return method(queryset, **kwargs)
 
 
 class FilterMixin(object):
@@ -300,3 +324,7 @@ class PluginManager(object):
                 plugin.plugin_object = OldPluginWrapper(plugin.plugin_object)
             wrapped.append(plugin)
         return wrapped
+
+
+def class_to_title(text):
+    return re.sub(r'([a-z](?=[A-Z])|[A-Z](?=[A-Z][a-z]))', r'\1 ', text)

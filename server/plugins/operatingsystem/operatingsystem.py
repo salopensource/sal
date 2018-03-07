@@ -15,6 +15,7 @@ class OperatingSystem(sal.plugin.MachinesPlugin):
     template = 'operatingsystem/templates/operatingsystem.html'
 
     def get_context(self, machines, **kwargs):
+        context = self.super_context(machines, **kwargs)
         # Remove invalid versions, then annotate with a count.
         os_info = (
             machines
@@ -32,12 +33,8 @@ class OperatingSystem(sal.plugin.MachinesPlugin):
         os_key = lambda x: LooseVersion(x["operating_system"])  # noqa: E731
         output = [
             (key, sorted(grouped[key], key=os_key, reverse=True)) for key in OS_TABLE.values()]
+        context['os_info'] = output
 
-        context = {
-            'title': 'Operating Systems',
-            'os_info': output,
-            'group_type': kwargs['group_type'],
-            'group_id': kwargs['group_id']}
         return context
 
     def filter(self, machines, data):

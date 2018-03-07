@@ -1,12 +1,13 @@
 {% load dashboard_extras %}
+
 <div class="panel panel-default">
   <div class="panel-heading">
-    {{ title }}
+    {{ plugin.title }}
   </div>
   <!-- /.panel-heading -->
+
   <div class="panel-body">
     <table class="table table-striped table-condensed table-bordered">
-
     {% for os in os_info %}
       {% if os.1 %}
 				<tr>
@@ -26,61 +27,6 @@
 				{% endfor %}
 			{% endif %}
 		{% endfor %}
-
-    <!-- {% if windows_data %} -->
-    <!--   <tr> -->
-    <!--     <th>Windows</th> -->
-    <!--   </tr> -->
-    <!--   {% for item in windows_data %} -->
-    <!--     {% if item.operating_system %} -->
-    <!--       <tr> -->
-    <!--         <td> -->
-    <!--           <a href="{% url 'machine_list_id' 'OperatingSystem' item.operating_system group_type group_id %}"> -->
-    <!--             {{ item.operating_system }} -->
-    <!--             <span class="badge pull-right">{{ item.count }}</span> -->
-    <!--           </a> -->
-    <!--         </td> -->
-    <!--       </tr> -->
-    <!--     {% endif %} -->
-    <!--   {% endfor %} -->
-    <!-- {% endif %} -->
-
-    <!-- {% if linux_data %} -->
-    <!--   <tr> -->
-    <!--       <th>Linux</th> -->
-    <!--   </tr> -->
-    <!--   {% for item in linux_data %} -->
-    <!--     {% if item.operating_system %} -->
-    <!--       <tr> -->
-    <!--         <td> -->
-    <!--           <a href="{% url 'machine_list_id' 'OperatingSystem' item.operating_system group_type group_id %}"> -->
-    <!--             {{ item.operating_system }} -->
-    <!--             <span class="badge pull-right">{{ item.count }}</span> -->
-    <!--           </a> -->
-    <!--         </td> -->
-    <!--       </tr> -->
-    <!--     {% endif %} -->
-    <!--   {% endfor %} -->
-    <!-- {% endif %} -->
-
-    <!-- {% if chrome_data %} -->
-    <!--   <tr> -->
-    <!--     <th>Chrome OS</th> -->
-    <!--   </tr> -->
-    <!--   {% for item in chrome_data %} -->
-    <!--     {% if item.operating_system %} -->
-    <!--       <tr> -->
-    <!--         <td> -->
-    <!--           <a href="{% url 'machine_list_id' 'OperatingSystem' item.operating_system group_type group_id %}"> -->
-    <!--             {{ item.operating_system }} -->
-    <!--             <span class="badge pull-right">{{ item.count }}</span> -->
-    <!--           </a> -->
-    <!--         </td> -->
-    <!--       </tr> -->
-    <!--       {% endif %} -->
-    <!--     {% endfor %} -->
-    <!--   {% endif %} -->
-
     </table>
   </div>
 </div>

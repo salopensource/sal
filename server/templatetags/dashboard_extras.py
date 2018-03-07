@@ -33,6 +33,12 @@ humanreadablesize.is_safe = True
 
 
 @register.filter
+def cat(arg1, arg2):
+    """Concatenate arg1 & arg2."""
+    return "{}{}".format(arg1, arg2)
+
+
+@register.filter
 def macos(os_version):
     if LooseVersion(os_version) > LooseVersion('10.11.99'):
         return 'macOS'

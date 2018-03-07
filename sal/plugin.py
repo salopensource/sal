@@ -53,6 +53,9 @@ class BasePlugin(IPlugin):
     template = ''
     widget_width = 4
 
+    def __repr__(self):
+        return self.__class__.__name__
+
     @property
     def title(self):
         """Return the title of the plugin.

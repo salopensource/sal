@@ -1,21 +1,17 @@
 import plistlib
 import re
 
-from yapsy.IPlugin import IPlugin
-
 from django.shortcuts import get_object_or_404
-from django.template import Context, loader
 
-from catalog.models import *
-from sal.plugin import ReportPlugin
-from server.models import *
+from catalog.models import Catalog
+from server.models import BusinessUnit, InstalledUpdate, PendingUpdate
 from server.utils import safe_unicode
+import sal.plugin
 
 
-class InstallReport(ReportPlugin):
+class InstallReport(sal.plugin.ReportPlugin):
 
-    class Meta(object):
-        description = 'Information on installation status.'
+    description = 'Information on installation status.'
 
     def replace_dots(self, item):
         # item['name'] = item['pkginfo']['name']
@@ -37,7 +33,8 @@ class InstallReport(ReportPlugin):
         for catalog in catalog_objects:
             safe_data = plistlib.readPlistFromString(safe_unicode(catalog.content))
             for pkginfo in safe_data:
-                description_dict[pkginfo['name'], pkginfo['version']] = pkginfo.get('description', '')
+                description_dict[pkginfo['name'], pkginfo['version']] = pkginfo.get(
+                    'description', '')
 
         output = []
         # Get the install reports for the machines we're looking for

@@ -3,7 +3,7 @@ from datetime import timedelta
 import django.utils.timezone
 from django.db.models import Q
 
-from sal.plugin import MachinesPlugin
+import sal.plugin
 
 
 NOW = django.utils.timezone.now()
@@ -20,7 +20,7 @@ FILTERS_AND_TITLES = {
     'three_months': (Q(last_checkin__gte=THREE_MONTHS_AGO), 'Machines inactive for over 3 months')}
 
 
-class Activity(MachinesPlugin):
+class Activity(sal.plugin.MachinesPlugin):
 
     widget_width = 12
     description = 'Current Munki activity'

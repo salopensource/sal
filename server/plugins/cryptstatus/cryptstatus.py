@@ -5,11 +5,11 @@ from requests.exceptions import RequestException
 from django.conf import settings
 from django.utils.dateparse import parse_datetime
 
+import sal.plugin
 import server.utils as utils
-from sal.plugin import DetailPlugin
 
 
-class CryptStatus(DetailPlugin):
+class CryptStatus(sal.plugin.DetailPlugin):
 
     class Meta:
         description = 'FileVault Escrow Status'

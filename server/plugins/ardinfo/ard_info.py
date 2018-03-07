@@ -1,9 +1,9 @@
 from server.models import PluginScriptRow
 
-from sal.plugin import DetailPlugin
+import sal.plugin
 
 
-class ARDInfo(DetailPlugin):
+class ARDInfo(sal.plugin.DetailPlugin):
 
     description = "Apple Remote Desktop's Computer Information Fields"
 

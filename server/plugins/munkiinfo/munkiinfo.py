@@ -3,7 +3,7 @@ import urllib
 
 from django.db.models import Count, F, Q
 
-from sal.plugin import ReportPlugin
+import sal.plugin
 
 
 REPORT_Q = Q(pluginscriptsubmission__plugin='MunkiInfo')
@@ -12,7 +12,7 @@ DATA_F = F('pluginscriptsubmission__pluginscriptrow__pluginscript_data')
 DATA = 'pluginscript_data'
 
 
-class MunkiInfo(ReportPlugin):
+class MunkiInfo(sal.plugin.ReportPlugin):
 
     class Meta(object):
         description = 'Information on Munki configuration.'

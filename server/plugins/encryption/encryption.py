@@ -17,8 +17,8 @@ TITLES = {
     'desktopsok': 'Desktops with encryption enabled',
     'laptopsalert': 'Laptops without encryption enabled',
     'desktopsalert': 'Desktops without encryption enabled',
-    'laptopsunk': 'Laptops with Unknown encryption state',
-    'desktopsunk': 'Desktops with Unknown encryption state'}
+    'laptopsunknown': 'Laptops with Unknown encryption state',
+    'desktopsunknown': 'Desktops with Unknown encryption state'}
 
 
 class Encryption(sal.plugin.MachinesPlugin):
@@ -58,10 +58,10 @@ class Encryption(sal.plugin.MachinesPlugin):
             machines = machines.filter(plugin_q, name_q, disabled_q).filter(portable_q)
         elif data == 'desktopsalert':
             machines = machines.filter(plugin_q, name_q, disabled_q).exclude(portable_q)
-        elif data == 'laptopsunk':
+        elif data == 'laptopsunknown':
             machines = machines.exclude(plugin_q, name_q, enabled_q)\
                                .exclude(plugin_q, name_q, disabled_q).filter(portable_q)
-        elif data == 'desktopsunk':
+        elif data == 'desktopsunknown':
             machines = machines.exclude(plugin_q, name_q, enabled_q)\
                                .exclude(plugin_q, name_q, disabled_q).exclude(portable_q)
         else:

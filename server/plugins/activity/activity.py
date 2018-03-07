@@ -26,10 +26,7 @@ class Activity(MachinesPlugin):
     description = 'Current Munki activity'
 
     def get_context(self, queryset, **kwargs):
-        context = {
-            'title': 'Activity',
-            'group_id': kwargs['group_id'],
-            'group_type': kwargs['group_type']}
+        context = self.super_context(queryset, **kwargs)
 
         for key in FILTERS_AND_TITLES:
             filtered_machines, _ = self.filter(queryset, key)

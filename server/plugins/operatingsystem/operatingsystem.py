@@ -1,4 +1,4 @@
-from collections import defaultdict
+from collections import defaultdict, OrderedDict
 from distutils.version import LooseVersion
 
 from django.db.models import Count
@@ -6,7 +6,8 @@ from django.db.models import Count
 import sal.plugin
 
 
-OS_TABLE = {'Darwin': 'macOS', 'Windows': 'Windows', 'Linux': 'Linux', 'ChromeOS': 'Chrome OS'}
+# This table is also used for sequnecing output, so use OrderedDict.
+OS_TABLE = OrderedDict(Darwin='macOS', Windows='Windows', Linux='Linux', ChromeOS='Chrome OS')
 
 
 class OperatingSystem(sal.plugin.MachinesPlugin):

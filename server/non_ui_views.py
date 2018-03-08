@@ -137,7 +137,7 @@ def report_load(request, plugin_name, group_type='all', group_id=None):
     report_html = process_plugin(request, plugin_name, group_type, group_id)
     reports = Report.objects.values_list('name', flat=True)
     context = {'output': report_html, 'group_type': group_type, 'group_id': group_id, 'reports':
-                reports, 'active_report': plugin_name}
+               reports, 'active_report': plugin_name}
     return render(request, 'server/display_report.html', context)
 
 
@@ -172,7 +172,7 @@ def process_plugin(request, plugin_name, group_type='all', group_id=None):
         model = Report
     else:
         model = MachineDetailPlugin
-    _ = get_object_or_404(model, name=plugin_name)
+        get_object_or_404(model, name=plugin_name)
 
     return plugin_object.widget_content(request, group_type=group_type, group_id=group_id)
 

@@ -445,7 +445,8 @@ def plugin_machines(request, plugin_name, data, page='front', instance_id=None):
     title = None
     deployed = False if (plugin_name == 'Status' and data == 'undeployed_machines') else True
 
-    machines = get_machines_for_group(request, group_type=page, group_id=instance_id, deployed=deployed)
+    machines = get_machines_for_group(
+        request, group_type=page, group_id=instance_id, deployed=deployed)
     plugin = PluginManager().get_plugin_by_name(plugin_name)
     machines, title = plugin.plugin_object.filter_machines(machines, data)
 

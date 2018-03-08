@@ -9,7 +9,7 @@ class MachineDetailSecurity(sal.plugin.DetailPlugin):
     title = 'Security'
 
     def get_context(self, machine, **kwargs):
-        context = self.super_context(machine, **kwargs)
+        context = self.super_get_context(machine, **kwargs)
 
         try:
             fv_status = (

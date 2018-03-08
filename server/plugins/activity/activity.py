@@ -26,7 +26,7 @@ class Activity(sal.plugin.MachinesPlugin):
     description = 'Current Munki activity'
 
     def get_context(self, queryset, **kwargs):
-        context = self.super_context(queryset, **kwargs)
+        context = self.super_get_context(queryset, **kwargs)
 
         for key in FILTERS_AND_TITLES:
             filtered_machines, _ = self.filter(queryset, key)

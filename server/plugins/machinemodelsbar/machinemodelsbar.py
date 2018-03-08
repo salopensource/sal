@@ -13,7 +13,7 @@ class MachineModelsBar(sal.plugin.MachinesPlugin):
     widget_width = 12
 
     def get_context(self, queryset, **kwargs):
-        context = self.super_context(queryset, **kwargs)
+        context = self.super_get_context(queryset, **kwargs)
         # TODO: This works around the potential for Sal to not be able
         # to grab the friendly model name from Apple at inventory time.
         # Eventually this situation will be corrected by using a cached

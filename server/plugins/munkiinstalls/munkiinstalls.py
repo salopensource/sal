@@ -16,7 +16,7 @@ class MunkiInstalls(sal.plugin.MachinesPlugin):
     widget_width = 8
 
     def get_context(self, queryset, **kwargs):
-        context = self.super_context(queryset, **kwargs)
+        context = self.super_get_context(queryset, **kwargs)
 
         # Set up 14 days back of time ranges as a generator.
         days = (NOW - timedelta(days=d) for d in xrange(0, 15))

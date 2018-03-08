@@ -12,7 +12,7 @@ class DiskSpace(sal.plugin.MachinesPlugin):
     template = 'plugins/traffic_lights.html'
 
     def get_context(self, machines, **kwargs):
-        context = self.super_context(machines, **kwargs)
+        context = self.super_get_context(machines, **kwargs)
         context['ok_label'] = '< 80%'
         context['ok_count'] = self.filter_by_diskspace(machines, 'ok').count()
         context['warning_label'] = '80% +'

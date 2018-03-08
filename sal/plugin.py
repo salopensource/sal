@@ -172,7 +172,7 @@ class BasePlugin(IPlugin):
         kwargs['plugin'] = self
         return kwargs
 
-    def super_context(self, queryset, **kwargs):
+    def super_get_context(self, queryset, **kwargs):
         """Helper method to call the base Plugin classes' get_context.
         Yapsy munges the class of instantiated plugins, so you can't
         simply call `super(ClassName, self)...`. This method will dig

@@ -24,7 +24,7 @@ TITLES = {
 class Encryption(sal.plugin.MachinesPlugin):
 
     def get_context(self, queryset, **kwargs):
-        context = self.super_context(queryset, **kwargs)
+        context = self.super_get_context(queryset, **kwargs)
 
         context['show_desktops'] = getattr(settings, 'ENCRYPTION_SHOW_DESKTOPS', False)
 

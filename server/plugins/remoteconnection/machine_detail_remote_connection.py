@@ -11,7 +11,7 @@ class RemoteConnection(sal.plugin.DetailPlugin):
     description = "Initiate VNC or SSH connections from a machine detail page."
 
     def get_context(self, queryset, **kwargs):
-        context = self.super_context(queryset, **kwargs)
+        context = self.super_get_context(queryset, **kwargs)
 
         ip_address = ""
         if queryset.conditions.count() > 0:

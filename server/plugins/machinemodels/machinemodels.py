@@ -7,7 +7,7 @@ class MachineModels(sal.plugin.MachinesPlugin):
     description = 'Chart of machine models'
 
     def get_context(self, machines, **kwargs):
-        context = self.super_context(machines, **kwargs)
+        context = self.super_get_context(machines, **kwargs)
         machines = machines.filter(machine_model__isnull=False).\
             exclude(machine_model=u'').\
             values('machine_model').\

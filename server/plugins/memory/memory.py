@@ -17,7 +17,7 @@ class Memory(sal.plugin.MachinesPlugin):
     template = 'plugins/traffic_lights.html'
 
     def get_context(self, machines, **kwargs):
-        context = self.super_context(machines, **kwargs)
+        context = self.super_get_context(machines, **kwargs)
         context['ok_count'] = self._filter(machines, 'ok').count()
         context['ok_label'] = '8GB +'
         context['warning_count'] = self._filter(machines, 'warning').count()

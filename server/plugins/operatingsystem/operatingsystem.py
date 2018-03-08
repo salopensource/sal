@@ -16,7 +16,7 @@ class OperatingSystem(sal.plugin.MachinesPlugin):
     template = 'operatingsystem/templates/operatingsystem.html'
 
     def get_context(self, machines, **kwargs):
-        context = self.super_context(machines, **kwargs)
+        context = self.super_get_context(machines, **kwargs)
         # Remove invalid versions, then annotate with a count.
         os_info = (
             machines

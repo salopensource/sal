@@ -14,7 +14,7 @@ SCRIPT_Q = Q(pluginscriptsubmission__pluginscriptrow__pluginscript_name='Gatekee
 class Gatekeeper(sal.plugin.MachinesPlugin):
 
     def get_context(self, queryset, **kwargs):
-        context = self.super_context(queryset, **kwargs)
+        context = self.super_get_context(queryset, **kwargs)
         context['ok'] = self._filter(queryset, 'ok').count()
         context['alert'] = self._filter(queryset, 'alert').count()
         context['unknown'] = queryset.count() - context['ok'] - context['alert']

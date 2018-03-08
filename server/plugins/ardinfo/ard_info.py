@@ -8,7 +8,7 @@ class ARDInfo(sal.plugin.DetailPlugin):
     description = "Apple Remote Desktop's Computer Information Fields"
 
     def get_context(self, machine, **kwargs):
-        context = self.super_context(machine, **kwargs)
+        context = self.super_get_context(machine, **kwargs)
 
         ard_info = {}
         for i in xrange(1, 5):

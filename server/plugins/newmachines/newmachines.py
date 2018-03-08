@@ -1,85 +1,35 @@
-from datetime import date, datetime, timedelta
-
-from yapsy.IPlugin import IPlugin
+from collections import OrderedDict
+from datetime import timedelta
 
 import django.utils.timezone
-from django.db.models import Count
-from django.shortcuts import get_object_or_404
-from django.template import Context, loader
 
-import server.utils as utils
-from server.models import *
+import sal.plugin
 
 
-now = django.utils.timezone.now()
-this_day = now - timedelta(hours=24)
-week_ago = this_day - timedelta(days=7)
-month_ago = this_day - timedelta(days=30)
+TODAY = django.utils.timezone.now() - timedelta(hours=24)
+RANGES = OrderedDict(Today=TODAY)
+RANGES['This Week'] = TODAY - timedelta(days=7)
+RANGES['This Month'] = TODAY - timedelta(days=30)
 
 
-class NewMachines(IPlugin):
-    def plugin_type(self):
-        return 'builtin'
+class NewMachines(sal.plugin.MachinesPlugin):
 
-    def widget_width(self):
-        return 4
+    description = 'New machines'
 
-    def get_description(self):
-        return 'New machines'
+    def get_context(self, queryset, **kwargs):
+        context = self.super_get_context(queryset, **kwargs)
+        data = OrderedDict()
+        for key, date_range  in RANGES.items():
+            data[key] = queryset.filter(first_checkin__gte=date_range).count()
+        context['data'] = data
+        return context
 
-    def widget_content(self, page, machines=None, theid=None):
-        if page == 'front':
-            t = loader.get_template('newmachines/templates/front.html')
-
-        if page == 'bu_dashboard':
-            t = loader.get_template('newmachines/templates/id.html')
-
-        if page == 'group_dashboard':
-            t = loader.get_template('newmachines/templates/id.html')
-
+    def filter(self, machines, data):
         try:
-            today = machines.filter(first_checkin__gte=this_day).count()
-        except Exception:
-            today = 0
+            machines = machines.filter(first_checkin__gte=RANGES[data])
+        except KeyError:
+            return None, None
 
-        try:
-            this_week = machines.filter(first_checkin__gte=week_ago).count()
-        except Exception:
-            this_week = 0
-
-        try:
-            this_month = machines.filter(first_checkin__gte=month_ago).count()
-        except Exception:
-            this_month = 0
-
-        c = Context({
-            'title': 'New Machines',
-            'today_label': 'Today',
-            'today_count': today,
-            'week_label': 'This Week',
-            'week_count': this_week,
-            'month_label': 'This Month',
-            'month_count': this_month,
-            'plugin': 'NewMachines',
-            'theid': theid,
-            'page': page
-        })
-        return t.render(c)
-
-    def filter_machines(self, machines, data):
-        if data == 'day':
-            machines = machines.filter(first_checkin__gte=this_day)
-            title = 'Machines first seen today'
-
-        elif data == 'week':
-            machines = machines.filter(first_checkin__gte=week_ago)
-            title = 'Machines first seen this week'
-
-        elif data == 'month':
-            machines = machines.filter(first_checkin__gte=month_ago)
-            title = 'Machines first seen this month'
-
-        else:
-            machines = None
+        title = 'Machines first seen {}'.format(data.lower())
 
         return machines, title

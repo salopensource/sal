@@ -35,5 +35,8 @@ class Activity(sal.plugin.MachinesPlugin):
         return context
 
     def filter(self, queryset, data):
-        time_filter, title = FILTERS_AND_TITLES[data]
+        try:
+            time_filter, title = FILTERS_AND_TITLES[data]
+        except KeyError
+            return None, None
         return queryset.filter(time_filter), title

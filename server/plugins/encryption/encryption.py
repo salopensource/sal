@@ -45,6 +45,8 @@ class Encryption(sal.plugin.MachinesPlugin):
         return context
 
     def filter(self, machines, data):
+        if data not in TITLES:
+            return None, None
         machines = self._filter(machines, data)
         title = TITLES[data]
         return machines, title

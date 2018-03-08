@@ -83,7 +83,7 @@ class MunkiInfo(sal.plugin.ReportPlugin):
             title = 'Machines using %s %s' % (key, url)
 
         else:
-            raise Http404
+            return None, None
 
         return machines, title
 

@@ -39,6 +39,9 @@ class OperatingSystem(sal.plugin.MachinesPlugin):
         return context
 
     def filter(self, machines, data):
-        os_family, operating_system = data.split('&')
+        try:
+            os_family, operating_system = data.split('&')
+        except ValueError:
+            return None, None
         machines = machines.filter(operating_system=operating_system, os_family=os_family)
         return machines, 'Machines running {} {}'.format(OS_TABLE[os_family], operating_system)

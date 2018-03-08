@@ -5,6 +5,7 @@ import re
 from yapsy.IPlugin import IPlugin
 import yapsy.PluginManager
 
+from django.http import Http404
 from django.shortcuts import get_object_or_404
 from django.template import loader
 
@@ -191,7 +192,22 @@ class FilterMixin(object):
     """
 
     def filter_machines(self, machines, data):
+        """Filter machines using plugin's `filter` method.
+
+        Args:
+            machines (Queryset of machines): Machines to filter.
+            data (str): Some value that `filter` will use to restrict
+                queryset by.
+
+        Returns:
+            Tuple of filtered machines, data
+
+        Raises:
+            Http404 if plugin's `filter` method responds with None, None
+        """
         machines, data = self.filter(machines, data)
+        if not machines and not data:
+            raise Http404
         return machines, data
 
     def filter(self, machines, data):

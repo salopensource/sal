@@ -27,6 +27,8 @@ class Memory(sal.plugin.MachinesPlugin):
         return context
 
     def filter(self, machines, data):
+        if data not in TITLES:
+            return None, None
         return self._filter(machines, data), TITLES[data]
 
     def _filter(self, machines, data):

@@ -22,6 +22,8 @@ class DiskSpace(sal.plugin.MachinesPlugin):
         return context
 
     def filter(self, machines, data):
+        if data not in TITLES:
+            return None, None
         title = TITLES[data]
         machines = self.filter_by_diskspace(machines, data)
         return machines, title

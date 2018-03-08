@@ -83,7 +83,7 @@ class InstallReport(sal.plugin.ReportPlugin):
                 installed_updates__installed=True)
             title = 'Machines with %s %s installed' % (name, version)
 
-        if data.startswith('Pending?'):
+        elif data.startswith('Pending?'):
             version_re = re.search('Pending\?VERSION\=(.*)&&NAME', data)
             version = version_re.group(1)
             name_re = re.search('&&NAME=(.*)', data)
@@ -92,5 +92,8 @@ class InstallReport(sal.plugin.ReportPlugin):
             machines = machines.filter(pending_updates__update=name,
                                        pending_updates__update_version=version)
             title = 'Machines with %s %s pending' % (name, version)
+
+        else:
+            return None, None
 
         return machines, title

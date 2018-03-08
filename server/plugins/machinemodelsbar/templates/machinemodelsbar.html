@@ -1,12 +1,12 @@
 <div class="panel panel-default">
-	<div class="panel-heading">
-		{{ plugin.title }}
-	</div>
-		<!-- /.panel-heading -->
+  <div class="panel-heading">
+    {{ plugin.title }}
+  </div>
+    <!-- /.panel-heading -->
 
-	<div class="panel-body">
-		<div id="machinemodelbargraph" style="max-height: 250px;"></div>
-	</div>
+  <div class="panel-body">
+    <div id="machinemodelbargraph" style="max-height: 250px;"></div>
+  </div>
 </div>
 
 {% block script %}
@@ -14,18 +14,18 @@
 $(function() {
 Morris.Bar({
         element: 'machinemodelbargraph',
-				stacked: true,
-				xkey: 'label',
-				ykeys: ['value'],
-				labels: ['Model Count'],
+        stacked: true,
+        xkey: 'label',
+        ykeys: ['value'],
+        labels: ['Model Count'],
         data: [
-					{% for item in data %}
-						{
-										label: "{{ item.label }}",
-										value: {{ item.value }}
-								},
-					{% endfor %}
-					],
+          {% for item in data %}
+            {
+                    label: "{{ item.label }}",
+                    value: {{ item.value }}
+                },
+          {% endfor %}
+          ],
         resize: true
     }).on('click', function(i, row){
   console.log(row['label']);

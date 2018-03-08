@@ -10,23 +10,23 @@
     <table class="table table-striped table-condensed table-bordered">
     {% for os in os_info %}
       {% if os.1 %}
-				<tr>
-					<th>{{ os.0 }}</th>
-				</tr>
-				{% for item in os.1 %}
-						<tr>
-							<td>
-								{% with item.os_family|cat:"&"|cat:item.operating_system as data %}
-								<a href="{% url 'machine_list_id' 'OperatingSystem' data group_type group_id %}">
-								{% endwith %}
-									{{ item.operating_system }}
-									<span class="badge pull-right">{{ item.count }}</span>
-								</a>
-							</td>
-						</tr>
-				{% endfor %}
-			{% endif %}
-		{% endfor %}
+        <tr>
+          <th>{{ os.0 }}</th>
+        </tr>
+        {% for item in os.1 %}
+            <tr>
+              <td>
+                {% with item.os_family|cat:"&"|cat:item.operating_system as data %}
+                <a href="{% url 'machine_list_id' 'OperatingSystem' data group_type group_id %}">
+                {% endwith %}
+                  {{ item.operating_system }}
+                  <span class="badge pull-right">{{ item.count }}</span>
+                </a>
+              </td>
+            </tr>
+        {% endfor %}
+      {% endif %}
+    {% endfor %}
     </table>
   </div>
 </div>

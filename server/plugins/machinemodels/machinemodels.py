@@ -1,46 +1,20 @@
-import re
-
-from yapsy.IPlugin import IPlugin
-
 from django.db.models import Count
-from django.shortcuts import get_object_or_404
-from django.template import Context, loader
 
-import server.utils as utils
-from server.models import *
+import sal.plugin
 
 
-class MachineModels(IPlugin):
-    def plugin_type(self):
-        return 'builtin'
+class MachineModels(sal.plugin.MachinesPlugin):
+    description = 'Chart of machine models'
 
-    def widget_width(self):
-        return 4
-
-    def get_description(self):
-        return 'Chart of machine models'
-
-    def widget_content(self, page, machines=None, theid=None):
-        if page == 'front':
-            t = loader.get_template('machinemodels/templates/front.html')
-
-        if page == 'bu_dashboard':
-            t = loader.get_template('machinemodels/templates/id.html')
-
-        if page == 'group_dashboard':
-            t = loader.get_template('machinemodels/templates/id.html')
-
-        try:
-            machines = machines.filter(machine_model__isnull=False).\
-                exclude(machine_model=u'').\
-                values('machine_model').\
-                annotate(count=Count('machine_model')).\
-                order_by('machine_model')
-        except Exception:
-            machines = []
+    def get_context(self, machines, **kwargs):
+        context = self.super_context(machines, **kwargs)
+        machines = machines.filter(machine_model__isnull=False).\
+            exclude(machine_model=u'').\
+            values('machine_model').\
+            annotate(count=Count('machine_model')).\
+            order_by('machine_model')
 
         output = []
-
         for machine in machines:
             if machine['machine_model']:
                 found = False
@@ -55,16 +29,10 @@ class MachineModels(IPlugin):
                 if found is False:
                     output.append(machine)
 
-        c = Context({
-            'title': 'Models',
-            'data': output,
-            'theid': theid,
-            'page': page
-        })
-        return t.render(c)
+        context['data'] = output
+        return context
 
-    def filter_machines(self, machines, data):
-
+    def filter(self, machines, data):
         if data == 'MacBook':
             machines = machines.filter(machine_model__startswith=data).\
                 exclude(machine_model__startswith='MacBookPro').\
@@ -72,5 +40,4 @@ class MachineModels(IPlugin):
         else:
             machines = machines.filter(machine_model__startswith=data)
 
-        title = data
-        return machines, title
+        return machines, data

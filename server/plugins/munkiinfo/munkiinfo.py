@@ -14,8 +14,7 @@ DATA = 'pluginscript_data'
 
 class MunkiInfo(sal.plugin.ReportPlugin):
 
-    class Meta(object):
-        description = 'Information on Munki configuration.'
+    description = 'Information on Munki configuration.'
 
     def get_http_only(self, machines):
         return machines.filter(
@@ -39,6 +38,7 @@ class MunkiInfo(sal.plugin.ReportPlugin):
             pluginscriptsubmission__pluginscriptrow__pluginscript_data='True')
 
     def get_context(self, machines, group_type=None, group_id=None):
+        context = self.super_get_context(machines, group_type=group_type, group_id=group_id)
         http_only = self.get_http_only(machines).count()
         https_only = self.get_https_only(machines).count()
         http_munki = self.get_default_repo(machines).count()
@@ -100,7 +100,7 @@ class MunkiInfo(sal.plugin.ReportPlugin):
 
         client_certs = self.get_client_certs(machines).count()
 
-        context = {
+        context.update({
             'http_only': http_only,
             'https_only': https_only,
             'http_munki': http_munki,
@@ -109,9 +109,7 @@ class MunkiInfo(sal.plugin.ReportPlugin):
             'manifest_urls': manifest_urls,
             'package_urls': package_urls,
             'client_certs': client_certs,
-            'group_type': group_type,
-            'group_id': group_id
-        }
+        })
         return context
 
     def filter(self, machines, data):

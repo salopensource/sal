@@ -51,7 +51,7 @@
                     <div class="row">
                         <div class="col-md-6">
                             <div class="panel-body">
-                                <a href="{% url 'machine_list_id' 'InstallReport' item.installed_url  group_type group_id %}">
+                                <a href="{% url 'machine_list_id' plugin item.installed_url  group_type group_id %}">
                                     <div class="panel panel-green">
                                         <div class="panel-heading">
                                             <div class="row">
@@ -72,7 +72,7 @@
                         </div>
                         <div class="col-md-6">
                             <div class="panel-body">
-                                <a href="{% url 'machine_list_id' 'InstallReport' item.pending_url  group_type group_id %}">
+                                <a href="{% url 'machine_list_id' plugin item.pending_url  group_type group_id %}">
                                     {% if item.pending_count == 0 %}<div class="panel panel-green">
                                         {% else %}<div class="panel panel-yellow">{% endif %}
 
@@ -102,37 +102,34 @@
 </div>
 
 <script type="text/javascript">
-// A $( document ).ready() block.
 $( document ).ready(function() {
-    // Hide all items, then show the first one
-
-    //$('#display-body').children().hide();
-    {% with output|first as first_output %}
-    $('#{{ first_output.dotName }}-{{ first_output.dotVersion }}').removeClass('hidden');
-    {% endwith %}
+		{% with output|first as first_output %}
+		$('#{{ first_output.dotName }}-{{ first_output.dotVersion }}').removeClass('hidden');
+		{% endwith %}
 
     function displayDiv(name) {
-        //$('#display-body').children().hide();
         $('#display-body').children().not(name).addClass('hidden');
         $(name).removeClass('hidden');
     };
+
     {% for item in output %}
     $("#{{ item.dotName }}-{{ item.dotVersion }}-link").click(function(e) {
         e.preventDefault();
         displayDiv("#{{ item.dotName }}-{{ item.dotVersion }}");
     });
     {% endfor %}
+
     $('#searchlist').btsListFilter('#searchinput', {itemChild: 'span'});
     $(function() {
-   var window_height = $(window).height(),
-   content_height = window_height - 300;
-   $('#searchlist').height(content_height).css('overflow', 'scroll');
-});
+				var window_height = $(window).height(),
+				content_height = window_height - 300;
+				$('#searchlist').height(content_height).css('overflow', 'scroll');
+		});
 
-$( window ).resize(function() {
-   var window_height = $(window).height(),
-   content_height = window_height - 300;
-   $('#searchlist').height(content_height).css('overflow', 'scroll');
-});
+		$( window ).resize(function() {
+				var window_height = $(window).height(),
+				content_height = window_height - 300;
+				$('#searchlist').height(content_height).css('overflow', 'scroll');
+		});
 });
 </script>

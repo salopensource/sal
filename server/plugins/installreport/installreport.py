@@ -22,6 +22,7 @@ class InstallReport(sal.plugin.ReportPlugin):
         return item
 
     def get_context(self, machines, group_type='all', group_id=None):
+        context = self.super_get_context(machines, group_type=group_type, group_id=group_id)
         catalog_objects = Catalog.objects.all()
         if group_type == 'business_unit':
             business_unit = get_object_or_404(BusinessUnit, pk=group_id)
@@ -66,13 +67,7 @@ class InstallReport(sal.plugin.ReportPlugin):
 
             output.append(item)
 
-        # Sort the output
-        output = sorted(output, key=lambda k: (k['name'], k['version']))
-        context = {
-            'output': output,
-            'group_type': group_type,
-            'group_id': group_id
-        }
+        context['output'] = sorted(output, key=lambda k: (k['name'], k['version']))
         return context
 
     def filter(self, machines, data):

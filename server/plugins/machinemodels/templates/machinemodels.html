@@ -16,23 +16,22 @@
 <script src="/static/js/plugins/morris/morris.min.js"></script>
 <script type="text/javascript">
 $(function() {
-Morris.Donut({
-        element: 'machinemodelsgraph',
-        data: [
-{% for item in data %}
-    {
-            label: "{{ item.machine_model }}",
-            value: {{ item.count }}
-        },
-
-{% endfor %}
-],
-        resize: true
-    }).on('click', function(i, row){
-  console.log(row['label']);
-  var url_mask = "{% url 'machine_list_id' 'MachineModels' 'abc123' group_type group_id %}".replace(/abc123/, row['label'].toString());
-  window.location=url_mask;
-});
+		Morris.Donut({
+				element: 'machinemodelsgraph',
+				data: [
+						{% for item in data %}
+						{
+								label: "{{ item.machine_model }}",
+								value: {{ item.count }}
+						},
+						{% endfor %}
+				],
+				resize: true
+		}).on('click', function(i, row){
+				console.log(row['label']);
+				var url_mask = "{% url 'machine_list_id' plugin 'abc123' group_type group_id %}".replace(/abc123/, row['label'].toString());
+				window.location=url_mask;
+		});
 });
 </script>
 {% endblock %}

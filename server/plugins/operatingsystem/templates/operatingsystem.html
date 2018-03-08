@@ -17,7 +17,7 @@
             <tr>
               <td>
                 {% with item.os_family|cat:"&"|cat:item.operating_system as data %}
-                <a href="{% url 'machine_list_id' 'OperatingSystem' data group_type group_id %}">
+                <a href="{% url 'machine_list_id' plugin data group_type group_id %}">
                 {% endwith %}
                   {{ item.operating_system }}
                   <span class="badge pull-right">{{ item.count }}</span>

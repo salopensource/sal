@@ -91,7 +91,7 @@
 			</div>
 			<div class="panel-body">
 				<table class="table table-striped table-condensed table-bordered">
-					{% for item in repo_urls %}
+					{% for item in SoftwareRepo %}
 					<tr>
 						<td>
 							<a href="{% url 'machine_list_id' plugin item.item_link group_type group_id %}">
@@ -114,7 +114,7 @@
 			</div>
 			<div class="panel-body">
 				<table class="table table-striped table-condensed table-bordered">
-					{% for item in package_urls %}
+					{% for item in Package %}
 					<tr>
 						<td>
 							<a href="{% url 'machine_list_id' plugin item.item_link group_type group_id %}">
@@ -138,7 +138,7 @@
 			</div>
 			<div class="panel-body">
 				<table class="table table-striped table-condensed table-bordered">
-					{% for item in manifest_urls %}
+					{% for item in Manifest %}
 					<tr>
 						<td>
 							<a href="{% url 'machine_list_id' plugin item.item_link group_type group_id %}">
@@ -162,7 +162,7 @@
 			</div>
 			<div class="panel-body">
 				<table class="table table-striped table-condensed table-bordered">
-					{% for item in catalog_urls %}
+					{% for item in Catalog %}
 					<tr>
 						<td>
 							<a href="{% url 'machine_list_id' plugin item.item_link group_type group_id %}">

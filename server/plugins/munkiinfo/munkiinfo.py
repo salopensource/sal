@@ -2,14 +2,16 @@ import re
 import urllib
 
 from django.db.models import Count, F, Q
+from django.http import Http404
 
 import sal.plugin
 
 
 REPORT_Q = Q(pluginscriptsubmission__plugin='MunkiInfo')
-REPO_Q = Q(pluginscriptsubmission__pluginscriptrow__pluginscript_name='SoftwareRepoURL')
 DATA_F = F('pluginscriptsubmission__pluginscriptrow__pluginscript_data')
 DATA = 'pluginscript_data'
+URLS = ('SoftwareRepo', 'Package', 'Manifest', 'Catalog')
+URL_QS = {k: Q(pluginscriptsubmission__pluginscriptrow__pluginscript_name=k + 'URL') for k in URLS}
 
 
 class MunkiInfo(sal.plugin.ReportPlugin):
@@ -18,18 +20,18 @@ class MunkiInfo(sal.plugin.ReportPlugin):
 
     def get_http_only(self, machines):
         return machines.filter(
-            REPORT_Q, REPO_Q,
+            REPORT_Q, URL_QS['SoftwareRepo'],
             pluginscriptsubmission__pluginscriptrow__pluginscript_data__startswith='http://')
 
     def get_https_only(self, machines):
         return machines.filter(
-            REPORT_Q, REPO_Q,
+            REPORT_Q, URL_QS['SoftwareRepo'],
             pluginscriptsubmission__pluginscriptrow__pluginscript_data__startswith='https://')
 
     def get_default_repo(self, machines):
         return machines.filter(
-            REPORT_Q, REPO_Q,
-            pluginscriptsubmission__pluginscriptrow__pluginscript_data__exact='http://munki')
+            REPORT_Q, URL_QS['SoftwareRepo'],
+            pluginscriptsubmission__pluginscriptrow__pluginscript_data='http://munki')
 
     def get_client_certs(self, machines):
         return machines.filter(
@@ -39,77 +41,14 @@ class MunkiInfo(sal.plugin.ReportPlugin):
 
     def get_context(self, machines, group_type=None, group_id=None):
         context = self.super_get_context(machines, group_type=group_type, group_id=group_id)
-        http_only = self.get_http_only(machines).count()
-        https_only = self.get_https_only(machines).count()
-        http_munki = self.get_default_repo(machines).count()
 
-        repo_urls = (
-            machines
-            .filter(REPORT_Q, REPO_Q)
-            .annotate(pluginscript_data=DATA_F)
-            .values(DATA)
-            .annotate(count=Count(DATA))
-            .order_by(DATA))
+        context['http_only'] = self.get_http_only(machines).count()
+        context['https_only'] = self.get_https_only(machines).count()
+        context['http_munki'] = self.get_default_repo(machines).count()
+        context['client_certs'] = self.get_client_certs(machines).count()
+        context.update(
+            {k: self.process_urls(machines, (REPORT_Q, URL_QS[k]), k + '?URL=') for k in URLS})
 
-        for url in repo_urls:
-            url['item_link'] = 'repo_urls?URL="%s"' % urllib.quote(url[DATA], safe='')
-
-        package_urls = (
-            machines
-            .filter(
-                REPORT_Q,
-                pluginscriptsubmission__pluginscriptrow__pluginscript_name='PackageURL')
-            .annotate(pluginscript_data=DATA_F)
-            .values(DATA)
-            .exclude(pluginscript_data='None')
-            .annotate(count=Count(DATA))
-            .order_by(DATA))
-
-        package_url_prefix = 'package_urls?URL='
-        for url in package_urls:
-            url['item_link'] = package_url_prefix + urllib.quote(url[DATA])
-
-        manifest_urls = (
-            machines
-            .filter(
-                REPORT_Q,
-                pluginscriptsubmission__pluginscriptrow__pluginscript_name='ManifestURL')
-            .annotate(pluginscript_data=DATA_F)
-            .values(DATA).exclude(pluginscript_data='None')
-            .annotate(count=Count(DATA))
-            .order_by(DATA))
-
-        manifest_url_prefix = 'manifest_urls?URL='
-        for url in manifest_urls:
-            url['item_link'] = manifest_url_prefix + urllib.quote(url[DATA])
-
-        catalog_urls = (
-            machines
-            .filter(
-                REPORT_Q,
-                pluginscriptsubmission__pluginscriptrow__pluginscript_name='CatalogURL')
-            .annotate(pluginscript_data=DATA_F)
-            .values(DATA)
-            .exclude(pluginscript_data='None')
-            .annotate(count=Count(DATA))
-            .order_by(DATA))
-
-        catalog_url_prefix = 'catalog_urls?URL='
-        for url in catalog_urls:
-            url['item_link'] = catalog_url_prefix + urllib.quote(url[DATA])
-
-        client_certs = self.get_client_certs(machines).count()
-
-        context.update({
-            'http_only': http_only,
-            'https_only': https_only,
-            'http_munki': http_munki,
-            'repo_urls': repo_urls,
-            'catalog_urls': catalog_urls,
-            'manifest_urls': manifest_urls,
-            'package_urls': package_urls,
-            'client_certs': client_certs,
-        })
         return context
 
     def filter(self, machines, data):
@@ -129,23 +68,37 @@ class MunkiInfo(sal.plugin.ReportPlugin):
             machines = self.get_client_certs(machines)
             title = 'Machines connecting to Munki using client certificates'
 
-        elif data.startswith('repo_urls?'):
-            url_re = re.search(r'repo_urls\?URL=\"(.*)\"', data)
-            url = urllib.unquote(url_re.group(1))
-
-            machines = machines.filter(
-                REPORT_Q, REPO_Q,
-                pluginscriptsubmission__pluginscriptrow__pluginscript_data__exact=url)
-            title = 'Machines using %s' % url
-
-        elif data.startswith('manifest_urls?'):
-            url_re = re.search(r'manifest_urls\?URL=\"(.*)\"', data)
-            url = urllib.unquote(url_re.group(1))
+        elif any(data.split('?')[0] == k for k in URLS):
+            url_re = re.search(r'(.*)\?URL=\"(.*)\"', data)
+            try:
+                key = url_re.group(1)
+                url = urllib.unquote(url_re.group(2))
+            except IndexError:
+                raise Http404
 
             machines = machines.filter(
                 REPORT_Q,
-                pluginscriptsubmission__pluginscriptrow__pluginscript_name='ManifestURL',
-                pluginscriptsubmission__pluginscriptrow__pluginscript_data__exact=url)
-            title = 'Machines using %s' % url
+                URL_QS[key],
+                pluginscriptsubmission__pluginscriptrow__pluginscript_data=url)
+            title = 'Machines using %s %s' % (key, url)
+
+        else:
+            raise Http404
 
         return machines, title
+
+    def process_urls(self, queryset, filters, prefix):
+        processed = (
+            queryset
+            .filter(*filters)
+            .annotate(pluginscript_data=DATA_F)
+            .values(DATA)
+            .exclude(pluginscript_data='None')
+            .annotate(count=Count(DATA))
+            .order_by(DATA))
+
+        for url in processed:
+            url['item_link'] = '{}"{}"'.format(prefix, urllib.quote(url[DATA], safe=''))
+
+        return processed
+

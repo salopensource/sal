@@ -36,21 +36,40 @@ class BasePlugin(IPlugin):
     """Base class for Sal plugin types to inherit from.
 
     Public Attributes:
-        Meta (obj): Config object plugin configuration attributes.
+        description (str): Plugin description. Defaults to ''
+        only_use_deployed_machines (bool): Plugins normally only show
+            deployed machines (the default is True). Set to False to
+            tell the plugin to use all machines when calling
+            `get_queryset`.
+        model (django.db.model): Model plugin should use in its
+            `get_queryset` calls.
+        supported_os_families (list of str): OS families for which this
+            plugin should filter machines by. Defaults to
+            `[OSFamilies.darwin]`.
+        template (str): Relative path to plugin's template file.
+            Defaults to '' and plugin will construct a path
+            to a default template; see the `get_template` method for
+            more information.
+        widget_width (int): Plugin's width. Defaults to 4
 
     Public Methods:
-        plugin_type
-        widget_width
+        get_plugin_type
+        get_widget_width
         get_description
         get_template
 
+        get_queryset
+
         widget_content: Returns rendered content of the plugin.
         get_context: All subclasses need to reimplement this.
+        super_get_context: Call this base classes' get_context.
     """
 
     description = ''
+    only_use_deployed_machines = True
     model = Machine
     plugin_type = 'base'
+    supported_os_families = [OSFamilies.darwin]
     template = ''
     widget_width = 4
 
@@ -94,6 +113,9 @@ class BasePlugin(IPlugin):
             self.__class__.__name__.lower())
         return loader.get_template(template)
 
+    def get_supported_os_families(self, **kwargs):
+        return self.supported_os_families
+
     # TODO: This is on the chopping block.
     def get_plugin_type(self, request, **kwargs):
         return self.plugin_type
@@ -122,13 +144,15 @@ class BasePlugin(IPlugin):
         """
         group_type = kwargs.get('group_type', 'all')
         group_id = kwargs.get('group_id', 0)
-        deployed = kwargs.get('deployed', True)
 
         # Check access before doing anything else.
         handle_access(request, group_type, group_id)
 
+        queryset = self.model.objects.all()
+
         # By default, plugins filter out undeployed machines.
-        queryset = self.model.objects.filter(deployed=deployed)
+        if self.only_use_deployed_machines:
+            queryset = self.model.objects.filter(deployed=True)
 
         if group_type == "business_unit":
             queryset = queryset.filter(machine_group__business_unit__pk=group_id)
@@ -238,16 +262,8 @@ class MachinesPlugin(FilterMixin, BasePlugin):
 
 
 class DetailPlugin(BasePlugin):
-    """Machine Detail plugin class.
-
-    Public Methods:
-        supported_os_families
-    """
+    """Machine Detail plugin class."""
     plugin_type = 'machine_detail'
-    supported_os_families = [OSFamilies.darwin]
-
-    def get_supported_os_families(self, **kwargs):
-        return self.supported_os_families
 
     def get_queryset(self, request, **kwargs):
         group_id = kwargs.get('group_id', 0)

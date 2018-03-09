@@ -101,4 +101,3 @@ class MunkiInfo(sal.plugin.ReportPlugin):
             url['item_link'] = '{}"{}"'.format(prefix, urllib.quote(url[DATA], safe=''))
 
         return processed
-

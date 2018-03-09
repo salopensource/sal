@@ -19,7 +19,7 @@ class NewMachines(sal.plugin.MachinesPlugin):
     def get_context(self, queryset, **kwargs):
         context = self.super_get_context(queryset, **kwargs)
         data = OrderedDict()
-        for key, date_range  in RANGES.items():
+        for key, date_range in RANGES.items():
             data[key] = queryset.filter(first_checkin__gte=date_range).count()
         context['data'] = data
         return context

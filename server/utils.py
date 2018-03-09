@@ -424,23 +424,6 @@ def get_machines_for_group(request, group_type="all", group_id=0, deployed=True)
 
 # Plugin utilities
 
-def get_all_plugins():
-    """Return all Yapsy plugins"""
-    plugins = PluginManager().get_all_plugins()
-
-    # TODO (sheagcraig): Reevaluate the continued need for this after
-    # further work on the plugin system and ongoing support of existing
-    # plugins.
-    for plugin in plugins:
-        if not hasattr(plugin.plugin_object, 'plugin_type'):
-            plugin.plugin_object.plugin_type = lambda: 'widget'
-            if settings.DEBUG:
-                logger = logging.getLogger('yapsy')
-                logger.warning(
-                    "Please update plugin: '%s' to include a `plugin_type` method!", plugin.name)
-    return plugins
-
-
 def plugin_machines(request, plugin_name, data, page='front', instance_id=None):
     title = None
     deployed = False if (plugin_name == 'Status' and data == 'undeployed_machines') else True
@@ -534,7 +517,7 @@ def get_plugin_scripts(plugin, hash_only=False, script_name=None):
 
 
 def run_plugin_processing(machine, report_data):
-    yapsy_plugins = get_all_plugins()
+    yapsy_plugins = PluginManager().get_all_plugins()
 
     enabled_reports = Report.objects.all()
     for enabled_report in enabled_reports:
@@ -582,7 +565,7 @@ def reload_plugins_model():
 
     load_default_plugins()
 
-    yapsy_plugins = get_all_plugins()
+    yapsy_plugins = PluginManager().get_all_plugins()
     found = {plugin.name for plugin in yapsy_plugins}
 
     for model in (Plugin, Report, MachineDetailPlugin):
@@ -642,7 +625,7 @@ def disabled_plugins(plugin_kind='main'):
                      'machine_detail': (MachineDetailPlugin, 'machine_detail')}
     output = []
 
-    for plugin in get_all_plugins():
+    for plugin in PluginManager().get_all_plugins():
         plugin_type = plugin.plugin_object.get_plugin_type(None)
 
         # Filter out plugins of other types.
@@ -774,7 +757,7 @@ def get_plugin_data(plugins, page='front', the_id=None):
 def get_machine_detail_plugin_data(machine):
     result = []
     yapsy_plugins = {
-        p.name: p for p in get_all_plugins()
+        p.name: p for p in PluginManager().get_all_plugins()
         # TODO (sheagcraig): This used to be excluding 'builtin' and 'full_page',
         # but I assumed that `full_page` at some point became `report`.
         if p.plugin_object.get_plugin_type(None) not in ('builtin', 'report') and

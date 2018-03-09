@@ -10,8 +10,7 @@ from django.contrib.staticfiles.templatetags.staticfiles import static
 from django.shortcuts import get_object_or_404, redirect, render
 from django.template.context_processors import csrf
 
-from yapsy.PluginManager import PluginManagerSingleton
-
+import sal.plugin
 import utils
 from forms import *
 from inventory.models import *
@@ -56,7 +55,7 @@ def index(request):
 
     # Load in the default plugins if needed
     utils.load_default_plugins()
-    plugins = utils.get_all_plugins()
+    plugins = sal.plugin.PluginManager().get_all_plugins()
 
     reports = utils.get_report_data(plugins)
     output = utils.get_plugin_data(plugins)
@@ -171,7 +170,7 @@ def bu_dashboard(request, **kwargs):
 
     # Load in the default plugins if needed
     utils.load_default_plugins()
-    plugins = utils.get_all_plugins()
+    plugins = sal.plugin.PluginManager().get_all_plugins()
 
     reports = utils.get_report_data(plugins)
     output = utils.get_plugin_data(plugins, 'bu_dashboard', business_unit.id)
@@ -214,7 +213,7 @@ def really_delete_machine_group(request, group_id):
 def group_dashboard(request, **kwargs):
     machine_group = kwargs['instance']
     machines = machine_group.machine_set.filter(deployed=True)  # noqa: F841
-    plugins = utils.get_all_plugins()
+    plugins = sal.plugin.PluginManager().get_all_plugins()
     output = utils.get_plugin_data(plugins, 'group_dashboard', machine_group.id)
     reports = utils.get_report_data(plugins)
 

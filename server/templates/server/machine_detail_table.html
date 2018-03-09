@@ -6,6 +6,7 @@
 <script type="text/javascript" charset="utf-8">
     $(document).ready(function() {
         $('.groupList').DataTable({
+            "pageLength": {{ page_length }},
             "lengthMenu": [[20, 50, -1], [20, 50, "All"]],
             'columnDefs': [{
                 'orderable': false,

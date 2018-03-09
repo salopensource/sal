@@ -17,7 +17,7 @@ urlpatterns = [
     # preflight
     url(r'^preflight/$', preflight, name='preflight'),
     # preflight get script v2
-    url(r'^preflight-v2/get-script/(?P<pluginName>.+)/(?P<scriptName>.+)/$',
+    url(r'^preflight-v2/get-script/(?P<plugin_name>.+)/(?P<script_name>.+)/$',
         preflight_v2_get_script, name='preflight_v2_get_script'),
     # preflight v2
     url(r'^preflight-v2/$', preflight_v2, name='preflight_v2'),

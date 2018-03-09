@@ -341,38 +341,35 @@ def preflight_v2(request):
     # find plugins that have embedded preflight scripts
     # Load in the default plugins if needed
     utils.load_default_plugins()
-    # Build the manager
     manager = PluginManager()
-    # Tell it the default place(s) where to find plugins
-    manager.setPluginPlaces([settings.PLUGIN_DIR, os.path.join(
-        settings.PROJECT_DIR, 'server/plugins')])
-    # Load all plugins
-    manager.collectPlugins()
+
     output = []
     enabled_reports = Report.objects.all()
     for enabled_report in enabled_reports:
-        for plugin in manager.getAllPlugins():
+        for plugin in manager.get_all_plugins():
             if enabled_report.name == plugin.name:
                 content = utils.get_plugin_scripts(plugin, hash_only=True)
                 if content:
                     output.append(content)
 
                 break
+
     enabled_machine_detail_plugins = MachineDetailPlugin.objects.all()
     # print enabled_machine_detail_plugins
     for enabled_machine_detail_plugin in enabled_machine_detail_plugins:
-        for plugin in manager.getAllPlugins():
+        for plugin in manager.get_all_plugins():
             if enabled_machine_detail_plugin.name == plugin.name:
                 content = utils.get_plugin_scripts(plugin, hash_only=True)
                 if content:
                     output.append(content)
 
                 break
+
     # Get all the enabled plugins
     enabled_plugins = Plugin.objects.all()
     for enabled_plugin in enabled_plugins:
         # Loop round the plugins and print their names.
-        for plugin in manager.getAllPlugins():
+        for plugin in manager.get_all_plugins():
             if plugin.name == enabled_plugin.name:
                 content = utils.get_plugin_scripts(plugin, hash_only=True)
                 if content:
@@ -384,21 +381,13 @@ def preflight_v2(request):
 
 @csrf_exempt
 @key_auth_required
-def preflight_v2_get_script(request, pluginName, scriptName):
-    # Build the manager
-    manager = PluginManager()
-    # Tell it the default place(s) where to find plugins
-    manager.setPluginPlaces([settings.PLUGIN_DIR, os.path.join(
-        settings.PROJECT_DIR, 'server/plugins')])
-    # Load all plugins
-    manager.collectPlugins()
+def preflight_v2_get_script(request, plugin_name, script_name):
     output = []
-    for plugin in manager.getAllPlugins():
-        if plugin.name == pluginName:
-            content = utils.get_plugin_scripts(plugin, hash_only=False, script_name=scriptName)
-            if content:
-                output.append(content)
-            break
+    plugin = PluginManager().get_plugin_by_name(plugin_name)
+    if plugin:
+        content = utils.get_plugin_scripts(plugin, hash_only=False, script_name=script_name)
+        if content:
+            output.append(content)
     return HttpResponse(json.dumps(output))
 
 

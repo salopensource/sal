@@ -1,78 +1,48 @@
-from yapsy.IPlugin import IPlugin
+from distutils.version import LooseVersion
 
 from django.db.models import Count
 from django.shortcuts import get_object_or_404
-from django.template import Context, loader
 
-import server.utils as utils
-from server.models import *
+import sal.plugin
+from server.models import PendingUpdate
 
 
-class Pending3rdPartyUpdates(IPlugin):
-    def plugin_type(self):
-        return 'builtin'
+class Pending3rdPartyUpdates(sal.plugin.MachinesPlugin):
 
-    def widget_width(self):
-        return 4
+    description = 'List of pending third party updates'
+    template = 'plugins/pendingupdates.html'
 
-    def get_description(self):
-        return 'List of pending third party updates'
+    def get_context(self, queryset, **kwargs):
+        context = self.super_get_context(queryset, **kwargs)
+        updates = (
+            PendingUpdate.objects
+            .filter(machine__in=queryset)
+            .values('update', 'update_version', 'display_name')
+            .annotate(count=Count('update')))
 
-    def widget_content(self, page, machines=None, id=None):
+        # Sort first by version number, then name.
+        updates = sorted(updates, key=lambda x: LooseVersion(x['update_version']), reverse=True)
+        context['data'] = sorted(updates, key=lambda x: x['display_name'])
+        return context
 
-        if page == 'front':
-            t = loader.get_template('plugins/pendingupdates/front.html')
-            updates = PendingUpdate.objects.all()
+    def filter(self, machines, data):
+        try:
+            (update_name, update_version) = data.split("--")
+        except ValueError:
+            return None, None
 
-        if page == 'bu_dashboard':
-            t = loader.get_template('plugins/pendingupdates/id.html')
-            business_unit = get_object_or_404(BusinessUnit, pk=id)
-            updates = PendingUpdate.objects.filter(
-                machine__machine_group__business_unit=business_unit)
-
-        if page == 'group_dashboard':
-            t = loader.get_template('plugins/pendingupdates/id.html')
-            machine_group = get_object_or_404(MachineGroup, pk=id)
-            updates = PendingUpdate.objects.filter(machine__machine_group=machine_group)
-
-        updates = updates.values('update', 'update_version', 'display_name').annotate(
-            count=Count('update')).order_by('display_name')
-        pending_updates = []
-        for item in updates:
-            # loop over existing items, see if there is a dict with the right value
-            found = False
-            for update in pending_updates:
-                if update['update'] == item['update'] and \
-                        update['update_version'] == item['update_version']:
-                    update['count'] = update['count'] + item['count']
-                    found = True
-                    break
-            if found is False:
-                pending_updates.append(item)
-
-        c = Context({
-            'title': 'Pending 3rd Party Updates',
-            'data': pending_updates,
-            'theid': id,
-            'page': page,
-            'plugin': 'Pending3rdPartyUpdates'
-        })
-
-        return t.render(c)
-
-    def filter_machines(self, machines, data):
-        # updatename--version
-        (update_name, update_version) = data.split("--")
         machines = machines.filter(pending_updates__update=update_name,
                                    pending_updates__update_version=update_version)
 
         # get the display name of the update
+        try:
+            display_name = (
+                PendingUpdate.objects
+                .filter(update=update_name, update_version=update_version)
+                .values('display_name')
+                .first())['display_name']
+        except (AttributeError, TypeError):
+            # Nothing was found
+            return None, None
 
-        display_name = PendingUpdate.objects.filter(
-            update=update_name, update_version=update_version).values('display_name')
-
-        for item in display_name:
-            display_name = item['display_name']
-            break
-
-        return machines, 'Machines that need to install ' + display_name + ' ' + update_version
+        return machines, 'Machines that need to install {} {}'.format(display_name, update_version)

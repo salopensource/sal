@@ -29,7 +29,7 @@ class CryptStatus(IPlugin):
 
         t = loader.get_template('cryptstatus/templates/cryptstatus.html')
 
-        crypt_url = utils.get_setting('crypt_url', '').rstrip()
+        crypt_url = utils.get_setting('crypt_url', None).rstrip()
         machine_url = crypt_url
 
         try:

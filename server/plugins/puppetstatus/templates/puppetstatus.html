@@ -7,9 +7,9 @@
 	<div class="panel-body">
     <div class="btn-group btn-group-justified">
 			{% if error_count == 0 %}
-			<a href="{% url 'machine_list_id' plugin 'puppeterror' group_type group_id %}" class="btn btn-success">
+			<a href="{% url 'machine_list' plugin 'puppeterror' group_type group_id %}" class="btn btn-success">
 			{% else %}
-			<a href="{% url 'machine_list_id' plugin 'puppeterror' group_type group_id %}" class="btn btn-danger">
+			<a href="{% url 'machine_list' plugin 'puppeterror' group_type group_id %}" class="btn btn-danger">
 			{% endif %}
 				<span class="bigger"> {{ error_count }} </span>
 				<br />
@@ -19,9 +19,9 @@
 			</a>
 				
 			{% if month_count == 0 %}
-			<a href="{% url 'machine_list_id' plugin '1month' group_type group_id %}" class="btn btn-success">
+			<a href="{% url 'machine_list' plugin '1month' group_type group_id %}" class="btn btn-success">
 			{% else %}
-			<a href="{% url 'machine_list_id' plugin '1month' group_type group_id %}" class="btn btn-danger">
+			<a href="{% url 'machine_list' plugin '1month' group_type group_id %}" class="btn btn-danger">
 			{% endif %}
 				<span class="bigger"> {{ month_count }} </span>
 				<br />
@@ -30,7 +30,7 @@
 				<i class="fa fa-calendar fa-2x"></i>
 			</a>
 
-			<a href="{% url 'machine_list_id' plugin 'success' group_type group_id %}" class="btn btn-success">
+			<a href="{% url 'machine_list' plugin 'success' group_type group_id %}" class="btn btn-success">
 				<span class="bigger"> {{ success_count }} </span>
 				<br />
 				Successful

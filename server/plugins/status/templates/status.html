@@ -12,7 +12,7 @@
 				{% else %}
 				<tr>
 					<td>
-						<a href="{% url 'machine_list_id' plugin key group_type group_id %}">
+						<a href="{% url 'machine_list' plugin key group_type group_id %}">
 							{{ item.0 }}
 							<span class="badge badge-important pull-right">{{ item.1 }}</span>
 						</a>

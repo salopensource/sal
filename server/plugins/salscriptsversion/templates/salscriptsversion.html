@@ -27,7 +27,7 @@ $(function() {
 				resize: true
 		}).on('click', function(i, row){
 				console.log(row['label']);
-				var url_mask = "{% url 'machine_list_id' plugin 'abc123' group_type group_id %}".replace(/abc123/, row['label'].toString());
+				var url_mask = "{% url 'machine_list' plugin 'abc123' group_type group_id %}".replace(/abc123/, row['label'].toString());
 				window.location=url_mask;
 		});
 });

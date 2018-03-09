@@ -31,5 +31,5 @@ This document helps you in systematically updating your existing Sal plugins to 
 		3. If your `{% url %}` calls use a passed plugin name, just use the plugin object itself.
 		4. Example
 			1. Old: `{% url 'machine_list_id' 'MunkiVersion' 'abc123' page theid %}".replace(/abc123/, row['label'].toString());`
-			2. New: `{% url 'machine_list_id' plugin 'abc123' group_type group_id %}".replace(/abc123/, row['label'].toString());`
+			2. New: `{% url 'machine_list' plugin 'abc123' group_type group_id %}".replace(/abc123/, row['label'].toString());`
 	4. If you were using different templates for "front" and "id" views, you can use a single template. Observe the auto-template naming rules from earlier, and you can probably use a very lightly modified version of your previous "id" template.

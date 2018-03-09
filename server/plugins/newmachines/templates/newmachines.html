@@ -6,7 +6,7 @@
 
 	<div class="panel-body">
 		{% for key, item in data.items %}
-		<a href="{% url 'machine_list_id' plugin key group_type group_id %}" class="btn btn-info">
+		<a href="{% url 'machine_list' plugin key group_type group_id %}" class="btn btn-info">
 			<span class="bigger"> {{ item }} </span>
 			<br />
 			{{ key }}

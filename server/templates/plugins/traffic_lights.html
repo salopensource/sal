@@ -4,17 +4,17 @@
     </div>
     <!-- /.panel-heading -->
     <div class="panel-body">
-        <a href="{% url 'machine_list_id' plugin 'ok' group_type group_id %}" class="btn btn-success">
+        <a href="{% url 'machine_list' plugin 'ok' group_type group_id %}" class="btn btn-success">
             <span class="bigger"> {{ ok_count }} </span>
             <br /> {{ ok_label }}
         </a>
 
-        <a href="{% url 'machine_list_id' plugin 'warning' group_type group_id %}" class="btn btn-warning">
+        <a href="{% url 'machine_list' plugin 'warning' group_type group_id %}" class="btn btn-warning">
             <span class="bigger"> {{ warning_count }} </span>
             <br /> {{ warning_label }}
         </a>
 
-        <a href="{% url 'machine_list_id' plugin 'alert' group_type group_id %}" class="btn btn-danger">
+        <a href="{% url 'machine_list' plugin 'alert' group_type group_id %}" class="btn btn-danger">
             <span class="bigger"> {{ alert_count }} </span>
             <br /> {{ alert_label }}
         </a>

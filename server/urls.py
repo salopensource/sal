@@ -38,14 +38,24 @@ urlpatterns = [
     url(r'^report/(?P<plugin_name>.+)/(?P<group_type>.+)/(?P<group_id>.+)/$', report_load,
         name='report_load'),
 
+    # TODO: Deprecated along with old-school plugins.
+    url(r'^report/(?P<plugin_name>.+)/(?P<group_type>.+)/(?P<group_id>.+)/$', report_load,
+        name='report_load_id'),
+    url(r'^report/(?P<plugin_name>.+)/$', report_load,
+        name='report_load_front'),
+
+    url(r'^list/(?P<plugin_name>.+)/(?P<data>.+)/(?P<page>.+)/(?P<instance_id>.+)/$',
+        machine_list, name='machine_list'),
+
+    # TODO: Deprecated along with old-school plugins.
     url(r'^list/(?P<plugin_name>.+)/(?P<data>.+)/(?P<page>.+)/(?P<instance_id>.+)/$',
         machine_list, name='machine_list_id'),
     url(r'^list/(?P<plugin_name>.+)/(?P<data>.+)/$', machine_list, name='machine_list_front'),
 
     # # CSV Export (front page)
     url(r'^csv/(?P<pluginName>.+)/(?P<data>.+)/$', export_csv, name='export_csv_front'),
-    # CSS Ecport (id)
-    url(r'^id_csv/(?P<pluginName>.+)/(?P<data>.+)/(?P<page>.+)/(?P<theID>.+)/$',
+    # CSS Export (id)
+    url(r'^csv/(?P<pluginName>.+)/(?P<data>.+)/(?P<page>.+)/(?P<theID>.+)/$',
         export_csv, name='export_csv_id'),
 
     # Group Dashboard

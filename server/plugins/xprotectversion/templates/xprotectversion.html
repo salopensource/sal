@@ -10,7 +10,7 @@
 			{% if item.xprotect_version %}
 				<tr>
 					<td>
-						<a href="{% url 'machine_list_id' plugin item.xprotect_version group_type group_id %}">
+						<a href="{% url 'machine_list' plugin item.xprotect_version group_type group_id %}">
 							{{ item.xprotect_version }}
 							<span class="badge pull-right">{{ item.count }}</span>
 						</a>

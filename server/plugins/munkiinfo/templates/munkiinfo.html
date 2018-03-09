@@ -8,7 +8,7 @@
 			<div class="panel-body" id="display-body">
 				<div class="row">
 					<div class="col-md-3">
-						<a href="{% url 'machine_list_id' plugin 'http_only?' group_type group_id %}">
+						<a href="{% url 'machine_list' plugin 'http_only?' group_type group_id %}">
 							<div class="panel panel-{% if http_only == 0 %}green{% else %}red{% endif %}">
 								<div class="panel-heading">
 									<div class="row">
@@ -26,7 +26,7 @@
 				</div>
 
 				<div class="col-md-3">
-					<a href="{% url 'machine_list_id' plugin 'https_only?' group_type group_id %}">
+					<a href="{% url 'machine_list' plugin 'https_only?' group_type group_id %}">
 						<div class="panel panel-{% if https_only == 0 %}red{% else %}green{% endif %}">
 							<div class="panel-heading">
 								<div class="row">
@@ -44,7 +44,7 @@
 				</div>
 
 				<div class="col-md-3">
-					<a href="{% url 'machine_list_id' plugin 'http_munki?' group_type group_id %}">
+					<a href="{% url 'machine_list' plugin 'http_munki?' group_type group_id %}">
 						<div class="panel panel-{% if http_munki == 0 %}green{% else %}yellow{% endif %}">
 							<div class="panel-heading">
 								<div class="row">
@@ -62,7 +62,7 @@
 				</div>
 
 				<div class="col-md-3">
-					<a href="{% url 'machine_list_id' plugin 'client_certs?' group_type group_id %}">
+					<a href="{% url 'machine_list' plugin 'client_certs?' group_type group_id %}">
 						<div class="panel panel-green">
 							<div class="panel-heading">
 								<div class="row">
@@ -94,7 +94,7 @@
 					{% for item in SoftwareRepo %}
 					<tr>
 						<td>
-							<a href="{% url 'machine_list_id' plugin item.item_link group_type group_id %}">
+							<a href="{% url 'machine_list' plugin item.item_link group_type group_id %}">
 								{{ item.pluginscript_data }}
 								<span class="badge pull-right">{{ item.count }}</span>
 							</a>
@@ -117,7 +117,7 @@
 					{% for item in Package %}
 					<tr>
 						<td>
-							<a href="{% url 'machine_list_id' plugin item.item_link group_type group_id %}">
+							<a href="{% url 'machine_list' plugin item.item_link group_type group_id %}">
 								{{ item.pluginscript_data }}
 								<span class="badge pull-right">{{ item.count }}</span>
 							</a>
@@ -141,7 +141,7 @@
 					{% for item in Manifest %}
 					<tr>
 						<td>
-							<a href="{% url 'machine_list_id' plugin item.item_link group_type group_id %}">
+							<a href="{% url 'machine_list' plugin item.item_link group_type group_id %}">
 								{{ item.pluginscript_data }}
 								<span class="badge pull-right">{{ item.count }}</span>
 							</a>
@@ -165,7 +165,7 @@
 					{% for item in Catalog %}
 					<tr>
 						<td>
-							<a href="{% url 'machine_list_id' plugin item.item_link group_type group_id %}">
+							<a href="{% url 'machine_list' plugin item.item_link group_type group_id %}">
 								{{ item.pluginscript_data }}
 								<span class="badge pull-right">{{ item.count }}</span>
 							</a>

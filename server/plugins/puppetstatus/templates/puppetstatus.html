@@ -1,0 +1,42 @@
+<div class="panel panel-default panel-traffic-light">
+	<div class="panel-heading">
+		{{ plugin.title }}
+	</div>
+	<!-- /.panel-heading -->
+
+	<div class="panel-body">
+    <div class="btn-group btn-group-justified">
+			{% if error_count == 0 %}
+			<a href="{% url 'machine_list_id' plugin 'puppeterror' group_type group_id %}" class="btn btn-success">
+			{% else %}
+			<a href="{% url 'machine_list_id' plugin 'puppeterror' group_type group_id %}" class="btn btn-danger">
+			{% endif %}
+				<span class="bigger"> {{ error_count }} </span>
+				<br />
+				Errors
+				<br />
+				<i class="fa fa-exclamation-triangle fa-2x"></i>
+			</a>
+				
+			{% if month_count == 0 %}
+			<a href="{% url 'machine_list_id' plugin '1month' group_type group_id %}" class="btn btn-success">
+			{% else %}
+			<a href="{% url 'machine_list_id' plugin '1month' group_type group_id %}" class="btn btn-danger">
+			{% endif %}
+				<span class="bigger"> {{ month_count }} </span>
+				<br />
+				+1 Month
+				<br />
+				<i class="fa fa-calendar fa-2x"></i>
+			</a>
+
+			<a href="{% url 'machine_list_id' plugin 'success' group_type group_id %}" class="btn btn-success">
+				<span class="bigger"> {{ success_count }} </span>
+				<br />
+				Successful
+				<br />
+				<i class="fa fa-check fa-2x"></i>
+			</a>
+		</div>
+	</div>
+</div>

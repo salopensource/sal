@@ -1,50 +1,24 @@
-from yapsy.IPlugin import IPlugin
-
 from django.db.models import Count
-from django.shortcuts import get_object_or_404
-from django.template import Context, loader
 
-import server.utils as utils
-from server.models import *
+import sal.plugin
 
 
-class SalScriptsVersion(IPlugin):
-    def plugin_type(self):
-        return 'builtin'
+class SalScriptsVersion(sal.plugin.MachinesPlugin):
 
-    def widget_width(self):
-        return 4
+    description = 'Chart of installed versions of the Sal Scripts'
 
-    def get_description(self):
-        return 'Chart of installed versions of the Sal Scripts'
+    def get_context(self, queryset, **kwargs):
+        context = self.super_get_context(queryset, **kwargs)
+        context['sal_info'] = (
+            queryset
+            .values('sal_version')
+            .exclude(sal_version__isnull=True)
+            .annotate(count=Count('sal_version'))
+            .order_by('sal_version'))
 
-    def widget_content(self, page, machines=None, theid=None):
-        if page == 'front':
-            t = loader.get_template('salscriptsversion/templates/front.html')
+        return context
 
-        if page == 'bu_dashboard':
-            t = loader.get_template('salscriptsversion/templates/id.html')
-
-        if page == 'group_dashboard':
-            t = loader.get_template('salscriptsversion/templates/id.html')
-
-        try:
-            sal_info = machines.values('sal_version').exclude(sal_version__isnull=True).annotate(
-                count=Count('sal_version')).order_by('sal_version')
-        except Exception:
-            sal_info = []
-
-        c = Context({
-            'title': 'Sal Version',
-            'data': sal_info,
-            'theid': theid,
-            'page': page
-        })
-        return t.render(c)
-
-    def filter_machines(self, machines, data):
-
+    def filter(self, machines, data):
         machines = machines.filter(sal_version__exact=data)
-
         title = 'Machines running version {} of Sal'.format(data)
         return machines, title

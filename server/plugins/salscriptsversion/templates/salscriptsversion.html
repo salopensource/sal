@@ -1,0 +1,35 @@
+<div class="panel panel-default">
+	<div class="panel-heading">
+		{{ plugin.title }}
+	</div>
+	<!-- /.panel-heading -->
+
+	<div class="panel-body">
+		<div id="salversiongraph" style="max-height: 250px;"></div>
+	</div>
+</div>
+
+{% block script %}
+<script type="text/javascript">
+$(function() {
+		Morris.Donut({
+				element: 'salversiongraph',
+				data: [
+						{% for item in sal_info %}
+								{% if item.sal_version %}
+								{
+										label: "{{ item.sal_version }}",
+										value: {{ item.count }}
+								},
+								{% endif %}
+						{% endfor %}
+				],
+				resize: true
+		}).on('click', function(i, row){
+				console.log(row['label']);
+				var url_mask = "{% url 'machine_list_id' plugin 'abc123' group_type group_id %}".replace(/abc123/, row['label'].toString());
+				window.location=url_mask;
+		});
+});
+</script>
+{% endblock %}

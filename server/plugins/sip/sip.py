@@ -9,6 +9,7 @@ TITLES = {'ok': 'Machines with Sip enabled',
           'alert': 'Machines without SIP enabled',
           'unknown': 'Machines with unknown SIP status.'}
 
+
 class Sip(sal.plugin.MachinesPlugin):
 
     def get_context(self, queryset, **kwargs):

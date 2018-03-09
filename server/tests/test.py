@@ -3,6 +3,7 @@
 
 from django.test import TestCase
 
+import sal.plugin
 from server import utils
 from server.models import *
 
@@ -69,7 +70,7 @@ class PluginUtilsTest(TestCase):
         """
         utils.reload_plugins_model()
         # In the absence of Mock...
-        all_plugins = utils.get_all_plugins()
+        all_plugins = sal.plugin.PluginManager().get_all_plugins()
         all_plugins[0].plugin_object.plugin_type = lambda: 'This is not a valid type'
 
         utils._update_plugin_record(Plugin, all_plugins, {p.name for p in all_plugins})

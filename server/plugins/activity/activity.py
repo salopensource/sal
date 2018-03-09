@@ -37,6 +37,6 @@ class Activity(sal.plugin.MachinesPlugin):
     def filter(self, queryset, data):
         try:
             time_filter, title = FILTERS_AND_TITLES[data]
-        except KeyError
+        except KeyError:
             return None, None
         return queryset.filter(time_filter), title

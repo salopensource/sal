@@ -32,6 +32,7 @@ if settings.DEBUG:
 
 # The database probably isn't going to change while this is loaded.
 IS_POSTGRES = utils.is_postgres()
+
 # This global is a lookup table for converting the group_type param of
 # URLs to the new-style name.
 # TODO (sheagcraig) This can be removed at the next major version update.
@@ -41,7 +42,7 @@ DEPRECATED_PAGES = {
 
 
 @login_required
-def tableajax(request, pluginName, data, page='front', theID=None):
+def tableajax(request, plugin_name, data, group_type='all', group_id=None):
     """Table ajax for dataTables"""
     # Pull our variables out of the GET request
     get_data = request.GET['args']
@@ -66,13 +67,11 @@ def tableajax(request, pluginName, data, page='front', theID=None):
             order_name = column['name']
             break
 
-    if pluginName == 'Status' and data == 'undeployed_machines':
-        deployed = False  # noqa: F841
-    else:
-        deployed = True  # noqa: F841
-    import server.views
-    (machines, title) = utils.plugin_machines(request, pluginName, data, page, theID)
-    # machines = machines.filter(deployed=deployed)
+    plugin_object = process_plugin(request, plugin_name, group_type, group_id)
+    queryset = plugin_object.get_queryset(
+        request, group_type=group_type, group_id=group_id)
+    machines, title = plugin_object.filter_machines(queryset, data)
+
     if len(order_name) != 0:
         if order_direction == 'desc':
             order_string = "-%s" % order_name
@@ -92,7 +91,7 @@ def tableajax(request, pluginName, data, page='front', theID=None):
     return_data = {}
     return_data['draw'] = int(draw)
     return_data['recordsTotal'] = machines.count()
-    return_data['recordsFiltered'] = machines.count()
+    return_data['recordsFiltered'] = return_data['recordsTotal']
 
     return_data['data'] = []
     settings_time_zone = None
@@ -120,21 +119,10 @@ def tableajax(request, pluginName, data, page='front', theID=None):
 
 
 @login_required
-def machine_list(request, pluginName, data, page='front', theID=None):
-    machines, title = utils.plugin_machines(
-        request, pluginName, data, page, theID, get_machines=False)
-    user = request.user
-    page_length = utils.get_setting('datatable_page_length')
-    c = {'user': user, 'plugin_name': pluginName, 'machines': machines, 'req_type': page,
-         'title': title, 'bu_id': theID, 'request': request, 'data': data,
-         'page_length': page_length}
-
-    return render(request, 'server/overview_list_all.html', c)
-
-
-@login_required
 def report_load(request, plugin_name, group_type='all', group_id=None):
-    report_html = process_plugin(request, plugin_name, group_type, group_id)
+    plugin_object = process_plugin(request, plugin_name, group_type, group_id)
+    report_html = plugin_object.widget_content(request, group_type=group_type, group_id=group_id)
+
     reports = Report.objects.values_list('name', flat=True)
     context = {'output': report_html, 'group_type': group_type, 'group_id': group_id, 'reports':
                reports, 'active_report': plugin_name}
@@ -143,8 +131,9 @@ def report_load(request, plugin_name, group_type='all', group_id=None):
 
 @login_required
 def plugin_load(request, plugin_name, group_type='all', group_id=None):
-    html = process_plugin(request, plugin_name, group_type, group_id)
-    return HttpResponse(html)
+    plugin_object = process_plugin(request, plugin_name, group_type, group_id)
+    return HttpResponse(
+        plugin_object.widget_content(request, group_type=group_type, group_id=group_id))
 
 
 def process_plugin(request, plugin_name, group_type='all', group_id=None):
@@ -174,7 +163,7 @@ def process_plugin(request, plugin_name, group_type='all', group_id=None):
         model = MachineDetailPlugin
         get_object_or_404(model, name=plugin_name)
 
-    return plugin_object.widget_content(request, group_type=group_type, group_id=group_id)
+    return plugin_object
 
 
 class Echo(object):
@@ -213,8 +202,9 @@ def stream_csv(header_row, machines, facter_headers, condition_headers, plugin_s
         yield get_csv_row(machine, facter_headers, condition_headers, plugin_script_headers)
 
 
+# TODO: next on plugin path of war.
 @login_required
-def export_csv(request, pluginName, data, page='front', theID=None):
+def export_csv(request, plugin_name, data, group_type='all', group_id=None):
     user = request.user
     title = None
     # Build the manager
@@ -229,7 +219,7 @@ def export_csv(request, pluginName, data, page='front', theID=None):
     else:
         deployed = True
     # get a list of machines (either from the BU or the group)
-    if page == 'front':
+    if group_type == 'all':
         # get all machines
         if user.userprofile.level == 'GA':
             machines = Machine.objects.filter(deployed=deployed).defer(
@@ -240,10 +230,10 @@ def export_csv(request, pluginName, data, page='front', theID=None):
             for business_unit in user.businessunit_set.all():
                 for group in business_unit.machinegroup_set.all():
                     machines = machines | group.machine_set.filter(deployed=deployed)
-    if page == 'bu_dashboard':
+    if group_type == 'business_unit':
         # only get machines for that BU
         # Need to make sure the user is allowed to see this
-        business_unit = get_object_or_404(BusinessUnit, pk=theID)
+        business_unit = get_object_or_404(BusinessUnit, pk=group_id)
         machine_groups = MachineGroup.objects.filter(
             business_unit=business_unit).prefetch_related('machine_set').all()
 
@@ -255,9 +245,9 @@ def export_csv(request, pluginName, data, page='front', theID=None):
         else:
             machines = None
 
-    if page == 'group_dashboard':
+    if group_type == 'machine_group':
         # only get machines from that group
-        machine_group = get_object_or_404(MachineGroup, pk=theID)
+        machine_group = get_object_or_404(MachineGroup, pk=group_id)
         machines = Machine.objects.filter(
             machine_group=machine_group).filter(
             deployed=deployed).defer(
@@ -267,8 +257,8 @@ def export_csv(request, pluginName, data, page='front', theID=None):
             'install_log',
             'install_log_hash')
 
-    if page == 'machine_detail':
-        machines = Machine.objects.get(pk=theID)
+    if group_type == 'machine':
+        machines = Machine.objects.get(pk=group_id)
 
     # send the machines and the data to the plugin
     for plugin in manager.getAllPlugins():

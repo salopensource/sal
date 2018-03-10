@@ -424,18 +424,6 @@ def get_machines_for_group(request, group_type="all", group_id=0, deployed=True)
 
 # Plugin utilities
 
-def plugin_machines(request, plugin_name, data, page='front', instance_id=None):
-    title = None
-    deployed = False if (plugin_name == 'Status' and data == 'undeployed_machines') else True
-
-    machines = get_machines_for_group(
-        request, group_type=page, group_id=instance_id, deployed=deployed)
-    plugin = PluginManager().get_plugin_by_name(plugin_name)
-    machines, title = plugin.plugin_object.filter_machines(machines, data)
-
-    return machines, title
-
-
 def process_plugin_script(results, machine):
     rows_to_create = []
 
@@ -528,6 +516,7 @@ def run_plugin_processing(machine, report_data):
                     plugin.plugin_object.checkin_processor(machine, report_data)
                 except Exception:
                     pass
+
     # Get all the enabled plugins
     enabled_plugins = Plugin.objects.all()
     for enabled_plugin in enabled_plugins:

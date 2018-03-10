@@ -15,6 +15,7 @@ import utils
 from forms import *
 from inventory.models import *
 from models import *
+from non_ui_views import process_plugin
 from sal.decorators import *
 
 if settings.DEBUG:
@@ -84,14 +85,24 @@ def index(request):
 
 
 @login_required
-def machine_list(request, plugin_name, data, page='all', instance_id=None):
-    (machines, title) = utils.plugin_machines(
-        request, plugin_name, data, page, instance_id)
+def machine_list(request, plugin_name, data, group_type='all', group_id=None):
+    plugin_object = process_plugin(request, plugin_name, group_type, group_id)
+    queryset = plugin_object.get_queryset(request, group_type=group_type, group_id=group_id)
+    # Plugin will raise 404 if bad `data` is passed.
+    machines, title = plugin_object.filter_machines(queryset, data)
+
     user = request.user
     page_length = utils.get_setting('datatable_page_length')
+
     context = {
-        'user': user, 'plugin_name': plugin_name, 'machines': machines, 'req_type': page, 'title':
-        title, 'bu_id': instance_id, 'request': request, 'data': data, 'page_length': page_length}
+        'group_type': group_type,
+        'group_id': group_id,
+        'plugin_name': plugin_name,
+        'machines': machines,
+        'title': title,
+        'request': request,
+        'data': data,
+        'page_length': page_length}
 
     return render(request, 'server/overview_list_all.html', context)
 

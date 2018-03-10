@@ -372,9 +372,7 @@ def process_plugin_script(results, machine):
                 submission=safe_unicode(plugin_script),
                 pluginscript_name=safe_unicode(key),
                 pluginscript_data=safe_unicode(value),
-                submission_and_script_name=(
-                    safe_unicode(
-                        plugin_name + ': ' + key)))
+                submission_and_script_name=(safe_unicode('{}: {}'.format(plugin_name, key))))
             if is_postgres():
                 rows_to_create.append(plugin_row)
             else:

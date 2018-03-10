@@ -38,36 +38,6 @@ def safe_unicode(s):
         return s
 
 
-def csvrelated(header_item, facts, kind):
-    found = False
-    if kind == 'facter':
-        for fact in facts:
-            try:
-                if header_item == 'Facter: ' + fact['fact_name']:
-                    found = True
-                    return fact['fact_data']
-            except Exception:
-                pass
-    elif kind == 'condition':
-        for condition in facts:
-            try:
-                if header_item == 'Munki Condition: ' + condition['condition_name']:
-                    found = True
-                    return condition['condition_data']
-            except Exception:
-                pass
-    elif kind == 'pluginscript':
-        for pluginscriptrow in facts:
-            try:
-                if header_item == pluginscriptrow['submission_and_script_name']:
-                    found = True
-                    return pluginscriptrow['pluginscript_data']
-            except Exception:
-                pass
-    if not found:
-        return ''
-
-
 def get_server_version():
     current_dir = os.path.dirname(os.path.realpath(__file__))
     version = plistlib.readPlist(os.path.join(os.path.dirname(current_dir), 'sal', 'version.plist'))
@@ -181,7 +151,7 @@ def check_version():
     return result
 
 
-def listify_condition_data(data):
+def stringify(data):
     """Sanitize collection data into a string format for db storage.
 
     Args:
@@ -208,26 +178,8 @@ def is_postgres():
     return db_setting == postgres_backend
 
 
-def flatten_and_sort_list(the_list):
-    output = ''
-    counter = 1
-    for item in sorted(the_list):
-        if counter == 1:
-            output = item
-        else:
-            output = output + ', ' + item
-        counter += 1
-    return output
-
-
-def get_business_unit_machines(the_id):
-    business_unit = get_object_or_404(BusinessUnit, pk=the_id)
-    return Machine.objects.filter(machine_group__business_unit=business_unit)
-
-
 def decode_to_string(data, compression='base64bz2'):
     '''Decodes a string that is optionally bz2 compressed and always base64 encoded.'''
-
     if compression == 'base64bz2':
         try:
             bz2data = base64.b64decode(data)
@@ -240,8 +192,8 @@ def decode_to_string(data, compression='base64bz2'):
         except Exception:
             return
             ''
-    else:
-        return ''
+
+    return ''
 
 
 def friendly_machine_model(machine):
@@ -352,8 +304,6 @@ def add_default_sal_settings():
     for setting in default_sal_settings:
         _, created = SalSetting.objects.get_or_create(
             name=setting['name'], defaults={'value': setting['value']})
-        # if created:
-        #     print "Created Sal Setting: '{name}' with value: '{value}'.".format(**setting)
 
 
 def get_defaults():
@@ -397,29 +347,6 @@ def is_float(value):
         return True
     except ValueError:
         return False
-
-
-def get_machines_for_group(request, group_type="all", group_id=0, deployed=True):
-    if group_type == "machine":
-        return get_object_or_404(Machine, pk=group_id)
-
-    machines = Machine.deployed_objects.all()
-    if not deployed:
-        machines = machines.filter(deployed=deployed)
-
-    if group_type == "business_unit":
-        machines = machines.filter(machine_group__business_unit__pk=group_id)
-    elif group_type == "machine_group":
-        machines = machines.filter(machine_group__pk=group_id)
-    else:
-        if is_global_admin(request.user):
-            # GA users won't have business units, so just do nothing.
-            pass
-        else:
-            machines = machines.filter(
-                machine_group__business_unit__in=user.businessunit_set.all())
-
-    return machines
 
 
 # Plugin utilities

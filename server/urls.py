@@ -91,7 +91,6 @@ urlpatterns = [
     url(r'^settings/plugins/minus/(?P<plugin_id>.+)/', plugin_minus, name='plugin_minus'),
     url(r'^settings/plugins/disable/(?P<plugin_id>.+)/', plugin_disable, name='plugin_disable'),
     url(r'^settings/plugins/enable/(?P<plugin_name>.+)/', plugin_enable, name='plugin_enable'),
-    url(r'^settings/plugins/', plugins_page, name='plugins_page'),
 
     # Reports
     url(r'^settings/plugins/reports/disable/(?P<plugin_id>.+)/',
@@ -111,6 +110,8 @@ urlpatterns = [
         machine_detail_plugin_enable, name='machine_detail_plugin_enable'),
     url(r'^settings/plugins/machinedetail/', settings_machine_detail_plugins,
         name='settings_machine_detail_plugins'),
+
+    url(r'^settings/plugins/', plugins_page, name='plugins_page'),
 
     # Configuration settings
     url(r'^settings/senddata/enable/', senddata_enable, name='senddata_enable'),

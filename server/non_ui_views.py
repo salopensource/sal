@@ -817,7 +817,7 @@ def checkin(request):
                 if 'Facter' in report_data and condition_name.startswith('facter_'):
                     continue
 
-                condition_data = utils.listify_condition_data(condition_data)
+                condition_data = utils.stringify(condition_data)
                 conditions_to_be_created.append(
                     Condition(
                         machine=machine,
@@ -847,7 +847,7 @@ def checkin(request):
 
                 """ if it's a list (more than one result),
                 we're going to conacetnate it into one comma separated string """
-                condition_data = utils.listify_condition_data(condition_data)
+                condition_data = utils.stringify(condition_data)
 
                 found = False
                 for condition in conditions:

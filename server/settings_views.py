@@ -1,8 +1,6 @@
 import os
 import time
 
-from yapsy.PluginManager import PluginManager
-
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
@@ -12,6 +10,7 @@ from django.http import HttpResponseRedirect
 from django.shortcuts import get_object_or_404, redirect, render
 from django.template.context_processors import csrf
 
+import sal.plugin
 import utils
 from forms import *
 from inventory.models import *
@@ -231,13 +230,19 @@ def settings_reports(request):
 @login_required
 @required_level(ProfileLevel.global_admin)
 def settings_machine_detail_plugins(request):
-    # Load the plugins
     utils.reload_plugins_model()
     enabled_plugins = MachineDetailPlugin.objects.all()
     disabled_plugins = utils.disabled_plugins(plugin_kind='machine_detail')
-    c = {'user': request.user, 'request': request,
-         'enabled_plugins': enabled_plugins, 'disabled_plugins': disabled_plugins}
-    return render(request, 'server/machine_detail_plugins.html', c)
+    manager = sal.plugin.PluginManager()
+    os_families = {
+        plugin.name:
+        manager.get_plugin_by_name(plugin.name).plugin_object.get_supported_os_families() for
+        plugin in enabled_plugins}
+    os_families.update({p['name']: p['os_families'] for p in disabled_plugins})
+    context = {
+        'user': request.user, 'request': request, 'enabled_plugins': enabled_plugins,
+        'disabled_plugins': disabled_plugins, 'os_families': os_families}
+    return render(request, 'server/machine_detail_plugins.html', context)
 
 
 @login_required
@@ -348,26 +353,17 @@ def machine_detail_plugin_enable(request, plugin_name):
         plugin = MachineDetailPlugin.objects.get(name=plugin_name)
     except MachineDetailPlugin.DoesNotExist:
         enabled_plugins = MachineDetailPlugin.objects.all()  # noqa: F841
-        # Build the manager
-        manager = PluginManager()
-        # Tell it the default place(s) where to find plugins
-        manager.setPluginPlaces([settings.PLUGIN_DIR, os.path.join(
-            settings.PROJECT_DIR, 'server/plugins')])
-        # Load all plugins
-        manager.collectPlugins()
+        manager = sal.plugin.PluginManager()
 
         default_families = ['Darwin', 'Windows', 'Linux', 'ChromeOS']
-        for plugin in manager.getAllPlugins():
-            if plugin.name == plugin_name:
+        plugin = manager.get_plugin_by_name(plugin_name)
+        if plugin:
+            supported_os_families = plugin.plugin_object.get_supported_os_families()
 
-                try:
-                    supported_os_families = plugin.plugin_object.supported_os_families()
-                except Exception:
-                    supported_os_families = default_families
-        plugin = MachineDetailPlugin(name=plugin_name,
-                                     order=utils.unique_plugin_order(plugin_type='machine_detail'),
-                                     os_families=utils.flatten_and_sort_list(supported_os_families))
-        plugin.save()
+            db_plugin = MachineDetailPlugin(
+                name=plugin_name, order=utils.unique_plugin_order(plugin_type='machine_detail'),
+                os_families=sorted(utils.stringify(supported_os_families)))
+            db_plugin.save()
     return redirect('settings_machine_detail_plugins')
 
 

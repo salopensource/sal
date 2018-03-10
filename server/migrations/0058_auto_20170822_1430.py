@@ -15,7 +15,7 @@ from server import utils
 # TODO: I don't think we need this in the DB.
 def update_os_families(apps, schema_editor):
     enabled_plugins = Plugin.objects.all()
-    manager = PluginManager()
+    manager = sal.plugin.PluginManager()
     enabled_plugins = apps.get_model("server", "MachineDetailPlugin")
     for item in enabled_plugins.objects.all():
         default_families = ['Darwin', 'Windows', 'Linux', 'ChromeOS']

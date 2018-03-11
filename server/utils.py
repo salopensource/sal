@@ -404,29 +404,59 @@ def is_valid_plugin_result(result):
 
 
 def get_plugin_scripts(plugin, hash_only=False, script_name=None):
-    # Try to get all files in the plugins 'scripts' dir
+    """Get script files from plugins 'scripts' dir.
 
-    script_output = None
-    if os.path.exists(os.path.join(plugin.path, 'scripts')):
-        scripts_dir = os.path.join(plugin.path, 'scripts')
-    elif os.path.exists(os.path.abspath(os.path.join(os.path.join(plugin.path), '..', 'scripts'))):
-        scripts_dir = os.path.abspath(os.path.join(
-            os.path.join(plugin.path), '..', 'scripts'))
+    Also, can retrieve a single script by name. Return value is always
+    a list!
+
+    Args:
+        plugin (yapsy.PluginInfo): Plugin returned from a PluginManager.
+        hash_only (bool): Return just the hash of the scripts or the
+            entire script. Optional, defaults to False.
+        script_name (str): Name of script to retrieve. Optional,
+            defaults to None.
+
+    Returns:
+        List of dicts with key/value pairs of:
+            plugin (str): Name of plugin.
+            filename (str): Path to plugin.
+            hash (str): SHA256 hash of script contents (hash_only).
+            content (str): Content of script (NOT hash_only).
+    """
+    results = []
+    plugin_path = os.path.join(plugin.path, 'scripts')
+    server_path = os.path.abspath(os.path.join(plugin.path, '..', 'scripts'))
+    if os.path.exists(plugin_path):
+        scripts_dir = plugin_path
+    elif os.path.exists(server_path):
+        scripts_dir = server_path
     else:
-        return None
+        return results
 
-    for script in os.listdir(scripts_dir):
-        if script_name:
-            if script_name != script:
-                break
-        script_content = open(os.path.join(scripts_dir, script), "r").read()
-        script_output = {}
+    if script_name:
+        dir_contents = [script_name]
+    else:
+        dir_contents = os.listdir(scripts_dir)
+
+    for script in dir_contents:
+        path = os.path.join(scripts_dir, script)
+        try:
+            with open(path, "r") as script_handle:
+                script_content = script_handle.read()
+
+            if not script_content.startswith('#!'):
+                continue
+        except IOError:
+            continue
+
+        script_output = {'plugin': plugin.name, 'filename': script}
+        script_output['hash'] = hashlib.sha256(script_content).hexdigest()
         if not hash_only:
             script_output['content'] = script_content
-        script_output['plugin'] = plugin.name
-        script_output['filename'] = script
-        script_output['hash'] = hashlib.sha256(script_content).hexdigest()
-        return script_output
+
+        results.append(script_output)
+
+    return results
 
 
 def run_plugin_processing(machine, report_data):

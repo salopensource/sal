@@ -1,4 +1,5 @@
 import hashlib
+import itertools
 import json
 import os
 import re
@@ -328,43 +329,21 @@ def preflight(request):
 @csrf_exempt
 @key_auth_required
 def preflight_v2(request):
-    # find plugins that have embedded preflight scripts
+    """Find plugins that have embedded preflight scripts."""
     # Load in the default plugins if needed
     utils.load_default_plugins()
     manager = PluginManager()
 
     output = []
+
     enabled_reports = Report.objects.all()
-    for enabled_report in enabled_reports:
-        for plugin in manager.get_all_plugins():
-            if enabled_report.name == plugin.name:
-                content = utils.get_plugin_scripts(plugin, hash_only=True)
-                if content:
-                    output.append(content)
-
-                break
-
-    enabled_machine_detail_plugins = MachineDetailPlugin.objects.all()
-    # print enabled_machine_detail_plugins
-    for enabled_machine_detail_plugin in enabled_machine_detail_plugins:
-        for plugin in manager.get_all_plugins():
-            if enabled_machine_detail_plugin.name == plugin.name:
-                content = utils.get_plugin_scripts(plugin, hash_only=True)
-                if content:
-                    output.append(content)
-
-                break
-
-    # Get all the enabled plugins
     enabled_plugins = Plugin.objects.all()
-    for enabled_plugin in enabled_plugins:
-        # Loop round the plugins and print their names.
-        for plugin in manager.get_all_plugins():
-            if plugin.name == enabled_plugin.name:
-                content = utils.get_plugin_scripts(plugin, hash_only=True)
-                if content:
-                    output.append(content)
-                break
+    enabled_detail_plugins = MachineDetailPlugin.objects.all()
+    for enabled_plugin in itertools.chain(enabled_reports, enabled_plugins, enabled_detail_plugins):
+        plugin = manager.get_plugin_by_name(enabled_plugin.name)
+        scripts = utils.get_plugin_scripts(plugin, hash_only=True)
+        if scripts:
+            output += scripts
 
     return HttpResponse(json.dumps(output))
 
@@ -375,9 +354,10 @@ def preflight_v2_get_script(request, plugin_name, script_name):
     output = []
     plugin = PluginManager().get_plugin_by_name(plugin_name)
     if plugin:
-        content = utils.get_plugin_scripts(plugin, hash_only=False, script_name=script_name)
+        content = utils.get_plugin_scripts(plugin, script_name=script_name)
         if content:
-            output.append(content)
+            output += content
+
     return HttpResponse(json.dumps(output))
 
 

@@ -18,7 +18,8 @@ class CryptStatus(sal.plugin.DetailPlugin):
         context = defaultdict(str)
         context['title'] = self.Meta.description
 
-        crypt_url = utils.get_setting('crypt_url', '').rstrip()
+        crypt_url = utils.get_setting('crypt_url', None).rstrip()
+
         if crypt_url:
             try:
                 verify = settings.ROOT_CA

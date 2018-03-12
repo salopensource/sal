@@ -454,13 +454,15 @@ def machine_detail_facter(request, machine_id, **kwargs):
     key_header = 'Fact'
     value_header = 'Data'
     title = 'Facter data for %s' % machine.hostname
+    page_length = utils.get_setting('datatable_page_length')
     c = {
         'user': request.user,
         'machine': machine,
         'table_data': table_data,
         'title': title,
         'key_header': key_header,
-        'value_header': value_header
+        'value_header': value_header,
+        'page_length': page_length
     }
     return render(request, 'server/machine_detail_table.html', c)
 
@@ -487,13 +489,15 @@ def machine_detail_conditions(request, machine_id, **kwargs):
     key_header = 'Condition'
     value_header = 'Data'
     title = 'Munki conditions data for %s' % machine.hostname
+    page_length = utils.get_setting('datatable_page_length')
     c = {
         'user': request.user,
         'machine': machine,
         'table_data': table_data,
         'title': title,
         'key_header': key_header,
-        'value_header': value_header
+        'value_header': value_header,
+        'page_length': page_length
     }
     return render(request, 'server/machine_detail_table.html', c)
 

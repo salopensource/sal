@@ -58,6 +58,7 @@ def get_instance_and_groups(group_type, group_id):
 
     return result
 
+
 def get_server_version():
     current_dir = os.path.dirname(os.path.realpath(__file__))
     version = plistlib.readPlist(os.path.join(os.path.dirname(current_dir), 'sal', 'version.plist'))

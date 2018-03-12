@@ -390,4 +390,3 @@ class PluginManager(object):
                 plugin.plugin_object = OldPluginAdapter(plugin.plugin_object)
             wrapped.append(plugin)
         return wrapped
-

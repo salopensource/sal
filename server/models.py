@@ -282,6 +282,7 @@ GROUP_NAMES = {
     'business_unit': BusinessUnit,
     'machine': Machine}
 
+
 class UpdateHistory(models.Model):
     id = models.BigAutoField(primary_key=True)
     UPDATE_TYPE = (

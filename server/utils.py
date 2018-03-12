@@ -570,37 +570,64 @@ def unique_plugin_order(plugin_type='machines'):
     return id_max + 1
 
 
-def remove_hidden_plugins(plugin_data, group_type='all', group_id=None):
+def get_member_oses(group_type='all', group_id=None):
+    """Return a set of all OS families from a group, or ALL OS families.
+
+    The "All" option is to support empty machine groups / business units
+    not looking broken or lame.
+    """
     if group_type == 'all':
-        for item in plugin_data:
-            if item['name'] in settings.HIDE_PLUGIN_FROM_FRONT_PAGE:
-                plugin_data.remove(item)
-
+        queryset = Machine.objects.all()
+    elif group_type == 'business_unit':
+        queryset = Machine.objects.filter(machine_group__business_unit__pk=group_id)
+    elif group_type == 'machine_group':
+        queryset = Machine.objects.filter(machine_group__pk=group_id)
     else:
-        if group_type == 'business_unit':
-            business_unit = get_object_or_404(BusinessUnit, pk=group_id)
-            machine_group = None
-        elif group_type == 'machine_group':
-            machine_group = get_object_or_404(MachineGroup, pk=group_id)
-            business_unit = machine_group.business_unit
+        queryset = Machine.objects.filter(pk=group_id)
 
-        for item in plugin_data:
-            # remove the plugins that are set to only be shown on the front page
-            if item['name'] in settings.LIMIT_PLUGIN_TO_FRONT_PAGE:
-                plugin_data.remove(item)
+    if is_postgres():
+        queryset = (
+            queryset
+            .order_by('os_family')
+            .distinct('os_family')
+            .values_list('os_family', flat=True))
+    else:
+        queryset = (
+            queryset
+            .order_by('os_family')
+            .values_list('os_family', flat=True)
+            .distinct())
 
-            # remove the plugins that are to be hidden from this BU
-            hidden = settings.HIDE_PLUGIN_FROM_BUSINESS_UNIT
-            if item['name'] in hidden and business_unit.id in hidden[item['name']]:
-                plugin_data.remove(item)
+    if not queryset:
+        queryset = {i[0] for i in OS_CHOICES}
 
-            # remove the plugins that are to be hidden from this Machine Group
-            if machine_group:
-                hidden = settings.HIDE_PLUGIN_FROM_MACHINE_GROUP
-                if item['name'] in hidden and machine_group.id in hidden[item['name']]:
-                    plugin_data.remove(item)
+    return queryset
 
-    return plugin_data
+
+def get_hidden_plugins(group_type='all', group_id=None):
+    if group_type == 'all':
+        return settings.HIDE_PLUGIN_FROM_FRONT_PAGE
+
+    hidden = []
+    if group_type == 'business_unit':
+        business_unit = get_object_or_404(BusinessUnit, pk=group_id)
+        machine_group = None
+    elif group_type == 'machine_group':
+        machine_group = get_object_or_404(MachineGroup, pk=group_id)
+        business_unit = machine_group.business_unit
+
+    # remove the plugins that are set to only be shown on the front page
+    hidden += settings.LIMIT_PLUGIN_TO_FRONT_PAGE
+
+    # remove the plugins that are to be hidden from this BU
+    hidden += [name for name, groups in settings.HIDE_PLUGIN_FROM_BUSINESS_UNIT.items() if group_id
+               in groups]
+
+    # remove the plugins that are to be hidden from this Machine Group
+    hidden += [name for name, groups in settings.HIDE_PLUGIN_FROM_MACHINE_GROUP.items() if group_id
+               in groups]
+
+    return hidden
 
 
 def order_plugin_output(plugin_data, group_type='all', group_id=None):
@@ -624,27 +651,33 @@ def get_report_names(plugins):
 def get_plugin_placeholder_markup(plugins, group_type='all', group_id=None):
     result = []
     manager = PluginManager()
-
-    for enabled_plugin in Plugin.objects.order_by('order'):
+    hidden = get_hidden_plugins(group_type, group_id)
+    group_oses = get_member_oses(group_type, group_id)
+    display_plugins = [p for p in Plugin.objects.order_by('order') if p.name not in hidden]
+    for enabled_plugin in display_plugins:
         name = enabled_plugin.name
         yapsy_plugin = manager.get_plugin_by_name(name)
         plugin_object = yapsy_plugin.plugin_object
+        # Skip this plugin if the group's members OS families aren't supported
+        # ...but only if this group has any members (group_oses is not empty
+        plugin_os_families = set(plugin_object.get_supported_os_families())
+        if group_oses and not plugin_os_families.intersection(group_oses):
+            continue
         width = plugin_object.get_widget_width(group_type=group_type, group_id=group_id)
         html = ('<div id="plugin-{}" class="col-md-{}">\n'
                 '    <img class="center-block blue-spinner" src="{}"/>\n'
                 '</div>\n'.format(name, width, static('img/blue-spinner.gif')))
         result.append({'name': name, 'width': width, 'html': html})
 
-    output = remove_hidden_plugins(result, group_type, group_id)
-    return order_plugin_output(output, group_type, group_id)
+    return order_plugin_output(result, group_type, group_id)
 
 
 def get_machine_detail_placeholder_markup(machine):
     manager = PluginManager()
     result = []
     for enabled_plugin in MachineDetailPlugin.objects.order_by('order'):
-        yapsy_plugin = manager.get_plugin_by_name(enabled_plugin.name)
-        if yapsy_plugin:
+        plugin = manager.get_plugin_by_name(enabled_plugin.name)
+        if plugin and machine.os_family in plugin.plugin_object.get_supported_os_families():
             html = ('<div id="plugin-{}">'
                     '    <img class="center-block blue-spinner" src="{}"/>'
                     '</div>'.format(enabled_plugin.name, static('img/blue-spinner.gif')))

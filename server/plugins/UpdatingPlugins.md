@@ -26,10 +26,11 @@ This document helps you in systematically updating your existing Sal plugins to 
 	1. You no longer need to pass a title into the template via context; Use `{{ plugin.title }}` instead.
 	2. Likewise, plugins have a repr method now; so you can use `{{ plugin }}` instead of passing a plugin name. The repr method returns the name of the plugin class; for example `MunkiInstalls`. This is the name used in plugin loading / URL construction...
 	3. Update all URL constructions.
-		1. The `page` parameter should be replaced with `group_type` (which is already in your context).
-		2. The `theid` parameter should be replaced with `group_id` (also in the context).
-		3. If your `{% url %}` calls use a passed plugin name, just use the plugin object itself.
-		4. Example
+	    1. Most reversed URLs are to list machines. The `machine_list_id` and `machine_list_front` names are deprecated; please update to simply `machine_list`.
+		2. The `page` parameter should be replaced with `group_type` (which is already in your context).
+		3. The `theid` parameter should be replaced with `group_id` (also in the context).
+		4. If your `{% url %}` calls use a passed plugin name, just use the plugin object itself.
+		5. Example
 			1. Old: `{% url 'machine_list_id' 'MunkiVersion' 'abc123' page theid %}".replace(/abc123/, row['label'].toString());`
 			2. New: `{% url 'machine_list' plugin 'abc123' group_type group_id %}".replace(/abc123/, row['label'].toString());`
 	4. If you were using different templates for "front" and "id" views, you can use a single template. Observe the auto-template naming rules from earlier, and you can probably use a very lightly modified version of your previous "id" template.

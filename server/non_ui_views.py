@@ -192,8 +192,6 @@ def stream_csv(header_row, machines, facter_headers, condition_headers, plugin_s
 
 @login_required
 def export_csv(request, plugin_name, data, group_type='all', group_id=None):
-    manager = PluginManager()
-
     plugin_object = process_plugin(request, plugin_name, group_type, group_id)
     queryset = plugin_object.get_queryset(
         request, group_type=group_type, group_id=group_id)

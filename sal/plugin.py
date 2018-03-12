@@ -130,6 +130,11 @@ class BasePlugin(IPlugin):
     def get_queryset(self, request, **kwargs):
         """Get a filtered queryset for this plugin's Machine model.
 
+        Filters machines to only members of the passed group.
+        Filters undeployed machines if deployed is True.
+        Filters out machines that don't match this plugin's
+        supported_os_families.
+
         Args:
             request (Request): The request passed from the View.
             **kwargs: Expected kwargs follow
@@ -149,7 +154,7 @@ class BasePlugin(IPlugin):
         # Check access before doing anything else.
         handle_access(request, group_type, group_id)
 
-        queryset = self.model.objects.all()
+        queryset = self.model.objects.filter(os_family__in=self.get_supported_os_families())
 
         # By default, plugins filter out undeployed machines.
         if self.only_use_deployed_machines:

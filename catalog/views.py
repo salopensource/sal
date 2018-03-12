@@ -1,36 +1,24 @@
-from django.http import HttpResponse, HttpRequest, HttpResponseRedirect
-from django.template import RequestContext, Template, Context
-from django.shortcuts import render
-from django.template.context_processors import csrf
-from django.views.decorators.csrf import csrf_exempt
-from django.core.urlresolvers import reverse
-from django.http import Http404
-from django.contrib.auth.decorators import login_required, permission_required
-from django.conf import settings
-from django import forms
-from django.db.models import Q
-from django.db.models import Count
-from server import utils
-from django.shortcuts import get_object_or_404, redirect
-import plistlib
-import hashlib
 import base64
 import bz2
+import hashlib
+import plistlib
+
+from django import forms
+from django.conf import settings
+from django.contrib.auth.decorators import login_required, permission_required
+from django.core.urlresolvers import reverse
+from django.db.models import Count, Q
+from django.http import (Http404, HttpRequest, HttpResponse, HttpResponseRedirect)
+from django.shortcuts import get_object_or_404, redirect, render
+from django.template import Context, RequestContext, Template
+from django.template.context_processors import csrf
+from django.views.decorators.csrf import csrf_exempt
 
 from models import *
-from server.models import *
 from sal.decorators import *
-
-# Create your views here.
-
-
-def decode_to_string(base64bz2data):
-    '''Decodes an inventory submission, which is a plist-encoded
-    list, compressed via bz2 and base64 encoded.'''
-    try:
-        return bz2.decompress(base64.b64decode(base64bz2data))
-    except Exception:
-        return ''
+from server import utils
+from server.models import *
+from server.text_utils import decode_to_string
 
 
 @csrf_exempt

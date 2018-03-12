@@ -1,111 +1,110 @@
 <div class="row">
-    <div class="col-md-4">
-        <div class="row">
-            {% if output|length != 0 %}
-            <div class="col-md-12">
-                <div class="panel panel-default">
-                    <div class="panel-heading">
-                        <h4>Installs Items</h4>
-                    </div>
-                    <div class="panel-body">
-                        <form role="form">
-                            <div class="form-group">
-                                <input id="searchinput" class="form-control" type="search" placeholder="Search..." />
-                            </div>
-                            <div id="searchlist" class="list-group">
-                                {% for item in output %}
-                                <a class="list-group-item" id="{{ item.dotName }}-{{ item.dotVersion }}-link" href="#"><span>{{ item.name }} {{item.version}}</span></a>
-                                {% endfor %}
-
-                            </div>
-                        </form>
-
-                    </div>
-                </div>
-            </div>
-            {% endif %}
-
-        </div>
-    </div>
-    <div class="col-md-8">
+  <div class="col-md-4">
+    <div class="row">
+      <div class="col-md-12">
         <div class="panel panel-default">
-            <div class="panel-body" id="display-body">
+          <div class="panel-heading">
+            <h4>Installs Items</h4>
+          </div>
+          <div class="panel-body">
+            <form role="form">
+              <div class="form-group">
+                <input id="searchinput" class="form-control" type="search" placeholder="Search..." />
+              </div>
+              <div id="searchlist" class="list-group">
                 {% for item in output %}
-                <div class="hidden" id="{{ item.dotName }}-{{ item.dotVersion }}">
-                    <table class="col-md-12 table-striped table-condensed">
-                        <tr>
-                            <th>Name</th>
-                            <td>{{ item.name }}</td>
-                        </tr>
-                        {% if item.description|length != 0 %}
-                        <tr>
-                            <th>Description</th>
-                            <td>{{ item.description }}</td>
-                        </tr>
-                        {% endif %}
-                        <tr>
-                            <th>Version</th>
-                            <td>{{ item.version }}</td>
-                        </tr>
-                    </table>
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="panel-body">
-                                <a href="{% url 'machine_list' plugin item.installed_url  group_type group_id %}">
-                                    <div class="panel panel-green">
-                                        <div class="panel-heading">
-                                            <div class="row">
-                                                <div class="col-md-3">
-                                                    <i class="fa fa-check-circle-o fa-5x"></i>
-
-                                                </div>
-                                                <div class="col-md-9 text-right">
-                                                    <div class="huge">{{ item.install_count }}</div>
-                                                    <div>Installed Count</div>
-                                                </div>
-                                            </div>
-
-                                        </div>
-                                    </div>
-                                </a>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="panel-body">
-                                <a href="{% url 'machine_list' plugin item.pending_url  group_type group_id %}">
-                                    {% if item.pending_count == 0 %}<div class="panel panel-green">
-                                        {% else %}<div class="panel panel-yellow">{% endif %}
-
-                                        <div class="panel-heading">
-                                            <div class="row">
-                                                <div class="col-md-3">
-                                                    <i class="fa fa-clock-o fa-5x"></i>
-
-                                                </div>
-                                                <div class="col-md-9 text-right">
-                                                    <div class="huge">{{ item.pending_count }}</div>
-                                                    <div>Pending Count</div>
-                                                </div>
-                                            </div>
-
-                                        </div>
-                                    </div>
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                <a class="list-group-item" id="{{ item.dotName }}-{{ item.dotVersion }}-link" href="#">
+                  <span>{{ item.name }} {{item.version}}</span>
+                </a>
                 {% endfor %}
-            </div>
+              </div>
+            </form>
+          </div>
         </div>
+      </div>
     </div>
+  </div>
+
+  <div class="col-md-8">
+    <div class="panel panel-default">
+        <div class="panel-heading">
+          <h4>Item Details</h4>
+        </div>
+      <div class="panel-body" id="display-body">
+
+        {% for item in output %}
+        <div class="hidden" id="{{ item.dotName }}-{{ item.dotVersion }}">
+          <table class="col-md-12 table-striped table-condensed">
+            <tr>
+              <th>Name</th>
+              <td>{{ item.name }}</td>
+            </tr>
+            <tr>
+              <th>Description</th>
+              <td>{{ item.description }}</td>
+            </tr>
+            <tr>
+              <th>Version</th>
+              <td>{{ item.version }}</td>
+            </tr>
+          </table>
+          <div class="row">
+            <div class="col-md-6">
+              <div class="panel-body">
+                <a href="{% url 'machine_list' plugin item.installed_url  group_type group_id %}">
+                  <div class="panel panel-green">
+                    <div class="panel-heading">
+                      <div class="row">
+                        <div class="col-md-3">
+                          <i class="fa fa-check-circle-o fa-5x"></i>
+                        </div>
+                        <div class="col-md-9 text-right">
+                          <div class="huge">{{ item.install_count }}</div>
+                          <div>Installed Count</div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </a>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="panel-body">
+                <a href="{% url 'machine_list' plugin item.pending_url  group_type group_id %}">
+                  {% if item.pending_count == 0 %}
+                  <div class="panel panel-green">
+                  {% else %}
+                  <div class="panel panel-yellow">
+                  {% endif %}
+                    <div class="panel-heading">
+                      <div class="row">
+                        <div class="col-md-3">
+                          <i class="fa fa-clock-o fa-5x"></i>
+                        </div>
+                        <div class="col-md-9 text-right">
+                          <div class="huge">{{ item.pending_count }}</div>
+                          <div>Pending Count</div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+
+      </div>
+    </div>
+  </div>
 </div>
 
 <script type="text/javascript">
 $( document ).ready(function() {
-		{% with output|first as first_output %}
-		$('#{{ first_output.dotName }}-{{ first_output.dotVersion }}').removeClass('hidden');
-		{% endwith %}
+    {% with output|first as first_output %}
+    $('#{{ first_output.dotName }}-{{ first_output.dotVersion }}').removeClass('hidden');
+    {% endwith %}
 
     function displayDiv(name) {
         $('#display-body').children().not(name).addClass('hidden');
@@ -121,15 +120,15 @@ $( document ).ready(function() {
 
     $('#searchlist').btsListFilter('#searchinput', {itemChild: 'span'});
     $(function() {
-				var window_height = $(window).height(),
-				content_height = window_height - 300;
-				$('#searchlist').height(content_height).css('overflow', 'scroll');
-		});
+        var window_height = $(window).height(),
+        content_height = window_height - 300;
+        $('#searchlist').height(content_height).css('overflow', 'scroll');
+    });
 
-		$( window ).resize(function() {
-				var window_height = $(window).height(),
-				content_height = window_height - 300;
-				$('#searchlist').height(content_height).css('overflow', 'scroll');
-		});
+    $( window ).resize(function() {
+        var window_height = $(window).height(),
+        content_height = window_height - 300;
+        $('#searchlist').height(content_height).css('overflow', 'scroll');
+    });
 });
 </script>

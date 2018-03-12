@@ -19,6 +19,7 @@ from django.shortcuts import get_object_or_404, render
 from django.views.decorators.csrf import csrf_exempt
 
 import utils
+import text_utils
 from forms import *
 from inventory.models import *
 from models import *
@@ -120,17 +121,6 @@ def tableajax(request, plugin_name, data, group_type='all', group_id=None):
 
 
 @login_required
-def report_load(request, plugin_name, group_type='all', group_id=None):
-    plugin_object = process_plugin(request, plugin_name, group_type, group_id)
-    report_html = plugin_object.widget_content(request, group_type=group_type, group_id=group_id)
-
-    reports = Report.objects.values_list('name', flat=True)
-    context = {'output': report_html, 'group_type': group_type, 'group_id': group_id, 'reports':
-               reports, 'active_report': plugin_name}
-    return render(request, 'server/display_report.html', context)
-
-
-@login_required
 def plugin_load(request, plugin_name, group_type='all', group_id=None):
     plugin_object = process_plugin(request, plugin_name, group_type, group_id)
     return HttpResponse(
@@ -186,7 +176,7 @@ def get_csv_row(machine, facter_headers, condition_headers, plugin_script_header
                 name != 'install_log' and \
                 name != 'install_log_hash':
             try:
-                row.append(utils.safe_unicode(value))
+                row.append(text_utils.safe_unicode(value))
             except Exception:
                 row.append('')
 
@@ -797,12 +787,12 @@ def checkin(request):
                 if 'Facter' in report_data and condition_name.startswith('facter_'):
                     continue
 
-                condition_data = utils.stringify(condition_data)
+                condition_data = text_utils.stringify(condition_data)
                 conditions_to_be_created.append(
                     Condition(
                         machine=machine,
                         condition_name=condition_name,
-                        condition_data=utils.safe_unicode(condition_data)
+                        condition_data=text_utils.safe_unicode(condition_data)
                     )
                 )
 
@@ -827,7 +817,7 @@ def checkin(request):
 
                 """ if it's a list (more than one result),
                 we're going to conacetnate it into one comma separated string """
-                condition_data = utils.stringify(condition_data)
+                condition_data = text_utils.stringify(condition_data)
 
                 found = False
                 for condition in conditions:
@@ -843,7 +833,7 @@ def checkin(request):
                             break
                 if found is False:
                     condition = Condition(machine=machine, condition_name=condition_name,
-                                          condition_data=utils.safe_unicode(condition_data))
+                                          condition_data=text_utils.safe_unicode(condition_data))
                     condition.save()
 
     utils.run_plugin_processing(machine, report_data)
@@ -946,7 +936,7 @@ def install_log_submit(request):
         compressed_log = submission.get('base64bz2installlog')
         if compressed_log:
             compressed_log = compressed_log.replace(" ", "+")
-            log_str = utils.decode_to_string(compressed_log)
+            log_str = text_utils.decode_to_string(compressed_log)
             machine.install_log = log_str
             machine.save()
 

@@ -12,6 +12,7 @@ from django.template import loader
 from sal import settings
 from sal.decorators import handle_access, is_global_admin
 from server.models import Machine
+from server.text_utils import class_to_title
 
 
 DEPRECATED_PAGES = {
@@ -390,6 +391,3 @@ class PluginManager(object):
             wrapped.append(plugin)
         return wrapped
 
-
-def class_to_title(text):
-    return re.sub(r'([a-z](?=[A-Z])|[A-Z](?=[A-Z][a-z]))', r'\1 ', text)

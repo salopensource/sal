@@ -104,6 +104,17 @@ def machine_list(request, plugin_name, data, group_type='all', group_id=None):
 
 
 @login_required
+def report_load(request, plugin_name, group_type='all', group_id=None):
+    groups = utils.get_instance_and_groups(group_type, group_id)
+    plugin_object = process_plugin(request, plugin_name, group_type, group_id)
+    report_html = plugin_object.widget_content(request, group_type=group_type, group_id=group_id)
+    reports = Report.objects.values_list('name', flat=True)
+    context = {'output': report_html, 'group_type': group_type, 'group_id': group_id, 'reports':
+               reports, 'active_report': plugin_object, 'groups': groups}
+    return render(request, 'server/display_report.html', context)
+
+
+@login_required
 @required_level(ProfileLevel.global_admin)
 def new_business_unit(request):
     c = {}

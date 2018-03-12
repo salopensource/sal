@@ -4,6 +4,7 @@
 from django.test import TestCase
 
 import sal.plugin
+from server import text_utils
 from server import utils
 from server.models import *
 
@@ -15,7 +16,7 @@ class UtilsTest(TestCase):
         """Ensure non-collection condition data is only str converted."""
         # Unicode
         catalogs = u'testing'
-        result = utils.stringify(catalogs)
+        result = text_utils.stringify(catalogs)
         self.assertEqual(result, catalogs)
         # TODO: Py3 will change this, as str = unicode in py2. Also, the
         # only current clients of stringify encode unicode
@@ -27,12 +28,12 @@ class UtilsTest(TestCase):
 
         # str
         catalogs = 'testing'
-        self.assertEqual(utils.stringify(catalogs), catalogs)
+        self.assertEqual(text_utils.stringify(catalogs), catalogs)
 
         # Bool, int, float, dict
         tests = (False, 5, 5.0, {'a': 'test'})
         for test in tests:
-            self.assertEqual(utils.stringify(test), str(test))
+            self.assertEqual(text_utils.stringify(test), str(test))
 
     def test_listify_list(self):
         """Ensure condition list data can be converted to strings."""

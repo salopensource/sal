@@ -11,6 +11,7 @@ from dateutil.parser import *
 from django.contrib.auth.models import User
 from django.db import models
 
+from server import text_utils
 from watson import search as watson
 
 
@@ -77,6 +78,10 @@ class BusinessUnit(models.Model):
     def __unicode__(self):
         return self.name
 
+    @classmethod
+    def display_name(cls):
+        return text_utils.class_to_title(cls.__name__)
+
     class Meta:
         ordering = ['name']
 
@@ -94,6 +99,10 @@ class MachineGroup(models.Model):
 
     def __unicode__(self):
         return self.name
+
+    @classmethod
+    def display_name(cls):
+        return text_utils.class_to_title(cls.__name__)
 
     class Meta:
         ordering = ['name']
@@ -252,6 +261,10 @@ class Machine(models.Model):
         else:
             return self.serial
 
+    @classmethod
+    def display_name(cls):
+        return text_utils.class_to_title(cls.__name__)
+
     class Meta:
         ordering = ['hostname']
 
@@ -262,6 +275,12 @@ class Machine(models.Model):
             self.hostname = self.serial
         super(Machine, self).save()
 
+
+GROUP_NAMES = {
+    'all': None,
+    'machine_group': MachineGroup,
+    'business_unit': BusinessUnit,
+    'machine': Machine}
 
 class UpdateHistory(models.Model):
     id = models.BigAutoField(primary_key=True)

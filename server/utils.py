@@ -20,6 +20,7 @@ from django.shortcuts import get_object_or_404
 from sal.decorators import is_global_admin
 from sal.plugin import BasePlugin, MachinesPlugin, OldPluginAdapter, PluginManager
 from server.models import *
+from server.text_utils import safe_unicode
 
 
 PLUGIN_ORDER = [
@@ -32,12 +33,30 @@ STRINGY_BOOLS = TRUTHY.union(FALSY)
 TWENTY_FOUR_HOURS = 86400
 
 
-def safe_unicode(s):
-    if isinstance(s, unicode):
-        return s.encode('utf-8', errors='replace')
-    else:
-        return s
+def get_instance_and_groups(group_type, group_id):
+    if group_type == 'all':
+        return
 
+    model = GROUP_NAMES[group_type]
+
+    try:
+        instance = get_object_or_404(model, pk=group_id)
+    except ValueError:
+        # Sal allows machine serials instead of machine ID in URLs.
+        # Handle that special case.
+        if model is Machine:
+            instance = get_object_or_404(model, serial=group_id)
+
+    result = {'instance': instance, 'model': model}
+
+    if isinstance(instance, MachineGroup):
+        result['business_unit'] = instance.business_unit
+    elif isinstance(instance, Machine):
+        result['business_unit'] = instance.machine_group.business_unit
+    else:
+        result['business_unit'] = instance
+
+    return result
 
 def get_server_version():
     current_dir = os.path.dirname(os.path.realpath(__file__))
@@ -152,49 +171,10 @@ def check_version():
     return result
 
 
-def stringify(data):
-    """Sanitize collection data into a string format for db storage.
-
-    Args:
-        data (str, bool, numeric, dict, list): Condition values to
-            squash into strings.
-
-    Returns:
-        list data returns as a comma separated string or '{EMPTY}'
-        if the list is empty.
-
-        All other data types are `str()` converted, including nested
-        collections in a list.
-    """
-    if isinstance(data, list):
-        return ", ".join(str(i) for i in data) if data else "{EMPTY}"
-
-    # Handle dict, int, float, bool values.
-    return str(data)
-
-
 def is_postgres():
     postgres_backend = 'django.db.backends.postgresql_psycopg2'
     db_setting = settings.DATABASES['default']['ENGINE']
     return db_setting == postgres_backend
-
-
-def decode_to_string(data, compression='base64bz2'):
-    '''Decodes a string that is optionally bz2 compressed and always base64 encoded.'''
-    if compression == 'base64bz2':
-        try:
-            bz2data = base64.b64decode(data)
-            return bz2.decompress(bz2data)
-        except Exception:
-            return ''
-    elif compression == 'base64':
-        try:
-            return base64.b64decode(data)
-        except Exception:
-            return
-            ''
-
-    return ''
 
 
 def friendly_machine_model(machine):

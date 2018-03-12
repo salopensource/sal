@@ -7,7 +7,7 @@ from django import template
 from django.shortcuts import get_object_or_404
 from django.utils.timezone import utc
 
-import server.utils
+import server.text_utils
 from server.models import MachineGroup, BusinessUnit
 
 
@@ -88,7 +88,7 @@ def print_timestamp(timestamp):
 
 @register.filter
 def stringify(data):
-    return server.utils.stringify(data)
+    return server.text_utils.stringify(data)
 
 
 @register.filter

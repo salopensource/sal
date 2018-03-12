@@ -5,7 +5,7 @@ from django.shortcuts import get_object_or_404
 
 from catalog.models import Catalog
 from server.models import BusinessUnit, InstalledUpdate, PendingUpdate
-from server.utils import safe_unicode
+from server.text_utils import safe_unicode
 import sal.plugin
 
 
@@ -68,6 +68,7 @@ class InstallReport(sal.plugin.ReportPlugin):
             output.append(item)
 
         context['output'] = sorted(output, key=lambda k: (k['name'], k['version']))
+        context['thename'] = 'Install Report'
         return context
 
     def filter(self, machines, data):

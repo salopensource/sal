@@ -11,6 +11,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.template.context_processors import csrf
 
 import sal.plugin
+import text_utils
 import utils
 from forms import *
 from inventory.models import *
@@ -362,7 +363,7 @@ def machine_detail_plugin_enable(request, plugin_name):
 
             db_plugin = MachineDetailPlugin(
                 name=plugin_name, order=utils.unique_plugin_order(plugin_type='machine_detail'),
-                os_families=sorted(utils.stringify(os_families)))
+                os_families=sorted(text_utils.stringify(os_families)))
             db_plugin.save()
     return redirect('settings_machine_detail_plugins')
 

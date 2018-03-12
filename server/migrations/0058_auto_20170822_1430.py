@@ -9,7 +9,7 @@ from django.db import migrations, models
 
 import sal.plugin
 from server.models import Plugin
-from server import utils
+from server import text_utils
 
 
 # TODO: I don't think we need this in the DB.
@@ -26,7 +26,7 @@ def update_os_families(apps, schema_editor):
             except Exception:
                 supported_os_families = default_families
 
-            item.os_families = sorted(utils.stringify(supported_os_families))
+            item.os_families = sorted(text_utils.stringify(supported_os_families))
             item.save()
 
 

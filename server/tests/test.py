@@ -38,19 +38,19 @@ class UtilsTest(TestCase):
     def test_listify_list(self):
         """Ensure condition list data can be converted to strings."""
         catalogs = ['testing', 'phase', 'production']
-        result = utils.stringify(catalogs)
+        result = text_utils.stringify(catalogs)
         self.assertEqual(result, ', '.join(catalogs))
 
     def test_listify_dict(self):
         """Ensure dict condition data can be converted to strings."""
         catalogs = ['testing', 'phase', {'key': 'value'}]
-        result = utils.stringify(catalogs)
+        result = text_utils.stringify(catalogs)
         self.assertEqual(result, "testing, phase, {'key': 'value'}")
 
     def test_listify_non_str_types(self):
         """Ensure nested non-str types are converted."""
         catalogs = [5, 5.0, {'a': 'test'}]
-        result = utils.stringify(catalogs)
+        result = text_utils.stringify(catalogs)
         self.assertEqual(result, "5, 5.0, {'a': 'test'}")
 
 

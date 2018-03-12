@@ -327,7 +327,13 @@ def get_setting(name, default=None):
 
     # Make sure migrations have run, otherwise return default
     if not db_table_exists('server_sal_setting'):
+        default_settings = get_defaults()
+        for item in default_settings:
+            if item['name'] == name:
+                default = item['value']
+                break
         return default
+
     try:
         setting = SalSetting.objects.get(name=name)
     except SalSetting.DoesNotExist:

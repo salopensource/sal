@@ -608,14 +608,6 @@ def get_hidden_plugins(group_type='all', group_id=None):
     if group_type == 'all':
         return settings.HIDE_PLUGIN_FROM_FRONT_PAGE
 
-    hidden = []
-    if group_type == 'business_unit':
-        business_unit = get_object_or_404(BusinessUnit, pk=group_id)
-        machine_group = None
-    elif group_type == 'machine_group':
-        machine_group = get_object_or_404(MachineGroup, pk=group_id)
-        business_unit = machine_group.business_unit
-
     # remove the plugins that are set to only be shown on the front page
     hidden += settings.LIMIT_PLUGIN_TO_FRONT_PAGE
 

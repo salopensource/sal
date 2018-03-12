@@ -2,14 +2,14 @@
   <div class="panel-body">
     <dl class="dl-horizontal">
       <legend><h5 class"text-uppercase">{{ title }}</h5></legend>
-				{% if crypt_url %}
+        {% if crypt_url %}
         <dt>Connect to Crypt<dt>
         <dd>
           <button type="button"  class="btn btn-default" style='margin-top: -5px;margin-bottom: 5px;'>
             <span class="glyphicon glyphicon-lock" aria-hidden="true"></span><a href="{{ crypt_url }}"> Crypt </a>
           </button>
         </dd>
-				{% endif %}
+        {% endif %}
       <dt>Escrow Status</dt>
       <dd>
         {% if escrowed %}
@@ -20,10 +20,10 @@
           <span class="glyphicon glyphicon-warning-sign text-warning" aria-hidden="true"></span> Unknown
         {% endif %}
       </dd>
-				{% if escrowed %}
+        {% if escrowed %}
         <dt>Escrow Date</dt>
         <dd>{{date_escrowed}}</dd>
-				{% endif %}
+        {% endif %}
     </dl>
   </div>
 </div>

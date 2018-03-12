@@ -1,25 +1,25 @@
 <div class="panel panel-default">
-	<div class="panel-heading">
-		{{ plugin.title }}
-	</div>
-	<!-- /.panel-heading -->
+  <div class="panel-heading">
+    {{ plugin.title }}
+  </div>
+  <!-- /.panel-heading -->
 
-	<div class="panel-body">
-		<table class="table table-striped table-condensed table-bordered">
-			{% for key, item in data.items %}
-				{% if key == 'broken_clients' and item.1 == 0 %}
-				<!-- Do nothing -->
-				{% else %}
-				<tr>
-					<td>
-						<a href="{% url 'machine_list' plugin key group_type group_id %}">
-							{{ item.0 }}
-							<span class="badge badge-important pull-right">{{ item.1 }}</span>
-						</a>
-					</td>
-				</tr>
-				{% endif %}
-			{% endfor %}
-		</table>
-	</div>
+  <div class="panel-body">
+    <table class="table table-striped table-condensed table-bordered">
+      {% for key, item in data.items %}
+        {% if key == 'broken_clients' and item.1 == 0 %}
+        <!-- Do nothing -->
+        {% else %}
+        <tr>
+          <td>
+            <a href="{% url 'machine_list' plugin key group_type group_id %}">
+              {{ item.0 }}
+              <span class="badge badge-important pull-right">{{ item.1 }}</span>
+            </a>
+          </td>
+        </tr>
+        {% endif %}
+      {% endfor %}
+    </table>
+  </div>
 </div>

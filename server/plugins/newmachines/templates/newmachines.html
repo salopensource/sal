@@ -1,16 +1,16 @@
 <div class="panel panel-default panel-traffic-light">
-	<div class="panel-heading">
-		{{ plugin.title }}
-	</div>
-	<!-- /.panel-heading -->
+  <div class="panel-heading">
+    {{ plugin.title }}
+  </div>
+  <!-- /.panel-heading -->
 
-	<div class="panel-body">
-		{% for key, item in data.items %}
-		<a href="{% url 'machine_list' plugin key group_type group_id %}" class="btn btn-info">
-			<span class="bigger"> {{ item }} </span>
-			<br />
-			{{ key }}
-		</a>
-		{% endfor %}
-	</div>
+  <div class="panel-body">
+    {% for key, item in data.items %}
+    <a href="{% url 'machine_list' plugin key group_type group_id %}" class="btn btn-info">
+      <span class="bigger"> {{ item }} </span>
+      <br />
+      {{ key }}
+    </a>
+    {% endfor %}
+  </div>
 </div>

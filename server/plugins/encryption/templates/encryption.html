@@ -10,16 +10,16 @@
     {% for hardware_label, results in results.items %}
     <div class="btn-group btn-group-justified">
       {% for result_type, result in results.items %}
-			<a style="margin-top: 0.5em;"
-				{% with hardware_label|cat:result_type|lower as data %}href="{% url 'machine_list' plugin data group_type group_id %}"{% endwith %}
-				title="{% if result_type == 'ok' %}Encrypted{% elif result_type == 'alert' %}Unencrypted{% else %}Unknown{% endif %} {{ hardware_label }}"
-				class="btn btn-{% if result_type == 'ok' %}success{% elif result_type == 'alert' %}danger"{% else %}warning{% endif %}">
-				<span class="bigger"> {{ result }} </span>
-				<br />
-				<i class="fa fa-{% if hardware_label == 'Laptops' %}laptop{% else %}desktop{% endif %} fa-2x"></i>
-			</a>
+      <a style="margin-top: 0.5em;"
+        {% with hardware_label|cat:result_type|lower as data %}href="{% url 'machine_list' plugin data group_type group_id %}"{% endwith %}
+        title="{% if result_type == 'ok' %}Encrypted{% elif result_type == 'alert' %}Unencrypted{% else %}Unknown{% endif %} {{ hardware_label }}"
+        class="btn btn-{% if result_type == 'ok' %}success{% elif result_type == 'alert' %}danger"{% else %}warning{% endif %}">
+        <span class="bigger"> {{ result }} </span>
+        <br />
+        <i class="fa fa-{% if hardware_label == 'Laptops' %}laptop{% else %}desktop{% endif %} fa-2x"></i>
+      </a>
       {% endfor %}
-		</div>
+    </div>
     {% endfor %}
   </div>
 </div>

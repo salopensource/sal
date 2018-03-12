@@ -34,6 +34,7 @@ jobs:
             . venv/bin/activate
             cp sal/example_settings.py sal/settings.py
             python manage.py test
+            python manage.py migrate
       - run:
           name: run linting
           command: |

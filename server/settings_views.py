@@ -246,15 +246,15 @@ def plugin_minus(request, plugin_id):
 
 @login_required
 @required_level(ProfileLevel.global_admin)
-def _swap_plugin(request, plugin_id, direction):
+def _swap_plugin(request, plugin_id, direction, plugin_model=Plugin):
     # get current plugin order
-    current_plugin = get_object_or_404(Plugin, pk=plugin_id)
+    current_plugin = get_object_or_404(plugin_model, pk=plugin_id)
 
     # Since it is sorted by order, we can swap the order attribute
     # of the selected plugin with the adjacent object in the queryset.
 
     # get all plugins (ordered by their order attribute).
-    plugins = Plugin.objects.all()
+    plugins = plugin_model.objects.all()
 
     # Find the index in the query of the moving plugin.
     index = 0
@@ -294,30 +294,14 @@ def plugin_enable(request, plugin_name):
 @login_required
 @required_level(ProfileLevel.global_admin)
 def machine_detail_plugin_plus(request, plugin_id):
-    # get current plugin order
-    current_plugin = get_object_or_404(MachineDetailPlugin, pk=plugin_id)
-
-    # get 'old' next one
-    old_plugin = get_object_or_404(Plugin, order=(int(current_plugin.order) + 1))
-    current_plugin.order = current_plugin.order + 1
-    current_plugin.save()
-
-    old_plugin.order = old_plugin.order - 1
-    old_plugin.save()
+    _swap_plugin(request, plugin_id, 1, MachineDetailPlugin)
     return redirect('settings_machine_detail_plugins')
 
 
 @login_required
 @required_level(ProfileLevel.global_admin)
 def machine_detail_plugin_minus(request, plugin_id):
-    current_plugin = get_object_or_404(MachineDetailPlugin, pk=plugin_id)
-
-    old_plugin = get_object_or_404(MachineDetailPlugin, order=(int(current_plugin.order) - 1))
-    current_plugin.order = current_plugin.order - 1
-    current_plugin.save()
-
-    old_plugin.order = old_plugin.order + 1
-    old_plugin.save()
+    _swap_plugin(request, plugin_id, -1, MachineDetailPlugin)
     return redirect('settings_machine_detail_plugins')
 
 

@@ -465,7 +465,7 @@ def run_plugin_processing(machine, report_data):
     enabled_plugins = Plugin.objects.all()
     enabled_detail_plugins = MachineDetailPlugin.objects.all()
     for enabled_plugin in itertools.chain(enabled_reports, enabled_plugins, enabled_detail_plugins):
-        plugin = PluginManager().get_plugin_by_name(enabled_plugin)
+        plugin = PluginManager().get_plugin_by_name(enabled_plugin.name)
         if plugin:
             plugin.plugin_object.checkin_processor(machine, report_data)
 
@@ -649,11 +649,11 @@ def order_plugin_output(plugin_data, group_type='all', group_id=None):
     return output
 
 
-def get_report_data(plugins):
+def get_report_names(plugins):
     return Report.objects.values_list('name', flat=True)
 
 
-def get_plugin_data(plugins, group_type='all', group_id=None):
+def get_plugin_placeholder_markup(plugins, group_type='all', group_id=None):
     result = []
     manager = PluginManager()
 

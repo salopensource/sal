@@ -58,8 +58,8 @@ def index(request):
     utils.load_default_plugins()
     plugins = sal.plugin.PluginManager().get_all_plugins()
 
-    reports = utils.get_report_data(plugins)
-    output = utils.get_plugin_data(plugins)
+    reports = utils.get_report_names(plugins)
+    output = utils.get_plugin_placeholder_markup(plugins)
 
     # If the user is GA level, and hasn't decided on a data sending
     # choice, template will reflect this.
@@ -179,8 +179,9 @@ def bu_dashboard(request, **kwargs):
     utils.load_default_plugins()
     plugins = sal.plugin.PluginManager().get_all_plugins()
 
-    reports = utils.get_report_data(plugins)
-    output = utils.get_plugin_data(plugins, group_type='business_unit', group_id=business_unit.id)
+    reports = utils.get_report_names(plugins)
+    output = utils.get_plugin_placeholder_markup(
+        plugins, group_type='business_unit', group_id=business_unit.id)
 
     context = {
         'user': request.user,
@@ -221,8 +222,9 @@ def group_dashboard(request, **kwargs):
     machine_group = kwargs['instance']
     machines = machine_group.machine_set.filter(deployed=True)  # noqa: F841
     plugins = sal.plugin.PluginManager().get_all_plugins()
-    output = utils.get_plugin_data(plugins, group_type='machine_group', group_id=machine_group.id)
-    reports = utils.get_report_data(plugins)
+    output = utils.get_plugin_placeholder_markup(
+        plugins, group_type='machine_group', group_id=machine_group.id)
+    reports = utils.get_report_names(plugins)
 
     context = {
         'user': request.user,

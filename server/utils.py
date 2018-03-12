@@ -491,6 +491,9 @@ def reload_plugins_model():
         _update_plugin_record(model, yapsy_plugins, found)
 
 
+# TODO: This is a place to remove plugin `type`.
+# TODO: I don't believe ANY plugin gets the OS family value set correctly. We don't need it in the
+# DB anyway.
 def _update_plugin_record(model, yapsy_plugins, found):
     """Remove absent plugins, and refresh plugin type and description.
 
@@ -536,6 +539,7 @@ def _update_plugin_record(model, yapsy_plugins, found):
                 dbplugin.name, ", ".join(err.messages))
 
 
+# TODO: This needs attention
 def disabled_plugins(plugin_kind='main'):
     plugin_models = {'main': (Plugin, 'builtin'), 'report': (Report, 'report'),
                      'machine_detail': (MachineDetailPlugin, 'machine_detail')}
@@ -567,6 +571,7 @@ def disabled_plugins(plugin_kind='main'):
     return output
 
 
+# TODO: This needs attention
 def unique_plugin_order(plugin_type='builtin'):
     if plugin_type == 'builtin':
         plugins = Plugin.objects.all()
@@ -647,7 +652,7 @@ def get_plugin_placeholder_markup(plugins, group_type='all', group_id=None):
         result.append({'name': name, 'width': width, 'html': html})
 
     output = remove_hidden_plugins(result, group_type, group_id)
-    return order_plugin_output(result, group_type, group_id)
+    return order_plugin_output(output, group_type, group_id)
 
 
 def get_machine_detail_placeholder_markup(machine):

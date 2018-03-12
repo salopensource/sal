@@ -14,6 +14,7 @@ from yapsy.PluginManager import PluginManager
 from django.conf import settings
 from django.contrib.staticfiles.templatetags.staticfiles import static
 from django.core.exceptions import ValidationError
+from django.db import connection
 from django.db.models import Count, Max
 from django.shortcuts import get_object_or_404
 
@@ -28,6 +29,10 @@ TRUTHY = {'TRUE', 'YES'}
 FALSY = {'FALSE', 'NO'}
 STRINGY_BOOLS = TRUTHY.union(FALSY)
 TWENTY_FOUR_HOURS = 86400
+
+
+def db_table_exists(table_name):
+    return table_name in connection.introspection.table_names()
 
 
 def safe_unicode(s):
@@ -319,6 +324,10 @@ def get_setting(name, default=None):
         str: Anything else.
 
     """
+
+    # Make sure migrations have run, otherwise return default
+    if not db_table_exists('server_sal_setting'):
+        return default
     try:
         setting = SalSetting.objects.get(name=name)
     except SalSetting.DoesNotExist:

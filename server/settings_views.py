@@ -208,8 +208,7 @@ def settings_historical_data(request):
 @required_level(ProfileLevel.global_admin)
 def plugins_page(request):
     utils.reload_plugins_model()
-    plugins = utils.get_active_and_inactive_plugins('machines')
-    context = {'user': request.user, 'request': request, 'plugins': plugins}
+    context = {'plugins': utils.get_active_and_inactive_plugins('machines')}
     return render(request, 'server/plugins.html', context)
 
 
@@ -217,8 +216,7 @@ def plugins_page(request):
 @required_level(ProfileLevel.global_admin)
 def settings_reports(request):
     utils.reload_plugins_model()
-    plugins = utils.get_active_and_inactive_plugins('report')
-    context = {'user': request.user, 'request': request, 'plugins': plugins}
+    context = {'plugins': utils.get_active_and_inactive_plugins('report')}
     return render(request, 'server/reports.html', context)
 
 
@@ -227,8 +225,7 @@ def settings_reports(request):
 def settings_machine_detail_plugins(request):
     utils.reload_plugins_model()
     plugins = utils.get_active_and_inactive_plugins('machine_detail')
-    manager = sal.plugin.PluginManager()
-    context = {'user': request.user, 'request': request, 'plugins': plugins}
+    context = {'user': request.user, 'plugins': plugins}
     return render(request, 'server/machine_detail_plugins.html', context)
 
 

@@ -42,6 +42,9 @@ DEPRECATED_PAGES = {
     'all': 'front', 'business_unit': 'bu_dashboard', 'machine_group': 'group_dashboard',
     'machine': 'machine_detail'}
 
+IGNORED_CSV_FIELDS = ('id', 'machine_group', 'report', 'activity', 'os_family', 'install_log',
+                      'install_log_hash')
+
 
 @login_required
 def tableajax(request, plugin_name, data, group_type='all', group_id=None):
@@ -168,13 +171,7 @@ class Echo(object):
 def get_csv_row(machine, facter_headers, condition_headers, plugin_script_headers):
     row = []
     for name, value in machine.get_fields():
-        if name != 'id' and \
-                name != 'machine_group' and \
-                name != 'report' and \
-                name != 'activity' and \
-                name != 'os_family' and \
-                name != 'install_log' and \
-                name != 'install_log_hash':
+        if name not in IGNORED_CSV_FIELDS:
             try:
                 row.append(text_utils.safe_unicode(value))
             except Exception:
@@ -193,68 +190,14 @@ def stream_csv(header_row, machines, facter_headers, condition_headers, plugin_s
         yield get_csv_row(machine, facter_headers, condition_headers, plugin_script_headers)
 
 
-# TODO: next on plugin path of war.
 @login_required
 def export_csv(request, plugin_name, data, group_type='all', group_id=None):
-    user = request.user
-    title = None
-    # Build the manager
     manager = PluginManager()
-    # Tell it the default place(s) where to find plugins
-    manager.setPluginPlaces([settings.PLUGIN_DIR, os.path.join(
-        settings.PROJECT_DIR, 'server/plugins')])
-    # Load all plugins
-    manager.collectPlugins()
-    if pluginName == 'Status' and data == 'undeployed_machines':
-        deployed = False
-    else:
-        deployed = True
-    # get a list of machines (either from the BU or the group)
-    if group_type == 'all':
-        # get all machines
-        if user.userprofile.level == 'GA':
-            machines = Machine.objects.filter(deployed=deployed).defer(
-                'report', 'activity', 'os_family', 'install_log', 'install_log_hash')
-        else:
-            machines = Machine.objects.none().defer('report', 'activity', 'os_family',
-                                                    'install_log', 'install_log_hash')
-            for business_unit in user.businessunit_set.all():
-                for group in business_unit.machinegroup_set.all():
-                    machines = machines | group.machine_set.filter(deployed=deployed)
-    if group_type == 'business_unit':
-        # only get machines for that BU
-        # Need to make sure the user is allowed to see this
-        business_unit = get_object_or_404(BusinessUnit, pk=group_id)
-        machine_groups = MachineGroup.objects.filter(
-            business_unit=business_unit).prefetch_related('machine_set').all()
 
-        if machine_groups.count() != 0:
-            machines = machine_groups[0].machine_set.all()
-            for machine_group in machine_groups[1:]:
-                machines = machines | machine_group.machine_set.filter(deployed=deployed).\
-                    defer('report', 'activity', 'os_family', 'install_log', 'install_log_hash')
-        else:
-            machines = None
-
-    if group_type == 'machine_group':
-        # only get machines from that group
-        machine_group = get_object_or_404(MachineGroup, pk=group_id)
-        machines = Machine.objects.filter(
-            machine_group=machine_group).filter(
-            deployed=deployed).defer(
-            'report',
-            'activity',
-            'os_family',
-            'install_log',
-            'install_log_hash')
-
-    if group_type == 'machine':
-        machines = Machine.objects.get(pk=group_id)
-
-    # send the machines and the data to the plugin
-    for plugin in manager.getAllPlugins():
-        if plugin.name == pluginName:
-            (machines, title) = plugin.plugin_object.filter_machines(machines, data)
+    plugin_object = process_plugin(request, plugin_name, group_type, group_id)
+    queryset = plugin_object.get_queryset(
+        request, group_type=group_type, group_id=group_id)
+    machines, title = plugin_object.filter_machines(queryset, data)
 
     pseudo_buffer = Echo()
     writer = csv.writer(pseudo_buffer)
@@ -263,20 +206,11 @@ def export_csv(request, plugin_name, data, group_type='all', group_id=None):
     header_row = []
     fields = Machine._meta.get_fields()
     for field in fields:
-        if not field.is_relation and \
-                field.name != 'id' and \
-                field.name != 'report' and \
-                field.name != 'activity' and \
-                field.name != 'os_family' and \
-                field.name != 'install_log' and \
-                field.name != 'install_log_hash':
+        if not field.is_relation and field.name not in IGNORED_CSV_FIELDS:
             header_row.append(field.name)
-    # distinct_facts = Fact.objects.values('fact_name').distinct().order_by('fact_name')
 
     facter_headers = []
-
     condition_headers = []
-
     plugin_script_headers = []
 
     header_row.append('business_unit')
@@ -290,16 +224,8 @@ def export_csv(request, plugin_name, data, group_type='all', group_id=None):
             condition_headers=condition_headers,
             plugin_script_headers=plugin_script_headers)),
         content_type="text/csv")
-    # Create the HttpResponse object with the appropriate CSV header.
-    if getattr(settings, 'DEBUG_CSV', False):
-        pass
-    else:
-        response['Content-Disposition'] = 'attachment; filename="%s.csv"' % title
 
-    #
-    #
-    # if getattr(settings, 'DEBUG_CSV', False):
-    #     writer.writerow(['</body>'])
+    response['Content-Disposition'] = 'attachment; filename="%s.csv"' % title
     return response
 
 

@@ -609,7 +609,7 @@ def get_hidden_plugins(group_type='all', group_id=None):
         return settings.HIDE_PLUGIN_FROM_FRONT_PAGE
 
     # remove the plugins that are set to only be shown on the front page
-    hidden += settings.LIMIT_PLUGIN_TO_FRONT_PAGE
+    hidden = settings.LIMIT_PLUGIN_TO_FRONT_PAGE
 
     # remove the plugins that are to be hidden from this BU
     hidden += [name for name, groups in settings.HIDE_PLUGIN_FROM_BUSINESS_UNIT.items() if group_id

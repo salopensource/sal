@@ -581,72 +581,51 @@ def unique_plugin_order(plugin_type='builtin'):
     return id_next
 
 
-# TODO: This needs attention
-def order_plugin_output(plugin_data, group_type='all', group_id=None):
-    output = plugin_data
+def remove_hidden_plugins(plugin_data, group_type='all', group_id=None):
     if group_type == 'all':
-        # remove the plugins that are in the list
-        for item in output:
-            for key in settings.HIDE_PLUGIN_FROM_FRONT_PAGE:
-                if item['name'] == key:
-                    output.remove(item)
+        for item in plugin_data:
+            if item['name'] in settings.HIDE_PLUGIN_FROM_FRONT_PAGE:
+                plugin_data.remove(item)
 
-    if group_type != 'all':
+    else:
         if group_type == 'business_unit':
             business_unit = get_object_or_404(BusinessUnit, pk=group_id)
-            for item in output:
-                # remove the plugins that are to be hidden from this BU
-                for key, ids in settings.HIDE_PLUGIN_FROM_BUSINESS_UNIT.items():
-                    if item['name'] == key:
-                        if str(group_id) in ids:
-                            output.remove(item)
-                # remove the plugins that are set to only be shown on the front page
-                for key in settings.LIMIT_PLUGIN_TO_FRONT_PAGE:
-                    if item['name'] == key:
-                        output.remove(item)
-
-        if group_type == 'machine_group':
+            machine_group = None
+        elif group_type == 'machine_group':
             machine_group = get_object_or_404(MachineGroup, pk=group_id)
-            # get the group's BU.
             business_unit = machine_group.business_unit
-            for item in output:
-                for key, ids in settings.HIDE_PLUGIN_FROM_BUSINESS_UNIT.items():
-                    if item['name'] == key:
-                        if str(business_unit.id) in ids:
-                            output.remove(item)
-                # remove the plugins that are to be hidden from this Machine Group
-                for key, ids in settings.HIDE_PLUGIN_FROM_MACHINE_GROUP.items():
-                    if item['name'] == key:
-                        if str(group_id) in ids:
-                            output.remove(item)
 
-                # remove the plugins that are set to only be shown on the front page
-                for key in settings.LIMIT_PLUGIN_TO_FRONT_PAGE:
-                    if item['name'] == key:
-                        output.remove(item)
+        for item in plugin_data:
+            # remove the plugins that are set to only be shown on the front page
+            if item['name'] in settings.LIMIT_PLUGIN_TO_FRONT_PAGE:
+                plugin_data.remove(item)
 
-    # We don't do any of this for machine detail
-    if group_type != 'machine_detail':
-        # Loop over all of the items, their width will have been returned
-        col_width = 12
-        total_width = 0
-        counter = 0
-        # Adjust length for zero-indexed lists.
-        length = len(output) - 1
+            # remove the plugins that are to be hidden from this BU
+            hidden = settings.HIDE_PLUGIN_FROM_BUSINESS_UNIT
+            if item['name'] in hidden and business_unit.id in hidden[item['name']]:
+                plugin_data.remove(item)
 
-        for item in output:
-            # if we've gone through all the items, just stop
-            if counter >= length:
-                break
-            # No point doing anything if the plugin isn't going to return any output
-            if int(item['width']) != 0:
-                if total_width + item['width'] > col_width:
-                    item['html'] = '\n</div>\n\n<div class="row">\n' + item['html']
-                    total_width = item['width']
-                else:
-                    total_width = int(item['width']) + total_width
-            counter += 1
-    return output
+            # remove the plugins that are to be hidden from this Machine Group
+            if machine_group:
+                hidden = settings.HIDE_PLUGIN_FROM_MACHINE_GROUP
+                if item['name'] in hidden and machine_group.id in hidden[item['name']]:
+                    plugin_data.remove(item)
+
+    return plugin_data
+
+
+def order_plugin_output(plugin_data, group_type='all', group_id=None):
+    col_width = 12
+    total_width = 0
+
+    for item in plugin_data:
+        if total_width + item['width'] > col_width:
+            item['html'] = '\n</div>\n\n<div class="row">\n' + item['html']
+            total_width = item['width']
+        else:
+            total_width = item['width'] + total_width
+
+    return plugin_data
 
 
 def get_report_names(plugins):
@@ -667,26 +646,20 @@ def get_plugin_placeholder_markup(plugins, group_type='all', group_id=None):
                 '</div>\n'.format(name, width, static('img/blue-spinner.gif')))
         result.append({'name': name, 'width': width, 'html': html})
 
+    output = remove_hidden_plugins(result, group_type, group_id)
     return order_plugin_output(result, group_type, group_id)
 
 
-def get_machine_detail_plugin_data(machine):
+def get_machine_detail_placeholder_markup(machine):
+    manager = PluginManager()
     result = []
-    yapsy_plugins = {
-        p.name: p for p in PluginManager().get_all_plugins()
-        # TODO (sheagcraig): This used to be excluding 'builtin' and 'full_page',
-        # but I assumed that `full_page` at some point became `report`.
-        if p.plugin_object.get_plugin_type(None) not in ('builtin', 'report') and
-        machine.os_family in p.plugin_object.get_supported_os_families()}
-
     for enabled_plugin in MachineDetailPlugin.objects.order_by('order'):
-        name = enabled_plugin.name
-        yapsy_plugin = yapsy_plugins.get(name)
+        yapsy_plugin = manager.get_plugin_by_name(enabled_plugin.name)
         if yapsy_plugin:
             html = ('<div id="plugin-{}">'
                     '    <img class="center-block blue-spinner" src="{}"/>'
-                    '</div>'.format(name, static('img/blue-spinner.gif')))
+                    '</div>'.format(enabled_plugin.name, static('img/blue-spinner.gif')))
 
-            result.append({'name': name, 'html': html})
+            result.append({'name': enabled_plugin.name, 'html': html})
 
-    return order_plugin_output(result, 'machine_detail')
+    return result

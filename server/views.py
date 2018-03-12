@@ -404,7 +404,7 @@ def machine_detail(request, **kwargs):
     if 'managed_uninstalls_list' in report:
         report['managed_uninstalls_list'].sort()
 
-    output = utils.get_machine_detail_plugin_data(machine)
+    output = utils.get_machine_detail_placeholder_markup(machine)
 
     context = {
         'user': request.user,

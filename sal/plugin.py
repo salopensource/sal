@@ -315,7 +315,12 @@ class OldPluginAdapter(BasePlugin):
             return 'builtin'
 
     def get_widget_width(self, *args, **kwargs):
-        return self.plugin.widget_width()
+        # Cast to int just to be safe.
+        try:
+            width = int(self.plugin.widget_width())
+        except (ValueError, AttributeError):
+            width = 0
+        return width
 
     def get_description(self, *args, **kwargs):
         try:

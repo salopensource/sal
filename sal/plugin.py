@@ -206,6 +206,21 @@ class BasePlugin(IPlugin):
         method = eval('super(self.__class__.__bases__[0], self).get_context')
         return method(queryset, **kwargs)
 
+    def checkin_processor(self, machine, report_data):
+        """Process checkin data prior to recording in DB.
+
+        The default implementation does nothing.
+
+        Plugins can define a checkin processor method by overriding
+        this. This processor is run at the conclusion of the
+        client checkin, and includes the report data processed during
+        that run.
+
+        Args:
+            machine (server.models.Machine): The machine checking in.
+            report_data (dict): All of the report data.
+        """
+        pass
 
 class FilterMixin(object):
     """Adds filter_machines method to Plugins
@@ -280,7 +295,7 @@ class ReportPlugin(FilterMixin, BasePlugin):
     widget_width = 12
 
 
-class OldPluginWrapper(BasePlugin):
+class OldPluginAdapter(BasePlugin):
     """Provides current Plugin interface by wrapping old-style plugin"""
 
     model = Machine
@@ -320,7 +335,7 @@ class OldPluginWrapper(BasePlugin):
         # instead of a Queryset. This is mostly just here to avoid
         # having to create a bunch of support wrapper subclasses
         # when this stuff is going away anyway.
-        queryset = super(OldPluginWrapper, self).get_queryset(request, **kwargs)
+        queryset = super(OldPluginAdapter, self).get_queryset(request, **kwargs)
         if self.get_plugin_type(request, **kwargs) == 'machine_detail':
             queryset = queryset[0]
         return queryset
@@ -338,6 +353,9 @@ class OldPluginWrapper(BasePlugin):
         # Calling convention was different back then...
         return self.plugin.widget_content(group_type, queryset, group_id)
 
+    def checkin_processor(self, machine, report_data):
+        if hasattr(self.plugin, 'checkin_processor'):
+            self.plugin.checkin_processor(machine, report_data)
 
 class PluginManager(object):
 
@@ -360,7 +378,7 @@ class PluginManager(object):
             if plugin.plugin_object and not isinstance(plugin.plugin_object, BasePlugin):
                 logging.warning(
                     "Plugin '%s' needs to be updated to subclass a Sal Plugin!", plugin.name)
-                plugin.plugin_object = OldPluginWrapper(plugin.plugin_object)
+                plugin.plugin_object = OldPluginAdapter(plugin.plugin_object)
             wrapped.append(plugin)
         return wrapped
 

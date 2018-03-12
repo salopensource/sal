@@ -23,7 +23,7 @@ from forms import *
 from inventory.models import *
 from models import *
 from sal.decorators import *
-from sal.plugin import (BasePlugin, MachinesPlugin, DetailPlugin, ReportPlugin, OldPluginWrapper,
+from sal.plugin import (BasePlugin, MachinesPlugin, DetailPlugin, ReportPlugin, OldPluginAdapter,
                         PluginManager)
 
 if settings.DEBUG:
@@ -148,7 +148,7 @@ def process_plugin(request, plugin_name, group_type='all', group_id=None):
     plugin_object = plugin.plugin_object
 
     # Ensure the request is not for a disabled plugin.
-    if isinstance(plugin_object, OldPluginWrapper):
+    if isinstance(plugin_object, OldPluginAdapter):
         plugin_type = plugin_object.get_plugin_type(None)
         if plugin_type == 'machine_detail':
             model = MachineDetailPlugin

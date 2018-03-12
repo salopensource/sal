@@ -1,4 +1,5 @@
 import hashlib
+import itertools
 import json
 import logging
 import os
@@ -460,39 +461,13 @@ def get_plugin_scripts(plugin, hash_only=False, script_name=None):
 
 
 def run_plugin_processing(machine, report_data):
-    yapsy_plugins = PluginManager().get_all_plugins()
-
     enabled_reports = Report.objects.all()
-    for enabled_report in enabled_reports:
-        for plugin in yapsy_plugins:
-            if enabled_report.name == plugin.name:
-                # Not all plugins will have a checkin_processor
-                try:
-                    plugin.plugin_object.checkin_processor(machine, report_data)
-                except Exception:
-                    pass
-
-    # Get all the enabled plugins
     enabled_plugins = Plugin.objects.all()
-    for enabled_plugin in enabled_plugins:
-        # Loop round the plugins and print their names.
-        for plugin in yapsy_plugins:
-            # Not all plugins will have a checkin_processor
-            try:
-                plugin.plugin_object.checkin_processor(machine, report_data)
-            except Exception:
-                pass
-
-    # Get all the enabled plugins
-    enabled_plugins = MachineDetailPlugin.objects.all()
-    for enabled_plugin in enabled_plugins:
-        # Loop round the plugins and print their names.
-        for plugin in yapsy_plugins:
-            # Not all plugins will have a checkin_processor
-            try:
-                plugin.plugin_object.checkin_processor(machine, report_data)
-            except Exception:
-                pass
+    enabled_detail_plugins = MachineDetailPlugin.objects.all()
+    for enabled_plugin in itertools.chain(enabled_reports, enabled_plugins, enabled_detail_plugins):
+        plugin = PluginManager().get_plugin_by_name(enabled_plugin)
+        if plugin:
+            plugin.plugin_object.checkin_processor(machine, report_data)
 
 
 def load_default_plugins():

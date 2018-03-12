@@ -19,7 +19,8 @@ from django.db.models import Count, Max
 from django.shortcuts import get_object_or_404
 
 from sal.decorators import is_global_admin
-from sal.plugin import BasePlugin, MachinesPlugin, OldPluginAdapter, PluginManager
+from sal.plugin import (BasePlugin, MachinesPlugin, OldPluginAdapter, PluginManager, DetailPlugin,
+                        ReportPlugin)
 from server.models import *
 from server.text_utils import safe_unicode
 
@@ -28,6 +29,8 @@ PLUGIN_ORDER = [
     'Activity', 'Status', 'OperatingSystem', 'MunkiVersion', 'Uptime', 'Memory', 'DiskSpace',
     'PendingAppleUpdates', 'Pending3rdPartyUpdates', 'Encryption', 'Gatekeeper', 'Sip',
     'XprotectVersion']
+PLUGIN_MODELS = {'machines': (Plugin, MachinesPlugin), 'report': (Report, ReportPlugin),
+                 'machine_detail': (MachineDetailPlugin, DetailPlugin)}
 TRUTHY = {'TRUE', 'YES'}
 FALSY = {'FALSE', 'NO'}
 STRINGY_BOOLS = TRUTHY.union(FALSY)
@@ -41,7 +44,6 @@ def db_table_exists(table_name):
 def get_instance_and_groups(group_type, group_id):
     if group_type == 'all':
         return
-
 
     model = GROUP_NAMES[group_type]
 
@@ -536,51 +538,36 @@ def _update_plugin_record(model, yapsy_plugins, found):
                 dbplugin.name, ", ".join(err.messages))
 
 
-# TODO: This needs attention
-def disabled_plugins(plugin_kind='main'):
-    plugin_models = {'main': (Plugin, 'builtin'), 'report': (Report, 'report'),
-                     'machine_detail': (MachineDetailPlugin, 'machine_detail')}
-    output = []
+def get_active_and_inactive_plugins(plugin_kind='main'):
+    output = {'active': [], 'inactive': []}
+    model = PLUGIN_MODELS[plugin_kind][0]
 
     for plugin in PluginManager().get_all_plugins():
-        plugin_type = plugin.plugin_object.get_plugin_type(None)
-
         # Filter out plugins of other types.
-        if plugin_type != plugin_models[plugin_kind][1]:
+        if not isinstance(plugin.plugin_object, PLUGIN_MODELS[plugin_kind][1]):
             continue
 
-        model, _ = plugin_models.get(plugin_kind, (None, None))
         if model:
             try:
-                model.objects.get(name=plugin.name)
+                db_plugin = model.objects.get(name=plugin.name)
+                plugin = (plugin, db_plugin)
+                output['active'].append(plugin)
             except model.DoesNotExist:
-                item = {}
-                item['name'] = plugin.name
-                if model == MachineDetailPlugin:
-                    try:
-                        supported_os_families = plugin.plugin_object.get_supported_os_families()
-                    except AttributeError:
-                        supported_os_families = ['Darwin', 'Windows', 'Linux', 'ChromeOS']
-                    item['os_families'] = supported_os_families
+                output['inactive'].append(plugin)
 
-                output.append(item)
+    if not model == Report:
+        output['active'].sort(key=lambda i: i[1].order)
 
     return output
 
 
-# TODO: This needs attention
-def unique_plugin_order(plugin_type='builtin'):
-    if plugin_type == 'builtin':
-        plugins = Plugin.objects.all()
-    elif plugin_type == 'report':
-        plugins = Report.objects.all()
-    elif plugin_type == 'machine_detail':
-        plugins = MachineDetailPlugin.objects.all()
-    else:
-        plugins = Plugin.objects.all()
-    id_max = plugins.aggregate(Max('order'))['order__max']
-    id_next = id_max + 1 if id_max else 1
-    return id_next
+def unique_plugin_order(plugin_type='machines'):
+    model = PLUGIN_MODELS[plugin_type]
+    try:
+        id_max = model.objects.aggregate(Max('order'))['order__max']
+    except KeyError:
+        id_max = 0
+    return id_max + 1
 
 
 def remove_hidden_plugins(plugin_data, group_type='all', group_id=None):

@@ -39,34 +39,30 @@ $(document).ready(function() {
               <tr>
                 <th>Order</th>
                 <th>Plugin</th>
-                <th>
-                  Operating System Family
-                </th>
                 <th>Description</th>
+                <th>Operating System Family </th>
                 <th></th>
                 <th></th>
                 <th></th>
               </tr>
             </thead>
             <tbody>
-              {% for plugin in enabled_plugins.all %}
+              {% for plugin in plugins.active %}
               <tr>
-                <td>{{ plugin.order}}</td>
-                <td>{{ plugin.name }}</td>
-                <td>
-                  {{ os_families|dict_lookup:plugin.name|sort|stringify }}
-                </td>
-                <td>{{ plugin.description }}</td>
-                <td><a href="{% url 'machine_detail_plugin_disable' plugin.id %}" class="btn btn-mini btn-info pull-right" title="Disable Machine Detail Plugin"><i class="fa fa-minus"></i></a></td>
+                <td>{{ plugin.1.order}}</td>
+                <td>{{ plugin.1.name }}</td>
+                <td>{{ plugin.0.plugin_object.get_description }}</td>
+                <td>{{ plugin.0.plugin_object.get_supported_os_families|sort|join:', ' }}</td>
+                <td><a href="{% url 'machine_detail_plugin_disable' plugin.1.id %}" class="btn btn-mini btn-info pull-right" title="Disable Machine Detail Plugin"><i class="fa fa-minus"></i></a></td>
                 {% if forloop.first %}
                 <td></td>
                 {% else %}
-                <td><a href="{% url 'machine_detail_plugin_minus' plugin.id %}" class="btn btn-mini btn-info pull-right" title="Move Up"><i class="fa fa-chevron-up"></i></a></td>
+                <td><a href="{% url 'machine_detail_plugin_minus' plugin.1.id %}" class="btn btn-mini btn-info pull-right" title="Move Up"><i class="fa fa-chevron-up"></i></a></td>
                 {% endif %}
                 {% if forloop.last %}
                 <td></td>
                 {% else %}
-                <td><a href="{% url 'machine_detail_plugin_plus' plugin.id %}" class="btn btn-mini btn-info pull-right" title="Move Down"><i class="fa fa-chevron-down"></i></a></td>
+                <td><a href="{% url 'machine_detail_plugin_plus' plugin.1.id %}" class="btn btn-mini btn-info pull-right" title="Move Down"><i class="fa fa-chevron-down"></i></a></td>
                 {% endif %}
               </tr>
               {% endfor %}
@@ -90,17 +86,18 @@ $(document).ready(function() {
             <thead>
               <tr>
                 <th>Plugin</th>
+                <th>Description</th>
+                <th>Operating System Family </th>
                 <th></th>
               </tr>
             </thead>
             <tbody>
 
-              {% for plugin in disabled_plugins %}
+              {% for plugin in plugins.inactive %}
               <tr>
                 <td>{{ plugin.name }}</td>
-                <td>
-                  {{ os_families|dict_lookup:plugin.name|sort|stringify }}
-                </td>
+                <td>{{ plugin.plugin_object.get_description }}</td>
+                <td>{{ plugin.plugin_object.get_supported_os_families|sort|join:', ' }}</td>
                 <td><a href="{% url 'machine_detail_plugin_enable' plugin.name %}" title="Enable Plugin" class="btn btn-mini btn-info pull-right"><i class="fa fa-check"></i></a></td>
               </tr>
               {% endfor %}

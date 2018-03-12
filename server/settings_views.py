@@ -207,42 +207,28 @@ def settings_historical_data(request):
 @login_required
 @required_level(ProfileLevel.global_admin)
 def plugins_page(request):
-    # Load the plugins
     utils.reload_plugins_model()
-    enabled_plugins = Plugin.objects.all()
-    disabled_plugins = utils.disabled_plugins(plugin_kind='main')
-    c = {'user': request.user, 'request': request,
-         'enabled_plugins': enabled_plugins, 'disabled_plugins': disabled_plugins}
-    return render(request, 'server/plugins.html', c)
+    plugins = utils.get_active_and_inactive_plugins('machines')
+    context = {'user': request.user, 'request': request, 'plugins': plugins}
+    return render(request, 'server/plugins.html', context)
 
 
 @login_required
 @required_level(ProfileLevel.global_admin)
 def settings_reports(request):
-    # Load the plugins
     utils.reload_plugins_model()
-    enabled_plugins = Report.objects.all()
-    disabled_plugins = utils.disabled_plugins(plugin_kind='report')
-    c = {'user': request.user, 'request': request,
-         'enabled_plugins': enabled_plugins, 'disabled_plugins': disabled_plugins}
-    return render(request, 'server/reports.html', c)
+    plugins = utils.get_active_and_inactive_plugins('report')
+    context = {'user': request.user, 'request': request, 'plugins': plugins}
+    return render(request, 'server/reports.html', context)
 
 
 @login_required
 @required_level(ProfileLevel.global_admin)
 def settings_machine_detail_plugins(request):
     utils.reload_plugins_model()
-    enabled_plugins = MachineDetailPlugin.objects.all()
-    disabled_plugins = utils.disabled_plugins(plugin_kind='machine_detail')
+    plugins = utils.get_active_and_inactive_plugins('machine_detail')
     manager = sal.plugin.PluginManager()
-    os_families = {
-        plugin.name:
-        manager.get_plugin_by_name(plugin.name).plugin_object.get_supported_os_families() for
-        plugin in enabled_plugins}
-    os_families.update({p['name']: p['os_families'] for p in disabled_plugins})
-    context = {
-        'user': request.user, 'request': request, 'enabled_plugins': enabled_plugins,
-        'disabled_plugins': disabled_plugins, 'os_families': os_families}
+    context = {'user': request.user, 'request': request, 'plugins': plugins}
     return render(request, 'server/machine_detail_plugins.html', context)
 
 
@@ -324,10 +310,7 @@ def machine_detail_plugin_plus(request, plugin_id):
 @login_required
 @required_level(ProfileLevel.global_admin)
 def machine_detail_plugin_minus(request, plugin_id):
-    # get current plugin order
     current_plugin = get_object_or_404(MachineDetailPlugin, pk=plugin_id)
-    # print current_plugin
-    # get 'old' previous one
 
     old_plugin = get_object_or_404(MachineDetailPlugin, order=(int(current_plugin.order) - 1))
     current_plugin.order = current_plugin.order - 1

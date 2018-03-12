@@ -87,7 +87,7 @@ class BasePlugin(IPlugin):
         """
         return class_to_title(self.__class__.__name__)
 
-    def get_template(self, **kwargs):
+    def get_template(self, *args, **kwargs):
         """Get the plugin's django template.
 
         This method by default looks up the template attribute.
@@ -117,13 +117,13 @@ class BasePlugin(IPlugin):
         return self.supported_os_families
 
     # TODO: This is on the chopping block.
-    def get_plugin_type(self, request, **kwargs):
+    def get_plugin_type(self, *args, **kwargs):
         return self.plugin_type
 
-    def get_widget_width(self, request, **kwargs):
+    def get_widget_width(self, *args, **kwargs):
         return self.widget_width
 
-    def get_description(self, request, **kwargs):
+    def get_description(self, *args, **kwargs):
         return self.description
 
     def get_queryset(self, request, **kwargs):
@@ -171,7 +171,7 @@ class BasePlugin(IPlugin):
     def widget_content(self, request, **kwargs):
         queryset = self.get_queryset(request, **kwargs)
         context = self.get_context(queryset, **kwargs)
-        template = self.get_template(**kwargs)
+        template = self.get_template(request, **kwargs)
         return template.render(context)
 
     def get_context(self, queryset, **kwargs):
@@ -221,6 +221,7 @@ class BasePlugin(IPlugin):
             report_data (dict): All of the report data.
         """
         pass
+
 
 class FilterMixin(object):
     """Adds filter_machines method to Plugins
@@ -303,25 +304,26 @@ class OldPluginAdapter(BasePlugin):
     def __init__(self, plugin):
         self.plugin = plugin
 
-    def get_template(self, **kwargs):
+    def get_template(self, *args, **kwargs):
         return None
 
-    def get_plugin_type(self, request, **kwargs):
+    # TODO: This is on the chopping block.
+    def get_plugin_type(self, *args, **kwargs):
         try:
             return self.plugin.plugin_type()
         except AttributeError:
             return 'builtin'
 
-    def get_widget_width(self, request, **kwargs):
+    def get_widget_width(self, *args, **kwargs):
         return self.plugin.widget_width()
 
-    def get_description(self, request, **kwargs):
+    def get_description(self, *args, **kwargs):
         try:
             return self.plugin.get_description()
         except AttributeError:
             return ""
 
-    def get_supported_os_families(self):
+    def get_supported_os_families(self, **kwargs):
         if hasattr(self.plugin, 'supported_os_families'):
             return self.plugin.supported_os_families()
 
@@ -356,6 +358,7 @@ class OldPluginAdapter(BasePlugin):
     def checkin_processor(self, machine, report_data):
         if hasattr(self.plugin, 'checkin_processor'):
             self.plugin.checkin_processor(machine, report_data)
+
 
 class PluginManager(object):
 

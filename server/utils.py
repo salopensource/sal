@@ -18,7 +18,7 @@ from django.db.models import Count, Max
 from django.shortcuts import get_object_or_404
 
 from sal.decorators import is_global_admin
-from sal.plugin import BasePlugin, MachinesPlugin, OldPluginWrapper, PluginManager
+from sal.plugin import BasePlugin, MachinesPlugin, OldPluginAdapter, PluginManager
 from server.models import *
 
 
@@ -516,20 +516,17 @@ def _update_plugin_record(model, yapsy_plugins, found):
             continue
 
         plugin_object = plugin.plugin_object
-        if not isinstance(plugin_object, BasePlugin):
-            plugin_object = OldPluginWrapper(plugin_object)
 
         if hasattr(model, 'type'):
             try:
-                # TODO: Investigate whether we should include the request in this call.
-                declared_type = plugin.plugin_object.get_plugin_type(None)
+                declared_type = plugin.plugin_object.get_plugin_type()
             except AttributeError:
                 declared_type = model._meta.get_field('type').default
 
             dbplugin.type = declared_type
 
         # TODO: Investigate whether we should include the request in this call.
-        dbplugin.description = plugin_object.get_description(None)
+        dbplugin.description = plugin_object.get_description()
 
         try:
             dbplugin.full_clean()
@@ -584,56 +581,59 @@ def unique_plugin_order(plugin_type='builtin'):
     return id_next
 
 
-def order_plugin_output(pluginOutput, page='front', theID=None):
-    output = pluginOutput
-    if page == 'front':
+# TODO: This needs attention
+def order_plugin_output(plugin_data, group_type='all', group_id=None):
+    output = plugin_data
+    if group_type == 'all':
         # remove the plugins that are in the list
         for item in output:
             for key in settings.HIDE_PLUGIN_FROM_FRONT_PAGE:
                 if item['name'] == key:
                     output.remove(item)
 
-    if page != 'front':
-        if page == 'bu_dashboard':
-            business_unit = get_object_or_404(BusinessUnit, pk=theID)
+    if group_type != 'all':
+        if group_type == 'business_unit':
+            business_unit = get_object_or_404(BusinessUnit, pk=group_id)
             for item in output:
                 # remove the plugins that are to be hidden from this BU
-                for key, ids in settings.HIDE_PLUGIN_FROM_BUSINESS_UNIT.iteritems():
+                for key, ids in settings.HIDE_PLUGIN_FROM_BUSINESS_UNIT.items():
                     if item['name'] == key:
-                        if str(theID) in ids:
+                        if str(group_id) in ids:
                             output.remove(item)
                 # remove the plugins that are set to only be shown on the front page
                 for key in settings.LIMIT_PLUGIN_TO_FRONT_PAGE:
                     if item['name'] == key:
                         output.remove(item)
 
-        if page == 'group_dashboard':
-            machine_group = get_object_or_404(MachineGroup, pk=theID)
+        if group_type == 'machine_group':
+            machine_group = get_object_or_404(MachineGroup, pk=group_id)
             # get the group's BU.
             business_unit = machine_group.business_unit
             for item in output:
-                for key, ids in settings.HIDE_PLUGIN_FROM_BUSINESS_UNIT.iteritems():
+                for key, ids in settings.HIDE_PLUGIN_FROM_BUSINESS_UNIT.items():
                     if item['name'] == key:
                         if str(business_unit.id) in ids:
                             output.remove(item)
                 # remove the plugins that are to be hidden from this Machine Group
-                for key, ids in settings.HIDE_PLUGIN_FROM_MACHINE_GROUP.iteritems():
+                for key, ids in settings.HIDE_PLUGIN_FROM_MACHINE_GROUP.items():
                     if item['name'] == key:
-                        if str(theID) in ids:
+                        if str(group_id) in ids:
                             output.remove(item)
 
                 # remove the plugins that are set to only be shown on the front page
                 for key in settings.LIMIT_PLUGIN_TO_FRONT_PAGE:
                     if item['name'] == key:
                         output.remove(item)
-    # Loop over all of the items, their width will have been returned
-    col_width = 12
-    total_width = 0
-    counter = 0
-    # length of the output, but starting at 0, so subtract one
-    length = len(output) - 1
+
     # We don't do any of this for machine detail
-    if page != 'machine_detail':
+    if group_type != 'machine_detail':
+        # Loop over all of the items, their width will have been returned
+        col_width = 12
+        total_width = 0
+        counter = 0
+        # Adjust length for zero-indexed lists.
+        length = len(output) - 1
+
         for item in output:
             # if we've gone through all the items, just stop
             if counter >= length:
@@ -642,13 +642,10 @@ def order_plugin_output(pluginOutput, page='front', theID=None):
             if int(item['width']) != 0:
                 if total_width + item['width'] > col_width:
                     item['html'] = '\n</div>\n\n<div class="row">\n' + item['html']
-                    # print 'breaking'
                     total_width = item['width']
-                    needs_break = False  # noqa: F841
                 else:
                     total_width = int(item['width']) + total_width
-            counter = counter + 1
-            # print item['name']+' total: '+str(total_width)
+            counter += 1
     return output
 
 
@@ -656,7 +653,7 @@ def get_report_data(plugins):
     return Report.objects.values_list('name', flat=True)
 
 
-def get_plugin_data(plugins, page='front', the_id=None):
+def get_plugin_data(plugins, group_type='all', group_id=None):
     result = []
     manager = PluginManager()
 
@@ -664,13 +661,13 @@ def get_plugin_data(plugins, page='front', the_id=None):
         name = enabled_plugin.name
         yapsy_plugin = manager.get_plugin_by_name(name)
         plugin_object = yapsy_plugin.plugin_object
-        width = plugin_object.get_widget_width(None)
+        width = plugin_object.get_widget_width(group_type=group_type, group_id=group_id)
         html = ('<div id="plugin-{}" class="col-md-{}">\n'
                 '    <img class="center-block blue-spinner" src="{}"/>\n'
                 '</div>\n'.format(name, width, static('img/blue-spinner.gif')))
         result.append({'name': name, 'width': width, 'html': html})
 
-    return order_plugin_output(result, page, the_id)
+    return order_plugin_output(result, group_type, group_id)
 
 
 def get_machine_detail_plugin_data(machine):

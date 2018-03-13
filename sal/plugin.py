@@ -500,5 +500,5 @@ class PluginManager(object):
 
 # TODO: This can be removed along with the legacy plugin support code
 # at the end of the deprecation period.
-DEPRECATED_TYPES = {
+DEPRECATED_PLUGIN_TYPES = {
     'builtin': Widget, None: Widget, 'machine_detail': DetailPlugin, 'report': ReportPlugin}

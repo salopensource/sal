@@ -20,7 +20,7 @@ from django.shortcuts import get_object_or_404
 
 from sal.decorators import is_global_admin
 from sal.plugin import (BasePlugin, Widget, OldPluginAdapter, PluginManager, DetailPlugin,
-                        ReportPlugin, DEPRECATED_TYPES)
+                        ReportPlugin, DEPRECATED_PLUGIN_TYPES)
 from server.models import *
 from server.text_utils import safe_unicode
 
@@ -538,7 +538,7 @@ def get_active_and_inactive_plugins(plugin_kind='machines'):
         if not isinstance(plugin.plugin_object, plugin_type):
             if not isinstance(plugin.plugin_object, OldPluginAdapter):
                 continue
-            elif DEPRECATED_TYPES[plugin.plugin_object.get_plugin_type()] != plugin_type:
+            elif DEPRECATED_PLUGIN_TYPES[plugin.plugin_object.get_plugin_type()] != plugin_type:
                 continue
 
         try:

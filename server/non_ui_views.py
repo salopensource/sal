@@ -25,7 +25,7 @@ from inventory.models import *
 from models import *
 from sal.decorators import *
 from sal.plugin import (BasePlugin, Widget, DetailPlugin, ReportPlugin, OldPluginAdapter,
-                        PluginManager)
+                        PluginManager, DEPRECATED_PLUGIN_TYPES)
 
 if settings.DEBUG:
     import logging
@@ -137,13 +137,7 @@ def process_plugin(request, plugin_name, group_type='all', group_id=None):
     # TODO: This is to handle old-school plugins. It can be removed at
     # the next major version.
     if isinstance(plugin_object, OldPluginAdapter):
-        plugin_type = plugin_object.get_plugin_type(None)
-        if plugin_type == 'machine_detail':
-            model = MachineDetailPlugin
-        elif plugin_type == 'report':
-            model = Report
-        else:
-            model = Plugin
+        model = DEPRECATED_PLUGIN_TYPES[plugin_object.get_plugin_type()]
     elif isinstance(plugin_object, Widget):
         model = Plugin
     elif isinstance(plugin_object, ReportPlugin):

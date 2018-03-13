@@ -1,16 +1,8 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
+
 from server.models import *
 from django.db import migrations, models
-
-def plugin_enable(request, plugin_name):
-    # only do this if there isn't a plugin already with the name
-    try:
-        plugin = Plugin.objects.get(name=plugin_name)
-    except Plugin.DoesNotExist:
-        plugin = Plugin(name=plugin_name, order=utils.unique_plugin_order())
-        plugin.save()
-    return redirect('plugins_page')
 
 
 def clean_model_names(apps, schema_editor):

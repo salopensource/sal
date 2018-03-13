@@ -1,22 +1,19 @@
-import os
 import re
-from datetime import timedelta
 
-import django.utils.timezone
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
-from django.contrib.staticfiles.templatetags.staticfiles import static
 from django.shortcuts import get_object_or_404, redirect, render
 from django.template.context_processors import csrf
 
 import sal.plugin
-import utils
-from forms import *
-from inventory.models import *
-from models import *
-from non_ui_views import process_plugin
-from sal.decorators import *
+from sal.decorators import required_level, ProfileLevel, access_required, is_global_admin
+from server.forms import (BusinessUnitForm, EditUserBusinessUnitForm, EditBusinessUnitForm,
+                          MachineGroupForm, EditMachineGroupForm, NewMachineForm)
+from server.models import (BusinessUnit, MachineGroup, Machine, UserProfile, Report, Condition,
+                           UpdateHistory, Plugin, PluginScriptSubmission, PluginScriptRow)
+from server.non_ui_views import process_plugin
+from server import utils
 
 if settings.DEBUG:
     import logging

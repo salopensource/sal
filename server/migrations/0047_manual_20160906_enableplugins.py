@@ -5,16 +5,6 @@ from django.db import migrations, models
 from server import utils
 
 
-def plugin_enable(request, plugin_name):
-    # only do this if there isn't a plugin already with the name
-    try:
-        plugin = Plugin.objects.get(name=plugin_name)
-    except Plugin.DoesNotExist:
-        plugin = Plugin(name=plugin_name, order=utils.unique_plugin_order())
-        plugin.save()
-    return redirect('plugins_page')
-
-
 def enable_plugins(apps, schema_editor):
 
     Machine = apps.get_model("server", "Machine")

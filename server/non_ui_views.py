@@ -1,7 +1,6 @@
 import hashlib
 import itertools
 import json
-import os
 import re
 from datetime import datetime, timedelta
 
@@ -13,19 +12,22 @@ import django.utils.timezone
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.core.urlresolvers import reverse
+from django.db.models import Q
 from django.http import (HttpResponse, HttpResponseNotFound, JsonResponse, StreamingHttpResponse)
 from django.http.response import Http404
-from django.shortcuts import get_object_or_404, render
+from django.shortcuts import get_object_or_404
 from django.views.decorators.csrf import csrf_exempt
 
-import utils
-import text_utils
-from forms import *
-from inventory.models import *
-from models import *
-from sal.decorators import *
-from sal.plugin import (BasePlugin, Widget, DetailPlugin, ReportPlugin, OldPluginAdapter,
-                        PluginManager, DEPRECATED_PLUGIN_TYPES)
+from inventory.models import Inventory
+from sal.decorators import key_auth_required
+from sal.plugin import (Widget, ReportPlugin, OldPluginAdapter, PluginManager,
+                        DEPRECATED_PLUGIN_TYPES)
+from server import text_utils
+from server import utils
+from server.models import (Machine, Condition, Fact, HistoricalFact, MachineGroup, UpdateHistory,
+                           UpdateHistoryItem, InstalledUpdate, PendingAppleUpdate,
+                           PluginScriptSubmission, PendingUpdate, Plugin, Report,
+                           MachineDetailPlugin)
 
 if settings.DEBUG:
     import logging
@@ -68,7 +70,7 @@ def tableajax(request, plugin_name, data, group_type='all', group_id=None):
     plugin_object = process_plugin(request, plugin_name, group_type, group_id)
     queryset = plugin_object.get_queryset(
         request, group_type=group_type, group_id=group_id)
-    machines, title = plugin_object.filter_machines(queryset, data)
+    machines, _ = plugin_object.filter_machines(queryset, data)
 
     if len(order_name) != 0:
         if order_direction == 'desc':
@@ -725,8 +727,8 @@ def checkin(request):
                 if 'Facter' in report_data and condition_name.startswith('facter_'):
                     continue
 
-                """ if it's a list (more than one result),
-                we're going to conacetnate it into one comma separated string """
+                # if it's a list (more than one result),
+                # we're going to conacetnate it into one comma separated string.
                 condition_data = text_utils.stringify(condition_data)
 
                 found = False

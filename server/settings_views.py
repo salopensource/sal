@@ -320,7 +320,6 @@ def machine_detail_plugin_enable(request, plugin_name):
         enabled_plugins = MachineDetailPlugin.objects.all()  # noqa: F841
         manager = sal.plugin.PluginManager()
 
-        default_families = ['Darwin', 'Windows', 'Linux', 'ChromeOS']
         plugin = manager.get_plugin_by_name(plugin_name)
         if plugin:
             db_plugin = MachineDetailPlugin(

@@ -323,11 +323,8 @@ def machine_detail_plugin_enable(request, plugin_name):
         default_families = ['Darwin', 'Windows', 'Linux', 'ChromeOS']
         plugin = manager.get_plugin_by_name(plugin_name)
         if plugin:
-            os_families = plugin.plugin_object.get_supported_os_families() or default_families
-
             db_plugin = MachineDetailPlugin(
-                name=plugin_name, order=utils.unique_plugin_order(plugin_type='machine_detail'),
-                os_families=sorted(text_utils.stringify(os_families)))
+                name=plugin_name, order=utils.unique_plugin_order(plugin_type='machine_detail'))
             db_plugin.save()
     return redirect('settings_machine_detail_plugins')
 

@@ -59,24 +59,9 @@ class PluginUtilsTest(TestCase):
 
     def test_remove_missing_plugins(self):
         """Ensure removed from disk are also removed from the DB."""
-        Plugin.objects.create(name='Test', order=0, type='builtin')
+        Plugin.objects.create(name='Test', order=0)
         utils.reload_plugins_model()
         self.assertEqual(len(Plugin.objects.all()), 0)
-
-    def test_misconfigured_plugin_ignored(self):
-        """Plugin instances must use one of a few types.
-
-        Sal ignores it otherwise. Check to make sure this behavior is
-        working.
-        """
-        utils.reload_plugins_model()
-        # In the absence of Mock...
-        all_plugins = sal.plugin.PluginManager().get_all_plugins()
-        all_plugins[0].plugin_object.get_plugin_type = lambda: 'This is not a valid type'
-
-        utils._update_plugin_record(Plugin, all_plugins, {p.name for p in all_plugins})
-        for plugin in Plugin.objects.all():
-            self.assertIn(plugin.type, (i[0] for i in Plugin.PLUGIN_TYPES))
 
     def test_default_plugin_load(self):
         """Ensure that no plugins result in a default loadout."""

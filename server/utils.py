@@ -490,9 +490,6 @@ def reload_plugins_model():
         _update_plugin_record(model, yapsy_plugins, found)
 
 
-# TODO: This is a place to remove plugin `type`.
-# TODO: I don't believe ANY plugin gets the OS family value set correctly. We don't need it in the
-# DB anyway.
 def _update_plugin_record(model, yapsy_plugins, found):
     """Remove absent plugins, and refresh plugin type and description.
 
@@ -519,15 +516,6 @@ def _update_plugin_record(model, yapsy_plugins, found):
 
         plugin_object = plugin.plugin_object
 
-        if hasattr(model, 'type'):
-            try:
-                declared_type = plugin.plugin_object.get_plugin_type()
-            except AttributeError:
-                declared_type = model._meta.get_field('type').default
-
-            dbplugin.type = declared_type
-
-        # TODO: Investigate whether we should include the request in this call.
         dbplugin.description = plugin_object.get_description()
 
         try:

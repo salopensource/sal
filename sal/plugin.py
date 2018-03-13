@@ -54,7 +54,6 @@ class BasePlugin(IPlugin):
         widget_width (int): Plugin's width. Defaults to 4
 
     Public Methods:
-        get_plugin_type
         get_widget_width
         get_description
         get_template
@@ -69,7 +68,6 @@ class BasePlugin(IPlugin):
     description = ''
     only_use_deployed_machines = True
     model = Machine
-    plugin_type = 'base'
     supported_os_families = [OSFamilies.darwin]
     template = ''
     widget_width = 4
@@ -116,10 +114,6 @@ class BasePlugin(IPlugin):
 
     def get_supported_os_families(self, **kwargs):
         return self.supported_os_families
-
-    # TODO: This is on the chopping block.
-    def get_plugin_type(self, *args, **kwargs):
-        return self.plugin_type
 
     def get_widget_width(self, *args, **kwargs):
         return self.widget_width
@@ -279,13 +273,11 @@ class FilterMixin(object):
 
 
 class MachinesPlugin(FilterMixin, BasePlugin):
-
-    plugin_type = 'builtin'
+    pass
 
 
 class DetailPlugin(BasePlugin):
     """Machine Detail plugin class."""
-    plugin_type = 'machine_detail'
 
     def get_queryset(self, request, **kwargs):
         group_id = kwargs.get('group_id', 0)
@@ -298,7 +290,6 @@ class DetailPlugin(BasePlugin):
 
 class ReportPlugin(FilterMixin, BasePlugin):
 
-    plugin_type = 'report'
     widget_width = 12
 
 
@@ -313,7 +304,6 @@ class OldPluginAdapter(BasePlugin):
     def get_template(self, *args, **kwargs):
         return None
 
-    # TODO: This is on the chopping block.
     def get_plugin_type(self, *args, **kwargs):
         try:
             return self.plugin.plugin_type()

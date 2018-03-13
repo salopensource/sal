@@ -143,8 +143,7 @@ class MachineAdmin(admin.ModelAdmin):
 
 
 class MachineDetailPluginAdmin(admin.ModelAdmin):
-    list_display = ('name', 'description', 'os_families')
-    list_filter = ('os_families',)
+    list_display = ('name', 'description')
 
     def get_queryset(self, request):
         """Update db prior to retrieving plugins.
@@ -170,8 +169,7 @@ class PendingUpdateAdmin(admin.ModelAdmin):
 
 
 class PluginAdmin(admin.ModelAdmin):
-    list_display = ('name', 'description', 'type')
-    list_filter = ('type',)
+    list_display = ('name', 'description')
 
     def get_queryset(self, request):
         """Update db prior to retrieving plugins.

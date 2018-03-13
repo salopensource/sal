@@ -1,6 +1,32 @@
+"""Plugin classes and helpers
+
+This module contains the base plugin class (`BasePlugin`), from which
+the three actual-plugin classes are derived: `Widget`, `DetailPlugin`,
+and `ReportPlugin`.
+
+It also provides a manager for locating plugin modules that have been
+properly deployed into the Sal plugin directories, with .yapsy info
+files.
+
+The `OldPluginAdapter` class allows the `PluginManager` and all client
+code to adapt old-style plugins to the newer API and subsequently only
+use the new API.
+
+Finally, an `OSFamilies` class exists simply as a way to protect against
+typos in plugin code when specifying OS family names.
+
+Public Classes:
+    OSFamilies
+    Widget
+    DetailPlugin
+    ReportPlugin
+    PluginManager
+    OldPluginWrapper
+"""
+
+
 import logging
 import os
-import re
 
 from yapsy.IPlugin import IPlugin
 import yapsy.PluginManager
@@ -25,12 +51,6 @@ class OSFamilies(object):
     darwin = "Darwin"
     linux = "Linux"
     windows = "Windows"
-
-
-class PluginTypes(object):
-    builtin = "builtin"
-    machine_detail = "machine_detail"
-    report = "report"
 
 
 class BasePlugin(IPlugin):
@@ -65,6 +85,7 @@ class BasePlugin(IPlugin):
         super_get_context: Call this base classes' get_context.
     """
 
+    _db_model = Plugin
     description = ''
     only_use_deployed_machines = True
     model = Machine
@@ -93,19 +114,18 @@ class BasePlugin(IPlugin):
     @property
     def enabled(self):
         try:
-            self._model.objects.get(name=self.name)
+            self._db_model.objects.get(name=self.name)
             return True
-        except self._model.DoesNotExist:
+        except self._db_model.DoesNotExist:
             return False
 
     @property
     def order(self):
         try:
-            db_plugin = self._model.objects.get(name=self.name)
+            db_plugin = self._db_model.objects.get(name=self.name)
             return db_plugin.order
-        except self._model.DoesNotExist:
+        except self._db_model.DoesNotExist:
             return None
-
 
     def get_template(self, *args, **kwargs):
         """Get the plugin's django template.
@@ -295,13 +315,13 @@ class FilterMixin(object):
 
 class Widget(FilterMixin, BasePlugin):
 
-    _model = Plugin
+    _db_model = Plugin
 
 
 class DetailPlugin(BasePlugin):
     """Machine Detail plugin class."""
 
-    _model = MachineDetailPlugin
+    _db_model = MachineDetailPlugin
 
     def get_queryset(self, request, **kwargs):
         group_id = kwargs.get('group_id', 0)
@@ -314,7 +334,7 @@ class DetailPlugin(BasePlugin):
 
 class ReportPlugin(FilterMixin, BasePlugin):
 
-    _model = Report
+    _db_model = Report
     widget_width = 12
 
 
@@ -332,7 +352,7 @@ class OldPluginAdapter(BasePlugin):
         if plugin_type == 'builtin':
             model = Plugin
         elif plugin_type == 'report':
-            model = Reoprt
+            model = Report
         else:
             model = MachineDetailPlugin
 
@@ -387,6 +407,7 @@ class OldPluginAdapter(BasePlugin):
     def filter_machines(self, machines, data):
         if hasattr(self.plugin, 'filter_machines'):
             return self.plugin.filter_machines(machines, data)
+        return machines, data
 
     def widget_content(self, request, **kwargs):
         group_type = kwargs.get('group_type', 'all')
@@ -403,6 +424,14 @@ class OldPluginAdapter(BasePlugin):
 
 
 class PluginManager(object):
+    """Simplifies finding, retrieving, and instantiating plugins
+
+    All plugin instance retrieval should be done through this manager
+    rather than by trying to instantiate plugin code manually.
+
+    Please note; this is separate from the database plugin models,
+    which track the enablement and ordering of plugins.
+    """
 
     def __init__(self):
         self.manager = yapsy.PluginManager.PluginManager()
@@ -411,13 +440,43 @@ class PluginManager(object):
         self.manager.collectPlugins()
 
     def get_plugin_by_name(self, name):
+        """Search the configured plugin sources for a plugin, by name.
+
+        Args:
+            name (str): Name of plugin (from .yapsy file, and the name
+                of the plugin class.
+
+        Returns:
+            Widget, Report, or DetailPlugin instance, or None if no
+            plugin was found with this name.
+        """
         plugin = self.wrap_old_plugins([self.manager.getPluginByName(name)])[0]
         return plugin
 
     def get_all_plugins(self):
+        """Return a list of all plugins found in configured directories.
+
+        This returns plugins of all types; if they're in the configured
+        plugin directory, they will be returned.
+
+        Unlike the Yapsy plugin manager, this method returns just
+        Widget, ReportPlugin, and DetailPlugin instances.
+
+        Returns:
+            List of Widget, ReportPlugin, and DetailPlugin instances.
+        """
         return self.wrap_old_plugins(self.manager.getAllPlugins())
 
     def wrap_old_plugins(self, plugins):
+        """Ignore new plugins, and wrap old-style ones in the new API.
+
+        Args:
+            plugins (list of IPlugin and BasePlugin): Plugins found by
+                the manager.
+
+        Returns:
+            List of plugins conforming to the new-style API.
+        """
         wrapped = []
         for plugin in plugins:
             if plugin.plugin_object and not isinstance(plugin.plugin_object, BasePlugin):

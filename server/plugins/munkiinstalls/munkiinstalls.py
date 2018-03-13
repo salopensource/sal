@@ -10,7 +10,7 @@ NOW = timezone.now()
 STATUSES = ('install', 'pending', 'error')
 
 
-class MunkiInstalls(sal.plugin.MachinesPlugin):
+class MunkiInstalls(sal.plugin.Widget):
 
     description = 'Chart of Munki install activity'
     widget_width = 8

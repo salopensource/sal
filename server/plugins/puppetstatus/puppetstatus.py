@@ -15,7 +15,7 @@ TITLES = {
     'success': 'Machines that have run Puppet succesfully'}
 
 
-class PuppetStatus(sal.plugin.MachinesPlugin):
+class PuppetStatus(sal.plugin.Widget):
 
     description = 'Current status of Puppet'
 

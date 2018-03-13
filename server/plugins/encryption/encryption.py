@@ -21,7 +21,7 @@ TITLES = {
     'desktopsunknown': 'Desktops with Unknown encryption state'}
 
 
-class Encryption(sal.plugin.MachinesPlugin):
+class Encryption(sal.plugin.Widget):
 
     def get_context(self, queryset, **kwargs):
         context = self.super_get_context(queryset, **kwargs)

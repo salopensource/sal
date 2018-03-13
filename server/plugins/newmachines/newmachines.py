@@ -12,7 +12,7 @@ RANGES['This Week'] = TODAY - timedelta(days=7)
 RANGES['This Month'] = TODAY - timedelta(days=30)
 
 
-class NewMachines(sal.plugin.MachinesPlugin):
+class NewMachines(sal.plugin.Widget):
 
     description = 'New machines'
 

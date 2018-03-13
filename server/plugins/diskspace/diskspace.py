@@ -6,7 +6,7 @@ TITLES = {'ok': 'Machines with less than 80% disk utilization',
           'alert': 'Machines with more than 90% disk utilization'}
 
 
-class DiskSpace(sal.plugin.MachinesPlugin):
+class DiskSpace(sal.plugin.Widget):
 
     description = 'Available disk space'
     template = 'plugins/traffic_lights.html'

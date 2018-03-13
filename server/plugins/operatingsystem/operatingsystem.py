@@ -10,7 +10,7 @@ import sal.plugin
 OS_TABLE = OrderedDict(Darwin='macOS', Windows='Windows', Linux='Linux', ChromeOS='Chrome OS')
 
 
-class OperatingSystem(sal.plugin.MachinesPlugin):
+class OperatingSystem(sal.plugin.Widget):
 
     description = 'List of operating system versions'
     template = 'operatingsystem/templates/operatingsystem.html'

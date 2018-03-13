@@ -7,7 +7,7 @@ PLUGIN_Q = Q(pluginscriptsubmission__plugin='XprotectVersion',
              pluginscriptsubmission__pluginscriptrow__pluginscript_name='Version')
 
 
-class XprotectVersion(sal.plugin.MachinesPlugin):
+class XprotectVersion(sal.plugin.Widget):
 
     description = 'Xprotect version'
 

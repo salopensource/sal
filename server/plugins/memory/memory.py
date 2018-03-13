@@ -11,7 +11,7 @@ TITLES = {
     'alert': 'Machines with less than 4GB memory'}
 
 
-class Memory(sal.plugin.MachinesPlugin):
+class Memory(sal.plugin.Widget):
 
     description = 'Installed RAM'
     template = 'plugins/traffic_lights.html'

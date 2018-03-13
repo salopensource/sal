@@ -3,7 +3,7 @@ from django.db.models import Count
 import sal.plugin
 
 
-class SalScriptsVersion(sal.plugin.MachinesPlugin):
+class SalScriptsVersion(sal.plugin.Widget):
 
     description = 'Chart of installed versions of the Sal Scripts'
 

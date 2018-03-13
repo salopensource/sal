@@ -7,7 +7,7 @@ import sal.plugin
 from server.models import PendingUpdate
 
 
-class Pending3rdPartyUpdates(sal.plugin.MachinesPlugin):
+class Pending3rdPartyUpdates(sal.plugin.Widget):
 
     description = 'List of pending third party updates'
     template = 'plugins/pendingupdates.html'

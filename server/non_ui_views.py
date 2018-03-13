@@ -24,7 +24,7 @@ from forms import *
 from inventory.models import *
 from models import *
 from sal.decorators import *
-from sal.plugin import (BasePlugin, MachinesPlugin, DetailPlugin, ReportPlugin, OldPluginAdapter,
+from sal.plugin import (BasePlugin, Widget, DetailPlugin, ReportPlugin, OldPluginAdapter,
                         PluginManager)
 
 if settings.DEBUG:
@@ -142,7 +142,7 @@ def process_plugin(request, plugin_name, group_type='all', group_id=None):
             model = Report
         else:
             model = Plugin
-    elif isinstance(plugin_object, MachinesPlugin):
+    elif isinstance(plugin_object, Widget):
         model = Plugin
     elif isinstance(plugin_object, ReportPlugin):
         model = Report

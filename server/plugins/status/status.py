@@ -30,7 +30,7 @@ STATUSES['deployed_machines'] = ('Deployed Machines', None)
 STATUSES['undeployed_machines'] = ('Undeployed Machines', Q(deployed=False))
 
 
-class Status(sal.plugin.MachinesPlugin):
+class Status(sal.plugin.Widget):
 
     description = 'General status'
     only_use_deployed_machines = False

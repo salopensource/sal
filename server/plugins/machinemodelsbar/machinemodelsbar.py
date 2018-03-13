@@ -7,7 +7,7 @@ import sal.plugin
 from server.models import *
 
 
-class MachineModelsBar(sal.plugin.MachinesPlugin):
+class MachineModelsBar(sal.plugin.Widget):
 
     description = "Machine Models"
     widget_width = 12

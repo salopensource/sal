@@ -11,7 +11,7 @@ PLUGIN_Q = Q(pluginscriptsubmission__plugin='Gatekeeper')
 SCRIPT_Q = Q(pluginscriptsubmission__pluginscriptrow__pluginscript_name='Gatekeeper')
 
 
-class Gatekeeper(sal.plugin.MachinesPlugin):
+class Gatekeeper(sal.plugin.Widget):
 
     def get_context(self, queryset, **kwargs):
         context = self.super_get_context(queryset, **kwargs)

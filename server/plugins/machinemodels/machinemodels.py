@@ -3,7 +3,7 @@ from django.db.models import Count
 import sal.plugin
 
 
-class MachineModels(sal.plugin.MachinesPlugin):
+class MachineModels(sal.plugin.Widget):
     description = 'Chart of machine models'
 
     def get_context(self, machines, **kwargs):

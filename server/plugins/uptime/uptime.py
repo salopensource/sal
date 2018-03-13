@@ -18,7 +18,7 @@ TITLES = {
     'alert': 'Machines with more than 90 days of uptime'}
 
 
-class Uptime(sal.plugin.MachinesPlugin):
+class Uptime(sal.plugin.Widget):
 
     description = 'Current uptime'
     template = 'plugins/traffic_lights.html'

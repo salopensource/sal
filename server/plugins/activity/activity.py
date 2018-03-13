@@ -20,7 +20,7 @@ FILTERS_AND_TITLES = {
     'three_months': (Q(last_checkin__gte=THREE_MONTHS_AGO), 'Machines inactive for over 3 months')}
 
 
-class Activity(sal.plugin.MachinesPlugin):
+class Activity(sal.plugin.Widget):
 
     widget_width = 12
     description = 'Current Munki activity'

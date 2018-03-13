@@ -3,7 +3,7 @@ from django.db.models import Count
 import sal.plugin
 
 
-class MunkiVersion(sal.plugin.MachinesPlugin):
+class MunkiVersion(sal.plugin.Widget):
 
     description = 'Chart of installed versions of Munki'
 

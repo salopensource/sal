@@ -272,7 +272,7 @@ class FilterMixin(object):
         return machines, data
 
 
-class MachinesPlugin(FilterMixin, BasePlugin):
+class Widget(FilterMixin, BasePlugin):
     pass
 
 

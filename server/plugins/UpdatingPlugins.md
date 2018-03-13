@@ -3,7 +3,7 @@ This document helps you in systematically updating your existing Sal plugins to 
 
 1. `import sal.plugin`
   1. (Do not `from sal.plugin import <anything>`, as this will cause yapsy to have issues.
-2. Replace plugin's base class from `IPlugin` to `sal.plugin.MachinesPlugin`, `sal.plugin.DetailPlugin`, or `sal.plugin.ReportPlugin`.
+2. Replace plugin's base class from `IPlugin` to `sal.plugin.Widget`, `sal.plugin.DetailPlugin`, or `sal.plugin.ReportPlugin`.
 3. Remove the yapsy import as well as any other imports that aren't actually being used.
 4. The new plugin class will automatically use `<pluginname>/templates/<pluginname>.html` for its template. Unless there's no way to use a single template, you can remove the `template` selection and loading from the existing `widget_content` method.
 5. `widget_width` and `description` are now class attributes. You can remove these methods.

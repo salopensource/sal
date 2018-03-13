@@ -7,7 +7,7 @@ import sal.plugin
 from server.models import PendingAppleUpdate
 
 
-class PendingAppleUpdates(sal.plugin.MachinesPlugin):
+class PendingAppleUpdates(sal.plugin.Widget):
 
     description = 'List of pending third party updates'
     template = 'plugins/pendingupdates.html'

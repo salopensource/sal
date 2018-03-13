@@ -19,7 +19,7 @@ from django.db.models import Count, Max
 from django.shortcuts import get_object_or_404
 
 from sal.decorators import is_global_admin
-from sal.plugin import (BasePlugin, MachinesPlugin, OldPluginAdapter, PluginManager, DetailPlugin,
+from sal.plugin import (BasePlugin, Widget, OldPluginAdapter, PluginManager, DetailPlugin,
                         ReportPlugin)
 from server.models import *
 from server.text_utils import safe_unicode
@@ -29,7 +29,7 @@ PLUGIN_ORDER = [
     'Activity', 'Status', 'OperatingSystem', 'MunkiVersion', 'Uptime', 'Memory', 'DiskSpace',
     'PendingAppleUpdates', 'Pending3rdPartyUpdates', 'Encryption', 'Gatekeeper', 'Sip',
     'XprotectVersion']
-PLUGIN_MODELS = {'machines': (Plugin, MachinesPlugin), 'report': (Report, ReportPlugin),
+PLUGIN_MODELS = {'machines': (Plugin, Widget), 'report': (Report, ReportPlugin),
                  'machine_detail': (MachineDetailPlugin, DetailPlugin)}
 TRUTHY = {'TRUE', 'YES'}
 FALSY = {'FALSE', 'NO'}

@@ -1,85 +1,70 @@
 #!/usr/bin/python
 
+
+import os
 import subprocess
 import sys
+
 sys.path.append('/usr/local/munki')
 from munkilib import FoundationPlist
-from munkilib import munkicommon
-import os
-import platform
-from distutils.version import LooseVersion
 
 
-def mac_version():
-    v = platform.mac_ver()[0][:-2]
-    return v
-
-
-def get_status(cmd, checkstring):
-    status = 'Disabled'
-    try:
-        output = subprocess.check_output(cmd, stderr=subprocess.STDOUT)
-    except subprocess.CalledProcessError as e:
-        output = str(e.output)
-
-    for line in output.split('\n'):
-        if checkstring in line:
-            status = 'Enabled'
-            break
-    return status
+def main():
+    filevault = fv_status()
+    sip = sip_status()
+    gatekeeper = gatekeeper_status()
+    data = {'Filevault': filevault, 'SIP': sip, 'Gatekeeper': gatekeeper}
+    add_plugin_results('MachineDetailSecurity', data)
 
 
 def fv_status():
     cmd = ['/usr/bin/fdesetup', 'status']
-    return get_status(cmd, 'FileVault is On.')
+    return get_status(cmd, 'FileVault is On.', '/usr/bin/fdesetup')
 
 
 def sip_status():
     cmd = ['/usr/bin/csrutil', 'status']
-    return get_status(cmd, 'System Integrity Protection status: enabled.')
+    return get_status(cmd, 'System Integrity Protection status: enabled.', '/usr/bin/csrutil')
 
 
 def gatekeeper_status():
     cmd = ['/usr/sbin/spctl', '--status']
-    return get_status(cmd, 'assessments enabled')
+    return get_status(cmd, 'assessments enabled', '/usr/sbin/spctl')
 
 
-def main():
-
-    if os.path.exists('/usr/bin/fdesetup'):
-        filevault = fv_status()
+def get_status(cmd, checkstring, test=''):
+    if test and not os.path.exists(test):
+        status = 'Not Supported'
     else:
-        filevault = 'Not Supported'
+        try:
+            output = subprocess.check_output(cmd, stderr=subprocess.STDOUT)
+        except subprocess.CalledProcessError as error:
+            output = str(error.output)
+        status = 'Enabled' if checkstring in output else 'Disabled'
 
-    if os.path.exists('/usr/bin/csrutil'):
-        sip = sip_status()
-    else:
-        sip = 'Not Supported'
+    return status
 
-    # Yes, I know it came in 10.7.5, but eh. I don't care, I'm lazy
-    if os.path.exists('/usr/sbin/spctl'):
-        gatekeeper = gatekeeper_status()
-    else:
-        gatekeeper = 'Not Supported'
 
+def add_plugin_results(plugin, data, historical=False):
+    """Add data to the shared plugin results plist.
+
+    This function creates the shared results plist file if it does not
+    already exist; otherwise, it adds the entry by appending.
+
+    Args:
+        plugin (str): Name of the plugin returning data.
+        data (dict): Dictionary of results.
+        historical (bool): Whether to keep only one record (False) or
+            all results (True). Optional, defaults to False.
+    """
     plist_path = '/usr/local/sal/plugin_results.plist'
-
     if os.path.exists(plist_path):
-        plist = FoundationPlist.readPlist(plist_path)
+        plugin_results = FoundationPlist.readPlist(plist_path)
     else:
-        plist = []
-    result = {}
-    result['plugin'] = 'MachineDetailSecurity'
-    result['historical'] = False
-    data = {}
+        plugin_results = []
 
-    data['Filevault'] = filevault
-    data['SIP'] = sip
-    data['Gatekeeper'] = gatekeeper
-    result['data'] = data
-    plist.append(result)
-    print plist
-    FoundationPlist.writePlist(plist, plist_path)
+    plugin_results.append({'plugin': plugin, 'historical': historical, 'data': data})
+    FoundationPlist.writePlist(plugin_results, plist_path)
 
 
 if __name__ == '__main__':

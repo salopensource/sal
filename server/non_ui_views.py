@@ -35,13 +35,6 @@ if settings.DEBUG:
 # The database probably isn't going to change while this is loaded.
 IS_POSTGRES = utils.is_postgres()
 
-# This global is a lookup table for converting the group_type param of
-# URLs to the new-style name.
-# TODO (sheagcraig) This can be removed at the next major version update.
-DEPRECATED_PAGES = {
-    'all': 'front', 'business_unit': 'bu_dashboard', 'machine_group': 'group_dashboard',
-    'machine': 'machine_detail'}
-
 IGNORED_CSV_FIELDS = ('id', 'machine_group', 'report', 'activity', 'os_family', 'install_log',
                       'install_log_hash')
 

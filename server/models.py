@@ -477,7 +477,6 @@ class PendingAppleUpdate(models.Model):
 
 class Plugin(models.Model):
     name = models.CharField(max_length=255, unique=True)
-    description = models.TextField(blank=True, null=True)
     order = models.IntegerField()
 
     def __unicode__(self):
@@ -489,7 +488,6 @@ class Plugin(models.Model):
 
 class MachineDetailPlugin(models.Model):
     name = models.CharField(max_length=255, unique=True)
-    description = models.TextField(blank=True, null=True)
     order = models.IntegerField()
 
     def __unicode__(self):
@@ -501,7 +499,6 @@ class MachineDetailPlugin(models.Model):
 
 class Report(models.Model):
     name = models.CharField(max_length=255, unique=True)
-    description = models.TextField(blank=True, null=True)
 
     def __unicode__(self):
         return self.name

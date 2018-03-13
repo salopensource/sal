@@ -58,6 +58,13 @@ class BasePlugin(IPlugin):
     """Base class for Sal plugin types to inherit from.
 
     Public Attributes:
+        name (str): Name of the class and .yapsy config file `name`.
+        title (str): Plugin `name` that is de-camelcased into a display
+            name.
+        order (int or None): Plugin's display order value (retrieved from
+            database), or None if it's not enabled.
+        enabled (bool): Whether plugin is enabled for display (retrieved
+            from database).
         description (str): Plugin description. Defaults to ''
         only_use_deployed_machines (bool): Plugins normally only show
             deployed machines (the default is True). Set to False to
@@ -73,6 +80,13 @@ class BasePlugin(IPlugin):
             to a default template; see the `get_template` method for
             more information.
         widget_width (int): Plugin's width. Defaults to 4
+
+        Copied from Yapsy config:
+        path (str): Path to plugin module on the system.
+        copyright (str): Copyright information. Defaults to ''.
+        author (str): Name of the author. Defaults to ''.
+        website (str): URL to a website. Defaults to ''.
+        version (str): Plugin version number. Defaults to '0.1'.
 
     Public Methods:
         get_widget_width
@@ -490,11 +504,19 @@ class PluginManager(object):
         """
         wrapped = []
         for plugin in plugins:
-            if plugin.plugin_object and not isinstance(plugin.plugin_object, BasePlugin):
-                logging.warning(
-                    "Plugin '%s' needs to be updated to subclass a Sal Plugin!", plugin.name)
-                plugin.plugin_object = OldPluginAdapter(plugin.plugin_object)
-            wrapped.append(plugin)
+            if plugin.plugin_object:
+                if not isinstance(plugin.plugin_object, BasePlugin):
+                    logging.warning(
+                        "Plugin '%s' needs to be updated to subclass a Sal Plugin!", plugin.name)
+                    plugin.plugin_object = OldPluginAdapter(plugin.plugin_object)
+
+                # Embed the attributes from the IPluginInfo container on the
+                # plugin instance, and just return those.
+                for attribute in ('path', 'copyright', 'author', 'website', 'version'):
+                    setattr(plugin.plugin_object, attribute, getattr(plugin, attribute))
+
+                wrapped.append(plugin.plugin_object)
+
         return wrapped
 
 

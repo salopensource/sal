@@ -410,7 +410,8 @@ def get_plugin_scripts(plugin, hash_only=False, script_name=None):
     a list!
 
     Args:
-        plugin (yapsy.PluginInfo): Plugin returned from a PluginManager.
+        plugin (sal.plugin.BasePlugin): Plugin returned from a
+            PluginManager.
         hash_only (bool): Return just the hash of the scripts or the
             entire script. Optional, defaults to False.
         script_name (str): Name of script to retrieve. Optional,
@@ -466,7 +467,7 @@ def run_plugin_processing(machine, report_data):
     for enabled_plugin in itertools.chain(enabled_reports, enabled_plugins, enabled_detail_plugins):
         plugin = PluginManager().get_plugin_by_name(enabled_plugin.name)
         if plugin:
-            plugin.plugin_object.checkin_processor(machine, report_data)
+            plugin.checkin_processor(machine, report_data)
 
 
 def load_default_plugins():
@@ -477,28 +478,22 @@ def load_default_plugins():
 
 
 def reload_plugins_model():
-    """Set plugin types and descriptions, and remove now-absent from db."""
+    """Remove now-absent plugins from db, refresh defaults if needed."""
     if settings.DEBUG:
         logging.getLogger('yapsy').setLevel(logging.WARNING)
 
     load_default_plugins()
-
-    yapsy_plugins = PluginManager().get_all_plugins()
-    found = {plugin.name for plugin in yapsy_plugins}
-
+    found = {plugin.name for plugin in PluginManager().get_all_plugins()}
     for model in (Plugin, Report, MachineDetailPlugin):
-        _update_plugin_record(model, yapsy_plugins, found)
+        _update_plugin_record(model, found)
 
 
-def _update_plugin_record(model, yapsy_plugins, found):
-    """Remove absent plugins, and refresh plugin type and description.
-
-    Values are validated prior to saving, and will log errors.
+def _update_plugin_record(model, found):
+    """Remove absent plugins
 
     Args:
         model (plugin subclassing django.db.models.Model): Model to
             refresh and clean.
-        yapsy_plugins (list): Loaded plugins from yapsy manager.
         found (container): Names of plugins found by yapsy manager.
     """
     all_plugins = model.objects.all()
@@ -507,23 +502,6 @@ def _update_plugin_record(model, yapsy_plugins, found):
     for plugin in all_plugins:
         if plugin.name not in found:
             plugin.delete()
-
-    for plugin in yapsy_plugins:
-        try:
-            dbplugin = all_plugins.get(name=plugin.name)
-        except model.DoesNotExist:
-            continue
-
-        plugin_object = plugin.plugin_object
-
-        dbplugin.description = plugin_object.get_description()
-
-        try:
-            dbplugin.full_clean()
-            dbplugin.save()
-        except ValidationError as err:
-            print "Plugin: '{}' could not be validated due to error(s): '{}', removing.".format(
-                dbplugin.name, ", ".join(err.messages))
 
 
 def get_active_and_inactive_plugins(plugin_kind='machines'):
@@ -535,10 +513,10 @@ def get_active_and_inactive_plugins(plugin_kind='machines'):
         # Filter out plugins of other types.
         # TODO: This can be cleaned up once old-school plugins are
         # removed.
-        if not isinstance(plugin.plugin_object, plugin_type):
-            if not isinstance(plugin.plugin_object, OldPluginAdapter):
+        if not isinstance(plugin, plugin_type):
+            if not isinstance(plugin, OldPluginAdapter):
                 continue
-            elif DEPRECATED_PLUGIN_TYPES[plugin.plugin_object.get_plugin_type()] != plugin_type:
+            elif DEPRECATED_PLUGIN_TYPES[plugin.get_plugin_type()] != plugin_type:
                 continue
 
         try:
@@ -641,13 +619,12 @@ def get_plugin_placeholder_markup(plugins, group_type='all', group_id=None):
     for enabled_plugin in display_plugins:
         name = enabled_plugin.name
         yapsy_plugin = manager.get_plugin_by_name(name)
-        plugin_object = yapsy_plugin.plugin_object
         # Skip this plugin if the group's members OS families aren't supported
         # ...but only if this group has any members (group_oses is not empty
-        plugin_os_families = set(plugin_object.get_supported_os_families())
+        plugin_os_families = set(yapsy_plugin.get_supported_os_families())
         if group_oses and not plugin_os_families.intersection(group_oses):
             continue
-        width = plugin_object.get_widget_width(group_type=group_type, group_id=group_id)
+        width = yapsy_plugin.get_widget_width(group_type=group_type, group_id=group_id)
         html = ('<div id="plugin-{}" class="col-md-{}">\n'
                 '    <img class="center-block blue-spinner" src="{}"/>\n'
                 '</div>\n'.format(name, width, static('img/blue-spinner.gif')))
@@ -661,7 +638,7 @@ def get_machine_detail_placeholder_markup(machine):
     result = []
     for enabled_plugin in MachineDetailPlugin.objects.order_by('order'):
         plugin = manager.get_plugin_by_name(enabled_plugin.name)
-        if plugin and machine.os_family in plugin.plugin_object.get_supported_os_families():
+        if plugin and machine.os_family in plugin.get_supported_os_families():
             html = ('<div id="plugin-{}">'
                     '    <img class="center-block blue-spinner" src="{}"/>'
                     '</div>'.format(enabled_plugin.name, static('img/blue-spinner.gif')))

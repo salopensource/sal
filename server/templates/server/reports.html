@@ -45,8 +45,8 @@ $(document).ready(function() {
               {% for plugin in plugins.active %}
               <tr>
                 <td>{{ plugin.1.name }}</td>
-                <td>{{ plugin.0.plugin_object.get_description }}
-                <td>{{ plugin.0.plugin_object.get_supported_os_families|sort|join:', ' }}</td>
+                <td>{{ plugin.0.get_description }}
+                <td>{{ plugin.0.get_supported_os_families|sort|join:', ' }}</td>
                 <td><a href="{% url 'settings_report_disable' plugin.1.id %}" class="btn btn-mini btn-info pull-right" title="Disable Report"><i class="fa fa-minus"></i></a></td>
               </tr>
               {% endfor %}
@@ -79,8 +79,8 @@ $(document).ready(function() {
               {% for plugin in plugins.inactive %}
               <tr>
                 <td>{{ plugin.name }}</td>
-                <td>{{ plugin.plugin_object.get_description }}</td>
-                <td>{{ plugin.plugin_object.get_supported_os_families|sort|join:', ' }}</td>
+                <td>{{ plugin.get_description }}</td>
+                <td>{{ plugin.get_supported_os_families|sort|join:', ' }}</td>
                 <td><a href="{% url 'settings_report_enable' plugin.name %}" title="Enable Report" class="btn btn-mini btn-info pull-right"><i class="fa fa-check"></i></a></td>
               </tr>
               {% endfor %}

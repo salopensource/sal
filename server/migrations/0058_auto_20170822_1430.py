@@ -21,7 +21,7 @@ def update_os_families(apps, schema_editor):
         plugin = manager.get_plugin_by_name(item.name)
         if plugin:
             try:
-                supported_os_families = plugin.plugin_object.get_supported_os_families()
+                supported_os_families = plugin.get_supported_os_families()
             except Exception:
                 supported_os_families = default_families
 

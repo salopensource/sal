@@ -20,7 +20,7 @@ from django.shortcuts import get_object_or_404
 
 from sal.decorators import is_global_admin
 from sal.plugin import (BasePlugin, Widget, OldPluginAdapter, PluginManager, DetailPlugin,
-                        ReportPlugin)
+                        ReportPlugin, DEPRECATED_TYPES)
 from server.models import *
 from server.text_utils import safe_unicode
 
@@ -526,21 +526,26 @@ def _update_plugin_record(model, yapsy_plugins, found):
                 dbplugin.name, ", ".join(err.messages))
 
 
-def get_active_and_inactive_plugins(plugin_kind='main'):
+def get_active_and_inactive_plugins(plugin_kind='machines'):
     output = {'active': [], 'inactive': []}
     model = PLUGIN_MODELS[plugin_kind][0]
+    plugin_type = PLUGIN_MODELS[plugin_kind][1]
 
     for plugin in PluginManager().get_all_plugins():
         # Filter out plugins of other types.
-        if not isinstance(plugin.plugin_object, PLUGIN_MODELS[plugin_kind][1]):
-            continue
+        # TODO: This can be cleaned up once old-school plugins are
+        # removed.
+        if not isinstance(plugin.plugin_object, plugin_type):
+            if not isinstance(plugin.plugin_object, OldPluginAdapter):
+                continue
+            elif DEPRECATED_TYPES[plugin.plugin_object.get_plugin_type()] != plugin_type:
+                continue
 
-        if model:
-            try:
-                db_plugin = model.objects.get(name=plugin.name)
-                output['active'].append((plugin, db_plugin))
-            except model.DoesNotExist:
-                output['inactive'].append(plugin)
+        try:
+            db_plugin = model.objects.get(name=plugin.name)
+            output['active'].append((plugin, db_plugin))
+        except model.DoesNotExist:
+            output['inactive'].append(plugin)
 
     if not model == Report:
         output['active'].sort(key=lambda i: i[1].order)

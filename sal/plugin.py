@@ -41,6 +41,7 @@ from server.models import Machine, Plugin, MachineDetailPlugin, Report
 from server.text_utils import class_to_title
 
 
+# TODO: This can be removed along with the legacy plugin support code
 DEPRECATED_PAGES = {
     'all': 'front', 'business_unit': 'bu_dashboard', 'machine_group': 'group_dashboard',
     'machine': 'machine_detail'}
@@ -314,12 +315,17 @@ class FilterMixin(object):
 
 
 class Widget(FilterMixin, BasePlugin):
+    """Represents plugins displayed on the main and group overview pages
+
+    As this is the most basic plugin class, it is simply composed of
+    the BasePlugin and FilterMixin classes.
+    """
 
     _db_model = Plugin
 
 
 class DetailPlugin(BasePlugin):
-    """Machine Detail plugin class."""
+    """Reports on one machine, displayed on the Machine Detail view."""
 
     _db_model = MachineDetailPlugin
 
@@ -333,6 +339,11 @@ class DetailPlugin(BasePlugin):
 
 
 class ReportPlugin(FilterMixin, BasePlugin):
+    """Reports are a full page view that show more involved data.
+
+    Reports are appropriate for visualizations that utilize multiple
+    charts, built-in menuing, or larger tables.
+    """
 
     _db_model = Report
     widget_width = 12
@@ -485,3 +496,9 @@ class PluginManager(object):
                 plugin.plugin_object = OldPluginAdapter(plugin.plugin_object)
             wrapped.append(plugin)
         return wrapped
+
+
+# TODO: This can be removed along with the legacy plugin support code
+# at the end of the deprecation period.
+DEPRECATED_TYPES = {
+    'builtin': Widget, None: Widget, 'machine_detail': DetailPlugin, 'report': ReportPlugin}

@@ -538,8 +538,7 @@ def get_active_and_inactive_plugins(plugin_kind='main'):
         if model:
             try:
                 db_plugin = model.objects.get(name=plugin.name)
-                plugin = (plugin, db_plugin)
-                output['active'].append(plugin)
+                output['active'].append((plugin, db_plugin))
             except model.DoesNotExist:
                 output['inactive'].append(plugin)
 

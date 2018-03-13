@@ -11,7 +11,7 @@ from django.template import loader
 
 from sal import settings
 from sal.decorators import handle_access, is_global_admin
-from server.models import Machine
+from server.models import Machine, Plugin, MachineDetailPlugin, Report
 from server.text_utils import class_to_title
 
 
@@ -76,6 +76,10 @@ class BasePlugin(IPlugin):
         return self.__class__.__name__
 
     @property
+    def name(self):
+        return repr(self)
+
+    @property
     def title(self):
         """Return the title of the plugin.
 
@@ -85,6 +89,23 @@ class BasePlugin(IPlugin):
         other than the class name.
         """
         return class_to_title(self.__class__.__name__)
+
+    @property
+    def enabled(self):
+        try:
+            self._model.objects.get(name=self.name)
+            return True
+        except self._model.DoesNotExist:
+            return False
+
+    @property
+    def order(self):
+        try:
+            db_plugin = self._model.objects.get(name=self.name)
+            return db_plugin.order
+        except self._model.DoesNotExist:
+            return None
+
 
     def get_template(self, *args, **kwargs):
         """Get the plugin's django template.
@@ -273,11 +294,14 @@ class FilterMixin(object):
 
 
 class Widget(FilterMixin, BasePlugin):
-    pass
+
+    _model = Plugin
 
 
 class DetailPlugin(BasePlugin):
     """Machine Detail plugin class."""
+
+    _model = MachineDetailPlugin
 
     def get_queryset(self, request, **kwargs):
         group_id = kwargs.get('group_id', 0)
@@ -290,6 +314,7 @@ class DetailPlugin(BasePlugin):
 
 class ReportPlugin(FilterMixin, BasePlugin):
 
+    _model = Report
     widget_width = 12
 
 
@@ -300,6 +325,22 @@ class OldPluginAdapter(BasePlugin):
 
     def __init__(self, plugin):
         self.plugin = plugin
+
+    @property
+    def enabled(self):
+        plugin_type = self.get_plugin_type()
+        if plugin_type == 'builtin':
+            model = Plugin
+        elif plugin_type == 'report':
+            model = Reoprt
+        else:
+            model = MachineDetailPlugin
+
+        try:
+            model.objects.get(name=self.name)
+            return True
+        except model.DoesNotExist:
+            return False
 
     def get_template(self, *args, **kwargs):
         return None

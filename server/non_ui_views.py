@@ -218,14 +218,12 @@ def export_csv(request, plugin_name, data, group_type='all', group_id=None):
 @csrf_exempt
 @key_auth_required
 def preflight(request):
-    # osquery plugins aren't a thing anymore.
-    # This is just to stop old clients from barfing.
-    output = {}
-    output['queries'] = {}
+    """osquery plugins aren't a thing anymore.
 
+    This is just to stop old clients from barfing.
+    """
+    output = {'queries': {}}
     return HttpResponse(json.dumps(output))
-
-# It's the new preflight (woo)
 
 
 @csrf_exempt
@@ -235,17 +233,19 @@ def preflight_v2(request):
     # Load in the default plugins if needed
     utils.load_default_plugins()
     manager = PluginManager()
-
     output = []
+    # Old Sal scripts just do a GET; just send everything in that case.
+    os_family = None if request.method != 'POST' else request.POST.get('os_family')
 
     enabled_reports = Report.objects.all()
     enabled_plugins = Plugin.objects.all()
     enabled_detail_plugins = MachineDetailPlugin.objects.all()
     for enabled_plugin in itertools.chain(enabled_reports, enabled_plugins, enabled_detail_plugins):
         plugin = manager.get_plugin_by_name(enabled_plugin.name)
-        scripts = utils.get_plugin_scripts(plugin, hash_only=True)
-        if scripts:
-            output += scripts
+        if os_family is None or os_family in plugin.get_supported_os_families():
+            scripts = utils.get_plugin_scripts(plugin, hash_only=True)
+            if scripts:
+                output += scripts
 
     return HttpResponse(json.dumps(output))
 

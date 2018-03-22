@@ -127,6 +127,13 @@ class GroupMixin(object):
                 kwargs = {filter_path: self.group_instance}
                 queryset = queryset.filter(**kwargs)
 
+        # Remove undeployed machines from the results.
+        # This is a little wild, but it's either this or use an eval to
+        # construct the keyword argument name to filter.
+        deployed_filter = '{}{}deployed'.format(
+            self.access_filter[queryset.model][Machine], '' if queryset.model is Machine else '__')
+        queryset = queryset.filter(**{deployed_filter: True})
+
         return queryset
 
 

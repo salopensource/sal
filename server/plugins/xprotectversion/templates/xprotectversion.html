@@ -1,0 +1,23 @@
+<div class="panel panel-default">
+  <div class="panel-heading">
+    {{ plugin.title }}
+  </div>
+  <!-- /.panel-heading -->
+
+  <div class="panel-body">
+    <table class="table table-striped table-condensed table-bordered">
+    {% for item in data %}
+      {% if item.xprotect_version %}
+        <tr>
+          <td>
+            <a href="{% url 'machine_list' plugin item.xprotect_version group_type group_id %}">
+              {{ item.xprotect_version }}
+              <span class="badge pull-right">{{ item.count }}</span>
+            </a>
+          </td>
+        </tr>
+      {% endif %}
+    {% endfor %}
+    </table>
+  </div>
+</div>

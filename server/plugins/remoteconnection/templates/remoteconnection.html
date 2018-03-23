@@ -1,0 +1,20 @@
+<div class="panel panel-default">
+  <div class="panel-body">
+    <dl class="dl-horizontal">
+      <legend><h5>{{ plugin.title }}</h5></legend>
+      <div class="btn-group" role="group" aria-label="...">
+        {% if ssh_account %}
+        <button type="button"  class="btn btn-info">
+          <span class="glyphicon glyphicon-user" aria-hidden="true"></span> {{ ssh_account }}
+        </button>
+        {% endif %}
+        <button type="button" class="btn btn-default">
+          <span class="glyphicon glyphicon-log-in" aria-hidden="true"></span><a href="{{ vnc_url }}"> VNC</a>
+        </button>
+        <button type="button" class="btn btn-default">
+          <span class="glyphicon glyphicon-log-in" aria-hidden="true"></span><a href="{{ ssh_url }}"> SSH</a>
+        </button>
+      </div>
+    </dl>
+  </div>
+</div>

@@ -1,14 +1,15 @@
+import time
+from distutils.version import LooseVersion
+
+import dateutil.parser
+
 from django import template
 from django.shortcuts import get_object_or_404
-from server.models import *
-from datetime import datetime
-import time
-import dateutil.parser
-from django.template.defaultfilters import date
 from django.utils.timezone import utc
-import pytz
-from django.conf import settings
-from distutils.version import LooseVersion
+
+import server.text_utils
+from server.models import MachineGroup, BusinessUnit
+
 
 register = template.Library()
 
@@ -30,6 +31,12 @@ def humanreadablesize(kbytes):
 
 
 humanreadablesize.is_safe = True
+
+
+@register.filter
+def cat(arg1, arg2):
+    """Concatenate arg1 & arg2."""
+    return "{}{}".format(arg1, arg2)
 
 
 @register.filter
@@ -66,8 +73,6 @@ def machine_group_count(group_id):
 def convert_datetime(string):
     """Converts a string into a date object"""
     the_date = dateutil.parser.parse(string).replace(tzinfo=utc)
-#
-    # return date(the_date, "Y-m-d H:i")
     return the_date
 
 
@@ -82,16 +87,18 @@ def print_timestamp(timestamp):
 
 
 @register.filter
-def flatten_and_sort_list(the_list):
-    output = ''
-    counter = 1
-    for item in sorted(the_list):
-        if counter == 1:
-            output = item
-        else:
-            output = output + ', ' + item
-        counter += 1
-    return output
+def stringify(data):
+    return server.text_utils.stringify(data)
+
+
+@register.filter
+def sort(data):
+    return sorted(data)
+
+
+@register.filter
+def dict_lookup(hash, key):
+    return hash[key]
 
 
 @register.filter

@@ -7,7 +7,7 @@ from django.test import TestCase, RequestFactory
 from django.urls import reverse
 
 from sal.decorators import *
-from sal.decorators import _get_business_unit as func_get_business_unit
+from sal.decorators import get_business_unit_by as func_get_business_unit
 from server.models import *
 
 

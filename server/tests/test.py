@@ -3,6 +3,8 @@
 
 from django.test import TestCase
 
+import sal.plugin
+from server import text_utils
 from server import utils
 from server.models import *
 
@@ -14,10 +16,10 @@ class UtilsTest(TestCase):
         """Ensure non-collection condition data is only str converted."""
         # Unicode
         catalogs = u'testing'
-        result = utils.listify_condition_data(catalogs)
+        result = text_utils.stringify(catalogs)
         self.assertEqual(result, catalogs)
         # TODO: Py3 will change this, as str = unicode in py2. Also, the
-        # only current clients of listify_condition_data encode unicode
+        # only current clients of stringify encode unicode
         # prior to ORM object creation. If we can't store unicode in the
         # db, then we can encode here. But really we should be able to
         # store unicode and let Django do the work of encoding it when
@@ -26,29 +28,29 @@ class UtilsTest(TestCase):
 
         # str
         catalogs = 'testing'
-        self.assertEqual(utils.listify_condition_data(catalogs), catalogs)
+        self.assertEqual(text_utils.stringify(catalogs), catalogs)
 
         # Bool, int, float, dict
         tests = (False, 5, 5.0, {'a': 'test'})
         for test in tests:
-            self.assertEqual(utils.listify_condition_data(test), str(test))
+            self.assertEqual(text_utils.stringify(test), str(test))
 
     def test_listify_list(self):
         """Ensure condition list data can be converted to strings."""
         catalogs = ['testing', 'phase', 'production']
-        result = utils.listify_condition_data(catalogs)
+        result = text_utils.stringify(catalogs)
         self.assertEqual(result, ', '.join(catalogs))
 
     def test_listify_dict(self):
         """Ensure dict condition data can be converted to strings."""
         catalogs = ['testing', 'phase', {'key': 'value'}]
-        result = utils.listify_condition_data(catalogs)
+        result = text_utils.stringify(catalogs)
         self.assertEqual(result, "testing, phase, {'key': 'value'}")
 
     def test_listify_non_str_types(self):
         """Ensure nested non-str types are converted."""
         catalogs = [5, 5.0, {'a': 'test'}]
-        result = utils.listify_condition_data(catalogs)
+        result = text_utils.stringify(catalogs)
         self.assertEqual(result, "5, 5.0, {'a': 'test'}")
 
 
@@ -57,24 +59,9 @@ class PluginUtilsTest(TestCase):
 
     def test_remove_missing_plugins(self):
         """Ensure removed from disk are also removed from the DB."""
-        Plugin.objects.create(name='Test', order=0, type='builtin')
+        Plugin.objects.create(name='Test', order=0)
         utils.reload_plugins_model()
         self.assertEqual(len(Plugin.objects.all()), 0)
-
-    def test_misconfigured_plugin_ignored(self):
-        """Plugin instances must use one of a few types.
-
-        Sal ignores it otherwise. Check to make sure this behavior is
-        working.
-        """
-        utils.reload_plugins_model()
-        # In the absence of Mock...
-        all_plugins = utils.get_all_plugins()
-        all_plugins[0].plugin_object.plugin_type = lambda: 'This is not a valid type'
-
-        utils._update_plugin_record(Plugin, all_plugins, {p.name for p in all_plugins})
-        for plugin in Plugin.objects.all():
-            self.assertIn(plugin.type, (i[0] for i in Plugin.PLUGIN_TYPES))
 
     def test_default_plugin_load(self):
         """Ensure that no plugins result in a default loadout."""

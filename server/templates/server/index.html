@@ -13,7 +13,7 @@ $( document ).ready(function() {
 
    $.ajaxWithRetries(
     {
-        url: "{% url 'plugin_load_front' widget.name %}",
+        url: "{% url 'load_plugin' widget.name 'all' 0 %}",
         error: function(){
             console.log('{{ widget.name }} Failed');
         },
@@ -59,7 +59,7 @@ $( document ).ready(function() {
     </a>
     <ul class="dropdown-menu dropdown-plugin">
         {% for report in reports %}
-        <li><a href="{% url 'report_load_front' report.name %}">{{report.title}}</a></li>
+          <li><a href="{% url 'report_load' report 'all' 0 %}">{{ report }}</a></li>
         {% endfor %}
     </ul>
     <!-- /.dropdown-plugin -->

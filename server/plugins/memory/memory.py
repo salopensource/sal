@@ -1,82 +1,41 @@
-from yapsy.IPlugin import IPlugin
-
-from django.db.models import Count
-from django.shortcuts import get_object_or_404
-from django.template import Context, loader
-
-import server.utils as utils
-from server.models import *
+import sal.plugin
 
 
-mem_4_gb = 4 * 1024 * 1024
-mem_415_gb = 4.15 * 1024 * 1024
-mem_775_gb = 7.75 * 1024 * 1024
-mem_8_gb = 8 * 1024 * 1024
+GB = 1024 ** 2
+MEM_4_GB = 4 * GB
+MEM_775_GB = 7.75 * GB
+MEM_8_GB = 8 * GB
+TITLES = {
+    'ok': 'Machines with more than 8GB memory',
+    'warning': 'Machines with between 4GB and 8GB memory',
+    'alert': 'Machines with less than 4GB memory'}
 
 
-class Memory(IPlugin):
-    def plugin_type(self):
-        return 'builtin'
+class Memory(sal.plugin.Widget):
 
-    def widget_width(self):
-        return 4
+    description = 'Installed RAM'
+    template = 'plugins/traffic_lights.html'
 
-    def get_description(self):
-        return 'Installed RAM'
+    def get_context(self, machines, **kwargs):
+        context = self.super_get_context(machines, **kwargs)
+        context['ok_count'] = self._filter(machines, 'ok').count()
+        context['ok_label'] = '8GB +'
+        context['warning_count'] = self._filter(machines, 'warning').count()
+        context['warning_label'] = '4GB +'
+        context['alert_count'] = self._filter(machines, 'alert').count()
+        context['alert_label'] = '< 4GB'
+        return context
 
-    def widget_content(self, page, machines=None, theid=None):
-        if page == 'front':
-            t = loader.get_template('plugins/traffic_lights_front.html')
+    def filter(self, machines, data):
+        if data not in TITLES:
+            return None, None
+        return self._filter(machines, data), TITLES[data]
 
-        if page == 'bu_dashboard':
-            t = loader.get_template('plugins/traffic_lights_id.html')
-
-        if page == 'group_dashboard':
-            t = loader.get_template('plugins/traffic_lights_id.html')
-
-        try:
-            mem_ok = machines.filter(memory_kb__gte=mem_8_gb).count()
-        except Exception:
-            mem_ok = 0
-        try:
-            mem_warning = machines.filter(memory_kb__range=[mem_4_gb, mem_775_gb]).count()
-        except Exception:
-            mem_warning = 0
-
-        try:
-            mem_alert = machines.filter(memory_kb__lt=mem_4_gb).count()
-        except Exception:
-            mem_alert = 0
-
-        c = Context({
-            'title': 'Memory',
-            'ok_label': '8GB +',
-            'ok_count': mem_ok,
-            'warning_label': '4GB +',
-            'warning_count': mem_warning,
-            'alert_label': '< 4GB',
-            'alert_count': mem_alert,
-            'plugin': 'Memory',
-            'theid': theid,
-            'page': page
-        })
-        return t.render(c)
-
-    def filter_machines(self, machines, data):
+    def _filter(self, machines, data):
         if data == 'ok':
-            machines = machines.filter(memory_kb__gte=mem_8_gb)
-            title = 'Machines with more than 8GB memory'
-
+            machines = machines.filter(memory_kb__gte=MEM_8_GB)
         elif data == 'warning':
-            machines = machines.filter(memory_kb__range=[mem_4_gb, mem_775_gb])
-            title = 'Machines with between 4GB and 8GB memory'
-
+            machines = machines.filter(memory_kb__range=[MEM_4_GB, MEM_775_GB])
         elif data == 'alert':
-            machines = machines.filter(memory_kb__lt=mem_4_gb)
-            title = 'Machines with less than 4GB memory'
-
-        else:
-            machines = None
-            title = None
-
-        return machines, title
+            machines = machines.filter(memory_kb__lt=MEM_4_GB)
+        return machines

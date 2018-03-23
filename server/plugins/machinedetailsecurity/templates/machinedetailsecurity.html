@@ -1,13 +1,25 @@
 <div class="panel panel-default">
   <div class="panel-body">
     <dl class="dl-horizontal">
-      <legend><h5 class"text-uppercase">Security</h5></legend>
+      <legend><h5 class"text-uppercase">{{ plugin.title }}</h5></legend>
       <dt>FileVault</dt>
-      <dd>{{fv_status}}</dd>
+      <dd><span class="glyphicon 
+        {% if fv_status == 'Enabled' %}glyphicon-ok text-success
+        {% elif fv_status == 'Disabled' %}glyphicon-ban-circle text-danger
+        {% else %}glyphicon-warning-sign text-warning{% endif %}"
+        aria-hidden="true"></span> {{ fv_status }}</dd>
       <dt>Gatekeeper</dt>
-      <dd>{{gatekeeper_status}}</dd>
+      <dd><span class="glyphicon 
+        {% if gatekeeper_status == 'Enabled' %}glyphicon-ok text-success
+        {% elif gatekeeper_status == 'Disabled' %}glyphicon-ban-circle text-danger
+        {% else %}glyphicon-warning-sign text-warning{% endif %}"
+        aria-hidden="true"></span> {{ gatekeeper_status }}</dd>
       <dt>SIP</dt>
-      <dd>{{sip_status}}</dd>
+      <dd><span class="glyphicon 
+        {% if sip_status == 'Enabled' %}glyphicon-ok text-success
+        {% elif sip_status == 'Disabled' %}glyphicon-ban-circle text-danger
+        {% else %}glyphicon-warning-sign text-warning{% endif %}"
+        aria-hidden="true"></span> {{ sip_status }}</dd>
     </dl>
   </div>
 </div>

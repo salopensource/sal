@@ -26,6 +26,7 @@ from datatableview.views import DatatableView
 
 # local Django
 from models import Application, Inventory, InventoryItem, Machine
+from server import text_utils
 from server import utils
 from sal.decorators import *
 from server.models import BusinessUnit, MachineGroup, Machine  # noqa: F811
@@ -536,7 +537,7 @@ def inventory_submit(request):
             compression_type = 'base64'
         if compressed_inventory:
             compressed_inventory = compressed_inventory.replace(" ", "+")
-            inventory_str = utils.decode_to_string(compressed_inventory, compression_type)
+            inventory_str = text_utils.decode_to_string(compressed_inventory, compression_type)
             try:
                 inventory_list = plistlib.readPlistFromString(inventory_str)
             except Exception:

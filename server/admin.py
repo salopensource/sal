@@ -143,14 +143,13 @@ class MachineAdmin(admin.ModelAdmin):
 
 
 class MachineDetailPluginAdmin(admin.ModelAdmin):
-    list_display = ('name', 'description', 'os_families')
-    list_filter = ('os_families',)
+    list_display = ('name',)
 
     def get_queryset(self, request):
         """Update db prior to retrieving plugins.
 
         Views listing MachineDetailPlugins must first update the list of
-        installed plugins and update their descriptions and types.
+        installed plugins.
         """
         reload_plugins_model()
         return super(MachineDetailPluginAdmin, self).get_queryset(request)
@@ -170,14 +169,13 @@ class PendingUpdateAdmin(admin.ModelAdmin):
 
 
 class PluginAdmin(admin.ModelAdmin):
-    list_display = ('name', 'description', 'type')
-    list_filter = ('type',)
+    list_display = ('name',)
 
     def get_queryset(self, request):
         """Update db prior to retrieving plugins.
 
         Views listing Plugins must first update the list of
-        installed plugins and update their descriptions and types.
+        installed plugins.
         """
         reload_plugins_model()
         return super(PluginAdmin, self).get_queryset(request)
@@ -196,13 +194,13 @@ class PluginScriptSubmissionAdmin(admin.ModelAdmin):
 
 
 class ReportAdmin(admin.ModelAdmin):
-    list_display = ('name', 'description')
+    list_display = ('name',)
 
     def get_queryset(self, request):
         """Update db prior to retrieving plugins.
 
         Views listing MachineDetailPlugins must first update the list of
-        installed plugins and update their descriptions and types.
+        installed plugins.
         """
         reload_plugins_model()
         return super(ReportAdmin, self).get_queryset(request)

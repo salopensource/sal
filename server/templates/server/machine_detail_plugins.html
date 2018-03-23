@@ -1,114 +1,111 @@
 {% extends "base.html" %}
 {% load i18n %}
 {% load dashboard_extras %}
+
 {% block title %}Sal - {{ machine.hostname }}{% endblock %}
+
 {% block script %}
 <script type="text/javascript" charset="utf-8">
-    $(document).ready(function() {
-        $('.groupList').DataTable({
-            "lengthMenu": [[20, 50, -1], [20, 50, "All"]],
-            'columnDefs': [{
-                'orderable': false,
-                'targets': [-1, -2, -3]
-            }]
-        });
-    } );
+$(document).ready(function() {
+    $('.groupList').DataTable({
+        "lengthMenu": [[20, 50, -1], [20, 50, "All"]],
+        'columnDefs': [{
+            'orderable': false,
+            'targets': [-1, -2, -3]
+        }]
+    });
+} );
 </script>
 {% endblock %}
 
 {% block nav %}
-        <li><a href="{% url 'settings_page' %}"><i class="fa-chevron-left fa fa-fw"></i> Back</a></li>
-        <li><a href="{% url 'plugins_page' %}"><i class="fa-th fa fa-fw"></i> Widgets</a></li>
-        <li><a href="{% url 'settings_machine_detail_plugins' %}"><i class="fa-laptop fa fa-fw"></i> Machine Detail Widgets</a></li>
-        <li><a href="{% url 'settings_reports' %}"><i class="fa-th-large fa fa-fw"></i> Reports</a></li>
-
+<li><a href="{% url 'settings_page' %}"><i class="fa-chevron-left fa fa-fw"></i> Back</a></li>
+<li><a href="{% url 'plugins_page' %}"><i class="fa-th fa fa-fw"></i> Widgets</a></li>
+<li><a href="{% url 'settings_machine_detail_plugins' %}"><i class="fa-laptop fa fa-fw"></i> Machine Detail Widgets</a></li>
+<li><a href="{% url 'settings_reports' %}"><i class="fa-th-large fa fa-fw"></i> Reports</a></li>
 {% endblock %}
 
 {% block content %}
 <div class="row">
-    <div class="col-md-12">
-        <div class="panel panel-default">
-        <div class="panel-header">
-                    <h3>&nbsp; Enabled Machine Detail Widgets</h3>
+  <div class="col-md-12">
+    <div class="panel panel-default">
+      <div class="panel-header">
+        <h3>&nbsp; Enabled Machine Detail Widgets</h3>
+      </div>
+      <div class="panel-body">
+        <div class="table-responsive">
+          <table class="groupList table table-striped table-condensed">
+            <thead>
+              <tr>
+                <th>Order</th>
+                <th>Plugin</th>
+                <th>Description</th>
+                <th>Operating System Family </th>
+                <th></th>
+                <th></th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for plugin in plugins.active %}
+              <tr>
+                <td>{{ plugin.1.order}}</td>
+                <td>{{ plugin.1.name }}</td>
+                <td>{{ plugin.0.get_description }}</td>
+                <td>{{ plugin.0.get_supported_os_families|sort|join:', ' }}</td>
+                <td><a href="{% url 'machine_detail_plugin_disable' plugin.1.id %}" class="btn btn-mini btn-info pull-right" title="Disable Machine Detail Plugin"><i class="fa fa-minus"></i></a></td>
+                {% if forloop.first %}
+                <td></td>
+                {% else %}
+                <td><a href="{% url 'machine_detail_plugin_minus' plugin.1.id %}" class="btn btn-mini btn-info pull-right" title="Move Up"><i class="fa fa-chevron-up"></i></a></td>
+                {% endif %}
+                {% if forloop.last %}
+                <td></td>
+                {% else %}
+                <td><a href="{% url 'machine_detail_plugin_plus' plugin.1.id %}" class="btn btn-mini btn-info pull-right" title="Move Down"><i class="fa fa-chevron-down"></i></a></td>
+                {% endif %}
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
         </div>
-        <div class="panel-body">
-            <div class="table-responsive">
-                <table class="groupList table table-striped table-condensed">
-                        <thead>
-                        <tr>
-                          <th>Order</th>
-                          <th>Plugin</th>
-                          <th>
-                              Operating System Family
-                          </th>
-                          <th>Description</th>
-                          <th></th>
-                          <th></th>
-                          <th></th>
-                        </tr>
-                    </thead>
-                        <tbody>
-                        {% for plugin in enabled_plugins.all %}
-                        <tr>
-                            <td>{{ plugin.order}}</td>
-                            <td>{{ plugin.name }}</td>
-                            <td>
-                                {{ plugin.os_families}}
-                            </td>
-                            <td>{{ plugin.description }}</td>
-                            <td><a href="{% url 'machine_detail_plugin_disable' plugin.id %}" class="btn btn-mini btn-info pull-right" title="Disable Machine Detail Plugin"><i class="fa fa-minus"></i></a></td>
-                            {% if forloop.first %}
-                            <td></td>
-                            {% else %}
-                            <td><a href="{% url 'machine_detail_plugin_minus' plugin.id %}" class="btn btn-mini btn-info pull-right" title="Move Up"><i class="fa fa-chevron-up"></i></a></td>
-                            {% endif %}
-                            {% if forloop.last %}
-                            <td></td>
-                            {% else %}
-                            <td><a href="{% url 'machine_detail_plugin_plus' plugin.id %}" class="btn btn-mini btn-info pull-right" title="Move Down"><i class="fa fa-chevron-down"></i></a></td>
-                            {% endif %}
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        </div>
-        </div>
+      </div>
     </div>
+  </div>
 </div>
 
-
 <div class="row">
-    <div class="col-md-12">
-        <div class="panel panel-default">
-        <div class="panel-header">
-                    <h3>&nbsp; Disabled Machine Detail Widgets</h3>
-        </div>
-        <div class="panel-body">
-            <div class="table-responsive">
-                <table class="groupList table table-striped table-condensed">
-                        <thead>
-                        <tr>
-                          <th>Plugin</th>
-                          <th></th>
-                        </tr>
-                    </thead>
-                        <tbody>
+  <div class="col-md-12">
+    <div class="panel panel-default">
+      <div class="panel-header">
+        <h3>&nbsp; Disabled Machine Detail Widgets</h3>
+      </div>
+      <div class="panel-body">
+        <div class="table-responsive">
+          <table class="groupList table table-striped table-condensed">
+            <thead>
+              <tr>
+                <th>Plugin</th>
+                <th>Description</th>
+                <th>Operating System Family </th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
 
-                        {% for plugin in disabled_plugins %}
-                        <tr>
-                            <td>{{ plugin.name }}</td>
-                            <td>
-                                {{ plugin.os_families|flatten_and_sort_list}}
-                            </td>
-                            <td><a href="{% url 'machine_detail_plugin_enable' plugin.name %}" title="Enable Plugin" class="btn btn-mini btn-info pull-right"><i class="fa fa-check"></i></a></td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
+              {% for plugin in plugins.inactive %}
+              <tr>
+                <td>{{ plugin.name }}</td>
+                <td>{{ plugin.get_description }}</td>
+                <td>{{ plugin.get_supported_os_families|sort|join:', ' }}</td>
+                <td><a href="{% url 'machine_detail_plugin_enable' plugin.name %}" title="Enable Plugin" class="btn btn-mini btn-info pull-right"><i class="fa fa-check"></i></a></td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
         </div>
-        </div>
+      </div>
     </div>
+  </div>
 </div>
 {% endblock %}

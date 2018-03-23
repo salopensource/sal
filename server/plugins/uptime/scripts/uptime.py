@@ -1,13 +1,21 @@
 #!/usr/bin/python
 
-import subprocess
-import time
-import sys
-sys.path.append('/usr/local/munki')
-from munkilib import FoundationPlist
-from munkilib import munkicommon
+
 import os
 import re
+import subprocess
+import sys
+import time
+
+sys.path.append('/usr/local/munki')
+from munkilib import FoundationPlist
+
+
+def main():
+    uptime_seconds = get_uptime()
+    data = {'UptimeDays': uptime_seconds / 60 / 60 / 24,
+            'UptimeSeconds': uptime_seconds}
+    add_plugin_results('Uptime', data)
 
 
 def get_uptime():
@@ -20,25 +28,26 @@ def get_uptime():
     return up if up > 0 else -1
 
 
-def main():
-    uptime_seconds = get_uptime()
+def add_plugin_results(plugin, data, historical=False):
+    """Add data to the shared plugin results plist.
 
+    This function creates the shared results plist file if it does not
+    already exist; otherwise, it adds the entry by appending.
+
+    Args:
+        plugin (str): Name of the plugin returning data.
+        data (dict): Dictionary of results.
+        historical (bool): Whether to keep only one record (False) or
+            all results (True). Optional, defaults to False.
+    """
     plist_path = '/usr/local/sal/plugin_results.plist'
-
     if os.path.exists(plist_path):
-        plist = FoundationPlist.readPlist(plist_path)
+        plugin_results = FoundationPlist.readPlist(plist_path)
     else:
-        plist = []
-    result = {}
-    result['plugin'] = 'Uptime'
-    result['historical'] = False
-    data = {}
+        plugin_results = []
 
-    data['UptimeDays'] = uptime_seconds / 60 / 60 / 24
-    data['UptimeSeconds'] = uptime_seconds
-    result['data'] = data
-    plist.append(result)
-    FoundationPlist.writePlist(plist, plist_path)
+    plugin_results.append({'plugin': plugin, 'historical': historical, 'data': data})
+    FoundationPlist.writePlist(plugin_results, plist_path)
 
 
 if __name__ == '__main__':

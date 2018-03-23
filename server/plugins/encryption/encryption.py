@@ -1,12 +1,9 @@
-from yapsy.IPlugin import IPlugin
+from collections import OrderedDict
 
 from django.conf import settings
-from django.db.models import Count, Q
-from django.shortcuts import get_object_or_404
-from django.template import Context, loader
+from django.db.models import Q
 
-import server.utils as utils
-from server.models import *
+import sal.plugin
 
 
 plugin_q = Q(pluginscriptsubmission__plugin='Encryption')
@@ -15,79 +12,61 @@ enabled_q = Q(pluginscriptsubmission__pluginscriptrow__pluginscript_data='Enable
 disabled_q = Q(pluginscriptsubmission__pluginscriptrow__pluginscript_data='Disabled')
 portable_q = Q(machine_model__contains='Book')
 
+TITLES = {
+    'laptopsok': 'Laptops with encryption enabled',
+    'desktopsok': 'Desktops with encryption enabled',
+    'laptopsalert': 'Laptops without encryption enabled',
+    'desktopsalert': 'Desktops without encryption enabled',
+    'laptopsunknown': 'Laptops with Unknown encryption state',
+    'desktopsunknown': 'Desktops with Unknown encryption state'}
 
-class Encryption(IPlugin):
 
-    def widget_width(self):
-        return 4
+class Encryption(sal.plugin.Widget):
 
-    def plugin_type(self):
-        return 'builtin'
+    def get_context(self, queryset, **kwargs):
+        context = self.super_get_context(queryset, **kwargs)
 
-    def widget_content(self, page, machines=None, theid=None):
-        show_desktops = getattr(settings, 'ENCRYPTION_SHOW_DESKTOPS', False)
-        template_page = page if page == 'front' else 'id'
-        machine_type = 'desktops' if show_desktops else 'laptops'
-        template = loader.get_template(
-            'encryption/templates/{}_{}.html'.format(template_page, machine_type))
+        context['show_desktops'] = getattr(settings, 'ENCRYPTION_SHOW_DESKTOPS', False)
 
-        laptops = machines.filter(portable_q)
-        desktops = machines.exclude(portable_q)
+        laptops = OrderedDict()
+        laptops['ok'] = self._filter(queryset, 'laptopsok').count()
+        laptops['alert'] = self._filter(queryset, 'laptopsalert').count()
+        laptops['unknown'] = (
+            queryset.filter(portable_q).count() - laptops['ok'] - laptops['alert'])
+        context['results'] = {'Laptops': laptops}
 
-        laptop_ok = laptops.filter(plugin_q, name_q, enabled_q).count()
-        desktop_ok = desktops.filter(plugin_q, name_q, enabled_q).count()
+        if context['show_desktops']:
+            desktops = OrderedDict()
+            desktops['ok'] = self._filter(queryset, 'desktopsok').count()
+            desktops['alert'] = self._filter(queryset, 'desktopsalert').count()
+            desktops['unknown'] = (
+                queryset.exclude(portable_q).count() - desktops['ok'] - desktops['alert'])
+            context['results']['Desktops'] = desktops
+        return context
 
-        laptop_alert = laptops.filter(plugin_q, name_q, disabled_q).count()
-        desktop_alert = desktops.filter(plugin_q, name_q, disabled_q).count()
+    def filter(self, machines, data):
+        if data not in TITLES:
+            return None, None
+        machines = self._filter(machines, data)
+        title = TITLES[data]
+        return machines, title
 
-        laptop_unknown = laptops.count() - laptop_ok - laptop_alert
-        desktop_unknown = desktops.count() - desktop_ok - desktop_alert
-
-        context = {
-            'title': 'Encryption',
-            'laptop_label': 'Laptops',
-            'laptop_ok_count': laptop_ok,
-            'laptop_alert_count': laptop_alert,
-            'laptop_unknown_count': laptop_unknown,
-            'desktop_label': 'Desktops',
-            'desktop_ok_count': desktop_ok,
-            'desktop_alert_count': desktop_alert,
-            'desktop_unknown_count': desktop_unknown,
-            'plugin': 'Encryption',
-            'theid': theid,
-            'page': page
-        }
-        return template.render(context)
-
-    def filter_machines(self, machines, data):
-        if data == 'laptopok':
+    def _filter(self, machines, data):
+        if data == 'laptopsok':
             machines = machines.filter(plugin_q, name_q, enabled_q).filter(portable_q)
-            title = 'Laptops with encryption enabled'
-
-        elif data == 'desktopok':
+        elif data == 'desktopsok':
             machines = machines.filter(plugin_q, name_q, enabled_q).exclude(portable_q)
-            title = 'Desktops with encryption enabled'
-
-        elif data == 'laptopalert':
+        elif data == 'laptopsalert':
             machines = machines.filter(plugin_q, name_q, disabled_q).filter(portable_q)
-            title = 'Laptops without encryption enabled'
-
-        elif data == 'desktopalert':
+        elif data == 'desktopsalert':
             machines = machines.filter(plugin_q, name_q, disabled_q).exclude(portable_q)
-            title = 'Desktops without encryption enabled'
-
-        elif data == 'laptopunk':
+        elif data == 'laptopsunknown':
             machines = machines.exclude(plugin_q, name_q, enabled_q)\
                                .exclude(plugin_q, name_q, disabled_q).filter(portable_q)
-            title = 'Laptops with Unknown encryption state'
-
-        elif data == 'desktopunk':
+        elif data == 'desktopsunknown':
             machines = machines.exclude(plugin_q, name_q, enabled_q)\
                                .exclude(plugin_q, name_q, disabled_q).exclude(portable_q)
-            title = 'Desktops with Unknown encryption state'
-
         else:
             machines = None
-            title = None
 
-        return machines, title
+        return machines

@@ -1,27 +1,33 @@
 import hashlib
+import itertools
 import json
-import os
 import re
 from datetime import datetime, timedelta
 
 import dateutil.parser
 import pytz
 import unicodecsv as csv
-from yapsy.PluginManager import PluginManager
 
 import django.utils.timezone
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.core.urlresolvers import reverse
+from django.db.models import Q
 from django.http import (HttpResponse, HttpResponseNotFound, JsonResponse, StreamingHttpResponse)
-from django.shortcuts import get_object_or_404, render
+from django.http.response import Http404
+from django.shortcuts import get_object_or_404
 from django.views.decorators.csrf import csrf_exempt
 
-import utils
-from forms import *
-from inventory.models import *
-from models import *
-from sal.decorators import *
+from inventory.models import Inventory
+from sal.decorators import key_auth_required
+from sal.plugin import (Widget, ReportPlugin, OldPluginAdapter, PluginManager,
+                        DEPRECATED_PLUGIN_TYPES)
+from server import text_utils
+from server import utils
+from server.models import (Machine, Condition, Fact, HistoricalFact, MachineGroup, UpdateHistory,
+                           UpdateHistoryItem, InstalledUpdate, PendingAppleUpdate,
+                           PluginScriptSubmission, PendingUpdate, Plugin, Report,
+                           MachineDetailPlugin)
 
 if settings.DEBUG:
     import logging
@@ -31,9 +37,12 @@ if settings.DEBUG:
 # The database probably isn't going to change while this is loaded.
 IS_POSTGRES = utils.is_postgres()
 
+IGNORED_CSV_FIELDS = ('id', 'machine_group', 'report', 'activity', 'os_family', 'install_log',
+                      'install_log_hash')
+
 
 @login_required
-def tableajax(request, pluginName, data, page='front', theID=None):
+def tableajax(request, plugin_name, data, group_type='all', group_id=None):
     """Table ajax for dataTables"""
     # Pull our variables out of the GET request
     get_data = request.GET['args']
@@ -58,12 +67,11 @@ def tableajax(request, pluginName, data, page='front', theID=None):
             order_name = column['name']
             break
 
-    if pluginName == 'Status' and data == 'undeployed_machines':
-        deployed = False  # noqa: F841
-    else:
-        deployed = True  # noqa: F841
-    (machines, title) = utils.plugin_machines(request, pluginName, data, page, theID)
-    # machines = machines.filter(deployed=deployed)
+    plugin_object = process_plugin(request, plugin_name, group_type, group_id)
+    queryset = plugin_object.get_queryset(
+        request, group_type=group_type, group_id=group_id)
+    machines, _ = plugin_object.filter_machines(queryset, data)
+
     if len(order_name) != 0:
         if order_direction == 'desc':
             order_string = "-%s" % order_name
@@ -83,7 +91,7 @@ def tableajax(request, pluginName, data, page='front', theID=None):
     return_data = {}
     return_data['draw'] = int(draw)
     return_data['recordsTotal'] = machines.count()
-    return_data['recordsFiltered'] = machines.count()
+    return_data['recordsFiltered'] = return_data['recordsTotal']
 
     return_data['data'] = []
     settings_time_zone = None
@@ -111,131 +119,33 @@ def tableajax(request, pluginName, data, page='front', theID=None):
 
 
 @login_required
-def machine_list(request, pluginName, data, page='front', theID=None):
-    machines, title = utils.plugin_machines(
-        request, pluginName, data, page, theID, get_machines=False)
-    user = request.user
-    page_length = utils.get_setting('datatable_page_length')
-    c = {'user': user, 'plugin_name': pluginName, 'machines': machines, 'req_type': page,
-         'title': title, 'bu_id': theID, 'request': request, 'data': data,
-         'page_length': page_length}
-
-    return render(request, 'server/overview_list_all.html', c)
-
-# Plugin machine list
+def plugin_load(request, plugin_name, group_type='all', group_id=None):
+    plugin_object = process_plugin(request, plugin_name, group_type, group_id)
+    return HttpResponse(
+        plugin_object.widget_content(request, group_type=group_type, group_id=group_id))
 
 
-@login_required
-def plugin_load(request, pluginName, page='front', theID=None):
-    user = request.user
-    # Build the manager
-    manager = PluginManager()
-    # Tell it the default place(s) where to find plugins
-    manager.setPluginPlaces([settings.PLUGIN_DIR, os.path.join(
-        settings.PROJECT_DIR, 'server/plugins')])
-    # Load all plugins
-    manager.collectPlugins()
-    # get a list of machines (either from the BU or the group)
-    if page == 'front':
-        # get all machines
-        if user.userprofile.level == 'GA':
-            machines = Machine.deployed_objects.all()
-        else:
-            machines = Machine.objects.none()
-            for business_unit in user.businessunit_set.all():
-                for group in business_unit.machinegroup_set.all():
-                    machines = machines | group.machine_set.filter(deployed=True)
-    if page == 'bu_dashboard':
-        # only get machines for that BU
-        # Need to make sure the user is allowed to see this
-        business_unit = get_object_or_404(BusinessUnit, pk=theID)
-        machine_groups = MachineGroup.objects.filter(business_unit=business_unit).all()
+def process_plugin(request, plugin_name, group_type='all', group_id=None):
+    plugin = PluginManager().get_plugin_by_name(plugin_name)
 
-        machines = Machine.deployed_objects.filter(machine_group__in=machine_groups)
+    # Ensure that a plugin was instantiated before proceeding.
+    if not plugin:
+        raise Http404
 
-    if page == 'group_dashboard':
-        # only get machines from that group
-        machine_group = get_object_or_404(MachineGroup, pk=theID)
-        # check that the user has access to this
-        machines = Machine.deployed_objects.filter(machine_group=machine_group)
+    # Ensure the request is not for a disabled plugin.
+    # TODO: This is to handle old-school plugins. It can be removed at
+    # the next major version.
+    if isinstance(plugin, OldPluginAdapter):
+        model = DEPRECATED_PLUGIN_TYPES[plugin.get_plugin_type()]
+    elif isinstance(plugin, Widget):
+        model = Plugin
+    elif isinstance(plugin, ReportPlugin):
+        model = Report
+    else:
+        model = MachineDetailPlugin
+        get_object_or_404(model, name=plugin_name)
 
-    if page == 'machine_detail':
-        machines = Machine.objects.get(pk=theID)
-
-    # send the machines and the data to the plugin
-    for plugin in manager.getAllPlugins():
-        if plugin.name == pluginName:
-            html = plugin.plugin_object.widget_content(page, machines, theID)
-
-    return HttpResponse(html)
-
-
-@login_required
-def report_load(request, pluginName, page='front', theID=None):
-    user = request.user
-    business_unit = None
-    machine_group = None
-    # Build the manager
-    manager = PluginManager()
-    # Tell it the default place(s) where to find plugins
-    manager.setPluginPlaces([settings.PLUGIN_DIR, os.path.join(
-        settings.PROJECT_DIR, 'server/plugins')])
-    # Load all plugins
-    manager.collectPlugins()
-    # get a list of machines (either from the BU or the group)
-    if page == 'front':
-        # get all machines
-        if user.userprofile.level == 'GA':
-            machines = Machine.deployed_objects.all()
-        else:
-            machines = Machine.objects.none()
-            for business_unit in user.businessunit_set.all():
-                for group in business_unit.machinegroup_set.all():
-                    machines = machines | group.machine_set.filter(deployed=True)
-    if page == 'bu_dashboard':
-        # only get machines for that BU
-        # Need to make sure the user is allowed to see this
-        business_unit = get_object_or_404(BusinessUnit, pk=theID)
-        machine_groups = MachineGroup.objects.filter(business_unit=business_unit).all()
-
-        machines = Machine.deployed_objects.filter(machine_group=machine_groups)
-
-    if page == 'group_dashboard':
-        # only get machines from that group
-        machine_group = get_object_or_404(MachineGroup, pk=theID)
-        # check that the user has access to this
-        machines = Machine.deployed_objects.filter(machine_group=machine_group)
-
-    if page == 'machine_detail':
-        machines = Machine.objects.get(pk=theID)
-
-    output = ''
-    # send the machines and the data to the plugin
-    for plugin in manager.getAllPlugins():
-        if plugin.name == pluginName:
-            output = plugin.plugin_object.widget_content(page, machines, theID)
-
-    reports = []
-    enabled_reports = Report.objects.all()
-    for enabled_report in enabled_reports:
-        for plugin in manager.getAllPlugins():
-            if enabled_report.name == plugin.name:
-                # If plugin_type isn't set, it can't be a report
-                try:
-                    plugin_type = plugin.plugin_object.plugin_type()
-                except Exception:
-                    plugin_type = 'widget'
-                if plugin_type == 'report':
-                    data = {}
-                    data['name'] = plugin.name
-                    data['title'] = plugin.plugin_object.get_title()
-                    reports.append(data)
-
-                    break
-
-    c = {'user': request.user, 'output': output, 'page': page,
-         'business_unit': business_unit, 'machine_group': machine_group, 'reports': reports}
-    return render(request, 'server/display_report.html', c)
+    return plugin
 
 
 class Echo(object):
@@ -249,15 +159,9 @@ class Echo(object):
 def get_csv_row(machine, facter_headers, condition_headers, plugin_script_headers):
     row = []
     for name, value in machine.get_fields():
-        if name != 'id' and \
-                name != 'machine_group' and \
-                name != 'report' and \
-                name != 'activity' and \
-                name != 'os_family' and \
-                name != 'install_log' and \
-                name != 'install_log_hash':
+        if name not in IGNORED_CSV_FIELDS:
             try:
-                row.append(utils.safe_unicode(value))
+                row.append(text_utils.safe_unicode(value))
             except Exception:
                 row.append('')
 
@@ -275,66 +179,11 @@ def stream_csv(header_row, machines, facter_headers, condition_headers, plugin_s
 
 
 @login_required
-def export_csv(request, pluginName, data, page='front', theID=None):
-    user = request.user
-    title = None
-    # Build the manager
-    manager = PluginManager()
-    # Tell it the default place(s) where to find plugins
-    manager.setPluginPlaces([settings.PLUGIN_DIR, os.path.join(
-        settings.PROJECT_DIR, 'server/plugins')])
-    # Load all plugins
-    manager.collectPlugins()
-    if pluginName == 'Status' and data == 'undeployed_machines':
-        deployed = False
-    else:
-        deployed = True
-    # get a list of machines (either from the BU or the group)
-    if page == 'front':
-        # get all machines
-        if user.userprofile.level == 'GA':
-            machines = Machine.objects.filter(deployed=deployed).defer(
-                'report', 'activity', 'os_family', 'install_log', 'install_log_hash')
-        else:
-            machines = Machine.objects.none().defer('report', 'activity', 'os_family',
-                                                    'install_log', 'install_log_hash')
-            for business_unit in user.businessunit_set.all():
-                for group in business_unit.machinegroup_set.all():
-                    machines = machines | group.machine_set.filter(deployed=deployed)
-    if page == 'bu_dashboard':
-        # only get machines for that BU
-        # Need to make sure the user is allowed to see this
-        business_unit = get_object_or_404(BusinessUnit, pk=theID)
-        machine_groups = MachineGroup.objects.filter(
-            business_unit=business_unit).prefetch_related('machine_set').all()
-
-        if machine_groups.count() != 0:
-            machines = machine_groups[0].machine_set.all()
-            for machine_group in machine_groups[1:]:
-                machines = machines | machine_group.machine_set.filter(deployed=deployed).\
-                    defer('report', 'activity', 'os_family', 'install_log', 'install_log_hash')
-        else:
-            machines = None
-
-    if page == 'group_dashboard':
-        # only get machines from that group
-        machine_group = get_object_or_404(MachineGroup, pk=theID)
-        machines = Machine.objects.filter(
-            machine_group=machine_group).filter(
-            deployed=deployed).defer(
-            'report',
-            'activity',
-            'os_family',
-            'install_log',
-            'install_log_hash')
-
-    if page == 'machine_detail':
-        machines = Machine.objects.get(pk=theID)
-
-    # send the machines and the data to the plugin
-    for plugin in manager.getAllPlugins():
-        if plugin.name == pluginName:
-            (machines, title) = plugin.plugin_object.filter_machines(machines, data)
+def export_csv(request, plugin_name, data, group_type='all', group_id=None):
+    plugin_object = process_plugin(request, plugin_name, group_type, group_id)
+    queryset = plugin_object.get_queryset(
+        request, group_type=group_type, group_id=group_id)
+    machines, title = plugin_object.filter_machines(queryset, data)
 
     pseudo_buffer = Echo()
     writer = csv.writer(pseudo_buffer)
@@ -343,20 +192,11 @@ def export_csv(request, pluginName, data, page='front', theID=None):
     header_row = []
     fields = Machine._meta.get_fields()
     for field in fields:
-        if not field.is_relation and \
-                field.name != 'id' and \
-                field.name != 'report' and \
-                field.name != 'activity' and \
-                field.name != 'os_family' and \
-                field.name != 'install_log' and \
-                field.name != 'install_log_hash':
+        if not field.is_relation and field.name not in IGNORED_CSV_FIELDS:
             header_row.append(field.name)
-    # distinct_facts = Fact.objects.values('fact_name').distinct().order_by('fact_name')
 
     facter_headers = []
-
     condition_headers = []
-
     plugin_script_headers = []
 
     header_row.append('business_unit')
@@ -370,96 +210,56 @@ def export_csv(request, pluginName, data, page='front', theID=None):
             condition_headers=condition_headers,
             plugin_script_headers=plugin_script_headers)),
         content_type="text/csv")
-    # Create the HttpResponse object with the appropriate CSV header.
-    if getattr(settings, 'DEBUG_CSV', False):
-        pass
-    else:
-        response['Content-Disposition'] = 'attachment; filename="%s.csv"' % title
 
-    #
-    #
-    # if getattr(settings, 'DEBUG_CSV', False):
-    #     writer.writerow(['</body>'])
+    response['Content-Disposition'] = 'attachment; filename="%s.csv"' % title
     return response
 
 
 @csrf_exempt
 @key_auth_required
 def preflight(request):
-    # osquery plugins aren't a thing anymore.
-    # This is just to stop old clients from barfing.
-    output = {}
-    output['queries'] = {}
+    """osquery plugins aren't a thing anymore.
 
+    This is just to stop old clients from barfing.
+    """
+    output = {'queries': {}}
     return HttpResponse(json.dumps(output))
-
-# It's the new preflight (woo)
 
 
 @csrf_exempt
 @key_auth_required
 def preflight_v2(request):
-    # find plugins that have embedded preflight scripts
+    """Find plugins that have embedded preflight scripts."""
     # Load in the default plugins if needed
     utils.load_default_plugins()
-    # Build the manager
     manager = PluginManager()
-    # Tell it the default place(s) where to find plugins
-    manager.setPluginPlaces([settings.PLUGIN_DIR, os.path.join(
-        settings.PROJECT_DIR, 'server/plugins')])
-    # Load all plugins
-    manager.collectPlugins()
     output = []
+    # Old Sal scripts just do a GET; just send everything in that case.
+    os_family = None if request.method != 'POST' else request.POST.get('os_family')
+
     enabled_reports = Report.objects.all()
-    for enabled_report in enabled_reports:
-        for plugin in manager.getAllPlugins():
-            if enabled_report.name == plugin.name:
-                content = utils.get_plugin_scripts(plugin, hash_only=True)
-                if content:
-                    output.append(content)
-
-                break
-    enabled_machine_detail_plugins = MachineDetailPlugin.objects.all()
-    # print enabled_machine_detail_plugins
-    for enabled_machine_detail_plugin in enabled_machine_detail_plugins:
-        for plugin in manager.getAllPlugins():
-            if enabled_machine_detail_plugin.name == plugin.name:
-                content = utils.get_plugin_scripts(plugin, hash_only=True)
-                if content:
-                    output.append(content)
-
-                break
-    # Get all the enabled plugins
     enabled_plugins = Plugin.objects.all()
-    for enabled_plugin in enabled_plugins:
-        # Loop round the plugins and print their names.
-        for plugin in manager.getAllPlugins():
-            if plugin.name == enabled_plugin.name:
-                content = utils.get_plugin_scripts(plugin, hash_only=True)
-                if content:
-                    output.append(content)
-                break
+    enabled_detail_plugins = MachineDetailPlugin.objects.all()
+    for enabled_plugin in itertools.chain(enabled_reports, enabled_plugins, enabled_detail_plugins):
+        plugin = manager.get_plugin_by_name(enabled_plugin.name)
+        if os_family is None or os_family in plugin.get_supported_os_families():
+            scripts = utils.get_plugin_scripts(plugin, hash_only=True)
+            if scripts:
+                output += scripts
 
     return HttpResponse(json.dumps(output))
 
 
 @csrf_exempt
 @key_auth_required
-def preflight_v2_get_script(request, pluginName, scriptName):
-    # Build the manager
-    manager = PluginManager()
-    # Tell it the default place(s) where to find plugins
-    manager.setPluginPlaces([settings.PLUGIN_DIR, os.path.join(
-        settings.PROJECT_DIR, 'server/plugins')])
-    # Load all plugins
-    manager.collectPlugins()
+def preflight_v2_get_script(request, plugin_name, script_name):
     output = []
-    for plugin in manager.getAllPlugins():
-        if plugin.name == pluginName:
-            content = utils.get_plugin_scripts(plugin, hash_only=False, script_name=scriptName)
-            if content:
-                output.append(content)
-            break
+    plugin = PluginManager().get_plugin_by_name(plugin_name)
+    if plugin:
+        content = utils.get_plugin_scripts(plugin, script_name=script_name)
+        if content:
+            output += content
+
     return HttpResponse(json.dumps(output))
 
 
@@ -899,12 +699,12 @@ def checkin(request):
                 if 'Facter' in report_data and condition_name.startswith('facter_'):
                     continue
 
-                condition_data = utils.listify_condition_data(condition_data)
+                condition_data = text_utils.stringify(condition_data)
                 conditions_to_be_created.append(
                     Condition(
                         machine=machine,
                         condition_name=condition_name,
-                        condition_data=utils.safe_unicode(condition_data)
+                        condition_data=text_utils.safe_unicode(condition_data)
                     )
                 )
 
@@ -927,9 +727,9 @@ def checkin(request):
                 if 'Facter' in report_data and condition_name.startswith('facter_'):
                     continue
 
-                """ if it's a list (more than one result),
-                we're going to conacetnate it into one comma separated string """
-                condition_data = utils.listify_condition_data(condition_data)
+                # if it's a list (more than one result),
+                # we're going to conacetnate it into one comma separated string.
+                condition_data = text_utils.stringify(condition_data)
 
                 found = False
                 for condition in conditions:
@@ -945,7 +745,7 @@ def checkin(request):
                             break
                 if found is False:
                     condition = Condition(machine=machine, condition_name=condition_name,
-                                          condition_data=utils.safe_unicode(condition_data))
+                                          condition_data=text_utils.safe_unicode(condition_data))
                     condition.save()
 
     utils.run_plugin_processing(machine, report_data)
@@ -1048,7 +848,7 @@ def install_log_submit(request):
         compressed_log = submission.get('base64bz2installlog')
         if compressed_log:
             compressed_log = compressed_log.replace(" ", "+")
-            log_str = utils.decode_to_string(compressed_log)
+            log_str = text_utils.decode_to_string(compressed_log)
             machine.install_log = log_str
             machine.save()
 

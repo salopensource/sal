@@ -1,35 +1,17 @@
 import plistlib
 import re
 
-from yapsy.IPlugin import IPlugin
-
-from django.db.models import Count
 from django.shortcuts import get_object_or_404
-from django.template import Context, loader
 
-import server.utils as utils
-from catalog.models import *
-from server.models import *
+from catalog.models import Catalog
+from server.models import BusinessUnit, InstalledUpdate, PendingUpdate
+from server.text_utils import safe_unicode
+import sal.plugin
 
 
-class InstallReport(IPlugin):
-    def plugin_type(self):
-        return 'report'
+class InstallReport(sal.plugin.ReportPlugin):
 
-    def widget_width(self):
-        return 12
-
-    def get_description(self):
-        return 'Information on installation status.'
-
-    def get_title(self):
-        return 'Install Report'
-
-    def safe_unicode(self, s):
-        if isinstance(s, unicode):
-            return s.encode('utf-8', errors='replace')
-        else:
-            return s
+    description = 'Information on installation status.'
 
     def replace_dots(self, item):
         # item['name'] = item['pkginfo']['name']
@@ -39,87 +21,57 @@ class InstallReport(IPlugin):
         item['dotName'] = re.sub(r'\W+', '', item['dotName'])
         return item
 
-    def widget_content(self, page, machines=None, theid=None):
+    def get_context(self, machines, group_type='all', group_id=None):
+        context = self.super_get_context(machines, group_type=group_type, group_id=group_id)
+        catalog_objects = Catalog.objects.all()
+        if group_type == 'business_unit':
+            business_unit = get_object_or_404(BusinessUnit, pk=group_id)
+            catalog_objects = catalog_objects.filter(machine_group__business_unit=business_unit)
+        elif group_type == 'machine_group':
+            catalog_objects = catalog_objects.filter(machine_group__pk=group_id)
 
-        if page == 'front':
-            t = loader.get_template('installreport/templates/front.html')
-            catalog_objects = Catalog.objects.all()
-
-        if page == 'bu_dashboard':
-            t = loader.get_template('installreport/templates/id.html')
-            business_unit = get_object_or_404(BusinessUnit, pk=theid)
-            machine_groups = business_unit.machinegroup_set.all()
-            catalog_objects = Catalog.objects.filter(machine_group=machine_groups)
-
-        if page == 'group_dashboard':
-            t = loader.get_template('installreport/templates/id.html')
-            machine_group = get_object_or_404(MachineGroup, pk=theid)
-            catalog_objects = Catalog.objects.filter(machine_group=machine_group)
+        description_dict = {}
+        for catalog in catalog_objects:
+            safe_data = plistlib.readPlistFromString(safe_unicode(catalog.content))
+            for pkginfo in safe_data:
+                description_dict[pkginfo['name'], pkginfo['version']] = pkginfo.get(
+                    'description', '')
 
         output = []
         # Get the install reports for the machines we're looking for
         installed_updates = InstalledUpdate.objects.filter(machine__in=machines).values(
             'update', 'display_name', 'update_version').order_by().distinct()
-        for catalog in catalog_objects:
-            catalog.content = plistlib.readPlistFromString(self.safe_unicode(catalog.content))
+
         for installed_update in installed_updates:
-            found = False
-            for item in output:
-                # print item
-                if installed_update['update'] == item['name'] and \
-                        installed_update['update_version'] == item['version']:
-                    found = True
-                    break
+            item = {}
+            item['version'] = installed_update['update_version']
+            item['name'] = installed_update['update']
+            item['description'] = description_dict.get((item['name'], item['version']), '')
+            item['install_count'] = InstalledUpdate.objects.filter(
+                machine__in=machines,
+                update=installed_update['update'],
+                update_version=installed_update['update_version'],
+                installed=True).count()
 
-            if found is False:
-                item = {}
-                for catalog in catalog_objects:
+            item['pending_count'] = PendingUpdate.objects.filter(
+                machine__in=machines,
+                update=installed_update['update'],
+                update_version=installed_update['update_version']).count()
 
-                    for pkginfo in catalog.content:
-                        if pkginfo['name'] == installed_update['update'] and \
-                                pkginfo['version'] == installed_update['update_version']:
-                            # print pkginfo
-                            if 'description' in pkginfo:
-                                item['description'] = pkginfo['description']
-                            else:
-                                item['description'] = ''
-                            break
-                    if 'description' in item:
-                        break
+            item['installed_url'] = 'Installed?VERSION=%s&&NAME=%s' % (
+                item['version'], item['name'])
+            item['pending_url'] = 'Pending?VERSION=%s&&NAME=%s' % (
+                item['version'], item['name'])
 
-                item['version'] = installed_update['update_version']
-                item['name'] = installed_update['update']
-                item['install_count'] = InstalledUpdate.objects.filter(
-                    machine__in=machines,
-                    update=installed_update['update'],
-                    update_version=installed_update['update_version'],
-                    installed=True).count()
+            item = self.replace_dots(item)
 
-                item['pending_count'] = PendingUpdate.objects.filter(
-                    machine__in=machines,
-                    update=installed_update['update'],
-                    update_version=installed_update['update_version']).count()
-                item['installed_url'] = 'Installed?VERSION=%s&&NAME=%s' % (
-                    item['version'], item['name'])
-                item['pending_url'] = 'Pending?VERSION=%s&&NAME=%s' % (
-                    item['version'], item['name'])
-                item = self.replace_dots(item)
+            output.append(item)
 
-                output.append(item)
+        context['output'] = sorted(output, key=lambda k: (k['name'], k['version']))
+        context['thename'] = 'Install Report'
+        return context
 
-        # Sort the output
-        output = sorted(output, key=lambda k: (k['name'], k['version']))
-        c = Context({
-            'title': 'Install Reports',
-            'output': output,
-            'plugin': 'InstallReport',
-            'page': page,
-            'theid': theid
-        })
-        return t.render(c)
-
-    def filter_machines(self, machines, data):
-
+    def filter(self, machines, data):
         if data.startswith('Installed?'):
             version_re = re.search('Installed\?VERSION\=(.*)&&NAME', data)
             version = version_re.group(1)
@@ -132,7 +84,7 @@ class InstallReport(IPlugin):
                 installed_updates__installed=True)
             title = 'Machines with %s %s installed' % (name, version)
 
-        if data.startswith('Pending?'):
+        elif data.startswith('Pending?'):
             version_re = re.search('Pending\?VERSION\=(.*)&&NAME', data)
             version = version_re.group(1)
             name_re = re.search('&&NAME=(.*)', data)
@@ -141,5 +93,8 @@ class InstallReport(IPlugin):
             machines = machines.filter(pending_updates__update=name,
                                        pending_updates__update_version=version)
             title = 'Machines with %s %s pending' % (name, version)
+
+        else:
+            return None, None
 
         return machines, title

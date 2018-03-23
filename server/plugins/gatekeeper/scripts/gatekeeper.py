@@ -1,51 +1,53 @@
 #!/usr/bin/python
 
+
+import os
 import subprocess
 import sys
+
 sys.path.append('/usr/local/munki')
 from munkilib import FoundationPlist
-from munkilib import munkicommon
-import os
-import platform
-
-
-def get_status(cmd, checkstring):
-    try:
-        output = subprocess.check_output(cmd, stderr=subprocess.STDOUT)
-    except subprocess.CalledProcessError as e:
-        output = str(e.output)
-    if checkstring in output:
-        return 'Enabled'
-    else:
-        return 'Disabled'
-
-
-def gatekeeper_status():
-    cmd = ['/usr/sbin/spctl', '--status']
-    return get_status(cmd, 'assessments enabled')
 
 
 def main():
+    add_plugin_results('Gatekeeper', {'Gatekeeper': gatekeeper_status()})
 
-    if os.path.exists('/usr/sbin/spctl'):
-        gatekeeper = gatekeeper_status()
+
+def gatekeeper_status():
+    if not os.path.exists('/usr/sbin/spctl'):
+        status = 'Not Supported'
     else:
-        gatekeeper = 'Not Supported'
 
+        cmd = ['/usr/sbin/spctl', '--status']
+        try:
+            output = subprocess.check_output(cmd, stderr=subprocess.STDOUT)
+        except subprocess.CalledProcessError as error:
+            output = str(error.output)
+        status = 'Enabled' if 'assessments enabled' in output else 'Disabled'
+
+    return status
+
+
+def add_plugin_results(plugin, data, historical=False):
+    """Add data to the shared plugin results plist.
+
+    This function creates the shared results plist file if it does not
+    already exist; otherwise, it adds the entry by appending.
+
+    Args:
+        plugin (str): Name of the plugin returning data.
+        data (dict): Dictionary of results.
+        historical (bool): Whether to keep only one record (False) or
+            all results (True). Optional, defaults to False.
+    """
     plist_path = '/usr/local/sal/plugin_results.plist'
-
     if os.path.exists(plist_path):
-        plist = FoundationPlist.readPlist(plist_path)
+        plugin_results = FoundationPlist.readPlist(plist_path)
     else:
-        plist = []
-    result = {}
-    result['plugin'] = 'Gatekeeper'
-    result['historical'] = False
-    data = {}
-    data['Gatekeeper'] = gatekeeper
-    result['data'] = data
-    plist.append(result)
-    FoundationPlist.writePlist(plist, plist_path)
+        plugin_results = []
+
+    plugin_results.append({'plugin': plugin, 'historical': historical, 'data': data})
+    FoundationPlist.writePlist(plugin_results, plist_path)
 
 
 if __name__ == '__main__':

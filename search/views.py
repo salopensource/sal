@@ -13,6 +13,7 @@ from django.views.decorators.csrf import csrf_exempt, csrf_protect
 import sal.settings as settings
 import search.utils as utils
 import search.views
+import server.text_utils
 import server.utils
 from inventory.models import *
 from sal.decorators import *
@@ -548,7 +549,7 @@ def get_csv_row(machine, facter_headers, condition_headers, plugin_script_header
     for name, value in machine.get_fields():
         if name not in skip_fields:
             try:
-                row.append(server.utils.safe_unicode(value))
+                row.append(server.text_utils.safe_unicode(value))
             except Exception:
                 row.append('')
 

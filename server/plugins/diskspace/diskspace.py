@@ -1,82 +1,41 @@
-from yapsy.IPlugin import IPlugin
-
-from django.db.models import Count
-from django.shortcuts import get_object_or_404
-from django.template import Context, loader
-
-import server.utils as utils
-from server.models import *
+import sal.plugin
 
 
-class DiskSpace(IPlugin):
-    def widget_width(self):
-        return 4
+TITLES = {'ok': 'Machines with less than 80% disk utilization',
+          'warning': 'Machines with 80%-90% disk utilization',
+          'alert': 'Machines with more than 90% disk utilization'}
 
-    def plugin_type(self):
-        return 'builtin'
 
-    def get_description(self):
-        return 'Available disk space'
+class DiskSpace(sal.plugin.Widget):
 
-    def widget_content(self, page, machines=None, theid=None):
-        # The data is data is pulled from the database and passed to a template.
-        """
-        There are three possible views we're going to be rendering to - front, bu_dashbaord and
-        group_dashboard. If page is set to bu_dashboard, or group_dashboard, you will be passed a
-        business_unit or machine_group id to use (mainly for linking to the right search).
-        """
-        if page == 'front':
-            t = loader.get_template('plugins/traffic_lights_front.html')
+    description = 'Available disk space'
+    template = 'plugins/traffic_lights.html'
 
-        if page == 'bu_dashboard':
-            t = loader.get_template('plugins/traffic_lights_id.html')
+    def get_context(self, machines, **kwargs):
+        context = self.super_get_context(machines, **kwargs)
+        context['ok_label'] = '< 80%'
+        context['ok_count'] = self.filter_by_diskspace(machines, 'ok').count()
+        context['warning_label'] = '80% +'
+        context['warning_count'] = self.filter_by_diskspace(machines, 'warning').count()
+        context['alert_label'] = '90% +'
+        context['alert_count'] = self.filter_by_diskspace(machines, 'alert').count()
+        return context
 
-        if page == 'group_dashboard':
-            t = loader.get_template('plugins/traffic_lights_id.html')
+    def filter(self, machines, data):
+        if data not in TITLES:
+            return None, None
+        title = TITLES[data]
+        machines = self.filter_by_diskspace(machines, data)
+        return machines, title
 
-        try:
-            disk_ok = machines.filter(hd_percent__lt=80).count()
-        except Exception:
-            disk_ok = 0
-
-        try:
-            disk_warning = machines.filter(hd_percent__range=["80", "89"]).count()
-        except Exception:
-            disk_warning = 0
-
-        try:
-            disk_alert = machines.filter(hd_percent__gte=90).count()
-        except Exception:
-            disk_alert = 0
-
-        c = Context({
-            'title': 'Disk Space',
-            'ok_label': '< 80%',
-            'ok_count': disk_ok,
-            'warning_label': '80% +',
-            'warning_count': disk_warning,
-            'alert_label': '90% +',
-            'alert_count': disk_alert,
-            'plugin': 'DiskSpace',
-            'theid': theid,
-            'page': page
-        })
-        return t.render(c)
-
-    def filter_machines(self, machines, data):
+    def filter_by_diskspace(self, machines, data):
         if data == 'ok':
             machines = machines.filter(hd_percent__lt=80)
-            title = 'Machines with less than 80% disk utilization'
-
         elif data == 'warning':
             machines = machines.filter(hd_percent__range=["80", "89"])
-            title = 'Machines with 80%-90% disk utilization'
-
         elif data == 'alert':
             machines = machines.filter(hd_percent__gte=90)
-            title = 'Machines with more than 90% disk utilization'
-
         else:
             machines = None
 
-        return machines, title
+        return machines

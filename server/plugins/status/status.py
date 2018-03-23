@@ -1,112 +1,67 @@
-from datetime import date, datetime, timedelta
-
-from yapsy.IPlugin import IPlugin
+from collections import OrderedDict
+from datetime import timedelta
 
 import django.utils.timezone
-from django.db.models import Count
+from django.db.models import Q
 from django.shortcuts import get_object_or_404
-from django.template import Context, loader
 
-import server.utils as utils
-from server.models import *
-
-
-now = django.utils.timezone.now()
-today = now - timedelta(hours=24)
-week_ago = today - timedelta(days=7)
-month_ago = today - timedelta(days=30)
-three_months_ago = today - timedelta(days=90)
+import sal.plugin
+from server.models import Machine, MachineGroup, BusinessUnit
 
 
-class Status(IPlugin):
-    def plugin_type(self):
-        return 'builtin'
+NOW = django.utils.timezone.now()
+TODAY = NOW - timedelta(hours=24)
+WEEK_AGO = TODAY - timedelta(days=7)
+MONTH_AGO = TODAY - timedelta(days=30)
+THREE_MONTHS_AGO = TODAY - timedelta(days=90)
 
-    def widget_width(self):
-        return 4
+# TODO: This can be cleaned up post-py3k since I believe dicts are
+# ordered by default.
+STATUSES = OrderedDict()
+STATUSES['broken_clients'] = ('Machines with broken Python', Q(broken_client=True))
+STATUSES['errors'] = ('Machines with MSU errors', Q(errors__gt=0))
+STATUSES['warnings'] = ('Machines with MSU warnings', Q(warnings__gt=0))
+STATUSES['activity'] = ('Machines with MSU activity', Q(activity__isnull=False))
+STATUSES['sevendayactive'] = ('7 day active machines', Q(last_checkin__gte=WEEK_AGO))
+STATUSES['thirtydayactive'] = ('30 day active machines', Q(last_checkin__gte=MONTH_AGO))
+STATUSES['ninetydayactive'] = ('90 day active machines', Q(last_checkin__gte=THREE_MONTHS_AGO))
+STATUSES['all_machines'] = ('All machines', None)
+STATUSES['deployed_machines'] = ('Deployed Machines', None)
+STATUSES['undeployed_machines'] = ('Undeployed Machines', Q(deployed=False))
 
-    def get_description(self):
-        return 'General status'
 
-    def widget_content(self, page, machines=None, theid=None):
-        if page == 'front':
-            t = loader.get_template('status/templates/front.html')
-            undeployed_machines = Machine.objects.filter(deployed=False).count()
+class Status(sal.plugin.Widget):
 
-        if page == 'bu_dashboard':
-            t = loader.get_template('status/templates/id.html')
-            business_unit = get_object_or_404(BusinessUnit, pk=theid)
-            machine_groups = MachineGroup.objects.filter(business_unit=business_unit).all()
-            undeployed_machines = Machine.objects.filter(
-                machine_group__in=machine_groups).filter(deployed=False).count()
+    description = 'General status'
+    only_use_deployed_machines = False
 
-        if page == 'group_dashboard':
-            t = loader.get_template('status/templates/id.html')
-            machine_group = get_object_or_404(MachineGroup, pk=theid)
-            undeployed_machines = Machine.objects.filter(
-                machine_group=machine_group).filter(deployed=False).count()
+    def get_context(self, queryset, **kwargs):
+        context = self.super_get_context(queryset, **kwargs)
 
-        errors = machines.filter(errors__gt=0).count()
-        warnings = machines.filter(warnings__gt=0).count()
-        activity = machines.filter(activity__isnull=False).count()
-        sevendayactive = machines.filter(last_checkin__gte=week_ago).count()
-        thirtydayactive = machines.filter(last_checkin__gte=month_ago).count()
-        ninetydayactive = machines.filter(last_checkin__gte=three_months_ago).count()
-        broken_clients = machines.filter(broken_client=True).count()
-        all_machines = machines.count()
+        context['data'] = OrderedDict()
+        for key, item in STATUSES.items():
+            context['data'][key] = (item[0], self._filter(queryset, key).count())
 
-        c = Context({
-            'title': 'Status',
-            'errors': errors,
-            'warnings': warnings,
-            'activity': activity,
-            '7dayactive': sevendayactive,
-            '30dayactive': thirtydayactive,
-            '90dayactive': ninetydayactive,
-            'all_machines': all_machines,
-            'undeployed_machines': undeployed_machines,
-            'broken_clients': broken_clients,
-            'theid': theid,
-            'page': page
-        })
-        return t.render(c)
+        return context
 
-    def filter_machines(self, machines, data):
-
-        if data == 'broken_clients':
-            machines = machines.filter(broken_client=True)
-            title = 'Machines with broken Python'
-
-        if data == 'errors':
-            machines = machines.filter(errors__gt=0)
-            title = 'Machines with MSU errors'
-
-        if data == 'warnings':
-            machines = machines.filter(warnings__gt=0)
-            title = 'Machines with MSU warnings'
-
-        if data == 'activity':
-            machines = machines.filter(activity__isnull=False)
-            title = 'Machines with MSU activity'
-
-        if data == '7dayactive':
-            machines = machines.filter(last_checkin__gte=week_ago)
-            title = '7 day active machines'
-
-        if data == '30dayactive':
-            machines = machines.filter(last_checkin__gte=month_ago)
-            title = '30 day active machines'
-
-        if data == '90dayactive':
-            machines = machines.filter(last_checkin__gte=three_months_ago)
-            title = '90 day active machines'
-
-        if data == 'all_machines':
-            machines = machines
-            title = 'All Machines'
-
-        if data == 'undeployed_machines':
-            machines = machines
-            title = 'Undeployed Machines'
-
+    def filter(self, machines, data):
+        if data not in STATUSES:
+            return None, None
+        machines = self._filter(machines, data)
+        title = STATUSES[data][0]
         return machines, title
+
+    def _filter(self, machines, data):
+        try:
+            machine_filter = STATUSES[data][1]
+        except KeyError:
+            return None
+
+        # Since this plugin gets _all_ machines, we may need to filter
+        # out undeployed machines depending on the type of status we're
+        # checking.
+        if data not in ('undeployed_machines', 'all_machines'):
+            machines = machines.filter(deployed=True)
+
+        # Only filter if a filter from the STATUSES table is defined.
+        return machines.filter(machine_filter) if machine_filter else machines

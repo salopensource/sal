@@ -1,20 +1,29 @@
 <div class="panel panel-default">
   <div class="panel-body">
     <dl class="dl-horizontal">
-      <legend><h5 class"text-uppercase">FileVault Escrow</h5></legend>
-			{% if crypt_url %}
-			<dt>Connect to Crypt<dt>
-			<dd><button type="button"  class="btn btn-default" style='margin-top: -5px;margin-bottom: 5px;'>
-				<span class="glyphicon glyphicon-lock" aria-hidden="true"></span><a href="{{ crypt_url }}"> Crypt </a>
-			</button>
-			</dd>
-			{% endif %}
-			<dt>Escrow Status</dt>
-			<dd>{% if escrowed %}Escrowed{% elif escrowed == False %}Not Escrowed{% else %}Unknown{% endif %}</dd>
-			{% if escrowed == True %}
-				<dt>Escrow Date</dt>
-				<dd>{{date_escrowed}}</dd>
-			{% endif %}
+      <legend><h5 class"text-uppercase">{{ title }}</h5></legend>
+        {% if crypt_url %}
+        <dt>Connect to Crypt<dt>
+        <dd>
+          <button type="button"  class="btn btn-default" style='margin-top: -5px;margin-bottom: 5px;'>
+            <span class="glyphicon glyphicon-lock" aria-hidden="true"></span><a href="{{ crypt_url }}"> Crypt </a>
+          </button>
+        </dd>
+        {% endif %}
+      <dt>Escrow Status</dt>
+      <dd>
+        {% if escrowed %}
+          <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> Escrowed
+        {% elif escrowed == False %}
+          <span class="glyphicon glyphicon-ban-circle text-danger" aria-hidden="true"></span> Not Escrowed
+        {% else %}
+          <span class="glyphicon glyphicon-warning-sign text-warning" aria-hidden="true"></span> Unknown
+        {% endif %}
+      </dd>
+        {% if escrowed %}
+        <dt>Escrow Date</dt>
+        <dd>{{date_escrowed}}</dd>
+        {% endif %}
     </dl>
   </div>
 </div>

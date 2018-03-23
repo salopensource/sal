@@ -14,7 +14,7 @@ $( document ).ready(function() {
 
    $.ajaxWithRetries(
     {
-        url: "{% url 'plugin_load_id' widget.name 'machine_detail' machine.id%}",
+        url: "{% url 'load_plugin' widget.name 'machine' machine.id %}",
         error: function(){
             console.log('{{ widget.name }} Failed');
         },
@@ -185,6 +185,8 @@ $( document ).ready(function() {
             Undeployed
             {% endif %}
           </dd>
+          <dt>First checkin:</dt>
+          <dd>{{ machine.first_checkin }}</dd>
         </dl>
       </div>
     </div>

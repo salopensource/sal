@@ -1,7 +1,4 @@
-import os
 import time
-
-from yapsy.PluginManager import PluginManager
 
 from django.conf import settings
 from django.contrib import messages
@@ -12,11 +9,12 @@ from django.http import HttpResponseRedirect
 from django.shortcuts import get_object_or_404, redirect, render
 from django.template.context_processors import csrf
 
-import utils
-from forms import *
-from inventory.models import *
-from models import *
-from sal.decorators import *
+import sal.plugin
+from sal.decorators import required_level, staff_required
+from server import utils
+from server import forms
+from server.models import ProfileLevel, Plugin, ApiKey, Report, MachineDetailPlugin, UserProfile
+from server.views import index as index_view
 
 if settings.DEBUG:
     import logging
@@ -48,13 +46,13 @@ def update_notify_date(request, length='never'):
 @login_required
 def new_version_week(request):
     update_notify_date(request, length=604800)
-    return redirect(index)
+    return redirect(index_view)
 
 
 @login_required
 def new_version_day(request):
     update_notify_date(request, length=86400)
-    return redirect(index)
+    return redirect(index_view)
 
 
 @login_required
@@ -77,7 +75,7 @@ def new_user(request):
     c = {}
     c.update(csrf(request))
     if request.method == 'POST':
-        form = NewUserForm(request.POST)
+        form = forms.NewUserForm(request.POST)
         if form.is_valid():
             user = form.save()
             user_profile = UserProfile.objects.get(user=user)
@@ -85,7 +83,7 @@ def new_user(request):
             user_profile.save()
             return redirect('manage_users')
     else:
-        form = NewUserForm()
+        form = forms.NewUserForm()
     c = {'form': form}
 
     return render(request, 'forms/new_user.html', c)
@@ -100,9 +98,9 @@ def edit_user(request, user_id):
     c.update(csrf(request))
     if request.method == 'POST':
         if the_user.has_usable_password:
-            form = EditUserForm(request.POST)
+            form = forms.EditUserForm(request.POST)
         else:
-            form = EditLDAPUserForm(request.POST)
+            form = forms.EditLDAPUserForm(request.POST)
         if form.is_valid():
             user = form.save()
             user_profile = UserProfile.objects.get(user=the_user)
@@ -114,9 +112,10 @@ def edit_user(request, user_id):
             return redirect('manage_users')
     else:
         if the_user.has_usable_password:
-            form = EditUserForm({'user_level': the_user.userprofile.level, 'user_id': the_user.id})
+            form = forms.EditUserForm(
+                {'user_level': the_user.userprofile.level, 'user_id': the_user.id})
         else:
-            form = EditLDAPUserForm(
+            form = forms.EditLDAPUserForm(
                 {'user_level': the_user.userprofile.level, 'user_id': the_user.id})
 
     c = {'form': form, 'the_user': the_user}
@@ -163,7 +162,7 @@ def delete_user(request, user_id):
 @required_level(ProfileLevel.global_admin)
 def settings_page(request):
     historical_setting = utils.get_setting('historical_retention')
-    historical_setting_form = SettingsHistoricalDataForm(initial={'days': historical_setting})
+    historical_setting_form = forms.SettingsHistoricalDataForm(initial={'days': historical_setting})
 
     senddata_setting = utils.get_setting('send_data')
 
@@ -193,7 +192,7 @@ def senddata_disable(request):
 @required_level(ProfileLevel.global_admin)
 def settings_historical_data(request):
     if request.method == 'POST':
-        form = SettingsHistoricalDataForm(request.POST)
+        form = forms.SettingsHistoricalDataForm(request.POST)
         if form.is_valid():
             utils.set_setting('historical_retention', form.cleaned_data['days'])
             messages.success(request, 'Data retention settings saved.')
@@ -207,37 +206,26 @@ def settings_historical_data(request):
 @login_required
 @required_level(ProfileLevel.global_admin)
 def plugins_page(request):
-    # Load the plugins
     utils.reload_plugins_model()
-    enabled_plugins = Plugin.objects.all()
-    disabled_plugins = utils.disabled_plugins(plugin_kind='main')
-    c = {'user': request.user, 'request': request,
-         'enabled_plugins': enabled_plugins, 'disabled_plugins': disabled_plugins}
-    return render(request, 'server/plugins.html', c)
+    context = {'plugins': utils.get_active_and_inactive_plugins('machines')}
+    return render(request, 'server/plugins.html', context)
 
 
 @login_required
 @required_level(ProfileLevel.global_admin)
 def settings_reports(request):
-    # Load the plugins
     utils.reload_plugins_model()
-    enabled_plugins = Report.objects.all()
-    disabled_plugins = utils.disabled_plugins(plugin_kind='report')
-    c = {'user': request.user, 'request': request,
-         'enabled_plugins': enabled_plugins, 'disabled_plugins': disabled_plugins}
-    return render(request, 'server/reports.html', c)
+    context = {'plugins': utils.get_active_and_inactive_plugins('report')}
+    return render(request, 'server/reports.html', context)
 
 
 @login_required
 @required_level(ProfileLevel.global_admin)
 def settings_machine_detail_plugins(request):
-    # Load the plugins
     utils.reload_plugins_model()
-    enabled_plugins = MachineDetailPlugin.objects.all()
-    disabled_plugins = utils.disabled_plugins(plugin_kind='machine_detail')
-    c = {'user': request.user, 'request': request,
-         'enabled_plugins': enabled_plugins, 'disabled_plugins': disabled_plugins}
-    return render(request, 'server/machine_detail_plugins.html', c)
+    plugins = utils.get_active_and_inactive_plugins('machine_detail')
+    context = {'user': request.user, 'plugins': plugins}
+    return render(request, 'server/machine_detail_plugins.html', context)
 
 
 @login_required
@@ -254,15 +242,15 @@ def plugin_minus(request, plugin_id):
 
 @login_required
 @required_level(ProfileLevel.global_admin)
-def _swap_plugin(request, plugin_id, direction):
+def _swap_plugin(request, plugin_id, direction, plugin_model=Plugin):
     # get current plugin order
-    current_plugin = get_object_or_404(Plugin, pk=plugin_id)
+    current_plugin = get_object_or_404(plugin_model, pk=plugin_id)
 
     # Since it is sorted by order, we can swap the order attribute
     # of the selected plugin with the adjacent object in the queryset.
 
     # get all plugins (ordered by their order attribute).
-    plugins = Plugin.objects.all()
+    plugins = plugin_model.objects.all()
 
     # Find the index in the query of the moving plugin.
     index = 0
@@ -302,33 +290,14 @@ def plugin_enable(request, plugin_name):
 @login_required
 @required_level(ProfileLevel.global_admin)
 def machine_detail_plugin_plus(request, plugin_id):
-    # get current plugin order
-    current_plugin = get_object_or_404(MachineDetailPlugin, pk=plugin_id)
-
-    # get 'old' next one
-    old_plugin = get_object_or_404(Plugin, order=(int(current_plugin.order) + 1))
-    current_plugin.order = current_plugin.order + 1
-    current_plugin.save()
-
-    old_plugin.order = old_plugin.order - 1
-    old_plugin.save()
+    _swap_plugin(request, plugin_id, 1, MachineDetailPlugin)
     return redirect('settings_machine_detail_plugins')
 
 
 @login_required
 @required_level(ProfileLevel.global_admin)
 def machine_detail_plugin_minus(request, plugin_id):
-    # get current plugin order
-    current_plugin = get_object_or_404(MachineDetailPlugin, pk=plugin_id)
-    # print current_plugin
-    # get 'old' previous one
-
-    old_plugin = get_object_or_404(MachineDetailPlugin, order=(int(current_plugin.order) - 1))
-    current_plugin.order = current_plugin.order - 1
-    current_plugin.save()
-
-    old_plugin.order = old_plugin.order + 1
-    old_plugin.save()
+    _swap_plugin(request, plugin_id, -1, MachineDetailPlugin)
     return redirect('settings_machine_detail_plugins')
 
 
@@ -348,26 +317,13 @@ def machine_detail_plugin_enable(request, plugin_name):
         plugin = MachineDetailPlugin.objects.get(name=plugin_name)
     except MachineDetailPlugin.DoesNotExist:
         enabled_plugins = MachineDetailPlugin.objects.all()  # noqa: F841
-        # Build the manager
-        manager = PluginManager()
-        # Tell it the default place(s) where to find plugins
-        manager.setPluginPlaces([settings.PLUGIN_DIR, os.path.join(
-            settings.PROJECT_DIR, 'server/plugins')])
-        # Load all plugins
-        manager.collectPlugins()
+        manager = sal.plugin.PluginManager()
 
-        default_families = ['Darwin', 'Windows', 'Linux', 'ChromeOS']
-        for plugin in manager.getAllPlugins():
-            if plugin.name == plugin_name:
-
-                try:
-                    supported_os_families = plugin.plugin_object.supported_os_families()
-                except Exception:
-                    supported_os_families = default_families
-        plugin = MachineDetailPlugin(name=plugin_name,
-                                     order=utils.unique_plugin_order(plugin_type='machine_detail'),
-                                     os_families=utils.flatten_and_sort_list(supported_os_families))
-        plugin.save()
+        plugin = manager.get_plugin_by_name(plugin_name)
+        if plugin:
+            db_plugin = MachineDetailPlugin(
+                name=plugin_name, order=utils.unique_plugin_order(plugin_type='machine_detail'))
+            db_plugin.save()
     return redirect('settings_machine_detail_plugins')
 
 
@@ -405,12 +361,12 @@ def new_api_key(request):
     c = {}
     c.update(csrf(request))
     if request.method == 'POST':
-        form = ApiKeyForm(request.POST)
+        form = forms.ApiKeyForm(request.POST)
         if form.is_valid():
             new_api_key = form.save()
             return redirect('display_api_key', key_id=new_api_key.id)
     else:
-        form = ApiKeyForm()
+        form = forms.ApiKeyForm()
     c = {'form': form}
     return render(request, 'forms/new_api_key.html', c)
 
@@ -420,7 +376,7 @@ def new_api_key(request):
 def display_api_key(request, key_id):
     api_key = get_object_or_404(ApiKey, pk=int(key_id))
     if api_key.has_been_seen:
-        return redirect(index)
+        return redirect(index_view)
     else:
         api_key.has_been_seen = True
         api_key.save()
@@ -436,12 +392,12 @@ def edit_api_key(request, key_id):
     c.update(csrf(request))
     if request.method == 'POST':
 
-        form = ApiKeyForm(request.POST, instance=api_key)
+        form = forms.ApiKeyForm(request.POST, instance=api_key)
         if form.is_valid():
             api_key = form.save()
             return redirect(api_keys)
     else:
-        form = ApiKeyForm(instance=api_key)
+        form = forms.ApiKeyForm(instance=api_key)
     c = {'form': form, 'api_key': api_key}
     return render(request, 'forms/edit_api_key.html', c)
 

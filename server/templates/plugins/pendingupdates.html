@@ -1,0 +1,25 @@
+<div class="panel panel-default">
+  <div class="panel-heading">
+    {{ plugin.title }}
+  </div>
+  <!-- /.panel-heading -->
+
+  <div class="panel-body">
+    <div class="table-wrapper">
+      <table class="table table-striped table-condensed table-bordered">
+        {% for item in data %}
+        <tr>
+          <td>
+            {% with item.update|add:'--'|add:item.update_version as var %}
+            <a href="{% url 'machine_list' plugin var group_type group_id %}">
+            {% endwith %}
+              {{ item.display_name }} {{ item.update_version }}
+              <span class="badge pull-right">{{ item.count }}</span>
+            </a>
+          </td>
+        </tr>
+        {% endfor %}
+      </table>
+    </div>
+  </div>
+</div>

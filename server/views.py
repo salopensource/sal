@@ -1,20 +1,19 @@
-import os
 import re
-from datetime import timedelta
 
-import django.utils.timezone
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
-from django.contrib.staticfiles.templatetags.staticfiles import static
 from django.shortcuts import get_object_or_404, redirect, render
 from django.template.context_processors import csrf
 
-import utils
-from forms import *
-from inventory.models import *
-from models import *
-from sal.decorators import *
+import sal.plugin
+from sal.decorators import required_level, ProfileLevel, access_required, is_global_admin
+from server.forms import (BusinessUnitForm, EditUserBusinessUnitForm, EditBusinessUnitForm,
+                          MachineGroupForm, EditMachineGroupForm, NewMachineForm)
+from server.models import (BusinessUnit, MachineGroup, Machine, UserProfile, Report, Condition,
+                           UpdateHistory, Plugin, PluginScriptSubmission, PluginScriptRow)
+from server.non_ui_views import process_plugin
+from server import utils
 
 if settings.DEBUG:
     import logging
@@ -54,10 +53,10 @@ def index(request):
 
     # Load in the default plugins if needed
     utils.load_default_plugins()
-    plugins = utils.get_all_plugins()
+    plugins = sal.plugin.PluginManager().get_all_plugins()
 
-    reports = utils.get_report_data(plugins)
-    output = utils.get_plugin_data(plugins)
+    reports = utils.get_report_names(plugins)
+    output = utils.get_plugin_placeholder_markup(plugins)
 
     # If the user is GA level, and hasn't decided on a data sending
     # choice, template will reflect this.
@@ -83,16 +82,33 @@ def index(request):
 
 
 @login_required
-def machine_list(request, pluginName, data, page='front', theID=None):
-    (machines, title) = utils.plugin_machines(
-        request, pluginName, data, page, theID, get_machines=False)
-    user = request.user
-    page_length = utils.get_setting('datatable_page_length')
-    c = {'user': user, 'plugin_name': pluginName, 'machines': machines, 'req_type': page,
-         'title': title, 'bu_id': theID, 'request': request, 'data': data,
-         'page_length': page_length}
+def machine_list(request, plugin_name, data, group_type='all', group_id=None):
+    plugin_object = process_plugin(request, plugin_name, group_type, group_id)
+    queryset = plugin_object.get_queryset(request, group_type=group_type, group_id=group_id)
+    # Plugin will raise 404 if bad `data` is passed.
+    machines, title = plugin_object.filter_machines(queryset, data)
+    context = {
+        'group_type': group_type,
+        'group_id': group_id,
+        'plugin_name': plugin_name,
+        'machines': machines,
+        'title': title,
+        'request': request,
+        'data': data,
+        'page_length': utils.get_setting('datatable_page_length')}
 
-    return render(request, 'server/overview_list_all.html', c)
+    return render(request, 'server/overview_list_all.html', context)
+
+
+@login_required
+def report_load(request, plugin_name, group_type='all', group_id=None):
+    groups = utils.get_instance_and_groups(group_type, group_id)
+    plugin_object = process_plugin(request, plugin_name, group_type, group_id)
+    report_html = plugin_object.widget_content(request, group_type=group_type, group_id=group_id)
+    reports = Report.objects.values_list('name', flat=True)
+    context = {'output': report_html, 'group_type': group_type, 'group_id': group_id, 'reports':
+               reports, 'active_report': plugin_object, 'groups': groups}
+    return render(request, 'server/display_report.html', context)
 
 
 @login_required
@@ -169,10 +185,11 @@ def bu_dashboard(request, **kwargs):
 
     # Load in the default plugins if needed
     utils.load_default_plugins()
-    plugins = utils.get_all_plugins()
+    plugins = sal.plugin.PluginManager().get_all_plugins()
 
-    reports = utils.get_report_data(plugins)
-    output = utils.get_plugin_data(plugins, 'bu_dashboard', business_unit.id)
+    reports = utils.get_report_names(plugins)
+    output = utils.get_plugin_placeholder_markup(
+        plugins, group_type='business_unit', group_id=business_unit.id)
 
     context = {
         'user': request.user,
@@ -212,9 +229,10 @@ def really_delete_machine_group(request, group_id):
 def group_dashboard(request, **kwargs):
     machine_group = kwargs['instance']
     machines = machine_group.machine_set.filter(deployed=True)  # noqa: F841
-    plugins = utils.get_all_plugins()
-    output = utils.get_plugin_data(plugins, 'group_dashboard', machine_group.id)
-    reports = utils.get_report_data(plugins)
+    plugins = sal.plugin.PluginManager().get_all_plugins()
+    output = utils.get_plugin_placeholder_markup(
+        plugins, group_type='machine_group', group_id=machine_group.id)
+    reports = utils.get_report_names(plugins)
 
     context = {
         'user': request.user,
@@ -394,7 +412,7 @@ def machine_detail(request, **kwargs):
     if 'managed_uninstalls_list' in report:
         report['managed_uninstalls_list'].sort()
 
-    output = utils.get_machine_detail_plugin_data(machine)
+    output = utils.get_machine_detail_placeholder_markup(machine)
 
     context = {
         'user': request.user,

@@ -1,63 +1,47 @@
-from yapsy.IPlugin import IPlugin
+from django.db.models import Q
 
-from django.conf import settings
-from django.db.models import Count
-from django.shortcuts import get_object_or_404
-from django.template import Context, loader
-
-import server.utils as utils
-from server.models import *
+import sal.plugin
 
 
-class Gatekeeper(IPlugin):
-    def widget_width(self):
-        return 4
+TITLES = {
+    'ok': 'Machines with Gatekeeper enabled',
+    'alert': 'Machines without Gatekeeper enabled',
+    'unknown': 'Machines with unknown Gatekeeper status'}
+PLUGIN_Q = Q(pluginscriptsubmission__plugin='Gatekeeper')
+SCRIPT_Q = Q(pluginscriptsubmission__pluginscriptrow__pluginscript_name='Gatekeeper')
 
-    def plugin_type(self):
-        return 'builtin'
 
-    def widget_content(self, page, machines=None, theid=None):
+class Gatekeeper(sal.plugin.Widget):
 
-        if page == 'front':
-            t = loader.get_template('gatekeeper/templates/front.html')
+    def get_context(self, queryset, **kwargs):
+        context = self.super_get_context(queryset, **kwargs)
+        context['ok'] = self._filter(queryset, 'ok').count()
+        context['alert'] = self._filter(queryset, 'alert').count()
+        context['unknown'] = queryset.count() - context['ok'] - context['alert']
+        return context
 
-        if page == 'bu_dashboard':
-            t = loader.get_template('gatekeeper/templates/id.html')
+    def filter(self, machines, data):
+        if data not in TITLES:
+            return None, None
+        return self._filter(machines, data), TITLES[data]
 
-        if page == 'group_dashboard':
-            t = loader.get_template('gatekeeper/templates/id.html')
-
-        try:
-            ok = machines.filter(pluginscriptsubmission__plugin__exact='Gatekeeper', pluginscriptsubmission__pluginscriptrow__pluginscript_name__exact='Gatekeeper', pluginscriptsubmission__pluginscriptrow__pluginscript_data__exact='Enabled').count()  # noqa: E501
-        except Exception:
-            ok = 0
-
-        try:
-            alert = machines.filter(pluginscriptsubmission__plugin__exact='Gatekeeper', pluginscriptsubmission__pluginscriptrow__pluginscript_name__exact='Gatekeeper', pluginscriptsubmission__pluginscriptrow__pluginscript_data__exact='Disabled').count()  # noqa: E501
-        except Exception:
-            alert = 0
-
-        c = Context({
-            'title': 'Gatekeeper',
-            'ok_count': ok,
-            'alert_count': alert,
-            'plugin': 'Gatekeeper',
-            'theid': theid,
-            'page': page
-        })
-        return t.render(c)
-
-    def filter_machines(self, machines, data):
+    def _filter(self, machines, data):
         if data == 'ok':
-            machines = machines.filter(pluginscriptsubmission__plugin__exact='Gatekeeper', pluginscriptsubmission__pluginscriptrow__pluginscript_name__exact='Gatekeeper', pluginscriptsubmission__pluginscriptrow__pluginscript_data__exact='Enabled')  # noqa: E501
-            title = 'Machines with Gatekeeper enabled'
-
+            machines = (
+                machines
+                .filter(PLUGIN_Q,
+                        SCRIPT_Q,
+                        pluginscriptsubmission__pluginscriptrow__pluginscript_data='Enabled'))
         elif data == 'alert':
-            machines = machines.filter(pluginscriptsubmission__plugin__exact='Gatekeeper', pluginscriptsubmission__pluginscriptrow__pluginscript_name__exact='Gatekeeper', pluginscriptsubmission__pluginscriptrow__pluginscript_data__exact='Disabled')  # noqa: E501
-            title = 'Machines without Gatekeeper enabled'
+            machines = (
+                machines
+                .filter(PLUGIN_Q,
+                        SCRIPT_Q,
+                        pluginscriptsubmission__pluginscriptrow__pluginscript_data='Disabled'))
+        elif data == 'unknown':
+            machines = (
+                machines
+                .exclude(pk__in=self._filter(machines, 'ok').values('pk'))
+                .exclude(pk__in=self._filter(machines, 'alert').values('pk')))
 
-        else:
-            machines = None
-            title = None
-
-        return machines, title
+        return machines

@@ -11,12 +11,11 @@ import server.utils as utils
 
 class CryptStatus(sal.plugin.DetailPlugin):
 
-    class Meta:
-        description = 'FileVault Escrow Status'
+    description = 'FileVault Escrow Status'
 
     def get_context(self, machine, **kwargs):
         context = defaultdict(str)
-        context['title'] = self.Meta.description
+        context['title'] = self.description
 
         crypt_url = utils.get_setting('crypt_url', None).rstrip()
 

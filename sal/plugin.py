@@ -371,6 +371,9 @@ class OldPluginAdapter(BasePlugin):
     def __init__(self, plugin):
         self.plugin = plugin
 
+    def __repr__(self):
+        return self.plugin.__class__.__name__
+
     @property
     def enabled(self):
         plugin_type = self.get_plugin_type()

@@ -164,8 +164,12 @@ class BasePlugin(IPlugin):
         Returns:
             Django template for this plugin.
         """
-        template = self.template if self.template else "{0}/templates/{0}.html".format(
-            self.__class__.__name__.lower())
+        if self.template:
+            template = self.template
+        else:
+            # Construct path to templates from plugin's full path.
+            template = "{0}/templates/{1}.html".format(
+                self.path[:self.path.rfind('/')], self.__class__.__name__.lower())
         return loader.get_template(template)
 
     def get_supported_os_families(self, **kwargs):

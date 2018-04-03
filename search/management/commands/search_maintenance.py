@@ -150,5 +150,9 @@ class Command(BaseCommand):
 
         if server.utils.is_postgres() and items_to_be_inserted != []:
             SearchCache.objects.bulk_create(items_to_be_inserted)
+
+        # Clean up orhpaned Application objects.
+        Application.objects.filter(inventoryitem=None).delete()
+
         sleep_time = options['sleep_time']
         sleep(sleep_time)

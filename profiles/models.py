@@ -3,11 +3,12 @@ from server.models import *
 
 
 class Profile(models.Model):
+    id = models.BigAutoField(primary_key=True)
     machine = models.ForeignKey(Machine)
     identifier = models.CharField(db_index=True, max_length=255)
     display_name = models.CharField(max_length=255)
     description = models.TextField()
-    install_data = models.DateTimeField()
+    install_date = models.DateTimeField()
     organization = models.CharField(max_length=255)
     uuid = models.CharField(max_length=255)
     verification_state = models.CharField(max_length=255)
@@ -20,8 +21,9 @@ class Profile(models.Model):
 
 
 class Payload(models.Model):
+    id = models.BigAutoField(primary_key=True)
     profile = models.ForeignKey(Profile)
-    type = models.CharField(max_length=255)
+    payload_type = models.CharField(max_length=255)
     identifier = models.CharField(db_index=True, max_length=255)
     uuid = models.CharField(max_length=255)
 

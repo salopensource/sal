@@ -169,6 +169,14 @@ class ProfileViewSet(viewsets.ReadOnlyModelViewSet):
         'identifier', 'uuid')
     search_fields = ('identifier', 'uuid')
 
+class ProfilePayloadViewSet(viewsets.ReadOnlyModelViewSet):
+    queryset = Payload.objects.all()
+    serializer_class = ProfilePayloadSerializer
+    filter_fields = (
+        'machine__serial', 'machine__hostname',
+        'identifier', 'uuid')
+    search_fields = ('identifier', 'uuid')
+
 
 class SavedSearchViewSet(viewsets.ReadOnlyModelViewSet):
     """

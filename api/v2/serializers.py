@@ -64,6 +64,13 @@ class ProfileSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
+class ProfilePayloadSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Payload
+        fields = '__all__'
+
+
 class FactSerializer(serializers.ModelSerializer):
 
     class Meta:

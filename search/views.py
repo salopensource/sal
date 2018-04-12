@@ -237,7 +237,8 @@ def search_machines(search_id, machines, full=False):
 
                 model = Payload  # noqa: F841
                 querystring = {
-                    'profile__payload__%s%s' % (search_row.search_field, operator): search_row.search_term
+                    'profile__payload__%s%s' % (search_row.search_field, operator): 
+                                                search_row.search_term
                 }
                 if operator != '':
                     q_object = Q(**querystring)

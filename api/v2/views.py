@@ -173,7 +173,7 @@ class ProfilePayloadViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Payload.objects.all()
     serializer_class = ProfilePayloadSerializer
     filter_fields = (
-        'machine__serial', 'machine__hostname',
+        'profile__machine__serial', 'profile__machine__hostname',
         'identifier', 'uuid')
     search_fields = ('identifier', 'uuid')
 

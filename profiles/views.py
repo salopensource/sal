@@ -99,7 +99,7 @@ def submit_profiles(request):
                                 payloads_to_save.append(payload_item)
                             else:
                                 payload_item.save()
-                            break
+                break
 
             if utils.is_postgres():
                 Payload.objects.bulk_create(payloads_to_save)

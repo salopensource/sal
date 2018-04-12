@@ -1,4 +1,5 @@
 # Standard Library
+import dateutil.parser
 import plistlib
 
 
@@ -55,7 +56,7 @@ def submit_profiles(request):
             if '_computerlevel' in profiles_list:
                 profiles_list = profiles_list['_computerlevel']
             for profile in profiles_list:
-                parsed_date = dateparse.parse_datetime(profile.get('ProfileInstallDate'))
+                parsed_date = dateutil.parser.parse(profile.get('ProfileInstallDate'))
                 profile_item = Profile(
                     machine = machine,
                     identifier = profile.get('ProfileIdentifier', ''),
@@ -67,13 +68,38 @@ def submit_profiles(request):
                     install_date = parsed_date
                 )
 
-                if utils.is_postgres:
+                if utils.is_postgres():
                     profiles_to_be_added.append(profile_item)
                 else:
                     profile_item.save()
 
             if utils.is_postgres():
                 Profile.objects.bulk_create(profiles_to_be_added)
+
+            stored_profiles = machine.profile_set.all()
+            payloads_to_save = []
+            for stored_profile in stored_profiles:
+                uuid = stored_profile.uuid
+                identifier = stored_profile.identifier
+                for profile in profiles_list:
+                    if uuid == profile.get('ProfileUUID', '') \
+                    and identifier == profile.get('ProfileIdentifier', ''):
+                        payloads = profile.get('ProfileItems', [])
+                        for payload in payloads:
+                            payload_item = Payload(
+                                profile = stored_profile,
+                                identifier = payload.get('PayloadIdentifier', ''),
+                                uuid = payload.get('PayloadUUID', ''),
+                                payload_type = payload.get('PayloadType', [])
+                            )
+
+                            if utils.is_postgres():
+                                payloads_to_save.append(payload_item)
+                            else:
+                                payload_item.save()
+                                
+            if utils.is_postgres():
+                Payload.objects.bulk_create(payloads_to_save)
 
             return HttpResponse("Profiles submitted for %s.\n" % 
                                 submission.get('serial'))

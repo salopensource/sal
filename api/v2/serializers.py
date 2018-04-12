@@ -6,6 +6,7 @@ from inventory.models import InventoryItem, Application
 from mixins import QueryFieldsMixin
 from server.models import *
 from search.models import *
+from profiles.models import *
 
 
 class InventoryApplicationSerializer(serializers.ModelSerializer):
@@ -53,6 +54,13 @@ class PluginScriptRowSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = PluginScriptRow
+        fields = '__all__'
+
+
+class ProfileSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Profile
         fields = '__all__'
 
 

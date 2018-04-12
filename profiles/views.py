@@ -21,6 +21,7 @@ from server import utils
 from sal.decorators import *
 from server.models import BusinessUnit, MachineGroup, Machine  # noqa: F811
 
+
 # Create your views here.
 @csrf_exempt
 @key_auth_required
@@ -58,14 +59,14 @@ def submit_profiles(request):
             for profile in profiles_list:
                 parsed_date = dateutil.parser.parse(profile.get('ProfileInstallDate'))
                 profile_item = Profile(
-                    machine = machine,
-                    identifier = profile.get('ProfileIdentifier', ''),
-                    display_name = profile.get('ProfileDisplayName', ''),
-                    description = profile.get('ProfileDescription', ''),
-                    organization = profile.get('ProfileOrganization', ''),
-                    uuid = profile.get('ProfileUUID', ''),
-                    verification_state = profile.get('ProfileVerificationState', ''),
-                    install_date = parsed_date
+                    machine=machine,
+                    identifier=profile.get('ProfileIdentifier', ''),
+                    display_name=profile.get('ProfileDisplayName', ''),
+                    description=profile.get('ProfileDescription', ''),
+                    organization=profile.get('ProfileOrganization', ''),
+                    uuid=profile.get('ProfileUUID', ''),
+                    verification_state=profile.get('ProfileVerificationState', ''),
+                    install_date=parsed_date
                 )
 
                 if utils.is_postgres():
@@ -82,15 +83,16 @@ def submit_profiles(request):
                 uuid = stored_profile.uuid
                 identifier = stored_profile.identifier
                 for profile in profiles_list:
-                    if uuid == profile.get('ProfileUUID', '') \
-                    and identifier == profile.get('ProfileIdentifier', ''):
+                    profile_uuid = profile.get('ProfileUUID', '')
+                    profile_id = profile.get('ProfileIdentifier', '')
+                    if uuid == profile_uuid and identifier == profile_id:
                         payloads = profile.get('ProfileItems', [])
                         for payload in payloads:
                             payload_item = Payload(
-                                profile = stored_profile,
-                                identifier = payload.get('PayloadIdentifier', ''),
-                                uuid = payload.get('PayloadUUID', ''),
-                                payload_type = payload.get('PayloadType', [])
+                                profile=stored_profile,
+                                identifier=payload.get('PayloadIdentifier', ''),
+                                uuid=payload.get('PayloadUUID', ''),
+                                payload_type=payload.get('PayloadType', [])
                             )
 
                             if utils.is_postgres():
@@ -101,6 +103,6 @@ def submit_profiles(request):
             if utils.is_postgres():
                 Payload.objects.bulk_create(payloads_to_save)
 
-            return HttpResponse("Profiles submitted for %s.\n" % 
+            return HttpResponse("Profiles submitted for %s.\n" %
                                 submission.get('serial'))
     return HttpResponse("No profiles submitted.\n")

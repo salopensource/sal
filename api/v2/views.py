@@ -161,6 +161,7 @@ class PluginScriptRowViewSet(viewsets.ReadOnlyModelViewSet):
         'submission__machine__serial', 'submission__machine__hostname',
         'submission__plugin', 'pluginscript_name', 'pluginscript_data_string')
 
+
 class ProfileViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Profile.objects.all()
     serializer_class = ProfileSerializer
@@ -168,6 +169,7 @@ class ProfileViewSet(viewsets.ReadOnlyModelViewSet):
         'machine__serial', 'machine__hostname',
         'identifier', 'uuid')
     search_fields = ('identifier', 'uuid')
+
 
 class ProfilePayloadViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Payload.objects.all()

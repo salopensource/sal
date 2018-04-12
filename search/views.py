@@ -237,8 +237,8 @@ def search_machines(search_id, machines, full=False):
 
                 model = Payload  # noqa: F841
                 querystring = {
-                    'profile__payload__%s%s' % (search_row.search_field, operator): 
-                                                search_row.search_term
+                    'profile__payload__%s%s' % (search_row.search_field, operator):
+                    search_row.search_term
                 }
                 if operator != '':
                     q_object = Q(**querystring)
@@ -562,8 +562,6 @@ def get_fields(request, model):
         cache_items = SearchFieldCache.objects.filter(search_model='Profile Payload')
         for cache_item in cache_items:
             search_fields.append(cache_item.search_field)
-
-
 
     output = {}
     output['fields'] = sorted(search_fields)

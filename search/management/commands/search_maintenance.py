@@ -12,6 +12,7 @@ import django.utils.timezone
 from inventory.models import *
 from server.models import *
 from search.models import *
+from profiles.models import *
 import server.utils
 
 # This is down here because an import * from above is clobbering
@@ -97,6 +98,20 @@ class Command(BaseCommand):
             search_fields.append(cached_item)
             if server.utils.is_postgres() is False:
                 cached_item.save()
+
+        for f in Profile._meta.fields:
+            if f.name not in skip_fields:
+                cached_item = SearchFieldCache(search_model='Profile', search_field=f.name)
+                search_fields.append(cached_item)
+                if server.utils.is_postgres() is False:
+                    cached_item.save()
+
+        for f in Payload._meta.fields:
+            if f.name not in skip_fields:
+                cached_item = SearchFieldCache(search_model='Profile Payload', search_field=f.name)
+                search_fields.append(cached_item)
+                if server.utils.is_postgres() is False:
+                    cached_item.save()
 
         if server.utils.is_postgres() is True:
             SearchFieldCache.objects.bulk_create(search_fields)

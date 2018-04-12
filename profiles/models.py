@@ -19,6 +19,9 @@ class Profile(models.Model):
     def __unicode__(self):
         return self.display_name
 
+    def get_fields(self):
+        return [(field.name, field.value_to_string(self)) for field in Profile._meta.fields]
+
 
 class Payload(models.Model):
     id = models.BigAutoField(primary_key=True)
@@ -32,3 +35,6 @@ class Payload(models.Model):
 
     def __unicode__(self):
         return '{} {}'.format(self.identifier, self.uuid)
+
+    def get_fields(self):
+        return [(field.name, field.value_to_string(self)) for field in Payload._meta.fields]

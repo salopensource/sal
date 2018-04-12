@@ -20,6 +20,7 @@ from sal.decorators import *
 from search.forms import *
 from search.models import *
 from server.models import *
+from profiles.models import *
 
 
 @login_required
@@ -220,6 +221,30 @@ def search_machines(search_id, machines, full=False):
                 else:
                     q_object = ~Q(**querystring)
 
+            elif search_row.search_models == 'Profile':
+
+                model = Profile  # noqa: F841
+                querystring = {
+                    'profile__%s%s' % (search_row.search_field, operator): search_row.search_term
+                }
+                if operator != '':
+                    q_object = Q(**querystring)
+
+                else:
+                    q_object = ~Q(**querystring)
+
+            elif search_row.search_models == 'Profile Payload':
+
+                model = Payload  # noqa: F841
+                querystring = {
+                    'profile__payload__%s%s' % (search_row.search_field, operator): search_row.search_term
+                }
+                if operator != '':
+                    q_object = Q(**querystring)
+
+                else:
+                    q_object = ~Q(**querystring)
+
             # Add a row operator if needed
             if row_operator is not None:
                 if row_operator == 'AND':
@@ -242,7 +267,6 @@ def search_machines(search_id, machines, full=False):
             queries = row_queries
 
         search_group_counter = search_group_counter + 1
-    print queries
 
     if full:
         machines = machines.filter(queries).distinct()
@@ -462,6 +486,12 @@ def edit_search_row(request, search_row_id):
         elif search_row.search_models.lower() == 'machine':
             rows = SearchFieldCache.objects.filter(search_model='Machine').distinct()
 
+        elif search_row.search_models.lower() == 'profile':
+            rows = SearchFieldCache.objects.filter(search_model='Profile').distinct()
+
+        elif search_row.search_models.lower() == 'profile payload':
+            rows = SearchFieldCache.objects.filter(search_model='Profile Payload').distinct()
+
         for row in rows:
             search_fields.append((row.search_field, row.search_field,))
 
@@ -521,6 +551,18 @@ def get_fields(request, model):
         cache_items = SearchFieldCache.objects.filter(search_model='Application Version')
         for cache_item in cache_items:
             search_fields.append(cache_item.search_field)
+
+    elif model.lower() == 'profile':
+        cache_items = SearchFieldCache.objects.filter(search_model='Profile')
+        for cache_item in cache_items:
+            search_fields.append(cache_item.search_field)
+
+    elif model.lower() == 'profile payload':
+        cache_items = SearchFieldCache.objects.filter(search_model='Profile Payload')
+        for cache_item in cache_items:
+            search_fields.append(cache_item.search_field)
+
+
 
     output = {}
     output['fields'] = sorted(search_fields)

@@ -1,8 +1,16 @@
 from django.contrib import admin
 from profiles.models import *
 
-# Register your models here.
+class ProfileAdmin(admin.ModelAdmin):
+    list_display = ('identifier', 'machine', 'uuid', 'install_date', 'verification_state')
+    list_filter = ('identifier', 'machine', 'install_date', 'verification_state')
 
 
-admin.site.register(Profile)
-admin.site.register(Payload)
+class PayloadAdmin(admin.ModelAdmin):
+    list_display = ('identifier', 'profile', 'uuid')
+    list_filter = ('identifier', 'profile')
+    search_fields = ('identifier',)
+
+
+admin.site.register(Profile, ProfileAdmin)
+admin.site.register(Payload, PayloadAdmin)

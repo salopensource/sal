@@ -198,6 +198,7 @@ INSTALLED_APPS = (
     'catalog',
     'inventory',
     'licenses',
+    'profiles',
     'bootstrap3',
     'watson',
     'datatableview',

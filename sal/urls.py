@@ -27,6 +27,7 @@ urlpatterns = [
     url(r'^search/', include('search.urls')),
     url(r'^licenses/', include('licenses.urls')),
     url(r'^catalog/', include('catalog.urls')),
+    url(r'^profiles/', include('profiles.urls')),
 
 ]
 

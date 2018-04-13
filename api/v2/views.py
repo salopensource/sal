@@ -17,6 +17,7 @@ from api.auth import *
 from .mixins import QueryFieldsMixin
 from search.views import *
 from server.models import *
+from profiles.models import *
 
 
 class BusinessUnitViewSet(viewsets.ModelViewSet):
@@ -159,6 +160,15 @@ class PluginScriptRowViewSet(viewsets.ReadOnlyModelViewSet):
     filter_fields = (
         'submission__machine__serial', 'submission__machine__hostname',
         'submission__plugin', 'pluginscript_name', 'pluginscript_data_string')
+
+
+class ProfileViewSet(viewsets.ReadOnlyModelViewSet):
+    queryset = Profile.objects.all()
+    serializer_class = ProfileSerializer
+    filter_fields = (
+        'machine__serial', 'machine__hostname',
+        'identifier', 'uuid')
+    search_fields = ('identifier', 'uuid')
 
 
 class SavedSearchViewSet(viewsets.ReadOnlyModelViewSet):

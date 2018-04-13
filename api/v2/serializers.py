@@ -57,20 +57,6 @@ class PluginScriptRowSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
-class ProfileSerializer(serializers.ModelSerializer):
-
-    class Meta:
-        model = Profile
-        fields = '__all__'
-
-
-class ProfilePayloadSerializer(serializers.ModelSerializer):
-
-    class Meta:
-        model = Payload
-        fields = '__all__'
-
-
 class FactSerializer(serializers.ModelSerializer):
 
     class Meta:
@@ -169,4 +155,22 @@ class SavedSearchSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = SavedSearch
+        fields = '__all__'
+
+
+class ProfilePayloadSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Payload
+        fields = '__all__'
+
+
+class ProfileSerializer(serializers.ModelSerializer):
+
+    payloads = ProfilePayloadSerializer(source='payload_set', read_only=True, many=True)
+
+    machine = MachineSerializer(full=False, saved_search=True)
+
+    class Meta:
+        model = Profile
         fields = '__all__'

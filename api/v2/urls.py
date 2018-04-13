@@ -17,7 +17,6 @@ router.register(r'pending_apple_updates', views.PendingAppleUpdatesViewSet)
 router.register(r'pending_updates', views.PendingUpdatesViewSet)
 router.register(r'plugin_script_rows', views.PluginScriptRowViewSet)
 router.register(r'profiles', views.ProfileViewSet)
-router.register(r'profilepayloads', views.ProfilePayloadViewSet)
 router.register(r'saved_searches', views.SavedSearchViewSet)
 
 

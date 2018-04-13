@@ -17,7 +17,7 @@ FILTERS_AND_TITLES = {
     'today': (Q(last_checkin__gte=TODAY), 'Machines seen today'),
     'month': (Q(last_checkin__range=(THREE_MONTHS_AGO, MONTH_AGO)),
               'Machines inactive for a month'),
-    'three_months': (Q(last_checkin__gte=THREE_MONTHS_AGO), 'Machines inactive for over 3 months')}
+    'three_months': (Q(last_checkin__lte=THREE_MONTHS_AGO), 'Machines inactive for over 3 months')}
 
 
 class Activity(sal.plugin.Widget):

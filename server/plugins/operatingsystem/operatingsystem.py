@@ -22,7 +22,9 @@ class OperatingSystem(sal.plugin.Widget):
             machines
             .exclude(operating_system__isnull=True)
             .exclude(operating_system='')
+            .order_by('operating_system')
             .values('operating_system', 'os_family')
+            .distinct()
             .annotate(count=Count('operating_system')))
 
         grouped = defaultdict(list)

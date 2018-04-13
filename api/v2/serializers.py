@@ -93,6 +93,12 @@ class PendingUpdateSerializer(serializers.ModelSerializer):
 
 class MachineSerializer(QueryFieldsMixin, serializers.ModelSerializer):
 
+    """
+    Only used by saved_search and profiles
+    TODO (sheagcraig): Make it possible to nest MachineSerializer with
+    simple fields without using 'saved_search' kwarg
+    """
+
     simple_fields = (
         'console_user', 'munki_version', 'hd_space', 'machine_model',
         'cpu_speed', 'serial', 'id', 'last_puppet_run', 'errors',

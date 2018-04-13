@@ -14,4 +14,5 @@ class ProfileAdmin(admin.ModelAdmin):
         PayloadInline,
     ]
 
+
 admin.site.register(Profile, ProfileAdmin)

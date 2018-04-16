@@ -182,7 +182,7 @@ class PluginAdmin(admin.ModelAdmin):
 
 
 class PluginScriptRowAdmin(admin.ModelAdmin):
-    search_fields = ('plugin',)
+    search_fields = ('pluginscript_name',)
 
 
 class PluginScriptSubmissionAdmin(admin.ModelAdmin):

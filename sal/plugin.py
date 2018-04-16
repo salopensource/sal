@@ -482,8 +482,10 @@ class PluginManager(object):
             Widget, Report, or DetailPlugin instance, or None if no
             plugin was found with this name.
         """
-        plugin = self.wrap_old_plugins([self.manager.getPluginByName(name)])[0]
-        return plugin
+        plugin = self.manager.getPluginByName(name)
+        if plugin:
+            plugins = self.wrap_old_plugins([plugin])
+            return plugins[0] if plugins else None
 
     def get_all_plugins(self):
         """Return a list of all plugins found in configured directories.

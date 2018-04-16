@@ -367,6 +367,9 @@ def process_plugin_script(results, machine):
             machine=machine, plugin=safe_unicode(plugin_name), historical=historical)
         plugin_script.save()
         data = plugin.get('data')
+        # Ill-formed plugin data will throw an exception here.
+        if not isinstance(data, dict):
+            return
         for key, value in data.items():
             plugin_row = PluginScriptRow(
                 submission=safe_unicode(plugin_script),

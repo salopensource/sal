@@ -31,8 +31,8 @@ class PendingAppleUpdates(sal.plugin.Widget):
         except ValueError:
             return None, None
 
-        machines = machines.filter(pending_updates__update=update_name,
-                                   pending_updates__update_version=update_version)
+        machines = machines.filter(pending_apple_updates__update=update_name,
+                                   pending_apple_updates__update_version=update_version)
 
         # get the display name of the update
         try:

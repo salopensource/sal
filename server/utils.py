@@ -76,16 +76,29 @@ def get_server_version():
 def get_current_release_version_number():
     """Get the currently available Sal version.
 
+    Only checks once per 24 hours.
+
     Returns:
         (str) Version number if it could be retrieved, otherwise None.
     """
+    last_version_check = get_setting('last_version_check_date', 0)
+    current_time = time.time()
     current_version = None
-    try:
-        response = requests.get('https://version.salopensource.com')
-        if response.status_code == 200:
-            current_version = response.text
-    except requests.exceptions.RequestException:
-        pass
+
+    if last_version_check < (current_time - TWENTY_FOUR_HOURS):
+        try:
+            response = requests.get('https://version.salopensource.com')
+            if response.status_code == 200:
+                current_version = response.text
+        except requests.exceptions.RequestException:
+            pass
+
+        if current_version:
+            set_setting('last_version_check_date', int(current_time))
+            set_setting('current_version', current_version)
+    else:
+        current_version = get_setting('current_version')
+
     return current_version
 
 
@@ -97,13 +110,7 @@ def get_install_type():
 
 
 def send_report():
-    """Send report data if last report was sent over 24 hours ago.
-
-    Returns:
-        (str) current Sal version number or None if there was a problem
-        retrieving it. This will return regardless of whether the report
-        needed to be sent.
-    """
+    """Send report data if last report was sent over 24 hours ago."""
     last_sent = get_setting('last_sent_data', 0)
 
     current_time = time.time()
@@ -137,8 +144,6 @@ def send_report():
             return response.text
         else:
             return None
-    else:
-        return get_current_release_version_number()
 
 
 def check_version():
@@ -157,9 +162,7 @@ def check_version():
     result = {'new_version_available': False, 'new_version': False, 'server_version': False}
 
     server_version = get_server_version()
-    # Grab this from the database so we're not making requests all
-    # the time.
-    current_release_version = get_setting('current_version', '0')
+    current_release_version = get_current_release_version_number() or '0.0.0'
 
     # Only do something if running version is out of date.
     if LooseVersion(current_release_version) > LooseVersion(server_version):

@@ -7,7 +7,7 @@ import sal.plugin
 
 
 plugin_q = Q(pluginscriptsubmission__plugin='Encryption')
-# THe name got changed from Filevault to FileVault. Support both.
+# The name got changed from Filevault to FileVault. Support both.
 name_q = Q(pluginscriptsubmission__pluginscriptrow__pluginscript_name__iexact='Filevault')
 enabled_q = Q(pluginscriptsubmission__pluginscriptrow__pluginscript_data='Enabled')
 disabled_q = Q(pluginscriptsubmission__pluginscriptrow__pluginscript_data='Disabled')

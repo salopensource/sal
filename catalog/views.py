@@ -39,11 +39,9 @@ def submit_catalog(request):
             raise Http404
 
         compressed_catalog = submission.get('base64bz2catalog')
-        # print compressed_catalog
         if compressed_catalog:
             # compressed_catalog = compressed_catalog.replace(" ", "+")
             catalog_str = decode_to_string(compressed_catalog)
-            print catalog_str
             try:
                 catalog_plist = plistlib.readPlistFromString(catalog_str)
             except Exception:

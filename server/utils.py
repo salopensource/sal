@@ -108,7 +108,7 @@ def send_report():
 
     current_time = time.time()
 
-    if last_sent < (current_time - TWENTY_FOUR_HOURS):
+    if last_sent > (current_time - TWENTY_FOUR_HOURS):
         output = {}
 
         # get total number of machines

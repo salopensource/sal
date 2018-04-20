@@ -828,7 +828,7 @@ def install_log_submit(request):
             for line in log_str.splitlines():
                 matches = re.search(INSTALL_PATTERN, line)
                 if matches:
-                    process_update_item(matches.groupdict(), machine)
+                    process_update_item(matches.groupdict(), machine, uuid)
 
             machine.install_log_hash = hashlib.sha256(log_str).hexdigest()
             machine.save()
@@ -843,7 +843,7 @@ def process_update_item(data, machine, uuid):
     update_date = dateutil.parser.parse(data['date'])
 
     update_history, _ = UpdateHistory.objects.get_or_create(
-        name=name, version=data['version'], update_type=update_type, machine=machine)
+        name=name, version=data['version'] or '', update_type=update_type, machine=machine)
 
     if data['status'] == 'FAILED':
         status = 'error'
@@ -857,7 +857,7 @@ def process_update_item(data, machine, uuid):
 
     # TODO: This should reuse an UpdateHistoryItems query for this run's uuid and
     # status=pending.
-    if created and action in ('install', 'removal'):
+    if created and status in ('install', 'removal'):
         # Make sure there has't been a pending in the same sal run
         # Remove them if there are
         UpdateHistoryItem.objects.filter(

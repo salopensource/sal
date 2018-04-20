@@ -844,7 +844,7 @@ def install_log_submit(request):
 
 def process_update_item(data, machine, uuid):
     # Convert Munki Install.log type to Sal's type name.
-    update_type = UpdateHistory.UPDATE_TYPE[1 if in data['apple_install'] else 0][0]
+    update_type = UpdateHistory.UPDATE_TYPE[1 if data['apple_install'] else 0][0]
     name = data['removal_name'] if data['removal'] else data['name']
     update_date = dateutil.parser.parse(data['date'])
 

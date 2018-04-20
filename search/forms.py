@@ -23,7 +23,6 @@ class SearchRowForm(forms.ModelForm):
         'activity',
         'errors',
         'warnings',
-        'install_log',
         'puppet_errors',
         'install_log_hash'
     ]

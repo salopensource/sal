@@ -845,8 +845,6 @@ def install_log_submit(request):
         if compressed_log:
             compressed_log = compressed_log.replace(" ", "+")
             log_str = text_utils.decode_to_string(compressed_log)
-            machine.install_log = log_str
-            machine.save()
 
             for line in log_str.splitlines():
                 # Third party install successes first
@@ -940,6 +938,5 @@ def install_log_submit(request):
                         pass
             machine.install_log_hash = \
                 hashlib.sha256(log_str).hexdigest()
-            machine.install_log = log_str
             machine.save()
         return HttpResponse("Install Log processed for %s" % serial)

@@ -828,7 +828,7 @@ def install_log_submit(request):
             for line in log_str.splitlines():
                 matches = re.search(INSTALL_PATTERN, line)
                 if matches:
-                    process_update_item_two(matches.groupdict(), machine)
+                    process_update_item(matches.groupdict(), machine)
 
             machine.install_log_hash = hashlib.sha256(log_str).hexdigest()
             machine.save()

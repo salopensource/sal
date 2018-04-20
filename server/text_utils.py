@@ -35,19 +35,33 @@ def stringify(data):
     return str(data)
 
 
-def decode_to_string(data, compression='base64bz2'):
-    '''Decodes a string that is optionally bz2 compressed and always base64 encoded.'''
-    if compression == 'base64bz2':
-        try:
-            bz2data = base64.b64decode(data)
-            return bz2.decompress(bz2data)
-        except Exception:
-            return ''
-    elif compression == 'base64':
-        try:
-            return base64.b64decode(data)
-        except Exception:
-            return
-            ''
+def decode_to_string(data, compression=''):
+    """Decodes a string optionally bz2 compressed and/or base64 encoded.
 
-    return ''
+    Will decode base64 first if specified. Then decompress bz2 if
+    specified.
+
+    Args:
+        data (str): Data to decode. May just be a regular string!
+        compression (str): Type of encoding and compression. Defaults
+            to empty str. Uses substrings to determine what to do:
+            'base64' results in first base64 decoding.
+            'bz2' results in bz2.decompression.
+
+    Returns:
+        The decoded, decompressed string, or '' if there were
+        exceptions.
+    """
+    if 'base64' in compression:
+        try:
+            data = base64.b64decode(data)
+        except TypeError:
+            data = ''
+
+    if 'bz2' in compression:
+        try:
+            data = bz2.decompress(data)
+        except IOError:
+            data = ''
+
+    return data

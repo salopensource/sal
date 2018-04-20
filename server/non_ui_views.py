@@ -39,6 +39,22 @@ IS_POSTGRES = utils.is_postgres()
 
 IGNORED_CSV_FIELDS = ('id', 'machine_group', 'report', 'activity', 'os_family', 'install_log',
                       'install_log_hash')
+# Tricky regex: Determine if this is a removal, because they do not
+# include a version (but the name may include dashes). If it's not a
+# removal, we want to know what type of install it is, and there should
+# be a version. Finally, Apple update failures will include a reason,
+# captured in "extra".
+INSTALL_PATTERN = re.compile(
+    r'(?P<date>[a-zA-Z]{3} [-+:\d\s]{22}) '
+    r'('
+    r'((?P<removal>Removal) of '
+    r'(?P<removal_name>.+)): '
+    r'|'
+    r'((?P<apple_install>Apple Software Update install)*(?P<third_party_install>.*?) of '
+    r'(?P<name>.+)-(?P<version>.+): '
+    r'))'
+    r'(?P<status>[A-Z]+) '
+    r'?(?P<extra>.*)$')
 
 
 @login_required
@@ -774,51 +790,6 @@ def install_log_hash(request, serial):
     return HttpResponse(sha256hash)
 
 
-def process_update_item(name, version, update_type, action, recorded, machine, uuid, extra=None):
-    # Get a parent update history item, or create one
-    try:
-        update_history = UpdateHistory.objects.get(name=name,
-                                                   version=version,
-                                                   update_type=update_type,
-                                                   machine=machine)
-    except UpdateHistory.DoesNotExist:
-        update_history = UpdateHistory(name=name,
-                                       version=version,
-                                       update_type=update_type,
-                                       machine=machine)
-        update_history.save()
-
-    # Now make sure it's not already in there
-    try:
-        update_history_item = UpdateHistoryItem.objects.get(
-            recorded=recorded,
-            status=action,
-            update_history=update_history
-        )
-    except UpdateHistoryItem.DoesNotExist:
-        # Make one if it doesn't exist
-        update_history_item = UpdateHistoryItem(
-            recorded=recorded,
-            status=action,
-            update_history=update_history)
-        update_history_item.save()
-        if extra:
-            update_history_item.extra = extra
-            update_history_item.save()
-
-        if action == 'install' or action == 'removal':
-            # Make sure there has't been a pending in the same sal run
-            # Remove them if there are
-            remove_items = UpdateHistoryItem.objects.filter(
-                uuid=uuid,
-                status='pending',
-                update_history=update_history
-            )
-            remove_items.delete()
-            update_history.pending_recorded = False
-            update_history.save()
-
-
 @csrf_exempt
 @key_auth_required
 def install_log_submit(request):
@@ -841,102 +812,56 @@ def install_log_submit(request):
         if machine_group.id != machine.machine_group.id:
             return HttpResponseNotFound('No machine group found')
 
-        compressed_log = submission.get('base64bz2installlog')
+        old_key = 'base64bz2installlog'
+        new_key = 'bz2installlog'
+        key = new_key if new_key in submission else old_key
+        compressed_log = submission.get(key)
         if compressed_log:
             compressed_log = compressed_log.replace(" ", "+")
-            log_str = text_utils.decode_to_string(compressed_log)
+            log_str = text_utils.decode_to_string(compressed_log, compression=key[:-10])
+
+            # TODO:
+            # - Remove base64 encoding from report (checkin) and here.
+            #   - Needs to still allow JUST base64 encoded for non-macOS
+            # - Remove install_log from machine model
 
             for line in log_str.splitlines():
-                # Third party install successes first
-                m = re.search('(.+) Install of (.+): (.+)$', line)
-                if m:
-                    try:
-                        if m.group(3) == 'SUCCESSFUL':
-                            the_date = dateutil.parser.parse(m.group(1))
-                            (name, version) = m.group(2).rsplit('-', 1)
-                            process_update_item(name, version, 'third_party', 'install', the_date,
-                                                machine, uuid)
-                            # We've processed this line, move on
-                            continue
+                matches = re.search(INSTALL_PATTERN, line)
+                if matches:
+                    process_update_item_two(matches.groupdict(), machine)
 
-                    except IndexError:
-                        pass
-                # Third party install failures
-                m = re.search('(.+) Install of (.+): FAILED (.+)$', line)
-                if m:
-                    try:
-                        the_date = dateutil.parser.parse(m.group(1))
-                        (name, version) = m.group(2).rsplit('-', 1)
-                        extra = m.group(3)
-                        process_update_item(name, version, 'third_party', 'error', the_date,
-                                            machine, uuid, extra)
-                        # We've processed this line, move on
-                        continue
-
-                    except IndexError:
-                        pass
-
-                # Third party removals
-                m = re.search('(.+) Removal of (.+): (.+)$', line)
-                if m:
-                    try:
-                        if m.group(3) == 'SUCCESSFUL':
-                            the_date = dateutil.parser.parse(m.group(1))
-                            # (name, version) = m.group(2).rsplit('-',1)
-                            name = m.group(2)
-                            version = ''
-                            process_update_item(name, version, 'third_party', 'removal', the_date,
-                                                machine, uuid)
-                            # We've processed this line, move on
-                            continue
-
-                    except IndexError:
-                        pass
-                # Third party removal failures
-                m = re.search('(.+) Removal of (.+): FAILED (.+)$', line)
-                if m:
-                    try:
-                        the_date = dateutil.parser.parse(m.group(1))
-                        (name, version) = m.group(2).rsplit('-', 1)
-                        extra = m.group(3)
-                        process_update_item(name, version, 'third_party', 'error', the_date,
-                                            machine, uuid, extra)
-                        # We've processed this line, move on
-                        continue
-
-                    except IndexError:
-                        pass
-
-                # Apple update install successes
-                m = re.search('(.+) Apple Software Update install of (.+): (.+)$', line)
-                if m:
-                    try:
-                        if m.group(3) == 'FAILED':
-                            the_date = dateutil.parser.parse(m.group(1))
-                            (name, version) = m.group(2).rsplit('-', 1)
-                            process_update_item(name, version, 'apple', 'install', the_date,
-                                                machine, uuid)
-                            # We've processed this line, move on
-                            continue
-
-                    except IndexError:
-                        pass
-
-                # Apple install failures
-                m = re.search('(.+) Apple Software Update install of (.+): FAILED (.+)$', line)
-                if m:
-                    try:
-                        the_date = dateutil.parser.parse(m.group(1))
-                        (name, version) = m.group(2).rsplit('-', 1)
-                        extra = m.group(3)
-                        process_update_item(name, version, 'apple', 'error', the_date,
-                                            machine, uuid, extra)
-                        # We've processed this line, move on
-                        continue
-
-                    except IndexError:
-                        pass
-            machine.install_log_hash = \
-                hashlib.sha256(log_str).hexdigest()
+            machine.install_log_hash = hashlib.sha256(log_str).hexdigest()
             machine.save()
+
         return HttpResponse("Install Log processed for %s" % serial)
+
+
+def process_update_item(data, machine, uuid):
+    # Convert Munki Install.log type to Sal's type name.
+    update_type = UpdateHistory.UPDATE_TYPE[1 if in data['apple_install'] else 0][0]
+    name = data['removal_name'] if data['removal'] else data['name']
+    update_date = dateutil.parser.parse(data['date'])
+
+    update_history, _ = UpdateHistory.objects.get_or_create(
+        name=name, version=data['version'], update_type=update_type, machine=machine)
+
+    if data['status'] == 'FAILED':
+        status = 'error'
+    elif data['removal']:
+        status = 'removal'
+    else:
+        status = 'install'
+
+    history_item, created = UpdateHistoryItem.objects.get_or_create(
+        recorded=update_date, status=status, update_history=update_history, extra=data['extra'])
+
+    # TODO: This should reuse an UpdateHistoryItems query for this run's uuid and
+    # status=pending.
+    if created and action in ('install', 'removal'):
+        # Make sure there has't been a pending in the same sal run
+        # Remove them if there are
+        UpdateHistoryItem.objects.filter(
+            uuid=uuid, status='pending', update_history=update_history).delete()
+
+        update_history.pending_recorded = False
+        update_history.save()

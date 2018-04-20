@@ -135,7 +135,7 @@ class MachineAdmin(admin.ModelAdmin):
         ('last_checkin', 'first_checkin'),
         ('puppet_version', 'last_puppet_run', 'puppet_errors'),
         ('sal_version', 'deployed', 'broken_client'),
-        'report', 'report_format', 'install_log_hash', 'install_log'
+        'report', 'report_format', 'install_log_hash'
     )
     readonly_fields = (business_unit, 'first_checkin', 'last_checkin', 'last_puppet_run',
                        'report_format')

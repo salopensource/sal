@@ -82,7 +82,7 @@ class MachineViewSet(QueryFieldsMixin, viewsets.ModelViewSet):
         - Include Example: `/api/machines/?fields=console_user,hostname`
         - Exclude Example: `/api/machines/?fields!=report`
 
-    The abbreviated form excludes the `report`, `install_log`,
+    The abbreviated form excludes the `report`,
     `install_log_hash`, and `activity` fields.
 
     You may also use the `search` querystring to perform text searches
@@ -104,7 +104,7 @@ class MachineViewSet(QueryFieldsMixin, viewsets.ModelViewSet):
         - Include Example: `/api/machines/C0DEADBEEF/?fields=console_user,hostname`
         - Exclude Example: `/api/machines/C0DEADBEEF/?fields!=report`
 
-    The abbreviated form excludes the `activity`, `report`, `install_log`, and
+    The abbreviated form excludes the `activity`, `report`, and
     `install_log_hash` fields.
     """
     queryset = Machine.objects.all()

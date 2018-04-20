@@ -37,8 +37,7 @@ if settings.DEBUG:
 # The database probably isn't going to change while this is loaded.
 IS_POSTGRES = utils.is_postgres()
 
-IGNORED_CSV_FIELDS = ('id', 'machine_group', 'report', 'activity', 'os_family', 'install_log',
-                      'install_log_hash')
+IGNORED_CSV_FIELDS = ('id', 'machine_group', 'report', 'activity', 'os_family', 'install_log_hash')
 # Tricky regex: Determine if this is a removal, because they do not
 # include a version (but the name may include dashes). If it's not a
 # removal, we want to know what type of install it is, and there should
@@ -823,7 +822,6 @@ def install_log_submit(request):
             # TODO:
             # - Remove base64 encoding from report (checkin) and here.
             #   - Needs to still allow JUST base64 encoded for non-macOS
-            # - Remove install_log from machine model
 
             for line in log_str.splitlines():
                 matches = re.search(INSTALL_PATTERN, line)

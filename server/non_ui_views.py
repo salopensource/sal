@@ -819,10 +819,14 @@ def install_log_submit(request):
             compressed_log = compressed_log.replace(" ", "+")
             log_str = text_utils.decode_to_string(compressed_log, compression=key)
 
+            # This is a little unclear; create a preliminary queryset
+            # of pending items for reuse during the process_update_item
+            # call.
+            pending = UpdateHistoryItem.objects.filter(uuid=uuid, status='pending')
             for line in log_str.splitlines():
                 matches = re.search(INSTALL_PATTERN, line)
                 if matches:
-                    process_update_item(matches.groupdict(), machine, uuid)
+                    process_update_item(matches.groupdict(), machine, pending)
 
             machine.install_log_hash = hashlib.sha256(log_str).hexdigest()
             machine.save()
@@ -830,7 +834,7 @@ def install_log_submit(request):
         return HttpResponse("Install Log processed for %s" % serial)
 
 
-def process_update_item(data, machine, uuid):
+def process_update_item(data, machine, pending):
     # Convert Munki Install.log type to Sal's type name.
     update_type = UpdateHistory.UPDATE_TYPE[1 if data['apple_install'] else 0][0]
     name = data['removal_name'] if data['removal'] else data['name']
@@ -849,13 +853,9 @@ def process_update_item(data, machine, uuid):
     history_item, created = UpdateHistoryItem.objects.get_or_create(
         recorded=update_date, status=status, update_history=update_history, extra=data['extra'])
 
-    # TODO: This should reuse an UpdateHistoryItems query for this run's uuid and
-    # status=pending.
     if created and status in ('install', 'removal'):
         # Make sure there has't been a pending in the same sal run
         # Remove them if there are
-        UpdateHistoryItem.objects.filter(
-            uuid=uuid, status='pending', update_history=update_history).delete()
-
+        pending.filter(update_history=update_history).delete()
         update_history.pending_recorded = False
         update_history.save()

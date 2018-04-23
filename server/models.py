@@ -135,6 +135,7 @@ class Machine(models.Model):
     last_checkin = models.DateTimeField(db_index=True, blank=True, null=True)
     first_checkin = models.DateTimeField(db_index=True, blank=True, null=True, auto_now_add=True)
     report = models.TextField(editable=True, null=True)
+    # TODO: Should be able to do away with this.
     report_format = models.CharField(
         max_length=256, choices=REPORT_CHOICES, default="base64bz2", editable=False)
     errors = models.IntegerField(default=0)
@@ -154,12 +155,14 @@ class Machine(models.Model):
     def get_fields(self):
         return [(field.name, field.value_to_string(self)) for field in Machine._meta.fields]
 
+    # TODO: This is no longer needed.
     def encode(self, plist):
         string = plistlib.writePlistToString(plist)
         bz2data = bz2.compress(string)
         b64data = base64.b64encode(bz2data)
         return b64data
 
+    # TODO: This is no longer needed.
     def decode(self, data):
         # this has some sucky workarounds for odd handling
         # of UTF-8 data in sqlite3
@@ -180,6 +183,7 @@ class Machine(models.Model):
                 except Exception:
                     return dict()
 
+    # TODO: This is no longer needed.
     def b64bz_decode(self, data):
         try:
             bz2data = base64.b64decode(data)
@@ -189,6 +193,7 @@ class Machine(models.Model):
         except Exception:
             return {}
 
+    # TODO: This is no longer needed.
     def b64_decode(self, data):
         try:
             string = base64.b64decode(data)
@@ -197,19 +202,19 @@ class Machine(models.Model):
         except Exception:
             return {}
 
+    # TODO: This is no longer needed.
     def get_report(self):
         return self.decode(self.report)
 
+    # TODO: This is no longer needed.
     def get_activity(self):
         return self.decode(self.activity)
 
     def update_report(self, encoded_report, report_format='base64bz2'):
+        report = text_utils.decode_to_string(encoded_report, compression=report_format)
+        plist = plistlib.readPlistFromString(report)
         # Save report.
         try:
-            if report_format == 'base64bz2':
-                plist = self.b64bz_decode(encoded_report)
-            elif report_format == 'base64':
-                plist = self.b64_decode(encoded_report)
             self.report = plistlib.writePlistToString(plist)
             self.report_format = report_format
         except Exception:

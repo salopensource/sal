@@ -345,11 +345,10 @@ def checkin(request):
         if data.get('username') != '_mbsetupuser':
             machine.console_user = data.get('username')
 
-    if 'base64bz2report' in data:
-        machine.update_report(data.get('base64bz2report'))
-
-    if 'base64report' in data:
-        machine.update_report(data.get('base64report'), 'base64')
+    for key in ('bz2report','base64report', 'base64bz2report'):
+        if key in data:
+            machine.update_report(data[key], report_format=key)
+            break
 
     if 'sal_version' in data:
         machine.sal_version = data.get('sal_version')
@@ -823,11 +822,7 @@ def install_log_submit(request):
         compressed_log = submission.get(key)
         if compressed_log:
             compressed_log = compressed_log.replace(" ", "+")
-            log_str = text_utils.decode_to_string(compressed_log, compression=key[:-10])
-
-            # TODO:
-            # - Remove base64 encoding from report (checkin) and here.
-            #   - Needs to still allow JUST base64 encoded for non-macOS
+            log_str = text_utils.decode_to_string(compressed_log, compression=key)
 
             for line in log_str.splitlines():
                 matches = re.search(INSTALL_PATTERN, line)

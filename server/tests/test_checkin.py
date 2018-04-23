@@ -55,4 +55,4 @@ INSTALL_LOG = '''\
     Feb 12 2018 06:07:07 -0800 Removal of sas-root-cert: SUCCESSFUL
     Feb 15 2018 11:31:30 -0500 Apple Software Update install of MRTConfigData-1.29: FAILED for unknown reason
     Feb 21 2018 10:17:59 -0500 Apple Software Update install of macOS High Sierra 10.13.3 Supplemental Update- : FAILED for unknown reason
-    Mar 28 2018 12:58:50 -0400 Apple Software Update install of Command Line Tools (macOS High Sierra version 10.13) for Xcode-9.2: FAILED for unknown reason'''
+    Mar 28 2018 12:58:50 -0400 Apple Software Update install of Command Line Tools (macOS High Sierra version 10.13) for Xcode-9.2: FAILED for unknown reason'''  # noqa: E501

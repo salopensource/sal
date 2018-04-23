@@ -701,8 +701,9 @@ def checkin(request):
                     fact.save()
 
                 if fact_name in historical_facts:
-                    fact = HistoricalFact(machine=machine, fact_name=fact_name,
-                                          fact_data=fact_data, fact_recorded=datetime.now())
+                    fact = HistoricalFact(
+                        machine=machine, fact_name=fact_name, fact_data=fact_data,
+                        fact_recorded=datetime.now(tz=pytz.UTC))
                     fact.save()
 
     if IS_POSTGRES:

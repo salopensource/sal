@@ -400,7 +400,8 @@ def checkin(request):
     if 'Puppet' in report_data:
         puppet = report_data.get('Puppet')
         if 'time' in puppet:
-            machine.last_puppet_run = datetime.fromtimestamp(float(puppet['time']['last_run']))
+            last_run_epoch = float(puppet['time']['last_run'])
+            machine.last_puppet_run = datetime.fromtimestamp(last_run_epoch, tz=pytz.UTC)
         if 'events' in puppet:
             machine.puppet_errors = puppet['events']['failure']
 

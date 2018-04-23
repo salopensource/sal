@@ -1,6 +1,7 @@
 import base64
 import bz2
 import plistlib
+import pytz
 import random
 import string
 from datetime import datetime
@@ -417,7 +418,7 @@ class PluginScriptRow(models.Model):
 
                     try:
                         self.pluginscript_data_date = datetime.fromtimestamp(
-                            int(self.pluginscript_data))
+                            int(self.pluginscript_data), tz=pytz.UTC)
                     except Exception:
                         self.pluginscript_data_date = None
                 else:

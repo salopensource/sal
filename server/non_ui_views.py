@@ -345,7 +345,7 @@ def checkin(request):
         if data.get('username') != '_mbsetupuser':
             machine.console_user = data.get('username')
 
-    for key in ('bz2report','base64report', 'base64bz2report'):
+    for key in ('bz2report', 'base64report', 'base64bz2report'):
         if key in data:
             machine.update_report(data[key], report_format=key)
             break

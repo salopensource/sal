@@ -3,7 +3,7 @@ import copy
 import hashlib
 import plistlib
 from datetime import datetime
-from urllib import quote, urlencode
+from urllib import quote, unquote
 
 # third-party
 import unicodecsv as csv

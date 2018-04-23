@@ -1,161 +1,103 @@
-from yapsy.IPlugin import IPlugin
-from yapsy.PluginManager import PluginManager
-from django.template import loader, Context
-from django.db.models import Count, F
-from server.models import *
-from catalog.models import *
-from django.shortcuts import get_object_or_404
-import server.utils as utils
-import plistlib
-import urllib
 import re
+import urllib
+
+from django.db.models import Count, F, Q
+from django.http import Http404
+
+import sal.plugin
 
 
-class MunkiInfo(IPlugin):
-    def plugin_type(self):
-        return 'report'
+REPORT_Q = Q(pluginscriptsubmission__plugin='MunkiInfo')
+DATA_F = F('pluginscriptsubmission__pluginscriptrow__pluginscript_data')
+DATA = 'pluginscript_data'
+URLS = ('SoftwareRepo', 'Package', 'Manifest', 'Catalog')
+URL_QS = {k: Q(pluginscriptsubmission__pluginscriptrow__pluginscript_name=k + 'URL') for k in URLS}
 
-    def widget_width(self):
-        return 12
 
-    def get_description(self):
-        return 'Information on Munki configuration.'
+class MunkiInfo(sal.plugin.ReportPlugin):
 
-    def get_title(self):
-        return 'Munki'
+    description = 'Information on Munki configuration.'
 
-    def safe_unicode(self, s):
-        if isinstance(s, unicode):
-            return s.encode('utf-8', errors='replace')
-        else:
-            return s
+    def get_http_only(self, machines):
+        return machines.filter(
+            REPORT_Q, URL_QS['SoftwareRepo'],
+            pluginscriptsubmission__pluginscriptrow__pluginscript_data__startswith='http://')
 
-    def widget_content(self, page, machines=None, theid=None):
+    def get_https_only(self, machines):
+        return machines.filter(
+            REPORT_Q, URL_QS['SoftwareRepo'],
+            pluginscriptsubmission__pluginscriptrow__pluginscript_data__startswith='https://')
 
-        if page == 'front':
-            t = loader.get_template('munkiinfo/templates/front.html')
+    def get_default_repo(self, machines):
+        return machines.filter(
+            REPORT_Q, URL_QS['SoftwareRepo'],
+            pluginscriptsubmission__pluginscriptrow__pluginscript_data='http://munki')
 
-        if page == 'bu_dashboard':
-            t = loader.get_template('munkiinfo/templates/id.html')
+    def get_client_certs(self, machines):
+        return machines.filter(
+            REPORT_Q,
+            pluginscriptsubmission__pluginscriptrow__pluginscript_name='UseClientCertificate',
+            pluginscriptsubmission__pluginscriptrow__pluginscript_data='True')
 
-        if page == 'group_dashboard':
-            t = loader.get_template('munkiinfo/templates/id.html')
+    def get_context(self, machines, group_type=None, group_id=None):
+        context = self.super_get_context(machines, group_type=group_type, group_id=group_id)
 
-        # HTTP only machines
-        http_only = machines.filter(pluginscriptsubmission__plugin='MunkiInfo', pluginscriptsubmission__pluginscriptrow__pluginscript_name='SoftwareRepoURL', pluginscriptsubmission__pluginscriptrow__pluginscript_data__startswith='http://').count()  # noqa: E501
+        context['http_only'] = self.get_http_only(machines).count()
+        context['https_only'] = self.get_https_only(machines).count()
+        context['http_munki'] = self.get_default_repo(machines).count()
+        context['client_certs'] = self.get_client_certs(machines).count()
+        context.update(
+            {k: self.process_urls(machines, (REPORT_Q, URL_QS[k]), k + '?URL=') for k in URLS})
 
-        # HTTPS only machines
-        https_only = machines.filter(pluginscriptsubmission__plugin='MunkiInfo', pluginscriptsubmission__pluginscriptrow__pluginscript_name='SoftwareRepoURL', pluginscriptsubmission__pluginscriptrow__pluginscript_data__startswith='https://').count()  # noqa: E501
+        return context
 
-        # Distinct Repo URLs
-        repo_urls = machines.filter(pluginscriptsubmission__plugin='MunkiInfo', pluginscriptsubmission__pluginscriptrow__pluginscript_name='SoftwareRepoURL').annotate(pluginscript_data=F('pluginscriptsubmission__pluginscriptrow__pluginscript_data')).values('pluginscript_data').annotate(count=Count('pluginscript_data')).order_by('pluginscript_data')  # noqa: E501
-
-        for url in repo_urls:
-            url['item_link'] = 'repo_urls?URL="%s"' % urllib.quote(url['pluginscript_data'],
-                                                                   safe='')
-
-        # Distinct Package URLs
-        try:
-            package_urls = machines.filter(pluginscriptsubmission__plugin='MunkiInfo', pluginscriptsubmission__pluginscriptrow__pluginscript_name='PackageURL').annotate(pluginscript_data=F('pluginscriptsubmission__pluginscriptrow__pluginscript_data')).values('pluginscript_data').exclude(pluginscript_data='None').annotate(count=Count('pluginscript_data')).order_by('pluginscript_data')  # noqa: E501
-            package_url_prefix = 'package_urls?URL='
-            for url in package_urls:
-                url['item_link'] = package_url_prefix + urllib.quote(url['pluginscript_data'])
-        except Exception:
-            package_urls = None
-
-        # Distinct Manifest URLs
-        try:
-            manifest_urls = machines.filter(pluginscriptsubmission__plugin='MunkiInfo', pluginscriptsubmission__pluginscriptrow__pluginscript_name='ManifestURL').annotate(pluginscript_data=F('pluginscriptsubmission__pluginscriptrow__pluginscript_data')).values('pluginscript_data').exclude(pluginscript_data='None').annotate(count=Count('pluginscript_data')).order_by('pluginscript_data')  # noqa: E501
-            manifest_url_prefix = 'manifest_urls?URL='
-            for url in manifest_urls:
-                url['item_link'] = manifest_url_prefix + urllib.quote(url['pluginscript_data'])
-
-        except Exception:
-            manifest_urls = None
-
-        # Distinct Catalog URLs
-        try:
-            catalog_urls = machines.filter(pluginscriptsubmission__plugin='MunkiInfo', pluginscriptsubmission__pluginscriptrow__pluginscript_name='CatalogURL').annotate(pluginscript_data=F('pluginscriptsubmission__pluginscriptrow__pluginscript_data')).values('pluginscript_data').exclude(pluginscript_data='None').annotate(count=Count('pluginscript_data')).order_by('pluginscript_data')  # noqa: E501
-            catalog_url_prefix = 'catalog_urls?URL='
-            for url in catalog_urls:
-                url['item_link'] = catalog_url_prefix + urllib.quote(url['pluginscript_data'])
-
-        except Exception:
-            catalog_urls = None
-
-        # Machines using the default repo url
-        http_munki = machines.filter(pluginscriptsubmission__plugin='MunkiInfo', pluginscriptsubmission__pluginscriptrow__pluginscript_name='SoftwareRepoURL', pluginscriptsubmission__pluginscriptrow__pluginscript_data__exact='http://munki').count()  # noqa: E501
-
-        # Machines using client certs
-        client_certs = machines.filter(pluginscriptsubmission__plugin='MunkiInfo', pluginscriptsubmission__pluginscriptrow__pluginscript_name='UseClientCertificate', pluginscriptsubmission__pluginscriptrow__pluginscript_data='True').count()  # noqa: E501
-
-        c = Context({
-            'title': 'Munki Info',
-            'http_only': http_only,
-            'https_only': https_only,
-            'http_munki': http_munki,
-            'repo_urls': repo_urls,
-            'catalog_urls': catalog_urls,
-            'manifest_urls': manifest_urls,
-            'package_urls': package_urls,
-            'client_certs': client_certs,
-            'plugin': 'MunkiInfo',
-            'page': page,
-            'theid': theid
-        })
-        return t.render(c)
-
-    def filter_machines(self, machines, data):
+    def filter(self, machines, data):
         if data.startswith('http_only?'):
-            try:
-                machines = machines.filter(pluginscriptsubmission__plugin='MunkiInfo', pluginscriptsubmission__pluginscriptrow__pluginscript_name='SoftwareRepoURL', pluginscriptsubmission__pluginscriptrow__pluginscript_data__startswith='http://')  # noqa: E501
-            except Exception:
-                machines = None
+            machines = self.get_http_only(machines)
             title = 'Machines using HTTP'
 
-        if data.startswith('https_only?'):
-            try:
-                machines = machines.filter(pluginscriptsubmission__plugin='MunkiInfo', pluginscriptsubmission__pluginscriptrow__pluginscript_name='SoftwareRepoURL', pluginscriptsubmission__pluginscriptrow__pluginscript_data__startswith='https://')  # noqa: E501
-            except Exception:
-                machines = None
+        elif data.startswith('https_only?'):
+            machines = self.get_https_only(machines)
             title = 'Machines using HTTPS'
 
-        if data.startswith('http_munki?'):
-            try:
-                machines = machines.filter(pluginscriptsubmission__plugin='MunkiInfo', pluginscriptsubmission__pluginscriptrow__pluginscript_name='SoftwareRepoURL', pluginscriptsubmission__pluginscriptrow__pluginscript_data__exact='http://munki')  # noqa: E501
-            except Exception:
-                machines = None
+        elif data.startswith('http_munki?'):
+            machines = self.get_default_repo(machines)
             title = 'Machines connecting to Munki using http://munki'
 
-        if data.startswith('client_certs?'):
-            try:
-                machines = machines.filter(pluginscriptsubmission__plugin='MunkiInfo', pluginscriptsubmission__pluginscriptrow__pluginscript_name='UseClientCertificate', pluginscriptsubmission__pluginscriptrow__pluginscript_data='True')  # noqa: E501
-            except Exception:
-                machines = None
+        elif data.startswith('client_certs?'):
+            machines = self.get_client_certs(machines)
             title = 'Machines connecting to Munki using client certificates'
 
-        if data.startswith('repo_urls?'):
-
-            url_re = re.search('repo_urls\?URL=\"(.*)\"', data)
-            url = urllib.unquote(url_re.group(1))
-
+        elif any(data.split('?')[0] == k for k in URLS):
+            url_re = re.search(r'(.*)\?URL=\"(.*)\"', data)
             try:
+                key = url_re.group(1)
+                url = urllib.unquote(url_re.group(2))
+            except IndexError:
+                raise Http404
 
-                machines = machines.filter(pluginscriptsubmission__plugin='MunkiInfo', pluginscriptsubmission__pluginscriptrow__pluginscript_name='SoftwareRepoURL', pluginscriptsubmission__pluginscriptrow__pluginscript_data__exact=url)  # noqa: E501
-            except Exception:
-                machines = None
-            title = 'Machines using %s' % url
+            machines = machines.filter(
+                REPORT_Q,
+                URL_QS[key],
+                pluginscriptsubmission__pluginscriptrow__pluginscript_data=url)
+            title = 'Machines using %s %s' % (key, url)
 
-        if data.startswith('manifest_urls?'):
-
-            url_re = re.search('manifest_urls\?URL=\"(.*)\"', data)
-            url = urllib.unquote(url_re.group(1))
-
-            try:
-
-                machines = machines.filter(pluginscriptsubmission__plugin='MunkiInfo', pluginscriptsubmission__pluginscriptrow__pluginscript_name='ManifestURL', pluginscriptsubmission__pluginscriptrow__pluginscript_data__exact=url)  # noqa: E501
-            except Exception:
-                machines = None
-            title = 'Machines using %s' % url
+        else:
+            return None, None
 
         return machines, title
+
+    def process_urls(self, queryset, filters, prefix):
+        processed = (
+            queryset
+            .filter(*filters)
+            .annotate(pluginscript_data=DATA_F)
+            .values(DATA)
+            .exclude(pluginscript_data='None')
+            .annotate(count=Count(DATA))
+            .order_by(DATA))
+
+        for url in processed:
+            url['item_link'] = '{}"{}"'.format(prefix, urllib.quote(url[DATA], safe=''))
+
+        return processed

@@ -1,0 +1,34 @@
+<div class="panel panel-default">
+  <div class="panel-heading">
+    {{ plugin.title }}
+  </div>
+  <!-- /.panel-heading -->
+
+  <div class="panel-body">
+    <div id="munkiinstallsgraph" style="max-height: 250px;"></div>
+  </div>
+</div>
+
+{% block script %}
+<script type="text/javascript">
+$(function() {
+    Morris.Line({
+        element: 'munkiinstallsgraph',
+        data: [
+            {% for item in data %}
+            {
+                date: "{{ item.date }}",
+                installs: {{ item.install }},
+                errors: {{ item.error }},
+                pending: {{ item.pending }}
+            },
+            {% endfor %}
+        ],
+        xkey: 'date',
+        ykeys: ['installs','pending', 'errors'],
+        labels: ['Installs', 'Pending', 'Errors'],
+        lineColors: ['green','blue', 'red']
+    });
+});
+</script>
+{% endblock %}

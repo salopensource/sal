@@ -1,7 +1,6 @@
 '''
 Cleans up old searches and rebuilds search fields cache
 '''
-import datetime
 import operator
 from time import sleep
 
@@ -13,7 +12,11 @@ import django.utils.timezone
 from inventory.models import *
 from server.models import *
 from search.models import *
+from profiles.models import *
 import server.utils
+
+# This is down here because an import * from above is clobbering
+import datetime
 
 
 class Command(BaseCommand):
@@ -96,6 +99,20 @@ class Command(BaseCommand):
             if server.utils.is_postgres() is False:
                 cached_item.save()
 
+        for f in Profile._meta.fields:
+            if f.name not in skip_fields:
+                cached_item = SearchFieldCache(search_model='Profile', search_field=f.name)
+                search_fields.append(cached_item)
+                if server.utils.is_postgres() is False:
+                    cached_item.save()
+
+        for f in Payload._meta.fields:
+            if f.name not in skip_fields:
+                cached_item = SearchFieldCache(search_model='Profile Payload', search_field=f.name)
+                search_fields.append(cached_item)
+                if server.utils.is_postgres() is False:
+                    cached_item.save()
+
         if server.utils.is_postgres() is True:
             SearchFieldCache.objects.bulk_create(search_fields)
 
@@ -106,7 +123,7 @@ class Command(BaseCommand):
             if inactive_undeploy > 0:
                 now = django.utils.timezone.now()
                 inactive_days = now - datetime.timedelta(days=inactive_undeploy)
-                Machine.deployed_objects.all().filter(
+                Machine.deployed_objects.filter(
                     last_checkin__lte=inactive_days).update(deployed=False)
         except Exception:
             pass
@@ -148,5 +165,9 @@ class Command(BaseCommand):
 
         if server.utils.is_postgres() and items_to_be_inserted != []:
             SearchCache.objects.bulk_create(items_to_be_inserted)
+
+        # Clean up orhpaned Application objects.
+        Application.objects.filter(inventoryitem=None).delete()
+
         sleep_time = options['sleep_time']
         sleep(sleep_time)

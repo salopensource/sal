@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 
 SAL_MAINT=`dirname $0`
-SAL_PATH=`(cd $SAL_MAINT/../.. && pwd)`
-cd $SAL_PATH/sal
+SAL_PATH=`(cd $SAL_MAINT/.. && pwd)`
+cd $SAL_PATH
 export PYTHONPATH=$SAL_PATH/sal/sal:$PYTHONPATH
 export DJANGO_SETTINGS_MODULE='sal.settings'
  

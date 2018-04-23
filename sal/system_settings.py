@@ -14,7 +14,6 @@ ADMINS = (
 AUTH_PROFILE_MODULE = "sal.UserProfile"
 DISPLAY_NAME = 'Sal'
 MANAGERS = ADMINS
-CRYPT_URL = None
 DEPLOYED_ON_CHECKIN = False
 INACTIVE_UNDEPLOYED = 0
 SEARCH_FACTS = []
@@ -199,6 +198,7 @@ INSTALLED_APPS = (
     'catalog',
     'inventory',
     'licenses',
+    'profiles',
     'bootstrap3',
     'watson',
     'datatableview',

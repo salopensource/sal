@@ -1,92 +1,56 @@
-from yapsy.IPlugin import IPlugin
-from yapsy.PluginManager import PluginManager
-from django.template import loader, Context
-from django.db.models import Count
-from server.models import *
-from django.shortcuts import get_object_or_404
-import server.utils as utils
+from django.db.models import Q
+
+import sal.plugin
 
 
-class Uptime(IPlugin):
-    def plugin_type(self):
-        return 'builtin'
+# Build some Q objects for use later.
+ALERT_RANGE = list(xrange(0, 90))
+DATA = 'pluginscriptsubmission__pluginscriptrow__pluginscript_data__in={}'
+ALERT_Q = eval('Q({})'.format(DATA.format(ALERT_RANGE)))
+OK_Q = eval('Q({})'.format(DATA.format(ALERT_RANGE[0:30])))
+WARNING_Q = eval('Q({})'.format(DATA.format(ALERT_RANGE[30:60])))
 
-    def widget_width(self):
-        return 4
+PLUGIN_Q = Q(pluginscriptsubmission__plugin='Uptime',
+             pluginscriptsubmission__pluginscriptrow__pluginscript_name='UptimeDays')
+TITLES = {
+    'ok': 'Machines with less than 30 days of uptime',
+    'warning': 'Machines with less than 90 days of uptime',
+    'alert': 'Machines with more than 90 days of uptime'}
 
-    def get_description(self):
-        return 'Current uptime'
 
-    def widget_content(self, page, machines=None, theid=None):
-        if page == 'front':
-            t = loader.get_template('plugins/traffic_lights_front.html')
+class Uptime(sal.plugin.Widget):
 
-        if page == 'bu_dashboard':
-            t = loader.get_template('plugins/traffic_lights_id.html')
+    description = 'Current uptime'
+    template = 'plugins/traffic_lights.html'
 
-        if page == 'group_dashboard':
-            t = loader.get_template('plugins/traffic_lights_id.html')
+    def get_context(self, queryset, **kwargs):
+        context = self.super_get_context(queryset, **kwargs)
 
-        try:
-            ok_range = []
-            for i in range(0, 30):
-                ok_range.append(str(i))
-
-            ok = machines.filter(pluginscriptsubmission__plugin__exact='Uptime', pluginscriptsubmission__pluginscriptrow__pluginscript_name__exact='UptimeDays', pluginscriptsubmission__pluginscriptrow__pluginscript_data__in=ok_range).count()  # noqa: E501
-
-            warning_range = []
-            for i in range(30, 90):
-                warning_range.append(str(i))
-
-            warning = machines.filter(pluginscriptsubmission__plugin__exact='Uptime', pluginscriptsubmission__pluginscriptrow__pluginscript_name__exact='UptimeDays', pluginscriptsubmission__pluginscriptrow__pluginscript_data__in=warning_range).count()  # noqa: E501
-
-            not_alert_range = []
-            for i in range(0, 90):
-                not_alert_range.append(str(i))
-            alert = machines.filter(pluginscriptsubmission__plugin__exact='Uptime', pluginscriptsubmission__pluginscriptrow__pluginscript_name__exact='UptimeDays').exclude(pluginscriptsubmission__pluginscriptrow__pluginscript_data__in=not_alert_range).count()  # noqa: E501
-        except Exception:
-            ok = 0
-            warning = 0
-            alert = 0
-
-        c = Context({
-            'title': 'Uptime',
+        context['ok_count'] = self._filter(queryset, 'ok').count()
+        context['warning_count'] = self._filter(queryset, 'warning').count()
+        context['alert_count'] = self._filter(queryset, 'alert').count()
+        context.update({
             'ok_label': '< 30 Days',
-            'ok_count': ok,
             'warning_label': '< 90 Days',
-            'warning_count': warning,
             'alert_label': '90 Days +',
-            'alert_count': alert,
-            'plugin': 'Uptime',
-            'page': page,
-            'theid': theid
         })
-        return t.render(c)
+        return context
 
-    def filter_machines(self, machines, data):
-
+    def _filter(self, queryset, data):
         if data == 'ok':
-            ok_range = []
-            for i in range(0, 30):
-                ok_range.append(str(i))
-            machines = machines.filter(pluginscriptsubmission__plugin__exact='Uptime', pluginscriptsubmission__pluginscriptrow__pluginscript_name__exact='UptimeDays', pluginscriptsubmission__pluginscriptrow__pluginscript_data__in=ok_range)  # noqa: E501
-            title = 'Machines with less than 30 days of uptime'
-
+            queryset = queryset.filter(PLUGIN_Q, OK_Q)
         elif data == 'warning':
-            warning_range = []
-            for i in range(30, 90):
-                warning_range.append(str(i))
-            machines = machines.filter(pluginscriptsubmission__plugin__exact='Uptime', pluginscriptsubmission__pluginscriptrow__pluginscript_name__exact='UptimeDays', pluginscriptsubmission__pluginscriptrow__pluginscript_data__in=warning_range)  # noqa: E501
-            title = 'Machines with less than 90 days of uptime'
-
+            queryset = queryset.filter(PLUGIN_Q, WARNING_Q)
         elif data == 'alert':
-            not_alert_range = []
-            for i in range(0, 90):
-                not_alert_range.append(str(i))
-            machines = machines.filter(pluginscriptsubmission__plugin__exact='Uptime', pluginscriptsubmission__pluginscriptrow__pluginscript_name__exact='UptimeDays').exclude(pluginscriptsubmission__pluginscriptrow__pluginscript_data__in=not_alert_range)  # noqa: E501
-            title = 'Machines with more than 90 days of uptime'
+            queryset = queryset.filter(PLUGIN_Q).exclude(ALERT_Q)
+        return queryset
 
-        else:
-            machines = None
+    def filter(self, machines, data):
+        try:
+            title = TITLES[data]
+        except KeyError:
+            return None, None
+
+        machines = self._filter(machines, data)
 
         return machines, title

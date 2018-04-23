@@ -3,8 +3,7 @@ import copy
 import hashlib
 import plistlib
 from datetime import datetime
-from django.utils import timezone
-from urllib import quote, unquote
+from urllib import quote, urlencode
 
 # third-party
 import unicodecsv as csv
@@ -17,17 +16,20 @@ from django.http import (
     HttpResponse, HttpResponseNotFound, HttpResponseBadRequest)
 from django.shortcuts import get_object_or_404, render_to_response
 from django.template import RequestContext
+from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import DetailView, View
+
 from datatableview import Datatable
 from datatableview.columns import DisplayColumn
 from datatableview.views import DatatableView
 
 # local Django
 from models import Application, Inventory, InventoryItem, Machine
+from server import text_utils
 from server import utils
 from sal.decorators import *
-from server.models import BusinessUnit, MachineGroup, Machine, SalSetting  # noqa: F811
+from server.models import BusinessUnit, MachineGroup, Machine  # noqa: F811
 
 
 class GroupMixin(object):
@@ -126,7 +128,37 @@ class GroupMixin(object):
                 kwargs = {filter_path: self.group_instance}
                 queryset = queryset.filter(**kwargs)
 
+        # Remove undeployed machines from the results.
+        # It's important that we are filtering for deployed machines
+        # here rather than excluding undeployed machines-you get
+        # different results (exclude undeployed will exclude
+        # Applications from list views that have ANY undeployed
+        # machines.
+
+        # This is a little wild, but it's either this or use an eval to
+        # construct the keyword argument name to filter.
+        deployed_filter = '{}{}deployed'.format(
+            self.access_filter[queryset.model][Machine], '' if queryset.model is Machine else '__')
+        queryset = queryset.filter(**{deployed_filter: True})
+
         return queryset
+
+
+class DatatableQuerystringMixin(object):
+    """Mixin to allow querystrings to work with DatatableViews
+
+    Must come in a higher precedence spot in the MRO. (i.e. <<<---)
+    """
+
+    def get_datatable_kwargs(self, **kwargs):
+        """Override DatatableView's func to allow querystrings."""
+        # Currently this is only used by InventoryListView, but it may
+        # prove useful elsewhere in the future, thus the Mixin vs.
+        # just declaring it on the aforementioned view.
+        kwargs = super(DatatableQuerystringMixin, self).get_datatable_kwargs(**kwargs)
+        if hasattr(self, 'request'):
+            kwargs['url'] = self.request.get_full_path
+        return kwargs
 
 
 class CSVResponseMixin(object):
@@ -178,6 +210,7 @@ class InventoryList(Datatable):
         processors = {
             'hostname': 'get_machine_link', 'last_checkin': 'format_date'}
         structure_template = 'datatableview/bootstrap_structure.html'
+        page_length = utils.get_setting('datatable_page_length')
 
     def get_machine_link(self, instance, **kwargs):
         url = reverse(
@@ -205,7 +238,7 @@ class InventoryList(Datatable):
 
 @class_login_required
 @class_access_required
-class InventoryListView(DatatableView, GroupMixin):
+class InventoryListView(DatatableQuerystringMixin, DatatableView, GroupMixin):
     model = Machine
     template_name = "inventory/inventory_list.html"
     datatable_class = InventoryList
@@ -270,6 +303,7 @@ class ApplicationList(Datatable):
         labels = {'bundleid': 'Bundle ID', 'bundlename': 'Bundle Name'}
         processors = {'name': 'link_to_detail'}
         structure_template = 'datatableview/bootstrap_structure.html'
+        page_length = utils.get_setting('datatable_page_length')
 
     def link_to_detail(self, instance, **kwargs):
         link_kwargs = copy.copy(kwargs['view'].kwargs)
@@ -314,11 +348,7 @@ class ApplicationListView(DatatableView, GroupMixin):
         # the python re module's syntax. You may delimit multiple
         # patterns with the '|' operator, e.g.:
         # 'com\.[aA]dobe.*|com\.apple\..*'
-        try:
-            inventory_pattern = SalSetting.objects.get(
-                name='inventory_exclusion_pattern').value
-        except SalSetting.DoesNotExist:
-            inventory_pattern = None
+        inventory_pattern = utils.get_setting('inventory_exclusion_pattern')
 
         if inventory_pattern:
             crufty_bundles.append(inventory_pattern)
@@ -327,16 +357,7 @@ class ApplicationListView(DatatableView, GroupMixin):
         # VMWare and Parallels VMs. If you would like to disable this,
         # set the SalSetting 'filter_proxied_virtualization_apps' to
         # 'no' or 'false' (it's a string).
-        try:
-            setting_value = SalSetting.objects.get(
-                name='filter_proxied_virtualization_apps').value
-        except SalSetting.DoesNotExist:
-            setting_value = ''
-
-        filter_proxy_apps = (
-            setting_value.strip().upper() not in ('NO', 'FALSE'))
-
-        if filter_proxy_apps:
+        if utils.get_setting('filter_proxied_virtualization_apps', True):
             # Virtualization proxied apps
             crufty_bundles.extend([
                 "com\.vmware\.proxyApp\..*", "com\.parallels\.winapp\..*"])
@@ -388,7 +409,7 @@ class ApplicationDetailView(DetailView, GroupMixin):
 
     def _get_unique_items(self, details):
         """Use optimized DB methods for getting unique items if possible."""
-        if is_postgres():
+        if utils.is_postgres():
             versions = details.order_by("version").distinct(
                 "version").values_list("version", flat=True)
             paths = details.order_by("path").distinct("path").values_list(
@@ -458,7 +479,7 @@ class CSVExportView(CSVResponseMixin, GroupMixin, View):
             if group_type != "all":
                 self.components.append(group_id)
 
-            if is_postgres():
+            if utils.is_postgres():
                 apps = [self.get_application_entry(item, queryset) for item in
                         queryset.select_related("application").order_by(
                 ).distinct("application")]
@@ -535,7 +556,7 @@ def inventory_submit(request):
             compression_type = 'base64'
         if compressed_inventory:
             compressed_inventory = compressed_inventory.replace(" ", "+")
-            inventory_str = utils.decode_to_string(compressed_inventory, compression_type)
+            inventory_str = text_utils.decode_to_string(compressed_inventory, compression_type)
             try:
                 inventory_list = plistlib.readPlistFromString(inventory_str)
             except Exception:
@@ -564,19 +585,19 @@ def inventory_submit(request):
                             path=item.get('path', ''),
                             machine=machine
                         )
-                        if is_postgres():
+                        if utils.is_postgres():
                             inventory_items_to_be_created.append(i_item)
                         else:
                             i_item.save()
                 machine.last_inventory_update = timezone.now()
                 inventory_meta.save()
 
-                if is_postgres():
+                if utils.is_postgres():
                     InventoryItem.objects.bulk_create(
                         inventory_items_to_be_created)
             machine.save()
             return HttpResponse(
-                "Inventory submmitted for %s.\n" %
+                "Inventory submitted for %s.\n" %
                 submission.get('serial'))
 
     return HttpResponse("No inventory submitted.\n")
@@ -597,9 +618,3 @@ def inventory_hash(request, serial):
     else:
         return HttpResponse("MACHINE NOT FOUND")
     return HttpResponse(sha256hash)
-
-
-def is_postgres():
-    postgres_backend = 'django.db.backends.postgresql_psycopg2'
-    db_setting = settings.DATABASES['default']['ENGINE']
-    return db_setting == postgres_backend

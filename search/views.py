@@ -1,36 +1,39 @@
-from django.shortcuts import render, get_object_or_404, redirect
-from django.contrib.auth.decorators import login_required
-from django.views.decorators.csrf import csrf_exempt, csrf_protect
-from django.template.context_processors import csrf
-from django.db.models import CharField, Q
-from django.http import JsonResponse, StreamingHttpResponse
-import sal.settings as settings
-
-import search.utils as utils
-from server.models import *
-from search.models import *
-from search.forms import *
-import search.views
-import server.utils
-from inventory.models import *
-
 import json
 import re
+
 import unicodecsv as csv
+
+from django.contrib.auth.decorators import login_required
+from django.db.models import CharField, Q
+from django.http import JsonResponse, StreamingHttpResponse
+from django.shortcuts import get_object_or_404, redirect, render
+from django.template.context_processors import csrf
+from django.views.decorators.csrf import csrf_exempt, csrf_protect
+
+import sal.settings as settings
+import search.utils as utils
+import search.views
+import server.text_utils
+import server.utils
+from inventory.models import *
+from sal.decorators import *
+from search.forms import *
+from search.models import *
+from server.models import *
+from profiles.models import *
 
 
 @login_required
 @csrf_exempt
 def index(request):
-    user = request.user
-    user_level = user.userprofile.level
     if ('q' in request.GET) and request.GET['q'].strip():
         query_string = request.GET['q'].strip()
     else:
         return redirect(search.views.list)
+
     # Make sure we're searching across Machines the user has access to:
     machines = Machine.objects.all()
-    if user_level != 'GA':
+    if not is_global_admin(request.user):
         for business_unit in BusinessUnit.objects.all():
             if business_unit not in request.user.businessunit_set.all():
                 machines = machines.exclude(machine_group__business_unit=business_unit)
@@ -40,7 +43,9 @@ def index(request):
     machines = quick_search(machines, query_string)
 
     title = "Search results for %s" % query_string
-    c = {'user': request.user, 'machines': machines, 'title': title, 'request': request}
+    page_length = server.utils.get_setting('datatable_page_length')
+    c = {'user': request.user, 'machines': machines, 'title': title, 'request': request,
+         'page_length': page_length}
     return render(request, template, c)
 
 
@@ -93,10 +98,12 @@ def list(request):
     saved_searches = SavedSearch.objects.filter(save_search=True)
     user = request.user
     user_level = user.userprofile.level
+    page_length = server.utils.get_setting('datatable_page_length')
     c = {'request': request,
          'user': request.user,
          'saved_searches': saved_searches,
-         'user_level': user_level
+         'user_level': user_level,
+         'page_length': page_length
          }
     return render(request, 'search/list.html', c)
 
@@ -214,6 +221,31 @@ def search_machines(search_id, machines, full=False):
                 else:
                     q_object = ~Q(**querystring)
 
+            elif search_row.search_models == 'Profile':
+
+                model = Profile  # noqa: F841
+                querystring = {
+                    'profile__%s%s' % (search_row.search_field, operator): search_row.search_term
+                }
+                if operator != '':
+                    q_object = Q(**querystring)
+
+                else:
+                    q_object = ~Q(**querystring)
+
+            elif search_row.search_models == 'Profile Payload':
+
+                model = Payload  # noqa: F841
+                querystring = {
+                    'profile__payload__%s%s' % (search_row.search_field, operator):
+                    search_row.search_term
+                }
+                if operator != '':
+                    q_object = Q(**querystring)
+
+                else:
+                    q_object = ~Q(**querystring)
+
             # Add a row operator if needed
             if row_operator is not None:
                 if row_operator == 'AND':
@@ -236,7 +268,6 @@ def search_machines(search_id, machines, full=False):
             queries = row_queries
 
         search_group_counter = search_group_counter + 1
-    print queries
 
     if full:
         machines = machines.filter(queries).distinct()
@@ -250,10 +281,8 @@ def search_machines(search_id, machines, full=False):
 
 @login_required
 def run_search(request, search_id):
-    # Placeholder
-    user_level = request.user.userprofile.level
     machines = Machine.objects.all()
-    if user_level != 'GA':
+    if not is_global_admin(request.user):
         for business_unit in BusinessUnit.objects.all():
             if business_unit not in request.user.businessunit_set.all():
                 machines = machines.exclude(
@@ -262,7 +291,9 @@ def run_search(request, search_id):
 
     machines = search_machines(search_id, machines)
     saved_search = get_object_or_404(SavedSearch, pk=search_id)
-    c = {'request': request, 'user': request.user, 'search': saved_search, 'machines': machines}
+    page_length = server.utils.get_setting('datatable_page_length')
+    c = {'request': request, 'user': request.user, 'search': saved_search, 'machines': machines,
+         'page_length': page_length}
     return render(request, 'search/search_machines.html', c)
 
 # New search
@@ -300,7 +331,8 @@ def save_search(request, search_id):
     else:
         form = SaveSearchForm(instance=saved_search)
 
-    c = {'form': form, 'saved_search': saved_search}
+    page_length = server.utils.get_setting('datatable_page_length')
+    c = {'form': form, 'saved_search': saved_search, 'page_length': page_length}
     return render(request, 'search/save_search_form.html', c)
 
 # Build search
@@ -310,11 +342,13 @@ def save_search(request, search_id):
 def build_search(request, search_id):
     new_search = get_object_or_404(SavedSearch, pk=search_id)
     search_groups = SearchGroup.objects.filter(saved_search=new_search)
+    page_length = server.utils.get_setting('datatable_page_length')
     c = {
         'request': request,
         'user': request.user,
         'search': new_search,
-        'search_groups': search_groups
+        'search_groups': search_groups,
+        'page_length': page_length
     }
     return render(request, 'search/build_search.html', c)
 
@@ -323,9 +357,8 @@ def build_search(request, search_id):
 
 @login_required
 def delete_search(request, search_id):
-    user_level = request.user.userprofile.level
     saved_search = get_object_or_404(SavedSearch, pk=search_id)
-    if user_level == 'GA' or request.user == saved_search.created_by:
+    if is_global_admin(request.user) or request.user == saved_search.created_by:
         saved_search.delete()
     return redirect(search.views.list)
 
@@ -333,9 +366,7 @@ def delete_search(request, search_id):
 @login_required
 def edit_search(request, search_id):
     saved_search = get_object_or_404(SavedSearch, pk=search_id)
-    user = request.user
-    user_level = user.userprofile.level
-    if user_level != 'GA' and saved_search.created_by != request.user:
+    if not is_global_admin(request.user) and saved_search.created_by != request.user:
         return redirect(search.views.list)
     if request.method == 'POST':
         form = SearchRowForm(request.POST, instance=search_row)
@@ -367,8 +398,7 @@ def new_search_group(request, search_id):
 # def edit_group(request, search_group_id):
 #     search_group = get_object_or_404(SearchGroup, pk=search_group_id)
 #     saved_search = search_group.saved_search
-#     user_level = request.user.userprofile.level
-#     if user_level == 'GA' or request.user == saved_search.created_by:
+#     if is_global_admin(request.user) or request.user == saved_search.created_by:
 #         search_group.delete()
 #     return redirect(search.views.build_search, saved_search.id)
 
@@ -379,8 +409,7 @@ def new_search_group(request, search_id):
 def group_and_or(request, search_group_id):
     search_group = get_object_or_404(SearchGroup, pk=search_group_id)
     saved_search = search_group.saved_search
-    user_level = request.user.userprofile.level
-    if user_level == 'GA' or request.user == saved_search.created_by:
+    if is_global_admin(request.user) or request.user == saved_search.created_by:
         if search_group.and_or == 'AND':
             search_group.and_or = 'OR'
         else:
@@ -395,8 +424,7 @@ def group_and_or(request, search_group_id):
 def delete_group(request, search_group_id):
     search_group = get_object_or_404(SearchGroup, pk=search_group_id)
     saved_search = search_group.saved_search
-    user_level = request.user.userprofile.level
-    if user_level == 'GA' or request.user == saved_search.created_by:
+    if is_global_admin(request.user) or request.user == saved_search.created_by:
         search_group.delete()
     return redirect(search.views.build_search, saved_search.id)
 
@@ -406,8 +434,7 @@ def delete_group(request, search_group_id):
 @login_required
 def new_search_row(request, search_group_id):
     search_group = get_object_or_404(SearchGroup, pk=search_group_id)
-    if (request.user.userprofile.level != 'GA' and
-            search_group.saved_search.created_by != request.user):
+    if not is_global_admin(request.user) and search_group.saved_search.created_by != request.user:
         return redirect(search.views.list)
     if request.method == 'POST':
         form = SearchRowForm(request.POST)
@@ -420,7 +447,8 @@ def new_search_row(request, search_group_id):
     else:
         form = SearchRowForm(search_group=search_group)
 
-    c = {'form': form, 'search_group': search_group}
+    page_length = server.utils.get_setting('datatable_page_length')
+    c = {'form': form, 'search_group': search_group, 'page_length': page_length}
 
     return render(request, 'search/new_search_form.html', c)
 
@@ -459,6 +487,12 @@ def edit_search_row(request, search_row_id):
         elif search_row.search_models.lower() == 'machine':
             rows = SearchFieldCache.objects.filter(search_model='Machine').distinct()
 
+        elif search_row.search_models.lower() == 'profile':
+            rows = SearchFieldCache.objects.filter(search_model='Profile').distinct()
+
+        elif search_row.search_models.lower() == 'profile payload':
+            rows = SearchFieldCache.objects.filter(search_model='Profile Payload').distinct()
+
         for row in rows:
             search_fields.append((row.search_field, row.search_field,))
 
@@ -466,7 +500,8 @@ def edit_search_row(request, search_row_id):
             form.fields['search_field'].choices = sorted(search_fields)
 
         form.fields['search_field'].initial = search_row.search_field
-    c = {'form': form, 'search_row': search_row}
+    page_length = server.utils.get_setting('datatable_page_length')
+    c = {'form': form, 'search_row': search_row, 'page_length': page_length}
     return render(request, 'search/edit_search_form.html', c)
 
 # Delete Row
@@ -477,8 +512,7 @@ def delete_row(request, search_row_id):
     search_row = get_object_or_404(SearchRow, pk=search_row_id)
     search_group = search_row.search_group
     saved_search = search_group.saved_search
-    user_level = request.user.userprofile.level
-    if user_level == 'GA' or request.user == saved_search.created_by:
+    if is_global_admin(request.user) or request.user == saved_search.created_by:
         search_row.delete()
     return redirect(search.views.build_search, saved_search.id)
 
@@ -519,6 +553,16 @@ def get_fields(request, model):
         for cache_item in cache_items:
             search_fields.append(cache_item.search_field)
 
+    elif model.lower() == 'profile':
+        cache_items = SearchFieldCache.objects.filter(search_model='Profile')
+        for cache_item in cache_items:
+            search_fields.append(cache_item.search_field)
+
+    elif model.lower() == 'profile payload':
+        cache_items = SearchFieldCache.objects.filter(search_model='Profile Payload')
+        for cache_item in cache_items:
+            search_fields.append(cache_item.search_field)
+
     output = {}
     output['fields'] = sorted(search_fields)
     return JsonResponse(output)
@@ -546,7 +590,7 @@ def get_csv_row(machine, facter_headers, condition_headers, plugin_script_header
     for name, value in machine.get_fields():
         if name not in skip_fields:
             try:
-                row.append(server.utils.safe_unicode(value))
+                row.append(server.text_utils.safe_unicode(value))
             except Exception:
                 row.append('')
 

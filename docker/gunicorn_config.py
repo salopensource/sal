@@ -23,3 +23,4 @@ except Exception:
 # requests, with a randomized jitter of 0-50 requests.
 max_requests = 1000
 max_requests_jitter = 50
+worker_class = 'gevent'

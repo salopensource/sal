@@ -1,25 +1,38 @@
-from django.db import models
-from django.contrib.auth.models import User
-import random
-import string
-import plistlib
-from xml.parsers.expat import ExpatError
 import base64
 import bz2
+import plistlib
+import random
+import string
 from datetime import datetime
-from watson import search as watson
+from xml.parsers.expat import ExpatError
+
 from dateutil.parser import *
+
+from django.contrib.auth.models import User
+from django.db import models
+
+from server import text_utils
+from watson import search as watson
+
 
 OS_CHOICES = (
     ('Darwin', 'macOS'),
     ('Windows', 'Windows'),
     ('Linux', 'Linux'),
+    ('ChromeOS', 'Chrome OS'),
 )
 
 REPORT_CHOICES = (
     ('base64', 'base64'),
     ('base64bz2', 'base64bz2'),
 )
+
+
+class ProfileLevel():
+    stats_only = 'SO'
+    read_only = 'RO'
+    read_write = 'RW'
+    global_admin = 'GA'
 
 
 def GenerateKey():
@@ -65,6 +78,10 @@ class BusinessUnit(models.Model):
     def __unicode__(self):
         return self.name
 
+    @classmethod
+    def display_name(cls):
+        return text_utils.class_to_title(cls.__name__)
+
     class Meta:
         ordering = ['name']
 
@@ -82,6 +99,10 @@ class MachineGroup(models.Model):
 
     def __unicode__(self):
         return self.name
+
+    @classmethod
+    def display_name(cls):
+        return text_utils.class_to_title(cls.__name__)
 
     class Meta:
         ordering = ['name']
@@ -120,7 +141,7 @@ class Machine(models.Model):
     errors = models.IntegerField(default=0)
     warnings = models.IntegerField(default=0)
     activity = models.TextField(editable=False, null=True, blank=True)
-    puppet_version = models.TextField(null=True, blank=True)
+    puppet_version = models.CharField(db_index=True, null=True, blank=True, max_length=256)
     sal_version = models.CharField(db_index=True, null=True, blank=True, max_length=255)
     last_puppet_run = models.DateTimeField(db_index=True, blank=True, null=True)
     puppet_errors = models.IntegerField(db_index=True, default=0)
@@ -240,6 +261,10 @@ class Machine(models.Model):
         else:
             return self.serial
 
+    @classmethod
+    def display_name(cls):
+        return text_utils.class_to_title(cls.__name__)
+
     class Meta:
         ordering = ['hostname']
 
@@ -249,6 +274,13 @@ class Machine(models.Model):
         if not self.hostname:
             self.hostname = self.serial
         super(Machine, self).save()
+
+
+GROUP_NAMES = {
+    'all': None,
+    'machine_group': MachineGroup,
+    'business_unit': BusinessUnit,
+    'machine': Machine}
 
 
 class UpdateHistory(models.Model):
@@ -444,16 +476,8 @@ class PendingAppleUpdate(models.Model):
 
 
 class Plugin(models.Model):
-    PLUGIN_TYPES = (
-        ('facter', 'Facter'),
-        ('munkicondition', 'Munki Condition'),
-        ('builtin', 'Built In'),
-        ('custom', 'Custom Script'),
-    )
     name = models.CharField(max_length=255, unique=True)
-    description = models.TextField(blank=True, null=True)
     order = models.IntegerField()
-    type = models.CharField(max_length=255, choices=PLUGIN_TYPES, default='builtin')
 
     def __unicode__(self):
         return self.name
@@ -463,18 +487,8 @@ class Plugin(models.Model):
 
 
 class MachineDetailPlugin(models.Model):
-    PLUGIN_TYPES = (
-        ('facter', 'Facter'),
-        ('munkicondition', 'Munki Condition'),
-        ('builtin', 'Built In'),
-        ('custom', 'Custom Script'),
-    )
     name = models.CharField(max_length=255, unique=True)
-    description = models.TextField(blank=True, null=True)
     order = models.IntegerField()
-    os_families = models.CharField(db_index=True, max_length=256,
-                                   verbose_name="OS Family", default="Darwin")
-    type = models.CharField(max_length=255, choices=PLUGIN_TYPES, default='builtin')
 
     def __unicode__(self):
         return self.name
@@ -485,7 +499,6 @@ class MachineDetailPlugin(models.Model):
 
 class Report(models.Model):
     name = models.CharField(max_length=255, unique=True)
-    description = models.TextField(blank=True, null=True)
 
     def __unicode__(self):
         return self.name

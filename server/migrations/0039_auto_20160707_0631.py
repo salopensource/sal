@@ -10,7 +10,7 @@ def enable_plugins(apps, schema_editor):
 
     MachineDetailPlugin = apps.get_model("server", "MachineDetailPlugin")
 
-    plugin_count = MachineDetailPlugin.objects.all().exclude(name='MachineDetailSecurity').count()
+    plugin_count = MachineDetailPlugin.objects.exclude(name='MachineDetailSecurity').count()
     if plugin_count == 0:
 
         plugin = MachineDetailPlugin(name='MachineDetailSecurity', order=1)

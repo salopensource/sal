@@ -19,11 +19,12 @@
 
 {% block nav %}
         <li><a href="{% url 'home' %}"><i class="fa-chevron-left fa fa-fw"></i> Back</a></li>
+        {% if user.is_staff %}
         <li><a href="{% url 'manage_users' %}"><i class="fa-group fa fa-fw"></i> Users</a></li>
+        {% endif %}
         <li><a href="{% url 'license_index' %}"><i class="fa-certificate fa fa-fw"></i> Licenses</a></li>
         <li><a href="{% url 'api_keys' %}"><i class="fa-key fa fa-fw"></i> API Keys</a></li>
         <li><a href="{% url 'plugins_page' %}"><i class="fa-cubes fa fa-fw"></i> Plugins</a></li>
-
 {% endblock %}
 
 {% block content %}
@@ -60,11 +61,12 @@
         <h3>Send Usage Data</h3>
         <p>Sending anonymous information about your usage helps shape the future of Sal. For example, if it turns out many people are using one particular plugin, that plugin will get more development dedicated to it. </p>
 
-    {% if senddata_setting == 'yes' %}<p>Thank you for helping with the development of Sal. If you wish to opt out of sending usage data, you can do so below:</p>
-    <p><a href="{% url 'senddata_disable' %}" class="btn btn-danger">I don't want to help open source development anymore</a></p>{% endif %}
-
-    {% if senddata_setting == 'no' %}<p>Sending your usage data would help get the features you care about developed faster. If you have changed your mind and would like to help the effort by sending usage data, you can do so below:</p>
-    <p><a href="{% url 'senddata_enable' %}" class="btn btn-success">Send usage data</a></p>{% endif %}
+    {% if senddata_setting %}<p>Thank you for helping with the development of Sal. If you wish to opt out of sending usage data, you can do so below:</p>
+    <p><a href="{% url 'senddata_disable' %}" class="btn btn-danger">I don't want to help open source development anymore</a></p>
+    {% else %}
+    <p>Sending your usage data would help get the features you care about developed faster. If you have changed your mind and would like to help the effort by sending usage data, you can do so below:</p>
+    <p><a href="{% url 'senddata_enable' %}" class="btn btn-success">Send usage data</a></p>
+    {% endif %}
 
     </div>
 </div>

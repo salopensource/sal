@@ -13,7 +13,7 @@ def enable_plugins(apps, schema_editor):
 
     Report = apps.get_model("server", "Report")
 
-    report_count = Report.objects.all().count()
+    report_count = Report.objects.count()
     if report_count == 0:
 
         # shard_report = Report(name='ShardReport')

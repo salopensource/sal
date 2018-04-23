@@ -1,77 +1,49 @@
+from collections import defaultdict, OrderedDict
 from distutils.version import LooseVersion
 
-from yapsy.IPlugin import IPlugin
-from yapsy.PluginManager import PluginManager
-from django.template import loader, Context
 from django.db.models import Count
-from server.models import *
-from django.shortcuts import get_object_or_404
-import server.utils as utils
+
+import sal.plugin
 
 
-class OperatingSystem(IPlugin):
-    def plugin_type(self):
-        return 'builtin'
+# This table is also used for sequnecing output, so use OrderedDict.
+OS_TABLE = OrderedDict(Darwin='macOS', Windows='Windows', Linux='Linux', ChromeOS='Chrome OS')
 
-    def widget_width(self):
-        return 4
 
-    def get_description(self):
-        return 'List of operating system versions'
+class OperatingSystem(sal.plugin.Widget):
 
-    def widget_content(self, page, machines=None, theid=None):
-        if page == 'front':
-            t = loader.get_template('operatingsystem/templates/os_front.html')
+    description = 'List of operating system versions'
+    template = 'operatingsystem/templates/operatingsystem.html'
 
-        if page == 'bu_dashboard':
-            t = loader.get_template('operatingsystem/templates/os_id.html')
+    def get_context(self, machines, **kwargs):
+        context = self.super_get_context(machines, **kwargs)
+        # Remove invalid versions, then annotate with a count.
+        os_info = (
+            machines
+            .exclude(operating_system__isnull=True)
+            .exclude(operating_system='')
+            .order_by('operating_system')
+            .values('operating_system', 'os_family')
+            .distinct()
+            .annotate(count=Count('operating_system')))
 
-        if page == 'group_dashboard':
-            t = loader.get_template('operatingsystem/templates/os_id.html')
-
-        # Remove invalid versions, then count and sort the results.
-        os_info = machines.exclude(
-            operating_system__isnull=True).exclude(
-                operating_system__exact='').values(
-                'operating_system', 'os_family').annotate(
-                    count=Count('operating_system')).order_by(
-                        'os_family', 'operating_system')
-
-        mac_os_info = []
-        windows_os_info = []
-        linux_os_info = []
-
-        for machine in os_info:
-            if machine['os_family'] == 'Darwin':
-                mac_os_info.append(machine)
-            elif machine['os_family'] == 'Windows':
-                windows_os_info.append(machine)
-            elif machine['os_family'] == 'Linux':
-                linux_os_info.append(machine)
+        grouped = defaultdict(list)
+        for version in os_info:
+            os_type = OS_TABLE[version['os_family']]
+            grouped[os_type].append(version)
 
         # you and your lanbda's @sheacraig...
         os_key = lambda x: LooseVersion(x["operating_system"])  # noqa: E731
+        output = [
+            (key, sorted(grouped[key], key=os_key, reverse=True)) for key in OS_TABLE.values()]
+        context['os_info'] = output
 
-        mac_os_info = sorted(mac_os_info, key=os_key, reverse=True)
-        windows_os_info = sorted(windows_os_info, key=os_key, reverse=True)
-        linux_os_info = sorted(linux_os_info, key=os_key, reverse=True)
+        return context
 
-        c = Context({
-            'title': 'Operating Systems',
-            'mac_data': mac_os_info,
-            'windows_data': windows_os_info,
-            'linux_data': linux_os_info,
-            'theid': theid,
-            'page': page
-        })
-        return t.render(c)
-
-    def filter_machines(self, machines, data):
-        # You will be passed a QuerySet of machines, you then need to perform
-        # some filtering based on the 'data' part of the url from the
-        # show_widget output. Just return your filtered list of machines and
-        # the page title.
-
-        machines = machines.filter(operating_system__exact=data)
-
-        return machines, 'Machines running ' + data
+    def filter(self, machines, data):
+        try:
+            os_family, operating_system = data.split('&')
+        except ValueError:
+            return None, None
+        machines = machines.filter(operating_system=operating_system, os_family=os_family)
+        return machines, 'Machines running {} {}'.format(OS_TABLE[os_family], operating_system)

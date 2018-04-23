@@ -1,75 +1,48 @@
-from yapsy.IPlugin import IPlugin
-from yapsy.PluginManager import PluginManager
-from django.template import loader, Context
-from django.db.models import Count
-from server.models import *
-from django.shortcuts import get_object_or_404
-import server.utils as utils
-from django.conf import settings
 import requests
-from datetime import datetime
+from collections import defaultdict
+from requests.exceptions import RequestException
+
+from django.conf import settings
 from django.utils.dateparse import parse_datetime
 
+import sal.plugin
+import server.utils as utils
 
-class CryptStatus(IPlugin):
-    def plugin_type(self):
-        return 'machine_detail'
 
-    def supported_os_families(self):
-        return ['Darwin']
+class CryptStatus(sal.plugin.DetailPlugin):
 
-    def widget_width(self):
-        return 4
+    description = 'FileVault Escrow Status'
 
-    def get_description(self):
-        return 'FileVault Escrow Status'
+    def get_context(self, machine, **kwargs):
+        context = defaultdict(str)
+        context['title'] = self.description
 
-    def widget_content(self, page, machines=None, theid=None):
+        crypt_url = utils.get_setting('crypt_url', None).rstrip()
 
-        t = loader.get_template('cryptstatus/templates/cryptstatus.html')
-
-        try:
-            crypt_url = settings.CRYPT_URL
-            crypt_url = crypt_url.rstrip('/')
-        except Exception:
-            crypt_url = None
-
-        try:
-            cert = settings.ROOT_CA
-        except Exception:
-            cert = None
-
-        serial = machines.serial
-        output = {}
-        date_escrowed = None
-        escrowed = None
         if crypt_url:
-            request_url = crypt_url + '/verify/' + serial + '/recovery_key/'
-            if cert is not None:
-                verify = cert
-            else:
-                verify = True
             try:
-                r = requests.get(request_url, verify=verify)
-                if r.status_code == requests.codes.ok:
-                    output = r.json()
-            except Exception:
-                pass
+                verify = settings.ROOT_CA
+            except AttributeError:
+                verify = True
 
-        if output != {}:
-            escrowed = output['escrowed']
-            if output['escrowed']:
-                date_escrowed = parse_datetime(output['date_escrowed'])
+            request_url = '{}/verify/{}/recovery_key/'.format(crypt_url, machine.serial)
+            try:
+                response = requests.get(request_url, verify=verify)
+                if response.status_code == requests.codes.ok:
+                    output = response.json()
+                    # Have template link to machine info page rather
+                    # than Crypt root.
+                    machine_url = '{}/info/{}'.format(crypt_url, machine.serial)
+            except RequestException:
+                # Either there was an error or the machine hasn't been
+                # seen.
+                output = None
+                machine_url = crypt_url
 
-        c = Context({
-            'title': 'FileVault Escrow',
-            'date_escrowed': date_escrowed,
-            'escrowed': escrowed,
-        })
-        return t.render(c)
+            if output:
+                context['escrowed'] = output['escrowed']
+                if output['escrowed']:
+                    context['date_escrowed'] = parse_datetime(output['date_escrowed'])
 
-    def filter_machines(self, machines, data):
-
-        machines = machines.filter(operating_system__exact=data)
-
-        return machines, 'Machines running ' + data
+        context['crypt_url'] = machine_url
+        return context

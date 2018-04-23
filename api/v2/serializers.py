@@ -6,6 +6,7 @@ from inventory.models import InventoryItem, Application
 from mixins import QueryFieldsMixin
 from server.models import *
 from search.models import *
+from profiles.models import *
 
 
 class InventoryApplicationSerializer(serializers.ModelSerializer):
@@ -92,6 +93,12 @@ class PendingUpdateSerializer(serializers.ModelSerializer):
 
 class MachineSerializer(QueryFieldsMixin, serializers.ModelSerializer):
 
+    """
+    Only used by saved_search and profiles
+    TODO (sheagcraig): Make it possible to nest MachineSerializer with
+    simple fields without using 'saved_search' kwarg
+    """
+
     simple_fields = (
         'console_user', 'munki_version', 'hd_space', 'machine_model',
         'cpu_speed', 'serial', 'id', 'last_puppet_run', 'errors',
@@ -154,4 +161,22 @@ class SavedSearchSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = SavedSearch
+        fields = '__all__'
+
+
+class ProfilePayloadSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Payload
+        fields = '__all__'
+
+
+class ProfileSerializer(serializers.ModelSerializer):
+
+    payloads = ProfilePayloadSerializer(source='payload_set', read_only=True, many=True)
+
+    machine = MachineSerializer(full=False, saved_search=True)
+
+    class Meta:
+        model = Profile
         fields = '__all__'

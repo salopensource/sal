@@ -9,7 +9,7 @@
     </a>
     <ul class="dropdown-menu dropdown-plugin">
         {% for report in reports %}
-        <li><a href="{% url 'report_load_id' report.name 'bu_dashboard' business_unit.id %}">{{report.title}}</a></li>
+          <li><a href="{% url 'report_load' report 'business_unit' business_unit.id %}">{{ report }}</a></li>
         {% endfor %}
     </ul>
     <!-- /.dropdown-plugin -->
@@ -27,7 +27,7 @@ $( document ).ready(function() {
 
     $.ajaxWithRetries(
     {
-        url: "{% url 'plugin_load_id' widget.name 'bu_dashboard' business_unit.id %}",
+        url: "{% url 'load_plugin' widget.name 'business_unit' business_unit.id %}",
         error: function(){
             console.log('{{ widget.name }} Failed');
         },
@@ -71,11 +71,9 @@ $( document ).ready(function() {
         <li>
         <a href="#"><i class="fa fa-wrench fa-fw"></i> Tools<span class="fa arrow"></span></a>
         <ul class="nav nav-second-level">
-            {% if is_editor %}
-            <li><a href="{% url 'edit_business_unit' business_unit.id %}"><i class="fa fa-fw fa-pencil"></i> Edit Business Unit</a></li>
-            <li><a href="{% url 'new_machine_group' business_unit.id %}"><i class="fa fa-plus fa-fw"></i> New Machine Group</a></li>
-
-
+            {% if user.userprofile.level == 'GA' or user.userprofile.level == 'RW' %}
+              <li><a href="{% url 'edit_business_unit' business_unit.id %}"><i class="fa fa-fw fa-pencil"></i> Edit Business Unit</a></li>
+              <li><a href="{% url 'new_machine_group' business_unit.id %}"><i class="fa fa-plus fa-fw"></i> New Machine Group</a></li>
             {% endif %}
         </ul>
         <!-- /.nav-second-level -->

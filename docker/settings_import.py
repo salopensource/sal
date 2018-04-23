@@ -22,6 +22,7 @@ try:
 except Exception:
     BASIC_AUTH = True
 
+# TODO: Use utility to set database setting?
 # Path to a root ca
 try:
     if getenv('DOCKER_SAL_ROOT_CA'):
@@ -98,6 +99,7 @@ try:
 except Exception:
     ADD_TO_ALL_BUSINESS_UNITS = False
 
+# TODO: Use utility to set database setting?
 try:
     if getenv('DOCKER_SAL_CRYPT_URL'):
         CRYPT_URL = getenv('DOCKER_SAL_CRYPT_URL')
@@ -106,15 +108,6 @@ try:
 except Exception:
     CRYPT_URL = None
 
-
-# Read the SSH_ACCOUNT setting from env var
-try:
-    if getenv('DOCKER_SAL_SSH_ACCOUNT'):
-        SSH_ACCOUNT = getenv('DOCKER_SAL_SSH_ACCOUNT')
-    else:
-        SSH_ACCOUNT = None
-except Exception:
-    SSH_ACCOUNT = None
 
 # Do machines turn to 'deployed' when they check in?
 try:

@@ -1,42 +1,33 @@
-from django.http import HttpResponse, HttpRequest, HttpResponseRedirect
-from django.template import RequestContext, Template, Context
-from django.shortcuts import render, get_object_or_404, redirect
-from django.http import Http404
-from django.contrib.auth.decorators import login_required, permission_required
-from django.template.context_processors import csrf
-from forms import *
-
-import plistlib
 import json
-from server.models import *
+import plistlib
+
+from django.contrib.auth.decorators import login_required, permission_required
+from django.http import (Http404, HttpRequest, HttpResponse, HttpResponseRedirect)
+from django.shortcuts import get_object_or_404, redirect, render
+from django.template import Context, RequestContext, Template
+from django.template.context_processors import csrf
+
+from forms import *
 from licenses.models import *
-from server import views as server_views
+from sal.decorators import *
+from server.models import *
 
 
 @login_required
+@required_level(ProfileLevel.global_admin)
 def license_index(request):
-    '''Sal index page for licenses.'''
-    all_licenses = License.objects.all()
-    user = request.user
-    user_level = user.userprofile.level
-    if user_level != 'GA':
-        return redirect(server_views.index)
-    c = {'request': request,
-         'licenses': all_licenses,
-         'user': request.user,
-         'page': 'licenses'}
-    return render(request, 'licenses/index.html', c)
+    """Sal index page for licenses."""
+    context = {'request': request,
+               'licenses': License.objects.all(),
+               'user': request.user,
+               'page': 'licenses'}
+    return render(request, 'licenses/index.html', context)
 
 
 @login_required
+@required_level(ProfileLevel.global_admin)
 def new_license(request):
-    '''Creates a new License object'''
-    c = {}
-    user = request.user
-    user_level = user.userprofile.level
-    if user_level != 'GA':
-        return redirect(server_views.index)
-    c.update(csrf(request))
+    """Creates a new License object"""
     if request.method == 'POST':
         form = LicenseForm(request.POST)
         if form.is_valid():
@@ -44,40 +35,33 @@ def new_license(request):
             return redirect(license_index)
     else:
         form = LicenseForm()
-    c = {'form': form}
 
-    return render(request, 'forms/new_license.html', c)
+    context = {'form': form}
+
+    return render(request, 'forms/new_license.html', context)
 
 
 @login_required
+@required_level(ProfileLevel.global_admin)
 def edit_license(request, license_id):
-    user = request.user
-    user_level = user.userprofile.level
-    if user_level != 'GA':
-        raise Http404
     license = get_object_or_404(License, pk=license_id)
-    c = {}
-    c.update(csrf(request))
 
     if request.method == 'POST':
-
         form = LicenseForm(request.POST, instance=license)
         if form.is_valid():
             license = form.save()
             return redirect(license_index)
     else:
         form = LicenseForm(instance=license)
-    c = {'form': form, 'license': license}
 
-    return render(request, 'forms/edit_license.html', c)
+    context = {'form': form, 'license': license}
+
+    return render(request, 'forms/edit_license.html', context)
 
 
 @login_required
+@required_level(ProfileLevel.global_admin)
 def delete_license(request, license_id):
-    user = request.user
-    user_level = user.userprofile.level
-    if user_level != 'GA':
-        return redirect(index)
     license = get_object_or_404(License, pk=license_id)
     license.delete()
     return redirect(license_index)
@@ -108,7 +92,7 @@ def available(request, key, item_name=''):
                 pass
     else:
         # return everything
-        licenses = License.objects.all().filter(business_unit=business_unit)
+        licenses = License.objects.filter(business_unit=business_unit)
         for license in licenses:
             info[license.item_name] = license.available()
 

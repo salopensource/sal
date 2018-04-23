@@ -52,6 +52,8 @@ class SearchRow(models.Model):
         ('External Script', 'External Script'),
         ('Application Inventory', 'Application Inventory'),
         ('Application Version', 'Application Version'),
+        ('Profile', 'Profile'),
+        ('Profile Payload', 'Profile Payload'),
     )
     SEARCH_OPERATOR_CHOICES = (
         ('Contains', 'Contains'),

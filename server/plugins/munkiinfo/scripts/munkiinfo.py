@@ -1,10 +1,56 @@
 #!/usr/bin/python
 
-import sys
-sys.path.append('/usr/local/munki')
-from munkilib import FoundationPlist
-from munkilib import munkicommon
+
 import os
+import sys
+
+sys.path.append('/usr/local/munki')
+from munkilib import FoundationPlist, munkicommon
+
+
+PREFS_TO_GET = (
+    'ManagedInstallDir',
+    'SoftwareRepoURL',
+    'ClientIdentifier',
+    'LogFile',
+    'LoggingLevel',
+    'LogToSyslog',
+    'InstallAppleSoftwareUpdates',
+    'AppleSoftwareUpdatesOnly',
+    'SoftwareUpdateServerURL',
+    'DaysBetweenNotifications',
+    'LastNotifiedDate',
+    'UseClientCertificate',
+    'SuppressUserNotification',
+    'SuppressAutoInstall',
+    'SuppressStopButtonOnInstall',
+    'PackageVerificationMode',
+    'FollowHTTPRedirects',
+    'UnattendedAppleUpdates',
+    'ClientCertificatePath',
+    'ClientKeyPath',
+    'LastAppleSoftwareUpdateCheck',
+    'LastCheckDate',
+    'LastCheckResult',
+    'LogFile',
+    'SoftwareRepoCACertificate',
+    'SoftwareRepoCAPath',
+    'PackageURL',
+    'CatalogURL',
+    'ManifestURL',
+    'IconURL',
+    'ClientResourceURL',
+    'ClientResourcesFilename',
+    'HelpURL',
+    'UseClientCertificateCNAsClientIdentifier',
+    'AdditionalHttpHeaders',
+    'SuppressLoginwindowInstall',
+    'InstallRequiresLogout',
+    'ShowRemovalDetail',
+    'MSULogEnabled',
+    'MSUDebugLogEnabled',
+    'LocalOnlyManifest',
+    'UnattendedAppleUpdates')
 
 
 def main():
@@ -14,65 +60,30 @@ def main():
             munkicommon.display_debug2("Manual check: skipping MunkiInfo Plugin")
             exit(0)
 
-    prefs_to_get = [
-        'ManagedInstallDir',
-        'SoftwareRepoURL',
-        'ClientIdentifier',
-        'LogFile',
-        'LoggingLevel',
-        'LogToSyslog',
-        'InstallAppleSoftwareUpdates',
-        'AppleSoftwareUpdatesOnly',
-        'SoftwareUpdateServerURL',
-        'DaysBetweenNotifications',
-        'LastNotifiedDate',
-        'UseClientCertificate',
-        'SuppressUserNotification',
-        'SuppressAutoInstall',
-        'SuppressStopButtonOnInstall',
-        'PackageVerificationMode',
-        'FollowHTTPRedirects',
-        'UnattendedAppleUpdates',
-        'ClientCertificatePath',
-        'ClientKeyPath',
-        'LastAppleSoftwareUpdateCheck',
-        'LastCheckDate',
-        'LastCheckResult',
-        'LogFile',
-        'SoftwareRepoCACertificate',
-        'SoftwareRepoCAPath',
-        'PackageURL',
-        'CatalogURL',
-        'ManifestURL',
-        'IconURL',
-        'ClientResourceURL',
-        'ClientResourcesFilename',
-        'HelpURL',
-        'UseClientCertificateCNAsClientIdentifier',
-        'AdditionalHttpHeaders',
-        'SuppressLoginwindowInstall',
-        'InstallRequiresLogout',
-        'ShowRemovalDetail',
-        'MSULogEnabled',
-        'MSUDebugLogEnabled',
-        'LocalOnlyManifest',
-        'UnattendedAppleUpdates'
-    ]
+    data = {pref: str(munkicommon.pref(pref)) for pref in PREFS_TO_GET}
+    add_plugin_results('MunkiInfo', data)
+
+
+def add_plugin_results(plugin, data, historical=False):
+    """Add data to the shared plugin results plist.
+
+    This function creates the shared results plist file if it does not
+    already exist; otherwise, it adds the entry by appending.
+
+    Args:
+        plugin (str): Name of the plugin returning data.
+        data (dict): Dictionary of results.
+        historical (bool): Whether to keep only one record (False) or
+            all results (True). Optional, defaults to False.
+    """
     plist_path = '/usr/local/sal/plugin_results.plist'
     if os.path.exists(plist_path):
-        plist = FoundationPlist.readPlist(plist_path)
+        plugin_results = FoundationPlist.readPlist(plist_path)
     else:
-        plist = []
-    result = {}
-    result['plugin'] = 'MunkiInfo'
-    result['historical'] = False
-    data = {}
-    for the_pref in prefs_to_get:
-        data[the_pref] = str(munkicommon.pref(the_pref))
+        plugin_results = []
 
-    result['data'] = data
-    plist.append(result)
-    FoundationPlist.writePlist(plist, plist_path)
+    plugin_results.append({'plugin': plugin, 'historical': historical, 'data': data})
+    FoundationPlist.writePlist(plugin_results, plist_path)
 
 
 if __name__ == '__main__':

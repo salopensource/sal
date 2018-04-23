@@ -32,11 +32,14 @@ RUN apt-get update && \
     supervisor \
     libffi-dev && \
     apt-get clean && \
-    rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
-COPY setup/requirements.txt /requirements.txt
+    rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* && \
+    mkdir /tmp/setup
+COPY setup/requirements.txt /tmp/setup/requirements.txt
+COPY requirements.txt /tmp/requirements.txt
 RUN easy_install pip && \
-    pip install -r /requirements.txt && \
-    rm /requirements.txt && \
+    pip install -r /tmp/requirements.txt && \
+    rm /tmp/requirements.txt && \
+    rm -rf /tmp/setup && \
     update-rc.d -f postgresql remove && \
     update-rc.d -f nginx remove && \
     mkdir -p /home/app && \

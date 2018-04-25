@@ -296,7 +296,6 @@ class UpdateHistory(models.Model):
     update_type = models.CharField(max_length=254, choices=UPDATE_TYPE, verbose_name="Update Type")
     name = models.CharField(max_length=255, db_index=True)
     version = models.CharField(max_length=254, db_index=True)
-    pending_recorded = models.BooleanField(default=False)
 
     def __unicode__(self):
         return u"%s: %s %s" % (self.machine, self.name, self.version)

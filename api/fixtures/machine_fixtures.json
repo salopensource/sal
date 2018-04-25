@@ -31,7 +31,6 @@
         "sal_version": "1.0.6",
         "last_puppet_run": "2016-10-06T19:06:21Z",
         "puppet_errors": 0,
-        "install_log_hash": "ed168dbcf43e8c89ec3bc1a5708a7210cfeeedf0fc4e8cbbda2e0b50af782e72",
         "deployed": true,
         "broken_client": false
     }
@@ -68,7 +67,6 @@
         "sal_version": "2.0.3",
         "last_puppet_run": "2017-05-16T18:54:56Z",
         "puppet_errors": 0,
-        "install_log_hash": null,
         "deployed": true,
         "broken_client": false
     }

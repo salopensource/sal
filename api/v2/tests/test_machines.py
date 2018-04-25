@@ -14,9 +14,8 @@ ALL_MACHINE_COLUMNS = {
     'machine_model_friendly', 'memory', 'memory_kb', 'warnings', 'first_checkin', 'last_checkin',
     'broken_client', 'hd_total', 'os_family', 'report', 'deployed', 'operating_system',
     'report_format', 'machine_group', 'sal_version', 'manifest', 'hd_percent', 'cpu_type',
-    'activity', 'install_log_hash'}
-REMOVED_MACHINE_COLUMNS = {
-    'activity', 'report', 'install_log_hash'}
+    'activity'}
+REMOVED_MACHINE_COLUMNS = {'activity', 'report'}
 
 
 class MachinesTest(SalAPITestCase):

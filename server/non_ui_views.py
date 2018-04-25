@@ -36,25 +36,7 @@ if settings.DEBUG:
 
 # The database probably isn't going to change while this is loaded.
 IS_POSTGRES = utils.is_postgres()
-
 IGNORED_CSV_FIELDS = ('id', 'machine_group', 'report', 'activity', 'os_family')
-# Tricky regex: Determine if this is a removal, because they do not
-# include a version (but the name may include dashes). If it's not a
-# removal, we want to know what type of install it is, and there should
-# be a version. Finally, Apple update failures will include a reason,
-# captured in "extra".
-INSTALL_PATTERN = re.compile(
-    r'(?P<date>[a-zA-Z]{3} [-+:\d\s]{22}) '
-    r'('
-    r'((?P<removal>Removal) of '
-    r'(?P<removal_name>.+)): '
-    r'|'
-    r'((?P<apple_install>Apple Software Update install)*(?P<third_party_install>.*?) of '
-    r'(?P<name>.+)-(?P<version>.+): '
-    r'))'
-    r'(?P<status>[A-Z]+) '
-    r'?(?P<extra>.*)$')
-
 UPDATE_META = {
     'ItemsToInstall':
         {'update_type': 'third_party', 'version_key': 'version_to_install',
@@ -703,6 +685,8 @@ def checkin(request):
                         % data.get('name'))
 
 
+# TODO: Remove after sal-scripts have reasonably been updated to not hit
+# this endpoint.
 @csrf_exempt
 @key_auth_required
 def install_log_hash(request, serial):
@@ -710,6 +694,8 @@ def install_log_hash(request, serial):
     return HttpResponse(sha256hash)
 
 
+# TODO: Remove after sal-scripts have reasonably been updated to not hit
+# this endpoint.
 @csrf_exempt
 @key_auth_required
 def install_log_submit(request):

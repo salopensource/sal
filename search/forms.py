@@ -23,8 +23,7 @@ class SearchRowForm(forms.ModelForm):
         'activity',
         'errors',
         'warnings',
-        'puppet_errors',
-        'install_log_hash'
+        'puppet_errors'
     ]
     search_fields = []
     for f in Machine._meta.fields:

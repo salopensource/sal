@@ -37,7 +37,7 @@ if settings.DEBUG:
 # The database probably isn't going to change while this is loaded.
 IS_POSTGRES = utils.is_postgres()
 
-IGNORED_CSV_FIELDS = ('id', 'machine_group', 'report', 'activity', 'os_family', 'install_log_hash')
+IGNORED_CSV_FIELDS = ('id', 'machine_group', 'report', 'activity', 'os_family')
 # Tricky regex: Determine if this is a removal, because they do not
 # include a version (but the name may include dashes). If it's not a
 # removal, we want to know what type of install it is, and there should
@@ -706,86 +706,11 @@ def checkin(request):
 @csrf_exempt
 @key_auth_required
 def install_log_hash(request, serial):
-    sha256hash = ''
-    machine = None
-    if serial:
-        try:
-            machine = Machine.objects.get(serial=serial)
-            sha256hash = machine.install_log_hash
-        except (Machine.DoesNotExist, Inventory.DoesNotExist):
-            pass
-    else:
-        return HttpResponse("MACHINE NOT FOUND")
+    sha256hash = hashlib.sha256('Update sal-scripts!').hexdigest()
     return HttpResponse(sha256hash)
 
 
 @csrf_exempt
 @key_auth_required
 def install_log_submit(request):
-    if request.method != 'POST':
-        return HttpResponseNotFound('No POST data sent')
-
-    submission = request.POST
-    serial = submission.get('serial')
-    key = submission.get('key')
-    uuid = submission.get('run_uuid')
-    machine = None
-    if serial:
-        try:
-            machine = Machine.objects.get(serial=serial)
-        except Machine.DoesNotExist:
-            return HttpResponseNotFound('Machine not found')
-
-        # Check the key
-        machine_group = get_object_or_404(MachineGroup, key=key)
-        if machine_group.id != machine.machine_group.id:
-            return HttpResponseNotFound('No machine group found')
-
-        old_key = 'base64bz2installlog'
-        new_key = 'bz2installlog'
-        key = new_key if new_key in submission else old_key
-        compressed_log = submission.get(key)
-        if compressed_log:
-            compressed_log = compressed_log.replace(" ", "+")
-            log_str = text_utils.decode_to_string(compressed_log, compression=key)
-
-            # This is a little unclear; create a preliminary queryset
-            # of pending items for reuse during the process_update_item
-            # call.
-            pending = UpdateHistoryItem.objects.filter(uuid=uuid, status='pending')
-            for line in log_str.splitlines():
-                matches = re.search(INSTALL_PATTERN, line)
-                if matches:
-                    process_update_item(matches.groupdict(), machine, pending)
-
-            machine.install_log_hash = hashlib.sha256(log_str).hexdigest()
-            machine.save()
-
-        return HttpResponse("Install Log processed for %s" % serial)
-
-
-def process_update_item(data, machine, pending):
-    # Convert Munki Install.log type to Sal's type name.
-    update_type = UpdateHistory.UPDATE_TYPE[1 if data['apple_install'] else 0][0]
-    name = data['removal_name'] if data['removal'] else data['name']
-    update_date = dateutil.parser.parse(data['date'])
-
-    update_history, _ = UpdateHistory.objects.get_or_create(
-        name=name, version=data['version'] or '', update_type=update_type, machine=machine)
-
-    if data['status'] == 'FAILED':
-        status = 'error'
-    elif data['removal']:
-        status = 'removal'
-    else:
-        status = 'install'
-
-    history_item, created = UpdateHistoryItem.objects.get_or_create(
-        recorded=update_date, status=status, update_history=update_history, extra=data['extra'])
-
-    if created and status in ('install', 'removal'):
-        # Make sure there has't been a pending in the same sal run
-        # Remove them if there are
-        pending.filter(update_history=update_history).delete()
-        update_history.pending_recorded = False
-        update_history.save()
+    return HttpResponse("Update sal-scripts!")

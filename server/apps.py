@@ -15,7 +15,6 @@ class ServerAppConfig(AppConfig):
             "warnings",
             "activity",
             "puppet_errors",
-            "install_log_hash",
         )
         )
         watson.register(Fact)

@@ -12,7 +12,7 @@ import django.utils.timezone
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.core.urlresolvers import reverse
-from django.db.models import Q
+from django.db.models import Q, Count
 from django.http import (HttpResponse, HttpResponseNotFound, JsonResponse, StreamingHttpResponse)
 from django.http.response import Http404
 from django.shortcuts import get_object_or_404
@@ -54,6 +54,15 @@ INSTALL_PATTERN = re.compile(
     r'))'
     r'(?P<status>[A-Z]+) '
     r'?(?P<extra>.*)$')
+
+UPDATE_META = {
+    'ItemsToInstall':
+        {'update_type': 'third_party', 'version_key': 'version_to_install',
+            'status': 'pending'},
+    'AppleUpdates':
+        {'update_type': 'apple', 'version_key': 'version_to_install', 'status': 'pending'},
+    'InstallResults': {'status': 'install'},
+    'RemovalResults': {'status': 'removal'}}
 
 
 @login_required
@@ -463,127 +472,47 @@ def checkin(request):
     if 'Plugin_Results' in report_data:
         utils.process_plugin_script(report_data.get('Plugin_Results'), machine)
 
-    # Remove existing PendingUpdates for the machine
-    machine.pending_updates.all().delete()
+    # Process Munki updates and removals.
     now = django.utils.timezone.now()
-    if 'ItemsToInstall' in report_data:
-        pending_update_to_save = []
-        update_history_item_to_save = []
-        for update in report_data.get('ItemsToInstall'):
-            display_name = update.get('display_name', update['name'])
+    items_to_create = []
+
+    # We're only interested in what's currently pending...
+    UpdateHistoryItem.objects.filter(update_history__machine=machine, status='pending').delete()
+
+    for key, meta in UPDATE_META.items():
+        for update in report_data.get(key, []):
             update_name = update.get('name')
-            version = str(update['version_to_install'])
-            if version:
-                pending_update = PendingUpdate(
-                    machine=machine,
-                    display_name=display_name,
-                    update_version=version,
-                    update=update_name)
-                if IS_POSTGRES:
-                    pending_update_to_save.append(pending_update)
-                else:
-                    pending_update.save()
-                # Let's handle some of those lovely pending installs into the UpdateHistory Model
-                try:
-                    update_history = UpdateHistory.objects.get(
-                        name=update_name,
-                        version=version,
-                        machine=machine,
-                        update_type='third_party'
-                    )
-                except UpdateHistory.DoesNotExist:
-                    update_history = UpdateHistory(
-                        name=update_name,
-                        version=version,
-                        machine=machine,
-                        update_type='third_party')
-                    update_history.save()
+            display_name = update.get('display_name', update_name)
+            version = update.get(meta.get('version_key'), 'version').strip()
+            if 'update_type' in meta:
+                update_type = meta.get('update_type')
+            else:
+                update_type = 'apple' if update.get('apple_sus') else 'third_party'
 
-                if not update_history.pending_recorded:
-                    update_history_item = UpdateHistoryItem(
-                        update_history=update_history, status='pending',
-                        recorded=now, uuid=uuid)
+            if 'status' in update and update['status'] != 0:
+                status = 'error'
+            else:
+                status = meta['status']
 
-                    update_history.pending_recorded = True
-                    update_history.save()
+            update_history, _ = UpdateHistory.objects.get_or_create(
+                name=update_name, version=version, machine=machine, update_type=update_type)
+            update_history_item = UpdateHistoryItem(
+                update_history=update_history, status=status, recorded=now, uuid=uuid)
 
-                    if IS_POSTGRES:
-                        update_history_item_to_save.append(update_history_item)
-                    else:
-                        update_history_item.save()
-
-        if IS_POSTGRES:
-            PendingUpdate.objects.bulk_create(pending_update_to_save)
-            UpdateHistoryItem.objects.bulk_create(update_history_item_to_save)
-
-    machine.installed_updates.all().delete()
-
-    if 'ManagedInstalls' in report_data:
-        # Due to a quirk in how Munki 3 processes updates with dependencies,
-        # it's possible to have multiple entries in the ManagedInstalls list
-        # that share an update_name and installed_version. This causes an
-        # IntegrityError in Django since (machine_id, update, update_version)
-        # must be unique.Until/(unless!) this is addressed in Munki, we need to
-        # be careful to not add multiple items with the same name and version.
-        # We'll store each (update_name, version) combo as we see them.
-        seen_names_and_versions = []
-        installed_updates_to_save = []
-        for update in report_data.get('ManagedInstalls'):
-            display_name = update.get('display_name', update['name'])
-            update_name = update.get('name')
-            version = str(update.get('installed_version', 'UNKNOWN'))
-            installed = update.get('installed')
-            if (update_name, version) not in seen_names_and_versions:
-                seen_names_and_versions.append((update_name, version))
-                if (version != 'UNKNOWN' and version is not None and
-                        len(version) != 0):
-                    installed_update = InstalledUpdate(
-                        machine=machine, display_name=display_name,
-                        update_version=version, update=update_name,
-                        installed=installed)
-                    if IS_POSTGRES:
-                        installed_updates_to_save.append(installed_update)
-                    else:
-                        installed_update.save()
-        if IS_POSTGRES:
-            InstalledUpdate.objects.bulk_create(installed_updates_to_save)
-
-    # Remove existing PendingAppleUpdates for the machine
-    machine.pending_apple_updates.all().delete()
-    if 'AppleUpdates' in report_data:
-        for update in report_data.get('AppleUpdates'):
-            display_name = update.get('display_name', update['name'])
-            update_name = update.get('name')
-            version = str(update['version_to_install'])
-            try:
-                pending_update = PendingAppleUpdate.objects.get(
-                    machine=machine,
-                    display_name=display_name,
-                    update_version=version,
-                    update=update_name
-                )
-            except PendingAppleUpdate.DoesNotExist:
-                pending_update = PendingAppleUpdate(
-                    machine=machine,
-                    display_name=display_name,
-                    update_version=version,
-                    update=update_name)
-                pending_update.save()
-            # Let's handle some of those lovely pending installs into the UpdateHistory Model
-            try:
-                update_history = UpdateHistory.objects.get(
-                    name=update_name, version=version, machine=machine, update_type='apple')
-            except UpdateHistory.DoesNotExist:
-                update_history = UpdateHistory(
-                    name=update_name, version=version, machine=machine, update_type='apple')
-                update_history.save()
-
-            if not update_history.pending_recorded:
-                update_history_item = UpdateHistoryItem(
-                    update_history=update_history, status='pending', recorded=now, uuid=uuid)
+            if IS_POSTGRES:
+                items_to_create.append(update_history_item)
+            else:
                 update_history_item.save()
-                update_history.pending_recorded = True
-                update_history.save()
+
+    if IS_POSTGRES:
+        UpdateHistoryItem.objects.bulk_create(items_to_create)
+
+    # Remove any UpdateHistories that have no UpdateHistoryItems
+    (UpdateHistory.objects
+     .filter(machine=machine)
+     .annotate(items=Count('updatehistoryitem'))
+     .filter(items=0)
+     .delete())
 
     # if Facter data is submitted, we need to first remove any existing facts for this machine
     if IS_POSTGRES:

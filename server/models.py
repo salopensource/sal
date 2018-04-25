@@ -204,9 +204,8 @@ class Machine(models.Model):
         except Exception:
             return {}
 
-    # TODO: This is no longer needed.
     def get_report(self):
-        return self.decode(self.report)
+        return plistlib.readPlistFromString(self.report)
 
     # TODO: This is no longer needed.
     def get_activity(self):

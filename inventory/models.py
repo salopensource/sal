@@ -1,6 +1,5 @@
 from django.db import models
 from server.models import *
-from watson import search as watson
 
 
 class Application(models.Model):

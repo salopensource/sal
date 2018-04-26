@@ -12,7 +12,6 @@ from django.contrib.auth.models import User
 from django.db import models
 
 from server import text_utils
-from watson import search as watson
 
 
 OS_CHOICES = (

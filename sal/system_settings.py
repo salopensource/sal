@@ -200,7 +200,6 @@ INSTALLED_APPS = (
     'licenses',
     'profiles',
     'bootstrap3',
-    'watson',
     'datatableview',
     'search',
     'rest_framework',

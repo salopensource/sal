@@ -523,7 +523,12 @@ def get_active_and_inactive_plugins(plugin_kind='machines'):
         if not isinstance(plugin, plugin_type):
             if not isinstance(plugin, OldPluginAdapter):
                 continue
-            elif DEPRECATED_PLUGIN_TYPES[plugin.get_plugin_type()] != plugin_type:
+            # If there's no type method, assume it's basically Widget.
+            elif not hasattr(plugin, 'get_plugin_type') and plugin_type != Widget:
+                continue
+            # Finally, look up known 'types' in table, assuming it's a
+            # Widget if it's an unknown type.
+            elif DEPRECATED_PLUGIN_TYPES.get(plugin.get_plugin_type(), Widget) != plugin_type:
                 continue
 
         try:

@@ -574,10 +574,14 @@ def checkin(request):
     if IS_POSTGRES:
         # If we are using postgres, we can just dump them all and do a bulk create
         if 'Facter' in report_data:
-            facts = machine.facts.all().delete()
+            facts = machine.facts.all()
+            if facts.exists():
+                facts._raw_delete(facts.db)
             try:
                 datelimit = django.utils.timezone.now() - timedelta(days=historical_days)
-                HistoricalFact.objects.filter(fact_recorded__lt=datelimit).delete()
+                hist_to_delete = HistoricalFact.objects.filter(fact_recorded__lt=datelimit)
+                if hist_to_delete.exists():
+                    hist_to_delete._raw_delete(hist_to_delete.db)
             except Exception:
                 pass
             try:
@@ -692,7 +696,9 @@ def checkin(request):
 
     if IS_POSTGRES:
         if 'Conditions' in report_data:
-            machine.conditions.all().delete()
+            conditions_to_delete = machine.conditions.all()
+            if conditions_to_delete.exists():
+                conditions_to_delete._raw_delete(conditions_to_delete.db)
             conditions_to_be_created = []
             for condition_name, condition_data in report_data['Conditions'].iteritems():
                 # Skip the conditions that come from facter

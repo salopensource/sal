@@ -470,8 +470,9 @@ def run_plugin_processing(machine, report_data):
     enabled_reports = Report.objects.all()
     enabled_plugins = Plugin.objects.all()
     enabled_detail_plugins = MachineDetailPlugin.objects.all()
+    manager = PluginManager()
     for enabled_plugin in itertools.chain(enabled_reports, enabled_plugins, enabled_detail_plugins):
-        plugin = PluginManager().get_plugin_by_name(enabled_plugin.name)
+        plugin = manager.get_plugin_by_name(enabled_plugin.name)
         if plugin:
             plugin.checkin_processor(machine, report_data)
 

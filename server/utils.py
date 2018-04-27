@@ -357,7 +357,7 @@ def get_django_setting(name, default=None):
 
     In Sal, that's anything in the system_settings or settings files.
     """
-    return getattr(settings, name, default):
+    return getattr(settings, name, default)
 
 
 # Plugin utilities

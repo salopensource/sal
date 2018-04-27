@@ -46,6 +46,12 @@ UPDATE_META = {
         {'update_type': 'apple', 'version_key': 'version_to_install', 'status': 'pending'},
     'InstallResults': {'status': 'install'},
     'RemovalResults': {'status': 'removal'}}
+MACHINE_KEYS = {
+    'machine_model': {'old': 'MachineModel', 'new': 'machine_model'},
+    'cpu_type': {'old': 'CPUType', 'new': 'cpu_type'},
+    'cpu_speed': {'old': 'CurrentProcessorSpeed', 'new': 'current_processor_speed'},
+    'memory': {'old': 'PhysicalMemory', 'new': 'physical_memory'}}
+MEMORY_EXPONENTS = {'KB': 0, 'MB': 1, 'GB': 2, 'TB': 3}
 
 
 @login_required
@@ -331,6 +337,10 @@ def checkin(request):
         # Handle gosal and missing os_vers cases.
         machine.operating_system = machine_info.get('OSVers')
 
+    # Again, handle gosal submissions slightly differently from others.
+    machine.os_family = (
+        report_data['OSFamily'] if 'OSFamily' in report_data else report_data.get('os_family'))
+
     # TODO: These should be a number type.
     # TODO: Cleanup all of the casting to str if we make a number.
     machine.hd_space = report_data.get('AvailableDiskSpace', '0')
@@ -352,41 +362,13 @@ def checkin(request):
                 break
 
     if hwinfo:
-        # setup vars for hash keys we might get sent
-        if 'MachineModel' in hwinfo:
-            var_machine_model = 'MachineModel'
-            var_cpu_type = 'CPUType'
-            var_cpu_speed = 'CurrentProcessorSpeed'
-            var_memory = 'PhysicalMemory'
-        else:
-            var_machine_model = 'machine_model'
-            var_cpu_type = 'cpu_type'
-            var_cpu_speed = 'current_processor_speed'
-            var_memory = 'physical_memory'
+        key_style = 'old' if 'MachineModel' in hwinfo else 'new'
 
-        machine.machine_model = hwinfo.get(var_machine_model)
-        machine.cpu_type = hwinfo.get(var_cpu_type)
-        machine.cpu_speed = hwinfo.get(var_cpu_speed)
-        machine.memory = hwinfo.get(var_memory)
-
-        if hwinfo.get(var_memory)[-2:] == 'KB':
-            machine.memory_kb = int(hwinfo.get(var_memory)[:-3])
-        if hwinfo.get(var_memory)[-2:] == 'MB':
-            memory_mb = float(hwinfo.get(var_memory)[:-3])
-            machine.memory_kb = int(memory_mb * 1024)
-        if hwinfo.get(var_memory)[-2:] == 'GB':
-            memory_gb = float(hwinfo.get(var_memory)[:-3])
-            machine.memory_kb = int(memory_gb * 1024 * 1024)
-        if hwinfo.get(var_memory)[-2:] == 'TB':
-            memory_tb = float(hwinfo.get(var_memory)[:-3])
-            machine.memory_kb = int(memory_tb * 1024 * 1024 * 1024)
-
-    if 'os_family' in report_data:
-        machine.os_family = report_data['os_family']
-
-    # support golang strict structure
-    if 'OSFamily' in report_data:
-        machine.os_family = report_data['OSFamily']
+        machine.machine_model = hwinfo.get(MACHINE_KEYS[key_style]['machine_model'])
+        machine.cpu_type = hwinfo.get(MACHINE_KEYS[key_style]['cpu_type'])
+        machine.cpu_speed = hwinfo.get(MACHINE_KEYS[key_style]['cpu_speed'])
+        machine.memory = hwinfo.get(MACHINE_KEYS[key_style]['memory'])
+        machine.memory_kb = int(machine.memory[:-3]) ** MEMORY_EXPONENTS[machine.memory[-2:]]
 
     if not machine.machine_model_friendly:
         try:

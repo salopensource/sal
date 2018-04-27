@@ -327,6 +327,10 @@ def checkin(request):
     if 'events' in puppet:
         machine.puppet_errors = puppet['events']['failure']
 
+    # Handle gosal submissions slightly differently from others.
+    machine.os_family = (
+        report_data['OSFamily'] if 'OSFamily' in report_data else report_data.get('os_family'))
+
     machine_info = report_data.get('MachineInfo', {})
     if 'os_vers' in machine_info:
         machine.operating_system = machine_info['os_vers']
@@ -336,10 +340,6 @@ def checkin(request):
     else:
         # Handle gosal and missing os_vers cases.
         machine.operating_system = machine_info.get('OSVers')
-
-    # Again, handle gosal submissions slightly differently from others.
-    machine.os_family = (
-        report_data['OSFamily'] if 'OSFamily' in report_data else report_data.get('os_family'))
 
     # TODO: These should be a number type.
     # TODO: Cleanup all of the casting to str if we make a number.

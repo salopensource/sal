@@ -230,7 +230,6 @@ class Machine(models.Model):
             self.activity = None
             self.errors = 0
             self.warnings = 0
-            self.console_user = "<None>"
             return
 
         plist = plistlib.readPlistFromString(report)
@@ -252,12 +251,6 @@ class Machine(models.Model):
         # Check errors and warnings.
         self.errors = len(plist.get("Errors", 0))
         self.warnings = len(plist.get("Warnings", 0))
-
-
-        # Check console user.
-        self.console_user = "unknown"
-        if "ConsoleUser" in plist:
-            self.console_user = unicode(plist["ConsoleUser"])
 
     def __unicode__(self):
         if self.hostname:

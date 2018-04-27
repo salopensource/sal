@@ -352,6 +352,14 @@ def is_float(value):
         return False
 
 
+def get_django_setting(name, default=None):
+    """Get a setting from the Django.conf.settings object
+
+    In Sal, that's anything in the system_settings or settings files.
+    """
+    return getattr(settings, name, default):
+
+
 # Plugin utilities
 
 def process_plugin_script(results, machine):

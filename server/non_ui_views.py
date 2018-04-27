@@ -314,6 +314,13 @@ def checkin(request):
     machine.manifest = report_data.get('ManifestName')
     machine.munki_version = report_data.get('ManagedInstallVersion')
 
+    puppet = report_data.get('Puppet', {})
+    if 'time' in puppet:
+        last_run_epoch = float(puppet['time']['last_run'])
+        machine.last_puppet_run = datetime.fromtimestamp(last_run_epoch, tz=pytz.UTC)
+    if 'events' in puppet:
+        machine.puppet_errors = puppet['events']['failure']
+
     machine_info = report_data.get('MachineInfo', {})
     if 'os_vers' in machine_info:
         machine.operating_system = machine_info['os_vers']
@@ -325,9 +332,9 @@ def checkin(request):
         machine.operating_system = machine_info.get('OSVers')
 
     # TODO: These should be a number type.
+    # TODO: Cleanup all of the casting to str if we make a number.
     machine.hd_space = report_data.get('AvailableDiskSpace', '0')
     machine.hd_total = data.get('disk_size', '0')
-
     space = float(machine.hd_space)
     total = float(machine.hd_total)
     if machine.hd_total == 0:
@@ -335,22 +342,14 @@ def checkin(request):
     else:
         machine.hd_percent = str(int((total - space) / total * 100))
 
-    hwinfo = {}
-    # macOS System Profiler
-    if 'SystemProfile' in report_data.get('MachineInfo', []):
-        for profile in report_data['MachineInfo']['SystemProfile']:
+    # Get macOS System Profiler hardware info.
+    # Older versions use `HardwareInfo` key, so start there.
+    hwinfo = machine_info.get('HardwareInfo', {})
+    if not hwinfo:
+        for profile in machine_info.get('SystemProfile', []):
             if profile['_dataType'] == 'SPHardwareDataType':
                 hwinfo = profile._items[0]
                 break
-    if 'HardwareInfo' in report_data.get('MachineInfo', []):
-        hwinfo = report_data['MachineInfo']['HardwareInfo']
-    if 'Puppet' in report_data:
-        puppet = report_data.get('Puppet')
-        if 'time' in puppet:
-            last_run_epoch = float(puppet['time']['last_run'])
-            machine.last_puppet_run = datetime.fromtimestamp(last_run_epoch, tz=pytz.UTC)
-        if 'events' in puppet:
-            machine.puppet_errors = puppet['events']['failure']
 
     if hwinfo:
         # setup vars for hash keys we might get sent

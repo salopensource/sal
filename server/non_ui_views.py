@@ -17,6 +17,7 @@ from django.http import (HttpResponse, HttpResponseNotFound, JsonResponse, Strea
 from django.http.response import Http404
 from django.shortcuts import get_object_or_404
 from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_POST
 
 from inventory.models import Inventory
 from sal.decorators import key_auth_required
@@ -270,12 +271,10 @@ def preflight_v2_get_script(request, plugin_name, script_name):
 
 
 @csrf_exempt
+@require_POST
 @key_auth_required
 def checkin(request):
-    if request.method != 'POST':
-        print 'not post data'
-        return HttpResponseNotFound('No POST data sent')
-
+    # TODO: Move these closer to where they're used.
     data = request.POST
     key = data.get('key')
     uuid = data.get('uuid')
@@ -283,11 +282,13 @@ def checkin(request):
     serial = serial.upper()
     broken_client = data.get('broken_client', False)
 
+    # TODO: This can be a one liner
     # Take out some of the weird junk VMware puts in. Keep an eye out in case
     # Apple actually uses these:
     serial = serial.replace('/', '')
     serial = serial.replace('+', '')
 
+    # TODO: This can be tightend up (except attribute error? or hasattr w/ternary)
     # Are we using Sal for some sort of inventory (like, I don't know, Puppet?)
     try:
         add_new_machines = settings.ADD_NEW_MACHINES
@@ -295,6 +296,7 @@ def checkin(request):
         add_new_machines = True
 
     if add_new_machines:
+        # TODO: get_or_create
         # look for serial number - if it doesn't exist, create one
         if serial:
             try:
@@ -304,12 +306,15 @@ def checkin(request):
     else:
         machine = get_object_or_404(Machine, serial=serial)
 
+    # TODO: As per above ADD_NEW_MACHINES
     try:
         deployed_on_checkin = settings.DEPLOYED_ON_CHECKIN
     except Exception:
         deployed_on_checkin = True
 
+    # TODO: Use `in`
     if key is None or key == 'None':
+        # TODO: As per above settings rewrites
         try:
             key = settings.DEFAULT_MACHINE_GROUP_KEY
         except Exception:
@@ -326,23 +331,31 @@ def checkin(request):
         return HttpResponse("Broken Client report submmitted for %s"
                             % data.get('serial'))
     else:
+        # TODO: This defaults to false. Remove.
         machine.broken_client = False
 
+    # TODO: Move to where it's needed.
     historical_days = utils.get_setting('historical_retention')
 
+    # TODO: Compact all of this one-line attribute setting pieces.
     machine.hostname = data.get('name', '<NO NAME>')
 
+    # TODO: This can be one or two lines.
     if 'username' in data:
         if data.get('username') != '_mbsetupuser':
             machine.console_user = data.get('username')
 
+    # TODO: Rename some things so `report` is less generic.
     for key in ('bz2report', 'base64report', 'base64bz2report'):
         if key in data:
             machine.update_report(data[key], report_format=key)
             break
 
+    # TODO: Compact with other one liners.
     if 'sal_version' in data:
         machine.sal_version = data.get('sal_version')
+
+    # TODO: THis is where I stopped for the night y'all.
 
     # extract machine data from the report
     report_data = machine.get_report()

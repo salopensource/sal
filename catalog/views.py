@@ -13,6 +13,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.template import Context, RequestContext, Template
 from django.template.context_processors import csrf
 from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_POST
 
 from models import *
 from sal.decorators import *
@@ -22,11 +23,9 @@ from server.text_utils import decode_to_string
 
 
 @csrf_exempt
+@require_POST
 @key_auth_required
 def submit_catalog(request):
-    if request.method != 'POST':
-        raise Http404
-
     submission = request.POST
     key = submission.get('key')
     name = submission.get('name')
@@ -58,12 +57,9 @@ def submit_catalog(request):
 
 
 @csrf_exempt
+@require_POST
 @key_auth_required
 def catalog_hash(request):
-    if request.method != 'POST':
-        print 'method not post'
-        raise Http404
-
     output = []
     submission = request.POST
     key = submission.get('key')

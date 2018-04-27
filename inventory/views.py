@@ -18,6 +18,7 @@ from django.shortcuts import get_object_or_404, render_to_response
 from django.template import RequestContext
 from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_POST
 from django.views.generic import DetailView, View
 
 from datatableview import Datatable
@@ -524,11 +525,9 @@ class CSVExportView(CSVResponseMixin, GroupMixin, View):
 
 
 @csrf_exempt
+@require_POST
 @key_auth_required
 def inventory_submit(request):
-    if request.method != 'POST':
-        return HttpResponseNotFound('No POST data sent')
-
     # list of bundleids to ignore
     bundleid_ignorelist = [
         'com.apple.print.PrinterProxy'

@@ -12,6 +12,7 @@ from django.http import (
 from django.shortcuts import get_object_or_404, render_to_response
 from django.utils import dateparse
 from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_POST
 
 
 # Local
@@ -24,11 +25,9 @@ from server.models import BusinessUnit, MachineGroup, Machine  # noqa: F811
 
 # Create your views here.
 @csrf_exempt
+@require_POST
 @key_auth_required
 def submit_profiles(request):
-    if request.method != 'POST':
-        return HttpResponseNotFound('No POST data sent')
-
     submission = request.POST
     serial = submission.get('serial').upper()
     machine = None

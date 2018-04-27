@@ -389,8 +389,12 @@ def checkin(request):
     now = django.utils.timezone.now()
     items_to_create = []
 
-    # We're only interested in what's currently pending...
-    UpdateHistoryItem.objects.filter(update_history__machine=machine, status='pending').delete()
+    # We're only interested in what's currently pending, use raw delete
+    # save some cycles.
+    histories_to_delete = UpdateHistoryItem.objects.filter(
+        update_history__machine=machine, status='pending')
+    if histories_to_delete.exists():
+        histories_to_delete._raw_delete(histories_to_delete.db)
 
     uuid = data.get('uuid')
     for key, meta in UPDATE_META.items():

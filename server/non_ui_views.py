@@ -38,6 +38,8 @@ if settings.DEBUG:
 # The database probably isn't going to change while this is loaded.
 IS_POSTGRES = utils.is_postgres()
 IGNORED_CSV_FIELDS = ('id', 'machine_group', 'report', 'activity', 'os_family')
+HISTORICAL_FACTS = utils.get_django_setting('HISTORICAL_FACTS', [])
+IGNORE_PREFIXES = utils.get_django_setting('IGNORE_FACTS', [])
 UPDATE_META = {
     'ItemsToInstall':
         {'update_type': 'third_party', 'version_key': 'version_to_install',
@@ -420,13 +422,13 @@ def checkin(request):
             update_history_item = UpdateHistoryItem(
                 update_history=update_history, status=status, recorded=now, uuid=uuid)
 
-            if IS_POSTGRES:
-                items_to_create.append(update_history_item)
-            else:
-                update_history_item.save()
+            items_to_create.append(update_history_item)
 
     if IS_POSTGRES:
         UpdateHistoryItem.objects.bulk_create(items_to_create)
+    else:
+        for update_history_item in items_to_create:
+            update_history_item.save()
 
     # Remove any UpdateHistories that have no UpdateHistoryItems
     (UpdateHistory.objects
@@ -435,188 +437,65 @@ def checkin(request):
      .filter(items=0)
      .delete())
 
+    facts_to_be_created = []
+    historical_facts_to_be_created = []
+
+    # TODO: May need to come through and do get_or_create on machine, name, updating data, and
+    # deleting now missing facts and conditions for non-postgres.
     # if Facter data is submitted, we need to first remove any existing facts for this machine
-    if IS_POSTGRES:
-        # If we are using postgres, we can just dump them all and do a bulk create
-        if 'Facter' in report_data:
-            facts = machine.facts.all()
-            if facts.exists():
-                facts._raw_delete(facts.db)
-            try:
-                hist_to_delete = HistoricalFact.objects.filter(fact_recorded__lt=datelimit)
-                if hist_to_delete.exists():
-                    hist_to_delete._raw_delete(hist_to_delete.db)
-            except Exception:
-                pass
-            try:
-                historical_facts = settings.HISTORICAL_FACTS
-            except Exception:
-                historical_facts = []
-                pass
+    facts = machine.facts.all()
+    if facts.exists():
+        facts._raw_delete(facts.db)
+    hist_to_delete = HistoricalFact.objects.filter(fact_recorded__lt=datelimit)
+    if hist_to_delete.exists():
+        hist_to_delete._raw_delete(hist_to_delete.db)
 
-            facts_to_be_created = []
-            historical_facts_to_be_created = []
-            for fact_name, fact_data in report_data['Facter'].iteritems():
-                skip = False
-                if hasattr(settings, 'IGNORE_FACTS'):
-                    for prefix in settings.IGNORE_FACTS:
-                        if fact_name.startswith(prefix):
-                            skip = True
-                if skip:
-                    continue
-                facts_to_be_created.append(
-                    Fact(
-                        machine=machine,
-                        fact_data=fact_data,
-                        fact_name=fact_name
-                    )
-                )
-                if fact_name in historical_facts:
-                    historical_facts_to_be_created.append(
-                        HistoricalFact(
-                            machine=machine,
-                            fact_data=fact_data,
-                            fact_name=fact_name
-                        )
-                    )
+    facts_to_be_created = []
+    historical_facts_to_be_created = []
+    for fact_name, fact_data in report_data.get('Facter', {}).items():
+        if any(fact_name.startswith(p) for p in IGNORE_PREFIXES):
+            continue
+
+        facts_to_be_created.append(
+            Fact(machine=machine, fact_data=fact_data, fact_name=fact_name))
+
+        if fact_name in HISTORICAL_FACTS:
+            historical_facts_to_be_created.append(
+                HistoricalFact(machine=machine, fact_data=fact_data, fact_name=fact_name))
+
+    if facts_to_be_created:
+        if IS_POSTGRES:
             Fact.objects.bulk_create(facts_to_be_created)
-            if len(historical_facts_to_be_created) != 0:
-                HistoricalFact.objects.bulk_create(historical_facts_to_be_created)
+        else:
+            for fact in facts_to_be_created:
+                fact.save()
+    if historical_facts_to_be_created:
+        if IS_POSTGRES:
+            HistoricalFact.objects.bulk_create(historical_facts_to_be_created)
+        else:
+            for fact in historical_facts_to_be_created:
+                fact.save()
 
-    else:
-        if 'Facter' in report_data:
-            facts = machine.facts.all()
-            for fact in facts:
-                skip = False
-                if hasattr(settings, 'IGNORE_FACTS'):
-                    for prefix in settings.IGNORE_FACTS:
+    conditions_to_delete = machine.conditions.all()
+    if conditions_to_delete.exists():
+        conditions_to_delete._raw_delete(conditions_to_delete.db)
+    conditions_to_be_created = []
+    for condition_name, condition_data in report_data.get('Conditions', {}).items():
+        # Skip the conditions that come from facter
+        if 'Facter' in report_data and condition_name.startswith('facter_'):
+            continue
 
-                        if fact.fact_name.startswith(prefix):
-                            skip = True
-                            fact.delete()
-                            break
-                if not skip:
-                    continue
-                found = False
-                for fact_name, fact_data in report_data['Facter'].iteritems():
+        condition_data = text_utils.safe_unicode(text_utils.stringify(condition_data))
+        condition = Condition(
+            machine=machine, condition_name=condition_name, condition_data=condition_data)
+        conditions_to_be_created.append(condition)
 
-                    if fact.fact_name == fact_name:
-                        found = True
-                        break
-                if not found:
-                    fact.delete()
-
-            # Delete old historical facts
-
-            try:
-                HistoricalFact.objects.filter(fact_recorded__lt=datelimit).delete()
-            except Exception:
-                pass
-            try:
-                historical_facts = settings.HISTORICAL_FACTS
-            except Exception:
-                historical_facts = []
-                pass
-            # now we need to loop over the submitted facts and save them
-            facts = machine.facts.all()
-            for fact_name, fact_data in report_data['Facter'].iteritems():
-                if machine.os_family == 'Windows':
-                    # We had a little trouble parsing out facts on Windows, clean up here
-                    if fact_name.startswith('value=>'):
-                        fact_name = fact_name.replace('value=>', '', 1)
-
-                # does fact exist already?
-                found = False
-                skip = False
-                if hasattr(settings, 'IGNORE_FACTS'):
-                    for prefix in settings.IGNORE_FACTS:
-
-                        if fact_name.startswith(prefix):
-                            skip = True
-                            break
-                if skip:
-                    continue
-                for fact in facts:
-                    if fact_name == fact.fact_name:
-                        # it exists, make sure it's got the right info
-                        found = True
-                        if fact_data == fact.fact_data:
-                            # it's right, break
-                            break
-                        else:
-                            fact.fact_data = fact_data
-                            fact.save()
-                            break
-                if not found:
-
-                    fact = Fact(machine=machine, fact_data=fact_data, fact_name=fact_name)
-                    fact.save()
-
-                if fact_name in historical_facts:
-                    fact = HistoricalFact(
-                        machine=machine, fact_name=fact_name, fact_data=fact_data,
-                        fact_recorded=datetime.now(tz=pytz.UTC))
-                    fact.save()
-
-    if IS_POSTGRES:
-        if 'Conditions' in report_data:
-            conditions_to_delete = machine.conditions.all()
-            if conditions_to_delete.exists():
-                conditions_to_delete._raw_delete(conditions_to_delete.db)
-            conditions_to_be_created = []
-            for condition_name, condition_data in report_data['Conditions'].iteritems():
-                # Skip the conditions that come from facter
-                if 'Facter' in report_data and condition_name.startswith('facter_'):
-                    continue
-
-                condition_data = text_utils.stringify(condition_data)
-                conditions_to_be_created.append(
-                    Condition(
-                        machine=machine,
-                        condition_name=condition_name,
-                        condition_data=text_utils.safe_unicode(condition_data)
-                    )
-                )
-
+    if conditions_to_be_created:
+        if IS_POSTGRES:
             Condition.objects.bulk_create(conditions_to_be_created)
-    else:
-        if 'Conditions' in report_data:
-            conditions = machine.conditions.all()
-            for condition in conditions:
-                found = False
-                for condition_name, condition_data in report_data['Conditions'].iteritems():
-                    if condition.condition_name == condition_name:
-                        found = True
-                        break
-                if found is False:
-                    condition.delete()
-
-            conditions = machine.conditions.all()
-            for condition_name, condition_data in report_data['Conditions'].iteritems():
-                # Skip the conditions that come from facter
-                if 'Facter' in report_data and condition_name.startswith('facter_'):
-                    continue
-
-                # if it's a list (more than one result),
-                # we're going to conacetnate it into one comma separated string.
-                condition_data = text_utils.stringify(condition_data)
-
-                found = False
-                for condition in conditions:
-                    if condition_name == condition.condition_name:
-                        # it exists, make sure it's got the right info
-                        found = True
-                        if condition_data == condition.condition_data:
-                            # it's right, break
-                            break
-                        else:
-                            condition.condition_data = condition_data
-                            condition.save()
-                            break
-                if found is False:
-                    condition = Condition(machine=machine, condition_name=condition_name,
-                                          condition_data=text_utils.safe_unicode(condition_data))
-                    condition.save()
+        else:
+            for condition in conditions_to_be_created:
+                condition.save()
 
     utils.run_plugin_processing(machine, report_data)
 
@@ -624,8 +503,7 @@ def checkin(request):
         # If setting is None, it hasn't been configured yet; assume True
         utils.send_report()
 
-    return HttpResponse("Sal report submmitted for %s"
-                        % data.get('name'))
+    return HttpResponse("Sal report submmitted for %s" % data.get('name'))
 
 
 # TODO: Remove after sal-scripts have reasonably been updated to not hit

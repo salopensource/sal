@@ -274,30 +274,13 @@ def preflight_v2_get_script(request, plugin_name, script_name):
 @require_POST
 @key_auth_required
 def checkin(request):
-    # TODO: Move these closer to where they're used.
     data = request.POST
-    key = data.get('key')
-    uuid = data.get('uuid')
-    serial = data.get('serial')
-    serial = serial.upper()
-    broken_client = data.get('broken_client', False)
 
-    # TODO: This can be a one liner
     # Take out some of the weird junk VMware puts in. Keep an eye out in case
     # Apple actually uses these:
-    serial = serial.replace('/', '')
-    serial = serial.replace('+', '')
-
-    # TODO: This can be tightend up (except attribute error? or hasattr w/ternary)
+    serial = data.get('serial', '').upper().translate(None, '+/')
     # Are we using Sal for some sort of inventory (like, I don't know, Puppet?)
-    try:
-        add_new_machines = settings.ADD_NEW_MACHINES
-    except Exception:
-        add_new_machines = True
-
-    if add_new_machines:
-        # TODO: get_or_create
-        # look for serial number - if it doesn't exist, create one
+    if utils.get_django_setting('ADD_NEW_MACHINES', True):
         if serial:
             try:
                 machine = Machine.objects.get(serial=serial)
@@ -306,44 +289,22 @@ def checkin(request):
     else:
         machine = get_object_or_404(Machine, serial=serial)
 
-    # TODO: As per above ADD_NEW_MACHINES
-    try:
-        deployed_on_checkin = settings.DEPLOYED_ON_CHECKIN
-    except Exception:
-        deployed_on_checkin = True
-
-    # TODO: Use `in`
-    if key is None or key == 'None':
-        # TODO: As per above settings rewrites
-        try:
-            key = settings.DEFAULT_MACHINE_GROUP_KEY
-        except Exception:
-            pass
-
-    machine_group = get_object_or_404(MachineGroup, key=key)
-    machine.machine_group = machine_group
+    machine_group_key = data.get('key')
+    if key in (None,'None'):
+        machine_group_key = utils.get_django_setting('DEFAULT_MACHINE_GROUP_KEY')
+    machine.machine_group = get_object_or_404(MachineGroup, key=key)
 
     machine.last_checkin = django.utils.timezone.now()
+    machine.hostname = data.get('name', '<NO NAME>')
+    machine.console_user = data.get('username') if data.get('username') != '_mbsetupuser' else None
 
-    if bool(broken_client):
+    if utils.get_django_setting('DEPLOYED_ON_CHECKIN', True)
+        machine.deployed = True
+
+    if bool(data.get('broken_client', False)):
         machine.broken_client = True
         machine.save()
-        return HttpResponse("Broken Client report submmitted for %s"
-                            % data.get('serial'))
-    else:
-        # TODO: This defaults to false. Remove.
-        machine.broken_client = False
-
-    # TODO: Move to where it's needed.
-    historical_days = utils.get_setting('historical_retention')
-
-    # TODO: Compact all of this one-line attribute setting pieces.
-    machine.hostname = data.get('name', '<NO NAME>')
-
-    # TODO: This can be one or two lines.
-    if 'username' in data:
-        if data.get('username') != '_mbsetupuser':
-            machine.console_user = data.get('username')
+        return HttpResponse("Broken Client report submmitted for %s" % data.get('serial'))
 
     # TODO: Rename some things so `report` is less generic.
     for key in ('bz2report', 'base64report', 'base64bz2report'):
@@ -452,10 +413,9 @@ def checkin(request):
         except Exception:
             machine.machine_model_friendly = machine.machine_model
 
-    if deployed_on_checkin is True:
-        machine.deployed = True
-
     machine.save()
+
+    historical_days = utils.get_setting('historical_retention')
 
     # If Plugin_Results are in the report, handle them
     try:
@@ -474,6 +434,7 @@ def checkin(request):
     # We're only interested in what's currently pending...
     UpdateHistoryItem.objects.filter(update_history__machine=machine, status='pending').delete()
 
+    uuid = data.get('uuid')
     for key, meta in UPDATE_META.items():
         for update in report_data.get(key, []):
             update_name = update.get('name')

@@ -436,7 +436,6 @@ def checkin(request):
             if facts.exists():
                 facts._raw_delete(facts.db)
             try:
-                datelimit = django.utils.timezone.now() - timedelta(days=historical_days)
                 hist_to_delete = HistoricalFact.objects.filter(fact_recorded__lt=datelimit)
                 if hist_to_delete.exists():
                     hist_to_delete._raw_delete(hist_to_delete.db)
@@ -503,7 +502,6 @@ def checkin(request):
             # Delete old historical facts
 
             try:
-                datelimit = django.utils.timezone.now() - timedelta(days=historical_days)
                 HistoricalFact.objects.filter(fact_recorded__lt=datelimit).delete()
             except Exception:
                 pass

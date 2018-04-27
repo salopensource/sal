@@ -390,25 +390,20 @@ def machine_detail(request, **kwargs):
                 elif name not in report['RemovedItems']:
                     report['RemovedItems'].append(item['name'])
 
-    uptime_enabled = False
-    plugins = Plugin.objects.all()
-    for plugin in plugins:
-        if plugin.name == 'Uptime':
-            uptime_enabled = True
-
-    if uptime_enabled:
+    if Plugin.objects.filter(name='Uptime'):
         try:
             plugin_script_submission = PluginScriptSubmission.objects.get(
-                machine=machine, plugin__exact='Uptime')
+                machine=machine, plugin='Uptime')
             uptime_seconds = PluginScriptRow.objects.get(
                 submission=plugin_script_submission,
-                pluginscript_name__exact='UptimeSeconds').pluginscript_data
+                pluginscript_name='UptimeSeconds').pluginscript_data
         except Exception:
             uptime_seconds = '0'
-    else:
-        uptime_seconds = 0
 
-    uptime = utils.display_time(int(uptime_seconds))
+        uptime = utils.display_time(int(uptime_seconds))
+    else:
+        uptime = None
+
     if 'managed_uninstalls_list' in report:
         report['managed_uninstalls_list'].sort()
 
@@ -423,7 +418,6 @@ def machine_detail(request, **kwargs):
         'removal_results': removal_results,
         'machine': machine,
         'ip_address': ip_address,
-        'uptime_enabled': uptime_enabled,
         'uptime': uptime,
         'output': output}
     return render(request, 'server/machine_detail.html', context)

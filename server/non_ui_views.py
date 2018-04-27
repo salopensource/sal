@@ -296,7 +296,7 @@ def checkin(request):
 
     machine.last_checkin = django.utils.timezone.now()
     machine.hostname = data.get('name', '<NO NAME>')
-    # TODO: Pending Graham answering
+    machine.sal_version = data.get('sal_version')
     machine.console_user = data.get('username') if data.get('username') != '_mbsetupuser' else None
 
     if utils.get_django_setting('DEPLOYED_ON_CHECKIN', True):
@@ -307,53 +307,34 @@ def checkin(request):
         machine.save()
         return HttpResponse("Broken Client report submmitted for %s" % data.get('serial'))
 
-    # TODO: Rename some things so `report` is less generic.
-    for key in ('bz2report', 'base64report', 'base64bz2report'):
-        if key in data:
-            machine.update_report(data[key], report_format=key)
-            break
+    machine.update_report(data)
 
-    # TODO: Compact with other one liners.
-    if 'sal_version' in data:
-        machine.sal_version = data.get('sal_version')
-
-    # TODO: THis is where I stopped for the night y'all.
-
-    # extract machine data from the report
     report_data = machine.get_report()
-    if 'Puppet_Version' in report_data:
-        machine.puppet_version = report_data['Puppet_Version']
-    if 'ManifestName' in report_data:
-        manifest = report_data['ManifestName']
-        machine.manifest = manifest
-    if 'MachineInfo' in report_data:
-        machine.operating_system = report_data['MachineInfo'].get(
-            'os_vers', 'UNKNOWN')
-        # some machines are reporting 10.9, some 10.9.0 - make them the same
+    machine.puppet_version = report_data.get('Puppet_Version')
+    machine.manifest = report_data.get('ManifestName')
+    machine.munki_version = report_data.get('ManagedInstallVersion')
+
+    machine_info = report_data.get('MachineInfo', {})
+    if 'os_vers' in machine_info:
+        machine.operating_system = machine_info['os_vers']
+        # macOS major OS updates don't have a minor version, so add one.
         if len(machine.operating_system) <= 4:
             machine.operating_system = machine.operating_system + '.0'
-
-    # if gosal is the sender look for OSVers key
-    if 'OSVers' in report_data['MachineInfo']:
-        machine.operating_system = report_data['MachineInfo'].get(
-            'OSVers')
-
-    machine.hd_space = report_data.get('AvailableDiskSpace') or 0
-    machine.hd_total = int(data.get('disk_size')) or 0
-
-    if machine.hd_total == 0:
-        machine.hd_percent = 0
     else:
-        machine.hd_percent = int(
-            round(
-                ((float(
-                    machine.hd_total) -
-                    float(
-                    machine.hd_space)) /
-                    float(
-                    machine.hd_total)) *
-                100))
-    machine.munki_version = report_data.get('ManagedInstallVersion') or 0
+        # Handle gosal and missing os_vers cases.
+        machine.operating_system = machine_info.get('OSVers')
+
+    # TODO: These should be a number type.
+    machine.hd_space = report_data.get('AvailableDiskSpace', '0')
+    machine.hd_total = data.get('disk_size', '0')
+
+    space = float(machine.hd_space)
+    total = float(machine.hd_total)
+    if machine.hd_total == 0:
+        machine.hd_percent = '0'
+    else:
+        machine.hd_percent = str(int((total - space) / total * 100))
+
     hwinfo = {}
     # macOS System Profiler
     if 'SystemProfile' in report_data.get('MachineInfo', []):

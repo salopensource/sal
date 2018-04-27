@@ -392,7 +392,7 @@ def process_plugin_script(results, machine):
             else:
                 plugin_row.save()
 
-    if is_postgres():
+    if is_postgres() and rows_to_create:
         PluginScriptRow.objects.bulk_create(rows_to_create)
 
 

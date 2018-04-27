@@ -363,7 +363,6 @@ def checkin(request):
 
     if hwinfo:
         key_style = 'old' if 'MachineModel' in hwinfo else 'new'
-
         machine.machine_model = hwinfo.get(MACHINE_KEYS[key_style]['machine_model'])
         machine.cpu_type = hwinfo.get(MACHINE_KEYS[key_style]['cpu_type'])
         machine.cpu_speed = hwinfo.get(MACHINE_KEYS[key_style]['cpu_speed'])
@@ -379,16 +378,12 @@ def checkin(request):
     machine.save()
 
     historical_days = utils.get_setting('historical_retention')
+    datelimit = django.utils.timezone.now() - timedelta(days=historical_days)
 
-    # If Plugin_Results are in the report, handle them
-    try:
-        datelimit = django.utils.timezone.now() - timedelta(days=historical_days)
-        PluginScriptSubmission.objects.filter(recorded__lt=datelimit).delete()
-    except Exception:
-        pass
-
-    if 'Plugin_Results' in report_data:
-        utils.process_plugin_script(report_data.get('Plugin_Results'), machine)
+    # Process plugin scripts.
+    # Clear out too-old plugin script submissions first.
+    PluginScriptSubmission.objects.filter(recorded__lt=datelimit).delete()
+    utils.process_plugin_script(report_data.get('Plugin_Results', []), machine)
 
     # Process Munki updates and removals.
     now = django.utils.timezone.now()

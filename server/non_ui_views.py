@@ -52,6 +52,9 @@ MACHINE_KEYS = {
     'cpu_speed': {'old': 'CurrentProcessorSpeed', 'new': 'current_processor_speed'},
     'memory': {'old': 'PhysicalMemory', 'new': 'physical_memory'}}
 MEMORY_EXPONENTS = {'KB': 0, 'MB': 1, 'GB': 2, 'TB': 3}
+# Build a translation table for serial numbers, to remove garbage
+# VMware puts in.
+SERIAL_TRANSLATE = {ord(c): None for c in '+/'}
 
 
 @login_required
@@ -284,7 +287,7 @@ def checkin(request):
 
     # Take out some of the weird junk VMware puts in. Keep an eye out in case
     # Apple actually uses these:
-    serial = data.get('serial', '').upper().translate(None, '+/')
+    serial = data.get('serial', '').upper().translate(SERIAL_TRANSLATE)
     # Are we using Sal for some sort of inventory (like, I don't know, Puppet?)
     if utils.get_django_setting('ADD_NEW_MACHINES', True):
         if serial:
@@ -296,9 +299,9 @@ def checkin(request):
         machine = get_object_or_404(Machine, serial=serial)
 
     machine_group_key = data.get('key')
-    if key in (None,'None'):
+    if machine_group_key in (None,'None'):
         machine_group_key = utils.get_django_setting('DEFAULT_MACHINE_GROUP_KEY')
-    machine.machine_group = get_object_or_404(MachineGroup, key=key)
+    machine.machine_group = get_object_or_404(MachineGroup, key=machine_group_key)
 
     machine.last_checkin = django.utils.timezone.now()
     machine.hostname = data.get('name', '<NO NAME>')
@@ -363,10 +366,10 @@ def checkin(request):
 
     if hwinfo:
         key_style = 'old' if 'MachineModel' in hwinfo else 'new'
-        machine.machine_model = hwinfo.get(MACHINE_KEYS[key_style]['machine_model'])
-        machine.cpu_type = hwinfo.get(MACHINE_KEYS[key_style]['cpu_type'])
-        machine.cpu_speed = hwinfo.get(MACHINE_KEYS[key_style]['cpu_speed'])
-        machine.memory = hwinfo.get(MACHINE_KEYS[key_style]['memory'])
+        machine.machine_model = hwinfo.get(MACHINE_KEYS['machine_model'][key_style])
+        machine.cpu_type = hwinfo.get(MACHINE_KEYS['cpu_type'][key_style])
+        machine.cpu_speed = hwinfo.get(MACHINE_KEYS['cpu_speed'][key_style])
+        machine.memory = hwinfo.get(MACHINE_KEYS['memory'][key_style])
         machine.memory_kb = int(machine.memory[:-3]) ** MEMORY_EXPONENTS[machine.memory[-2:]]
 
     if not machine.machine_model_friendly:

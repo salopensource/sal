@@ -296,9 +296,10 @@ def checkin(request):
 
     machine.last_checkin = django.utils.timezone.now()
     machine.hostname = data.get('name', '<NO NAME>')
+    # TODO: Pending Graham answering
     machine.console_user = data.get('username') if data.get('username') != '_mbsetupuser' else None
 
-    if utils.get_django_setting('DEPLOYED_ON_CHECKIN', True)
+    if utils.get_django_setting('DEPLOYED_ON_CHECKIN', True):
         machine.deployed = True
 
     if bool(data.get('broken_client', False)):

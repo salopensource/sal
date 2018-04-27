@@ -25,6 +25,7 @@ OS_CHOICES = (
 REPORT_CHOICES = (
     ('base64', 'base64'),
     ('base64bz2', 'base64bz2'),
+    ('bz2', 'bz2'),
 )
 
 
@@ -209,23 +210,30 @@ class Machine(models.Model):
     def get_activity(self):
         return self.decode(self.activity)
 
-    def update_report(self, encoded_report, report_format='base64bz2'):
-        report = text_utils.decode_to_string(encoded_report, compression=report_format)
-        plist = plistlib.readPlistFromString(report)
-        # Save report.
-        try:
-            self.report = plistlib.writePlistToString(plist)
-            self.report_format = report_format
-        except Exception:
-            plist = None
-            self.report = ''
+    def update_report(self, machine_report):
+        report = None
+        report_format = None
+        # Find the report in the submitted data. It could be encoded
+        # and/or compressed with base64 and bz2.
+        for key in ('bz2report', 'base64report', 'base64bz2report'):
+            if key in machine_report:
+                encoded_report = machine_report[key]
+                report = text_utils.decode_to_string(encoded_report, compression=key)
+                # TODO: Pending removal
+                report_format = key.replace('report', '')
+                break
 
-        if plist is None:
+        self.report = report
+        self.report_format = report_format
+
+        if not report:
             self.activity = None
             self.errors = 0
             self.warnings = 0
             self.console_user = "<None>"
             return
+
+        plist = plistlib.readPlistFromString(report)
 
         # Check activity.
         activity = dict()
@@ -242,15 +250,9 @@ class Machine(models.Model):
             self.activity = None
 
         # Check errors and warnings.
-        if "Errors" in plist:
-            self.errors = len(plist["Errors"])
-        else:
-            self.errors = 0
+        self.errors = len(plist.get("Errors", 0))
+        self.warnings = len(plist.get("Warnings", 0))
 
-        if "Warnings" in plist:
-            self.warnings = len(plist["Warnings"])
-        else:
-            self.warnings = 0
 
         # Check console user.
         self.console_user = "unknown"

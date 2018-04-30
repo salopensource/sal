@@ -153,54 +153,6 @@ class Machine(models.Model):
     def get_fields(self):
         return [(field.name, field.value_to_string(self)) for field in Machine._meta.fields]
 
-    # TODO: This is no longer needed.
-    def encode(self, plist):
-        string = plistlib.writePlistToString(plist)
-        bz2data = bz2.compress(string)
-        b64data = base64.b64encode(bz2data)
-        return b64data
-
-    # TODO: This is no longer needed.
-    def decode(self, data):
-        # this has some sucky workarounds for odd handling
-        # of UTF-8 data in sqlite3
-        try:
-            plist = plistlib.readPlistFromString(data)
-            return plist
-        except Exception:
-            try:
-                plist = plistlib.readPlistFromString(data.encode('UTF-8'))
-                return plist
-            except Exception:
-                try:
-                    # if self.report_format == 'base64bz2':
-                    #     return self.b64bz_decode(data)
-                    # elif self.report_format == 'base64':
-                    #     return self.b64_decode(data)
-                    return dict()
-
-                except Exception:
-                    return dict()
-
-    # TODO: This is no longer needed.
-    def b64bz_decode(self, data):
-        try:
-            bz2data = base64.b64decode(data)
-            string = bz2.decompress(bz2data)
-            plist = plistlib.readPlistFromString(string)
-            return plist
-        except Exception:
-            return {}
-
-    # TODO: This is no longer needed.
-    def b64_decode(self, data):
-        try:
-            string = base64.b64decode(data)
-            plist = plistlib.readPlistFromString(string)
-            return plist
-        except Exception:
-            return {}
-
     def get_report(self):
         return plistlib.readPlistFromString(self.report)
 

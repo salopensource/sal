@@ -142,7 +142,7 @@ class Machine(models.Model):
         max_length=256, choices=REPORT_CHOICES, default="base64bz2", editable=False)
     errors = models.IntegerField(default=0)
     warnings = models.IntegerField(default=0)
-    activity = models.TextField(editable=False, null=True, blank=True)
+    activity = models.BooleanField(editable=True, default=False)
     puppet_version = models.CharField(db_index=True, null=True, blank=True, max_length=256)
     sal_version = models.CharField(db_index=True, null=True, blank=True, max_length=255)
     last_puppet_run = models.DateTimeField(db_index=True, blank=True, null=True)

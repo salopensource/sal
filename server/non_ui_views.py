@@ -41,10 +41,14 @@ IS_POSTGRES = utils.is_postgres()
 IGNORED_CSV_FIELDS = ('id', 'machine_group', 'report', 'activity', 'os_family')
 HISTORICAL_FACTS = utils.get_django_setting('HISTORICAL_FACTS', [])
 IGNORE_PREFIXES = utils.get_django_setting('IGNORE_FACTS', [])
+# TODO: This is temporary, and will be corrected: ItemsToRemove were not originally added here.
 UPDATE_META = {
     'ItemsToInstall':
         {'update_type': 'third_party', 'version_key': 'version_to_install',
-            'status': 'pending'},
+         'status': 'pending'},
+    'ItemsToRemove':
+        {'update_type': 'third_party', 'version_key': 'installed_version',
+         'status': 'pending'},
     'AppleUpdates':
         {'update_type': 'apple', 'version_key': 'version_to_install', 'status': 'pending'},
     'InstallResults': {'status': 'install'},
@@ -337,36 +341,17 @@ def checkin(request):
     machine.report_format = report_format
 
     if not report:
-        # TODO: Pending proposed changes below
-        machine.activity = None
-        machine.errors = 0
-        machine.warnings = 0
+        machine.activity = False
+        machine.errors = machine.warnings = 0
         return
 
     report_data = plistlib.readPlistFromString(report)
 
-    # Check activity.
-    # machine.activity = bool()
-    # TODO: Proposed:
-    # sections = (
-    #     "ItemsToInstall", "InstallResults", "ItemsToRemove", "RemovalResults", "AppleUpdates"):
-    # activity = any(len(report_data.get(s, []) for s in sections)
-
-    # Existing:
-    # activity = {}
-    # sections = (
-    #     "ItemsToInstall", "InstallResults", "ItemsToRemove", "RemovalResults", "AppleUpdates"):
-    # for section in sections:
-    #     if (section in report_data) and len(report_data[section]):
-    #         activity[section] = report_data[section]
-    # if activity:
-    #     self.activity = plistlib.writePlistToString(activity)
-    # else:
-    #     self.activity = None
+    machine.activity = any(report_data.get(s) for s in UPDATE_META.keys())
 
     # Check errors and warnings.
-    machine.errors = len(report_data.get("Errors", 0))
-    machine.warnings = len(report_data.get("Warnings", 0))
+    machine.errors = len(report_data.get("Errors", []))
+    machine.warnings = len(report_data.get("Warnings", []))
 
     machine.puppet_version = report_data.get('Puppet_Version')
     machine.manifest = report_data.get('ManifestName')

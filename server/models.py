@@ -217,13 +217,6 @@ class Machine(models.Model):
     class Meta:
         ordering = ['hostname']
 
-    def save(self, *args, **kwargs):
-        self.serial = self.serial.replace('/', '')
-        self.serial = self.serial.replace('+', '')
-        if not self.hostname:
-            self.hostname = self.serial
-        super(Machine, self).save()
-
 
 GROUP_NAMES = {
     'all': None,

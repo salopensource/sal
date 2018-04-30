@@ -15,7 +15,7 @@ ALL_MACHINE_COLUMNS = {
     'broken_client', 'hd_total', 'os_family', 'report', 'deployed', 'operating_system',
     'report_format', 'machine_group', 'sal_version', 'manifest', 'hd_percent', 'cpu_type',
     'activity'}
-REMOVED_MACHINE_COLUMNS = {'activity', 'report'}
+REMOVED_MACHINE_COLUMNS = {'report'}
 
 
 class MachinesTest(SalAPITestCase):
@@ -91,15 +91,13 @@ class MachinesTest(SalAPITestCase):
         """Test the field inclusion/exclusion params for detail."""
         response = self.authed_get(
             'machine-detail', args=('C0DEADBEEF',),
-            params={'fields': 'activity', 'fields!': 'hostname'})
-        self.assertIn('activity', response.data)
+            params={'fields!': 'hostname'})
         self.assertNotIn('hostname', response.data)
 
     def test_list_include_fields(self):
         """Test the field inclusion/exclusion params for list."""
         response = self.authed_get(
             'machine-list',
-            params={'fields': 'activity', 'fields!': 'hostname'})
+            params={'fields!': 'hostname'})
         record = response.data['results'][0]
-        self.assertIn('activity', record)
         self.assertNotIn('hostname', record)

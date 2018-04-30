@@ -38,7 +38,7 @@ if settings.DEBUG:
 
 # The database probably isn't going to change while this is loaded.
 IS_POSTGRES = utils.is_postgres()
-IGNORED_CSV_FIELDS = ('id', 'machine_group', 'report', 'activity', 'os_family')
+IGNORED_CSV_FIELDS = ('id', 'machine_group', 'report', 'os_family')
 HISTORICAL_FACTS = utils.get_django_setting('HISTORICAL_FACTS', [])
 IGNORE_PREFIXES = utils.get_django_setting('IGNORE_FACTS', [])
 # TODO: This is temporary, and will be corrected: ItemsToRemove were not originally added here.

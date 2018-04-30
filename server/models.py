@@ -206,10 +206,6 @@ class Machine(models.Model):
     def get_report(self):
         return plistlib.readPlistFromString(self.report)
 
-    # TODO: This is no longer needed.
-    def get_activity(self):
-        return self.decode(self.activity)
-
     def __unicode__(self):
         if self.hostname:
             return self.hostname

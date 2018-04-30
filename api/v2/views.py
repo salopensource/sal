@@ -82,11 +82,10 @@ class MachineViewSet(QueryFieldsMixin, viewsets.ModelViewSet):
         - Include Example: `/api/machines/?fields=console_user,hostname`
         - Exclude Example: `/api/machines/?fields!=report`
 
-    The abbreviated form excludes the `report`,
-    and `activity` fields.
+    The abbreviated form excludes the `report` field.
 
     You may also use the `search` querystring to perform text searches
-    across the `activity`, `console_user`, `cpu_speed`, `cpu_type`,
+    across the `console_user`, `cpu_speed`, `cpu_type`,
     `hostname`, `machine_model`, `machine_model_friendly`, `manifest`,
     and `memory` fields.
 
@@ -104,7 +103,7 @@ class MachineViewSet(QueryFieldsMixin, viewsets.ModelViewSet):
         - Include Example: `/api/machines/C0DEADBEEF/?fields=console_user,hostname`
         - Exclude Example: `/api/machines/C0DEADBEEF/?fields!=report`
 
-    The abbreviated form excludes the `activity` and `report` fields.
+    The abbreviated form excludes the `report` field.
     """
     queryset = Machine.objects.all()
     serializer_class = MachineSerializer

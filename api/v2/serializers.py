@@ -46,8 +46,6 @@ class PluginScriptSubmissionSerializer(serializers.ModelSerializer):
     class Meta:
         model = PluginScriptSubmission
         fields = '__all__'
-
-
 class PluginScriptRowSerializer(serializers.ModelSerializer):
 
     submission = PluginScriptSubmissionSerializer()
@@ -106,7 +104,7 @@ class MachineSerializer(QueryFieldsMixin, serializers.ModelSerializer):
         'machine_model_friendly', 'memory', 'memory_kb', 'warnings',
         'first_checkin', 'last_checkin', 'hd_total', 'os_family', 'deployed',
         'operating_system', 'machine_group', 'sal_version', 'manifest',
-        'hd_percent', 'cpu_type', 'broken_client', 'report_format')
+        'hd_percent', 'cpu_type', 'broken_client', 'report_format', 'activity')
 
     class Meta:
         model = Machine

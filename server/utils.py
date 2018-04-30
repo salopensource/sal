@@ -639,6 +639,8 @@ def get_plugin_placeholder_markup(plugins, group_type='all', group_id=None):
     for enabled_plugin in display_plugins:
         name = enabled_plugin.name
         yapsy_plugin = manager.get_plugin_by_name(name)
+        if not yapsy_plugin:
+            continue
         # Skip this plugin if the group's members OS families aren't supported
         # ...but only if this group has any members (group_oses is not empty
         plugin_os_families = set(yapsy_plugin.get_supported_os_families())

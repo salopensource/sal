@@ -261,6 +261,8 @@ def preflight_v2(request):
     enabled_detail_plugins = MachineDetailPlugin.objects.all()
     for enabled_plugin in itertools.chain(enabled_reports, enabled_plugins, enabled_detail_plugins):
         plugin = manager.get_plugin_by_name(enabled_plugin.name)
+        if not plugin:
+            continue
         if os_family is None or os_family in plugin.get_supported_os_families():
             scripts = utils.get_plugin_scripts(plugin, hash_only=True)
             if scripts:

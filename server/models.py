@@ -137,9 +137,6 @@ class Machine(models.Model):
     last_checkin = models.DateTimeField(db_index=True, blank=True, null=True)
     first_checkin = models.DateTimeField(db_index=True, blank=True, null=True, auto_now_add=True)
     report = models.TextField(editable=True, null=True)
-    # TODO: Should be able to do away with this.
-    report_format = models.CharField(
-        max_length=256, choices=REPORT_CHOICES, default="base64bz2", editable=False)
     errors = models.IntegerField(default=0)
     warnings = models.IntegerField(default=0)
     activity = models.BooleanField(editable=True, default=False)
@@ -176,10 +173,11 @@ class Machine(models.Model):
                 return plist
             except Exception:
                 try:
-                    if self.report_format == 'base64bz2':
-                        return self.b64bz_decode(data)
-                    elif self.report_format == 'base64':
-                        return self.b64_decode(data)
+                    # if self.report_format == 'base64bz2':
+                    #     return self.b64bz_decode(data)
+                    # elif self.report_format == 'base64':
+                    #     return self.b64_decode(data)
+                    return dict()
 
                 except Exception:
                     return dict()

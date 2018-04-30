@@ -59,7 +59,6 @@ def quick_search(machines, query_string):
         'warnings',
         'puppet_errors',
         'deployed',
-        'report_format',
         'broken_client',
         'hd_percent',
         'memory',

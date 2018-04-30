@@ -13,7 +13,7 @@ ALL_MACHINE_COLUMNS = {
     'last_puppet_run', 'errors', 'puppet_version', 'hostname', 'puppet_errors',
     'machine_model_friendly', 'memory', 'memory_kb', 'warnings', 'first_checkin', 'last_checkin',
     'broken_client', 'hd_total', 'os_family', 'report', 'deployed', 'operating_system',
-    'report_format', 'machine_group', 'sal_version', 'manifest', 'hd_percent', 'cpu_type',
+    'machine_group', 'sal_version', 'manifest', 'hd_percent', 'cpu_type',
     'activity'}
 REMOVED_MACHINE_COLUMNS = {'report'}
 

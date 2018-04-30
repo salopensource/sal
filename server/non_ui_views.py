@@ -326,19 +326,15 @@ def checkin(request):
         return HttpResponse("Broken Client report submmitted for %s" % data.get('serial'))
 
     report = None
-    report_format = None
     # Find the report in the submitted data. It could be encoded
     # and/or compressed with base64 and bz2.
     for key in ('bz2report', 'base64report', 'base64bz2report'):
         if key in data:
             encoded_report = data[key]
             report = text_utils.decode_to_string(encoded_report, compression=key)
-            # TODO: Pending removal
-            report_format = key.replace('report', '')
             break
 
     machine.report = report
-    machine.report_format = report_format
 
     if not report:
         machine.activity = False

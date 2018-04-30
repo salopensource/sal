@@ -135,10 +135,9 @@ class MachineAdmin(admin.ModelAdmin):
         ('last_checkin', 'first_checkin'),
         ('puppet_version', 'last_puppet_run', 'puppet_errors'),
         ('sal_version', 'deployed', 'broken_client'),
-        'report', 'report_format'
+        'report'
     )
-    readonly_fields = (business_unit, 'first_checkin', 'last_checkin', 'last_puppet_run',
-                       'report_format')
+    readonly_fields = (business_unit, 'first_checkin', 'last_checkin', 'last_puppet_run')
     search_fields = ('hostname', 'console_user')
 
 

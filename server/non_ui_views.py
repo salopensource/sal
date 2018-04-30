@@ -1,6 +1,7 @@
 import hashlib
 import itertools
 import json
+import plistlib
 import re
 from datetime import datetime, timedelta
 
@@ -318,9 +319,53 @@ def checkin(request):
         machine.save()
         return HttpResponse("Broken Client report submmitted for %s" % data.get('serial'))
 
-    machine.update_report(data)
+    report = None
+    report_format = None
+    # Find the report in the submitted data. It could be encoded
+    # and/or compressed with base64 and bz2.
+    for key in ('bz2report', 'base64report', 'base64bz2report'):
+        if key in data:
+            encoded_report = data[key]
+            report = text_utils.decode_to_string(encoded_report, compression=key)
+            # TODO: Pending removal
+            report_format = key.replace('report', '')
+            break
 
-    report_data = machine.get_report()
+    machine.report = report
+    machine.report_format = report_format
+
+    if not report:
+        # TODO: Pending proposed changes below
+        machine.activity = None
+        machine.errors = 0
+        machine.warnings = 0
+        return
+
+    report_data = plistlib.readPlistFromString(report)
+
+    # Check activity.
+    # machine.activity = bool()
+    # TODO: Proposed:
+    # sections = (
+    #     "ItemsToInstall", "InstallResults", "ItemsToRemove", "RemovalResults", "AppleUpdates"):
+    # activity = any(len(report_data.get(s, []) for s in sections)
+
+    # Existing:
+    # activity = {}
+    # sections = (
+    #     "ItemsToInstall", "InstallResults", "ItemsToRemove", "RemovalResults", "AppleUpdates"):
+    # for section in sections:
+    #     if (section in report_data) and len(report_data[section]):
+    #         activity[section] = report_data[section]
+    # if activity:
+    #     self.activity = plistlib.writePlistToString(activity)
+    # else:
+    #     self.activity = None
+
+    # Check errors and warnings.
+    machine.errors = len(report_data.get("Errors", 0))
+    machine.warnings = len(report_data.get("Warnings", 0))
+
     machine.puppet_version = report_data.get('Puppet_Version')
     machine.manifest = report_data.get('ManifestName')
     machine.munki_version = report_data.get('ManagedInstallVersion')

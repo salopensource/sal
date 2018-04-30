@@ -210,48 +210,6 @@ class Machine(models.Model):
     def get_activity(self):
         return self.decode(self.activity)
 
-    def update_report(self, machine_report):
-        report = None
-        report_format = None
-        # Find the report in the submitted data. It could be encoded
-        # and/or compressed with base64 and bz2.
-        for key in ('bz2report', 'base64report', 'base64bz2report'):
-            if key in machine_report:
-                encoded_report = machine_report[key]
-                report = text_utils.decode_to_string(encoded_report, compression=key)
-                # TODO: Pending removal
-                report_format = key.replace('report', '')
-                break
-
-        self.report = report
-        self.report_format = report_format
-
-        if not report:
-            self.activity = None
-            self.errors = 0
-            self.warnings = 0
-            return
-
-        plist = plistlib.readPlistFromString(report)
-
-        # Check activity.
-        activity = dict()
-        for section in ("ItemsToInstall",
-                        "InstallResults",
-                        "ItemsToRemove",
-                        "RemovalResults",
-                        "AppleUpdates"):
-            if (section in plist) and len(plist[section]):
-                activity[section] = plist[section]
-        if activity:
-            self.activity = plistlib.writePlistToString(activity)
-        else:
-            self.activity = None
-
-        # Check errors and warnings.
-        self.errors = len(plist.get("Errors", 0))
-        self.warnings = len(plist.get("Warnings", 0))
-
     def __unicode__(self):
         if self.hostname:
             return self.hostname

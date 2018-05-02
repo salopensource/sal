@@ -413,8 +413,7 @@ def checkin(request):
     PluginScriptSubmission.objects.filter(recorded__lt=datelimit).delete()
     utils.process_plugin_script(report_data.get('Plugin_Results', []), machine)
 
-    uuid = data.get('uuid')
-    process_managed_items(machine, report_data, uuid, now)
+    process_managed_items(machine, report_data, data.get('uuid'), now, datelimit)
     process_facts(machine, report_data, datelimit)
     process_conditions(machine, report_data)
 
@@ -427,7 +426,7 @@ def checkin(request):
     return HttpResponse("Sal report submmitted for %s" % data.get('name'))
 
 
-def process_managed_items(machine, report_data, uuid, now):
+def process_managed_items(machine, report_data, uuid, now, datelimit):
     """Process Munki updates and removals."""
     items_to_create = defaultdict(list)
 
@@ -441,6 +440,7 @@ def process_managed_items(machine, report_data, uuid, now):
     # Process ManagedInstalls for pending and already installed
     # updates, AppleUpdates for pending, and
     # [Install|Removal]Results for history items.
+    managed_item_histories = set()
     for report_key, args in UPDATE_META.items():
         for item in report_data.get(report_key, []):
             kwargs = {'update': item['name'], 'machine': machine}
@@ -475,6 +475,7 @@ def process_managed_items(machine, report_data, uuid, now):
             update_history, _ = UpdateHistory.objects.get_or_create(
                 name=kwargs['update'], version=kwargs['update_version'], machine=machine,
                 update_type=update_type)
+            managed_item_histories.add(update_history.pk)
             # Only create a history item if there are none or
             # if the last one is not the same status.
             items_set = update_history.updatehistoryitem_set
@@ -488,6 +489,19 @@ def process_managed_items(machine, report_data, uuid, now):
         else:
             for item in updates_to_save:
                 item.save()
+
+    # Clean up UpdateHistory and items which are over our retention
+    # limit and are no longer managed, or which have no history items.
+    histories_to_delete = UpdateHistory.objects.exclude(pk__in=managed_item_histories)
+    for history in histories_to_delete:
+        try:
+            latest = history.updatehistoryitem_set.latest('recorded').recorded
+        except UpdateHistoryItem.DoesNotExist:
+            history.delete()
+            continue
+
+        if latest < datelimit:
+            history.delete()
 
 
 def process_facts(machine, report_data, datelimit):

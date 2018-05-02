@@ -442,6 +442,7 @@ def process_managed_items(machine, report_data, uuid, now, datelimit):
     # [Install|Removal]Results for history items.
     managed_item_histories = set()
     for report_key, args in UPDATE_META.items():
+        seen_updates = set()
         for item in report_data.get(report_key, []):
             kwargs = {'update': item['name'], 'machine': machine}
             kwargs['display_name'] = item.get('display_name', item['name'])
@@ -470,7 +471,20 @@ def process_managed_items(machine, report_data, uuid, now, datelimit):
             elif not status:
                 status = 'install' if installed else 'pending'
 
-            items_to_create[model].append(model(**kwargs))
+            # Due to a quirk in how Munki 3 processes updates with
+            # dependencies, it's possible to have multiple entries in the
+            # ManagedInstalls list that share an update_name and
+            # installed_version. This causes an IntegrityError in Django
+            # since (machine_id, update, update_version) must be
+            # unique.Until/(unless!) this is addressed in Munki, we need
+            # to be careful to not add multiple items with the same name
+            # and version.  We'll store each (update_name, version) combo
+            # as we see them.
+            # TODO: Process on the client side to avoid this.
+            item_key = (kwargs['update'], kwargs['update_version'])
+            if item_key not in seen_updates:
+                items_to_create[model].append(model(**kwargs))
+                seen_updates.add(item_key)
 
             update_history, _ = UpdateHistory.objects.get_or_create(
                 name=kwargs['update'], version=kwargs['update_version'], machine=machine,

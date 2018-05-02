@@ -46,6 +46,8 @@ class PluginScriptSubmissionSerializer(serializers.ModelSerializer):
     class Meta:
         model = PluginScriptSubmission
         fields = '__all__'
+
+
 class PluginScriptRowSerializer(serializers.ModelSerializer):
 
     submission = PluginScriptSubmissionSerializer()

@@ -296,7 +296,7 @@ def checkin(request):
         machine = get_object_or_404(Machine, serial=serial)
 
     machine_group_key = data.get('key')
-    if machine_group_key in (None,'None'):
+    if machine_group_key in (None, 'None'):
         machine_group_key = utils.get_django_setting('DEFAULT_MACHINE_GROUP_KEY')
     machine.machine_group = get_object_or_404(MachineGroup, key=machine_group_key)
 
@@ -407,8 +407,9 @@ def checkin(request):
     PluginScriptSubmission.objects.filter(recorded__lt=datelimit).delete()
     utils.process_plugin_script(report_data.get('Plugin_Results', []), machine)
 
-    process_managed_items(machine, report_data, data.get('uuid'), now)
-    process_installer_history(machine, report_data, now)
+    uuid = data.get('uuid')
+    process_managed_items(machine, report_data, uuid, now)
+    process_installer_history(machine, report_data, uuid)
     process_facts(machine, report_data, datelimit)
     process_conditions(machine, report_data)
 
@@ -423,8 +424,6 @@ def checkin(request):
 
 def process_managed_items(machine, report_data, uuid, now):
     """Process Munki updates and removals."""
-    items_to_create = []
-
     pending_to_delete = machine.pending_updates.all()
     if pending_to_delete.exists():
         pending_to_delete._raw_delete(pending_to_delete.db)
@@ -512,7 +511,8 @@ UPDATE_META = {
     'InstallResults': {'status': 'install'},
     'RemovalResults': {'status': 'removal'}}
 
-def process_installer_history(machine, report_data, now):
+
+def process_installer_history(machine, report_data, uuid):
     histories_to_create = []
     for report_key, args in UPDATE_META.items():
         for item in report_data.get(report_key, []):
@@ -534,6 +534,7 @@ def process_installer_history(machine, report_data, now):
     else:
         for item in histories_to_create:
             item.save()
+
 
 def process_facts(machine, report_data, datelimit):
     # TODO: May need to come through and do get_or_create on machine, name, updating data, and

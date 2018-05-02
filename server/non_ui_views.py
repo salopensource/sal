@@ -41,18 +41,6 @@ IS_POSTGRES = utils.is_postgres()
 IGNORED_CSV_FIELDS = ('id', 'machine_group', 'report', 'os_family')
 HISTORICAL_FACTS = utils.get_django_setting('HISTORICAL_FACTS', [])
 IGNORE_PREFIXES = utils.get_django_setting('IGNORE_FACTS', [])
-# TODO: This is temporary, and will be corrected: ItemsToRemove were not originally added here.
-UPDATE_META = {
-    'ItemsToInstall':
-        {'update_type': 'third_party', 'version_key': 'version_to_install',
-         'status': 'pending'},
-    'ItemsToRemove':
-        {'update_type': 'third_party', 'version_key': 'installed_version',
-         'status': 'pending'},
-    'AppleUpdates':
-        {'update_type': 'apple', 'version_key': 'version_to_install', 'status': 'pending'},
-    'InstallResults': {'status': 'install'},
-    'RemovalResults': {'status': 'removal'}}
 MACHINE_KEYS = {
     'machine_model': {'old': 'MachineModel', 'new': 'machine_model'},
     'cpu_type': {'old': 'CPUType', 'new': 'cpu_type'},
@@ -411,63 +399,143 @@ def checkin(request):
     machine.save()
 
     historical_days = utils.get_setting('historical_retention')
-    datelimit = django.utils.timezone.now() - timedelta(days=historical_days)
+    now = django.utils.timezone.now()
+    datelimit = now - timedelta(days=historical_days)
 
     # Process plugin scripts.
     # Clear out too-old plugin script submissions first.
     PluginScriptSubmission.objects.filter(recorded__lt=datelimit).delete()
     utils.process_plugin_script(report_data.get('Plugin_Results', []), machine)
 
-    # Process Munki updates and removals.
-    now = django.utils.timezone.now()
+    process_managed_items(machine, report_data, data.get('uuid'), now)
+    process_installer_history(machine, report_data, now)
+    process_facts(machine, report_data, datelimit)
+    process_conditions(machine, report_data)
+
+    utils.run_plugin_processing(machine, report_data)
+
+    if utils.get_setting('send_data') in (None, True):
+        # If setting is None, it hasn't been configured yet; assume True
+        utils.send_report()
+
+    return HttpResponse("Sal report submmitted for %s" % data.get('name'))
+
+
+def process_managed_items(machine, report_data, uuid, now):
+    """Process Munki updates and removals."""
     items_to_create = []
 
-    # We're only interested in what's currently pending, use raw delete
-    # save some cycles.
-    histories_to_delete = UpdateHistoryItem.objects.filter(
-        update_history__machine=machine, status='pending')
-    if histories_to_delete.exists():
-        histories_to_delete._raw_delete(histories_to_delete.db)
+    pending_to_delete = machine.pending_updates.all()
+    if pending_to_delete.exists():
+        pending_to_delete._raw_delete(pending_to_delete.db)
+    pending_updates_to_save = []
+    for update in report_data.get('ItemsToInstall', []):
+        name = update['name']
+        display_name = update.get('display_name', update['name'])
+        version = update['version_to_install']
 
-    uuid = data.get('uuid')
-    for key, meta in UPDATE_META.items():
-        for update in report_data.get(key, []):
-            update_name = update.get('name')
-            display_name = update.get('display_name', update_name)
-            version = update.get(meta.get('version_key'), 'version').strip()
-            if 'update_type' in meta:
-                update_type = meta.get('update_type')
-            else:
-                update_type = 'apple' if update.get('apple_sus') else 'third_party'
+        pending_updates_to_save.append(
+            PendingUpdate(
+                machine=machine, display_name=display_name, update_version=version, update=name))
 
-            if 'status' in update and update['status'] != 0:
-                status = 'error'
-            else:
-                status = meta['status']
-
-            update_history, _ = UpdateHistory.objects.get_or_create(
-                name=update_name, version=version, machine=machine, update_type=update_type)
-            update_history_item = UpdateHistoryItem(
-                update_history=update_history, status=status, recorded=now, uuid=uuid)
-
-            items_to_create.append(update_history_item)
+        update_history, _ = UpdateHistory.objects.get_or_create(
+            name=name, version=version, machine=machine, update_type='third_party')
+        items_set = update_history.updatehistoryitem_set
+        if items_set.exists() and items_set.status != 'pending':
+                UpdateHistoryItem.objects.create(
+                    update_history=update_history, status='pending', recorded=now, uuid=uuid)
 
     if IS_POSTGRES:
-        UpdateHistoryItem.objects.bulk_create(items_to_create)
+        PendingUpdate.objects.bulk_create(pending_updates_to_save)
     else:
-        for update_history_item in items_to_create:
-            update_history_item.save()
+        for pending in pending_updates_to_save:
+            pending.save()
 
-    # Remove any UpdateHistories that have no UpdateHistoryItems
-    (UpdateHistory.objects
-     .filter(machine=machine)
-     .annotate(items=Count('updatehistoryitem'))
-     .filter(items=0)
-     .delete())
+    pending_to_delete = machine.pending_apple_updates.all()
+    if pending_to_delete.exists():
+        pending_to_delete._raw_delete(pending_to_delete.db)
+    pending_updates_to_save = []
+    for update in report_data.get('AppleUpdates', []):
+        name = update['name']
+        display_name = update.get('display_name', update['name'])
+        version = update['version_to_install']
 
-    facts_to_be_created = []
-    historical_facts_to_be_created = []
+        pending_updates_to_save.append(
+            PendingAppleUpdate(
+                machine=machine, display_name=display_name, update_version=version, update=name))
 
+        update_history, _ = UpdateHistory.objects.get_or_create(
+            name=name, version=version, machine=machine, update_type='apple')
+        items_set = update_history.updatehistoryitem_set
+        if items_set.exists() and items_set.status != 'pending':
+                UpdateHistoryItem.objects.create(
+                    update_history=update_history, status='pending', recorded=now, uuid=uuid)
+
+    if IS_POSTGRES:
+        PendingAppleUpdate.objects.bulk_create(pending_updates_to_save)
+    else:
+        for pending in pending_updates_to_save:
+            pending.save()
+
+    pending_to_delete = machine.installed_updates.all()
+    if pending_to_delete.exists():
+        pending_to_delete._raw_delete(pending_to_delete.db)
+    updates_to_save = []
+    for update in report_data.get('ManagedInstalls', []):
+        name = update['name']
+        display_name = update.get('display_name', update['name'])
+        installed = update.get('installed')
+        version_key = 'installed_version' if installed else 'version_to_install'
+        version = update.get(version_key, '')
+        updates_to_save.append(
+            InstalledUpdate(
+                machine=machine, display_name=display_name, update_version=version, update=name,
+                installed=installed))
+
+    if IS_POSTGRES:
+        InstalledUpdate.objects.bulk_create(updates_to_save)
+    else:
+        for update in updates_to_save:
+            update.save()
+
+
+# TODO: This is temporary, and will be corrected: ItemsToRemove were not originally added here.
+UPDATE_META = {
+    # 'ItemsToInstall':
+    #     {'update_type': 'third_party', 'version_key': 'version_to_install',
+    #      'status': 'pending'},
+    # 'ItemsToRemove':
+    #     {'update_type': 'third_party', 'version_key': 'installed_version',
+    #      'status': 'pending'},
+    # 'AppleUpdates':
+    #     {'update_type': 'apple', 'version_key': 'version_to_install', 'status': 'pending'},
+    'InstallResults': {'status': 'install'},
+    'RemovalResults': {'status': 'removal'}}
+
+def process_installer_history(machine, report_data, now):
+    histories_to_create = []
+    for report_key, args in UPDATE_META.items():
+        for item in report_data.get(report_key, []):
+            name = item['name']
+            version = item['version_to_install']
+            update_type = 'apple' if item['applesus'] else 'third_party'
+            status = args['status'] if item['status'] == 0 else 'error'
+            install_time = dateutil.parser.parse(item['time'])
+
+            update_history, _ = UpdateHistory.objects.get_or_create(
+                name=name, version=version, machine=machine, update_type=update_type)
+            histories_to_create.append(
+                UpdateHistoryItem(
+                    update_history=update_history, status=status, recorded=install_time,
+                    uuid=uuid))
+
+    if IS_POSTGRES:
+        UpdateHistoryItem.objects.bulk_create(histories_to_create)
+    else:
+        for item in histories_to_create:
+            item.save()
+
+def process_facts(machine, report_data, datelimit):
     # TODO: May need to come through and do get_or_create on machine, name, updating data, and
     # deleting now missing facts and conditions for non-postgres.
     # if Facter data is submitted, we need to first remove any existing facts for this machine
@@ -504,6 +572,8 @@ def checkin(request):
             for fact in historical_facts_to_be_created:
                 fact.save()
 
+
+def process_conditions(machine, report_data):
     conditions_to_delete = machine.conditions.all()
     if conditions_to_delete.exists():
         conditions_to_delete._raw_delete(conditions_to_delete.db)
@@ -524,14 +594,6 @@ def checkin(request):
         else:
             for condition in conditions_to_be_created:
                 condition.save()
-
-    utils.run_plugin_processing(machine, report_data)
-
-    if utils.get_setting('send_data') in (None, True):
-        # If setting is None, it hasn't been configured yet; assume True
-        utils.send_report()
-
-    return HttpResponse("Sal report submmitted for %s" % data.get('name'))
 
 
 # TODO: Remove after sal-scripts have reasonably been updated to not hit

@@ -1,33 +1,28 @@
-import collections
 from distutils.version import LooseVersion
-from operator import itemgetter
+
+from django.db.models import Count
+from django.shortcuts import get_object_or_404
 
 import sal.plugin
-from server.models import UpdateHistoryItem
+from server.models import PendingAppleUpdate
 
 
-class Pending3rdPartyUpdates(sal.plugin.Widget):
+class PendingAppleUpdates(sal.plugin.Widget):
 
-    description = 'List of pending Apple updates'
+    description = 'List of pending third party updates'
     template = 'plugins/pendingupdates.html'
 
     def get_context(self, queryset, **kwargs):
         context = self.super_get_context(queryset, **kwargs)
-        update_items = (
-            UpdateHistoryItem.objects
-            .filter(
-                update_history__machine__in=queryset, status='pending',
-                update_history__update_type='apple')
-            .values_list('update_history__version', 'update_history__name'))
-        updates = collections.Counter(update_items)
-
-        # TODO: Python 3.5+ version! Get hype!
-        # counted = (*update, count=count) for update, count in updates.items())
-        counted = (update + (count, ) for update, count in updates.items())
+        updates = (
+            PendingAppleUpdate.objects
+            .filter(machine__in=queryset)
+            .values('update', 'update_version', 'display_name')
+            .annotate(count=Count('update')))
 
         # Sort first by version number, then name.
-        updates = sorted(counted, key=lambda x: LooseVersion(x[0]), reverse=True)
-        context['data'] = sorted(updates, key=itemgetter(1))
+        updates = sorted(updates, key=lambda x: LooseVersion(x['update_version']), reverse=True)
+        context['data'] = sorted(updates, key=lambda x: x['display_name'])
         return context
 
     def filter(self, machines, data):
@@ -36,14 +31,18 @@ class Pending3rdPartyUpdates(sal.plugin.Widget):
         except ValueError:
             return None, None
 
-        involved = (
-            UpdateHistoryItem.objects
-            .filter(
-                update_history__update_type='apple',
-                update_history__name=update_name,
-                update_history__version=update_version,
-                status='pending')
-            .values('update_history__machine__id'))
-        machines = machines.filter(id__in=involved)
+        machines = machines.filter(pending_apple_updates__update=update_name,
+                                   pending_apple_updates__update_version=update_version)
 
-        return machines, 'Machines that need to install {} {}'.format(update_name, update_version)
+        # get the display name of the update
+        try:
+            display_name = (
+                PendingAppleUpdate.objects
+                .filter(update=update_name, update_version=update_version)
+                .values('display_name')
+                .first())['display_name']
+        except (AttributeError, TypeError):
+            # Nothing was found
+            return None, None
+
+        return machines, 'Machines that need to install {} {}'.format(display_name, update_version)

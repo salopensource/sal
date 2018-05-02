@@ -10,11 +10,11 @@
       {% for item in data %}
           <tr>
             <td>
-              {% with item.1|cat:"--"|cat:item.0 as data %}
+              {% with item.update|cat:"--"|cat:item.update_version as data %}
               <a href="{% url 'machine_list' plugin data group_type group_id %}">
               {% endwith %}
-              {{ item.1}} {{ item.0}}
-                <span class="badge pull-right">{{ item.2 }}</span>
+              {{ item.display_name }} {{ item.update_version }}
+                <span class="badge pull-right">{{ item.count }}</span>
               </a>
             </td>
           </tr>

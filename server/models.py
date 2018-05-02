@@ -299,7 +299,10 @@ class PluginScriptRow(models.Model):
             self.pluginscript_data_string = ""
 
         try:
-            self.pluginscript_data_date = parse(self.pluginscript_data)
+            date_data = parse(self.pluginscript_data)
+            if not date_data.tzinfo:
+                date_data = date_data.replace(tzinfo=pytz.UTC)
+            self.pluginscript_data_date = date_data
         except Exception:
             # Try converting it to an int if we're here
             try:

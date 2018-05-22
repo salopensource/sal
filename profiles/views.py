@@ -103,7 +103,7 @@ def submit_profiles(request):
 
             if utils.is_postgres():
                 Payload.objects.bulk_create(payloads_to_save)
-            
+
             utils.run_profiles_plugin_processing(machine, profiles_list)
 
             return HttpResponse("Profiles submitted for %s.\n" %

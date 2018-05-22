@@ -282,6 +282,22 @@ class BasePlugin(IPlugin):
         """
         pass
 
+    def profiles_processor(self, machine, profiles_list):
+        """Process profiles prior to recording in DB.
+
+        The default implementation does nothing.
+
+        Plugins can define a profiles processor method by overriding
+        this. This processor is run at the conclusion of the
+        client checkin within the profiles route, and includes the
+        complete profile list processed during that run.
+
+        Args:
+            machine (server.models.Machine): The machine checking in.
+            profiles_list (dict): All of the profiles data.
+        """
+        pass
+
 
 class FilterMixin(object):
     """Adds filter_machines method to Plugins
@@ -453,6 +469,10 @@ class OldPluginAdapter(BasePlugin):
     def checkin_processor(self, machine, report_data):
         if hasattr(self.plugin, 'checkin_processor'):
             self.plugin.checkin_processor(machine, report_data)
+
+    def profiles_processor(self, machine, profiles_list):
+        if hasattr(self.plugin, 'profiles_processor'):
+            self.plugin.profiles_processor(machine, profiles_list)
 
 
 class PluginManager(object):

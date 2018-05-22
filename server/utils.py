@@ -477,6 +477,16 @@ def run_plugin_processing(machine, report_data):
             plugin.checkin_processor(machine, report_data)
 
 
+def run_profiles_plugin_processing(machine, profiles_list):
+    enabled_plugins = Plugin.objects.all()
+    enabled_detail_plugins = MachineDetailPlugin.objects.all()
+    manager = PluginManager()
+    for enabled_plugin in itertools.chain(enabled_plugins, enabled_detail_plugins):
+        plugin = manager.get_plugin_by_name(enabled_plugin.name)
+        if plugin:
+            plugin.profiles_processor(machine, profiles_list)
+
+
 def load_default_plugins():
     """Add in default plugins if there are none configured."""
     if not Plugin.objects.exists():

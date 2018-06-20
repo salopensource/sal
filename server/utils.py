@@ -192,14 +192,10 @@ def is_postgres():
 def friendly_machine_model(machine):
     # See if the machine's model already has one (and only one) friendly name
     output = None
-    friendly_names = Machine.objects.filter(machine_model=machine.machine_model).\
-        values('machine_model_friendly').\
-        annotate(num_models=Count('machine_model_friendly', distinct=True)).distinct()
-    for name in friendly_names:
-        if name['num_models'] == 1:
-            output = name['machine_model_friendly']
-            break
-
+    if machine.machine_model_friendly and machine.machine_model_friendly != '':
+        output = machine.machine_model_friendly
+        output = 'this is cached'
+    print output
     if not output and not machine.serial.startswith('VM') and machine.os_family == 'Darwin':
         if len(machine.serial) == 12:
             serial_snippet = machine.serial[-4:]

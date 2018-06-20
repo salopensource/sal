@@ -65,7 +65,7 @@ DB_PASS=${DB_PASS:-}
 
 python manage.py migrate --noinput
 python manage.py collectstatic --noinput
-python manage.py friendly_model_name
+# python manage.py friendly_model_name
 # python manage.py search_maintenance
 
 cron

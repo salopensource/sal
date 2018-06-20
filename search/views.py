@@ -57,11 +57,8 @@ def quick_search(machines, query_string):
         'activity',
         'errors',
         'warnings',
-        'install_log',
         'puppet_errors',
-        'install_log_hash',
         'deployed',
-        'report_format',
         'broken_client',
         'hd_percent',
         'memory',
@@ -582,9 +579,6 @@ def get_csv_row(machine, facter_headers, condition_headers, plugin_script_header
     skip_fields = [
         'id',
         'report',
-        'activity',
-        'install_log',
-        'install_log_hash',
         'machine_group'
     ]
     for name, value in machine.get_fields():
@@ -609,8 +603,7 @@ def stream_csv(header_row, machines, facter_headers, condition_headers, plugin_s
 
 @login_required
 def export_csv(request, search_id):
-    machines = Machine.objects.all().defer('report', 'activity', 'install_log',
-                                           'install_log_hash')
+    machines = Machine.objects.all().defer('report')
 
     machines = search_machines(search_id, machines, full=True)
 
@@ -624,9 +617,6 @@ def export_csv(request, search_id):
     skip_fields = [
         'id',
         'report',
-        'activity',
-        'install_log',
-        'install_log_hash'
     ]
     for field in fields:
         if not field.is_relation and field.name not in skip_fields:

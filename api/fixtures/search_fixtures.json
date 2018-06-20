@@ -56,7 +56,7 @@
     "fields": {
         "search_group": 3,
         "search_models": "Machine",
-        "search_field": "hostname",
+        "search_field": "serial",
         "and_or": "AND",
         "operator": "=",
         "search_term": "C0DEADBEEF",

@@ -97,4 +97,4 @@ class MachineSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Machine
-        exclude = ('report', 'install_log', 'install_log_hash')
+        exclude = ('report', )

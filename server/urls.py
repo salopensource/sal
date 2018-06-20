@@ -18,7 +18,11 @@ urlpatterns = [
 
     # Checkin routes.
     url(r'^checkin/', checkin, name='checkin'),
+    # TODO: Remove after sal-scripts have reasonably been updated to
+    # not hit this endpoint.
     url(r'^installlog/hash/(?P<serial>.+)/$', install_log_hash, name='install_log_hash'),
+    # TODO: Remove after sal-scripts have reasonably been updated to
+    # not hit this endpoint.
     url(r'^installlog/submit/$', install_log_submit, name='install_log_submit'),
     url(r'^preflight/$', preflight, name='preflight'),
     url(r'^preflight-v2/get-script/(?P<plugin_name>.+)/(?P<script_name>.+)/$',

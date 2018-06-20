@@ -31,11 +31,11 @@ import os
 from yapsy.IPlugin import IPlugin
 import yapsy.PluginManager
 
+from django.conf import settings
 from django.http import Http404
 from django.shortcuts import get_object_or_404
 from django.template import loader
 
-from sal import settings
 from sal.decorators import handle_access, is_global_admin
 from server.models import Machine, Plugin, MachineDetailPlugin, Report
 from server.text_utils import class_to_title

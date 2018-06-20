@@ -1,6 +1,7 @@
 import base64
 import bz2
 import plistlib
+import pytz
 import random
 import string
 from datetime import datetime
@@ -24,6 +25,7 @@ OS_CHOICES = (
 REPORT_CHOICES = (
     ('base64', 'base64'),
     ('base64bz2', 'base64bz2'),
+    ('bz2', 'bz2'),
 )
 
 
@@ -135,17 +137,13 @@ class Machine(models.Model):
     last_checkin = models.DateTimeField(db_index=True, blank=True, null=True)
     first_checkin = models.DateTimeField(db_index=True, blank=True, null=True, auto_now_add=True)
     report = models.TextField(editable=True, null=True)
-    report_format = models.CharField(
-        max_length=256, choices=REPORT_CHOICES, default="base64bz2", editable=False)
     errors = models.IntegerField(default=0)
     warnings = models.IntegerField(default=0)
-    activity = models.TextField(editable=False, null=True, blank=True)
+    activity = models.BooleanField(editable=True, default=False)
     puppet_version = models.CharField(db_index=True, null=True, blank=True, max_length=256)
     sal_version = models.CharField(db_index=True, null=True, blank=True, max_length=255)
     last_puppet_run = models.DateTimeField(db_index=True, blank=True, null=True)
     puppet_errors = models.IntegerField(db_index=True, default=0)
-    install_log_hash = models.CharField(max_length=200, blank=True, null=True)
-    install_log = models.TextField(null=True, blank=True)
     deployed = models.BooleanField(default=True)
     broken_client = models.BooleanField(default=False)
 
@@ -155,104 +153,8 @@ class Machine(models.Model):
     def get_fields(self):
         return [(field.name, field.value_to_string(self)) for field in Machine._meta.fields]
 
-    def encode(self, plist):
-        string = plistlib.writePlistToString(plist)
-        bz2data = bz2.compress(string)
-        b64data = base64.b64encode(bz2data)
-        return b64data
-
-    def decode(self, data):
-        # this has some sucky workarounds for odd handling
-        # of UTF-8 data in sqlite3
-        try:
-            plist = plistlib.readPlistFromString(data)
-            return plist
-        except Exception:
-            try:
-                plist = plistlib.readPlistFromString(data.encode('UTF-8'))
-                return plist
-            except Exception:
-                try:
-                    if self.report_format == 'base64bz2':
-                        return self.b64bz_decode(data)
-                    elif self.report_format == 'base64':
-                        return self.b64_decode(data)
-
-                except Exception:
-                    return dict()
-
-    def b64bz_decode(self, data):
-        try:
-            bz2data = base64.b64decode(data)
-            string = bz2.decompress(bz2data)
-            plist = plistlib.readPlistFromString(string)
-            return plist
-        except Exception:
-            return {}
-
-    def b64_decode(self, data):
-        try:
-            string = base64.b64decode(data)
-            plist = plistlib.readPlistFromString(string)
-            return plist
-        except Exception:
-            return {}
-
     def get_report(self):
-        return self.decode(self.report)
-
-    def get_activity(self):
-        return self.decode(self.activity)
-
-    def update_report(self, encoded_report, report_format='base64bz2'):
-        # Save report.
-        try:
-            if report_format == 'base64bz2':
-                plist = self.b64bz_decode(encoded_report)
-            elif report_format == 'base64':
-                plist = self.b64_decode(encoded_report)
-            self.report = plistlib.writePlistToString(plist)
-            self.report_format = report_format
-        except Exception:
-            plist = None
-            self.report = ''
-
-        if plist is None:
-            self.activity = None
-            self.errors = 0
-            self.warnings = 0
-            self.console_user = "<None>"
-            return
-
-        # Check activity.
-        activity = dict()
-        for section in ("ItemsToInstall",
-                        "InstallResults",
-                        "ItemsToRemove",
-                        "RemovalResults",
-                        "AppleUpdates"):
-            if (section in plist) and len(plist[section]):
-                activity[section] = plist[section]
-        if activity:
-            self.activity = plistlib.writePlistToString(activity)
-        else:
-            self.activity = None
-
-        # Check errors and warnings.
-        if "Errors" in plist:
-            self.errors = len(plist["Errors"])
-        else:
-            self.errors = 0
-
-        if "Warnings" in plist:
-            self.warnings = len(plist["Warnings"])
-        else:
-            self.warnings = 0
-
-        # Check console user.
-        self.console_user = "unknown"
-        if "ConsoleUser" in plist:
-            self.console_user = unicode(plist["ConsoleUser"])
+        return plistlib.readPlistFromString(self.report)
 
     def __unicode__(self):
         if self.hostname:
@@ -266,13 +168,6 @@ class Machine(models.Model):
 
     class Meta:
         ordering = ['hostname']
-
-    def save(self, *args, **kwargs):
-        self.serial = self.serial.replace('/', '')
-        self.serial = self.serial.replace('+', '')
-        if not self.hostname:
-            self.hostname = self.serial
-        super(Machine, self).save()
 
 
 GROUP_NAMES = {
@@ -292,7 +187,6 @@ class UpdateHistory(models.Model):
     update_type = models.CharField(max_length=254, choices=UPDATE_TYPE, verbose_name="Update Type")
     name = models.CharField(max_length=255, db_index=True)
     version = models.CharField(max_length=254, db_index=True)
-    pending_recorded = models.BooleanField(default=False)
 
     def __unicode__(self):
         return u"%s: %s %s" % (self.machine, self.name, self.version)
@@ -405,7 +299,10 @@ class PluginScriptRow(models.Model):
             self.pluginscript_data_string = ""
 
         try:
-            self.pluginscript_data_date = parse(self.pluginscript_data)
+            date_data = parse(self.pluginscript_data)
+            if not date_data.tzinfo:
+                date_data = date_data.replace(tzinfo=pytz.UTC)
+            self.pluginscript_data_date = date_data
         except Exception:
             # Try converting it to an int if we're here
             try:
@@ -413,7 +310,7 @@ class PluginScriptRow(models.Model):
 
                     try:
                         self.pluginscript_data_date = datetime.fromtimestamp(
-                            int(self.pluginscript_data))
+                            int(self.pluginscript_data), tz=pytz.UTC)
                     except Exception:
                         self.pluginscript_data_date = None
                 else:

@@ -352,6 +352,14 @@ def is_float(value):
         return False
 
 
+def get_django_setting(name, default=None):
+    """Get a setting from the Django.conf.settings object
+
+    In Sal, that's anything in the system_settings or settings files.
+    """
+    return getattr(settings, name, default)
+
+
 # Plugin utilities
 
 def process_plugin_script(results, machine):
@@ -384,7 +392,7 @@ def process_plugin_script(results, machine):
             else:
                 plugin_row.save()
 
-    if is_postgres():
+    if is_postgres() and rows_to_create:
         PluginScriptRow.objects.bulk_create(rows_to_create)
 
 
@@ -631,6 +639,8 @@ def get_plugin_placeholder_markup(plugins, group_type='all', group_id=None):
     for enabled_plugin in display_plugins:
         name = enabled_plugin.name
         yapsy_plugin = manager.get_plugin_by_name(name)
+        if not yapsy_plugin:
+            continue
         # Skip this plugin if the group's members OS families aren't supported
         # ...but only if this group has any members (group_oses is not empty
         plugin_os_families = set(yapsy_plugin.get_supported_os_families())

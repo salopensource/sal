@@ -68,3 +68,4 @@ setup/Vagrantfile
 setup/.vagrant
 db/*
 internal_root.crt
+.vscode

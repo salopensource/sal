@@ -394,7 +394,10 @@ def checkin(request):
         machine.cpu_type = hwinfo.get(MACHINE_KEYS['cpu_type'][key_style])
         machine.cpu_speed = hwinfo.get(MACHINE_KEYS['cpu_speed'][key_style])
         machine.memory = hwinfo.get(MACHINE_KEYS['memory'][key_style])
-        machine.memory_kb = int(machine.memory[:-3]) ** MEMORY_EXPONENTS[machine.memory[-2:]]
+        try:
+            machine.memory_kb = int(machine.memory[:-3]) ** MEMORY_EXPONENTS[machine.memory[-2:]]
+        except ValueError:
+            machine.memory_kb = int(float(machine.memory[:-3])) ** MEMORY_EXPONENTS[machine.memory[-2:]]
 
     if not machine.machine_model_friendly:
         try:
@@ -454,7 +457,10 @@ def process_managed_items(machine, report_data, uuid, now, datelimit):
 
             update_type = args.get('update_type')
             if not update_type:
-                update_type = 'apple' if item['applesus'] else 'third_party'
+                if 'applesus' in item:
+                    update_type = 'apple' if item['applesus'] else 'third_party'
+                else:
+                    update_type = 'third_party'
 
             if installed is not None:
                 model = InstalledUpdate

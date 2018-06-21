@@ -194,7 +194,6 @@ def friendly_machine_model(machine):
     output = None
     if machine.machine_model_friendly and machine.machine_model_friendly != '':
         output = machine.machine_model_friendly
-        output = 'this is cached'
 
     if not output and not machine.serial.startswith('VM') and machine.os_family == 'Darwin':
         if len(machine.serial) == 12:

@@ -11,7 +11,14 @@ class Migration(migrations.Migration):
         ('server', '0071_remove_updatehistory_pending_recorded'),
     ]
 
+    Machine = apps.get_model("server", "Machine")
+    machines_to_clean = Machine.objects.filter(activity__gt='',activity__isnull=False)
+    for machine_to_clean in machines_to_clean:
+        machine_to_clean.activity = ''
+        machine_to_clean.save()
+
     operations = [
+        migrations.RunPython(clean_model_names),
         migrations.AlterField(
             model_name='machine',
             name='activity',

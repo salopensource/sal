@@ -74,7 +74,7 @@ class BasePlugin(IPlugin):
             `get_queryset` calls.
         supported_os_families (list of str): OS families for which this
             plugin should filter machines by. Defaults to
-            `[OSFamilies.darwin]`.
+            `[OSFamilies.darwin, OSFamilies.windows, OSFamilies.linux, OSFamilies.chromeos]`.
         template (str): Relative path to plugin's template file.
             Defaults to '' and plugin will construct a path
             to a default template; see the `get_template` method for
@@ -104,7 +104,12 @@ class BasePlugin(IPlugin):
     description = ''
     only_use_deployed_machines = True
     model = Machine
-    supported_os_families = [OSFamilies.darwin]
+    supported_os_families = [
+        OSFamilies.darwin,
+        OSFamilies.windows,
+        OSFamilies.linux,
+        OSFamilies.chromeos
+    ]
     template = ''
     widget_width = 4
 
@@ -437,7 +442,7 @@ class OldPluginAdapter(BasePlugin):
         if hasattr(self.plugin, 'supported_os_families'):
             return self.plugin.supported_os_families()
 
-        return [OSFamilies.darwin]
+        return [OSFamilies.darwin, OSFamilies.windows, OSFamilies.linux, OSFamilies.chromeos]
 
     def get_context(self, queryset, **kwargs):
         return {}

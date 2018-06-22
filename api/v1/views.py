@@ -280,7 +280,6 @@ class SearchID(generics.ListAPIView):
         if search_id.endswith('/'):
             search_id = search_id[:-1]
         machines = Machine.objects.all()
-        print search_machines(search_id, machines)
         return search_machines(search_id, machines, full=True)
 
 

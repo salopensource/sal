@@ -48,7 +48,6 @@ jobs:
     docker:
       - image: docker:17.05.0-ce-git
     
-    working_directory: /app
     steps:
       - checkout
       - setup_remote_docker

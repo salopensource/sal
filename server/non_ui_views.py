@@ -469,7 +469,7 @@ def process_managed_items(machine, report_data, uuid, now, datelimit):
             else:
                 model = PendingUpdate
 
-            install_time = dateutil.parser.parse(item['time']) if 'time' in item else now
+            install_time = dateutil.parser.parse(str(item['time'])) if 'time' in item else now
 
             status = args.get('status')
             if status and item['status'] != 0:

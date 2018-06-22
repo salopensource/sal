@@ -454,7 +454,7 @@ def process_managed_items(machine, report_data, uuid, now, datelimit):
             if installed is not None:
                 kwargs['installed'] = installed
             version_key = 'installed_version' if installed else 'version_to_install'
-            kwargs['update_version'] = item.get(version_key, '')
+            kwargs['update_version'] = item.get(version_key, '0')
 
             update_type = args.get('update_type')
             if not update_type:

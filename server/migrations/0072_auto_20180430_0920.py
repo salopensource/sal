@@ -22,11 +22,15 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.RunPython(clean_activity),
-        migrations.AlterField(
+        # migrations.RunPython(clean_activity),
+        # migrations.AlterField(
+        #     model_name='machine',
+        #     name='activity',
+        #     field=models.BooleanField(default=False),
+        # ),
+        migrations.RemoveField(
             model_name='machine',
             name='activity',
-            field=models.BooleanField(default=False),
         ),
         migrations.AlterField(
             model_name='machine',

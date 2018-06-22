@@ -5,11 +5,7 @@ from __future__ import unicode_literals
 from django.db import migrations, models
 
 
-class Migration(migrations.Migration):
-
-    dependencies = [
-        ('server', '0071_remove_updatehistory_pending_recorded'),
-    ]
+def clean_activity(apps, schema_editor):
 
     Machine = apps.get_model("server", "Machine")
     machines_to_clean = Machine.objects.filter(activity__gt='',activity__isnull=False)
@@ -17,8 +13,16 @@ class Migration(migrations.Migration):
         machine_to_clean.activity = ''
         machine_to_clean.save()
 
+
+
+class Migration(migrations.Migration):
+
+    dependencies = [
+        ('server', '0071_remove_updatehistory_pending_recorded'),
+    ]
+
     operations = [
-        migrations.RunPython(clean_model_names),
+        migrations.RunPython(clean_activity),
         migrations.AlterField(
             model_name='machine',
             name='activity',

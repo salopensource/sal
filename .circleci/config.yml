@@ -52,8 +52,7 @@ jobs:
     steps:
       - checkout
       - setup_remote_docker
-      - run: |
-        docker build -t macadmins/sal:$CIRCLE_BRANCH .
+      - run: docker build -t macadmins/sal:$CIRCLE_BRANCH .
 
 workflows:
   version: 2
@@ -62,4 +61,4 @@ workflows:
       - test
       - build:
         requires:
-            - test
+          - test

@@ -397,7 +397,8 @@ def checkin(request):
         try:
             machine.memory_kb = int(machine.memory[:-3]) ** MEMORY_EXPONENTS[machine.memory[-2:]]
         except ValueError:
-            machine.memory_kb = int(float(machine.memory[:-3])) ** MEMORY_EXPONENTS[machine.memory[-2:]]
+            machine.memory_kb = int(float(machine.memory[:-3])) ** \
+                MEMORY_EXPONENTS[machine.memory[-2:]]
 
     if not machine.machine_model_friendly:
         try:
@@ -469,7 +470,7 @@ def process_managed_items(machine, report_data, uuid, now, datelimit):
             else:
                 model = PendingUpdate
 
-            install_time = dateutil.parser.parse(item['time']) if 'time' in item else now
+            install_time = dateutil.parser.parse(str(item['time'])) if 'time' in item else now
 
             status = args.get('status')
             if status and item['status'] != 0:

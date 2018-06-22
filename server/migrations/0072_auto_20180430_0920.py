@@ -10,7 +10,7 @@ def clean_activity(apps, schema_editor):
     Machine = apps.get_model("server", "Machine")
     machines_to_clean = Machine.objects.filter(activity__gt='',activity__isnull=False)
     for machine_to_clean in machines_to_clean:
-        machine_to_clean.activity = ''
+        machine_to_clean.activity = 'false'
         machine_to_clean.save()
 
 

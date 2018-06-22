@@ -154,7 +154,10 @@ class Machine(models.Model):
         return [(field.name, field.value_to_string(self)) for field in Machine._meta.fields]
 
     def get_report(self):
-        return plistlib.readPlistFromString(self.report)
+        try:
+            return plistlib.readPlistFromString(self.report)
+        except TypeError:
+            return {}
 
     def __unicode__(self):
         if self.hostname:

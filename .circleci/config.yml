@@ -44,11 +44,22 @@ jobs:
       - store_artifacts:
           path: test-reports
           destination: test-reports
-# workflows:
-#   version: 2
-#   build_and_test:
-#     jobs:
-#       - test
-#       - build:
-#         requires:
-#             - test
+  build:
+    docker:
+      - image: docker:17.05.0-ce-git
+    
+    working_directory: /app
+    steps:
+      - checkout
+      - setup_remote_docker
+      - run: |
+        docker build -t macadmins/sal:$CIRCLE_BRANCH .
+
+workflows:
+  version: 2
+  build_and_test:
+    jobs:
+      - test
+      - build:
+        requires:
+            - test

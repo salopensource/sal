@@ -24,7 +24,7 @@ TITLES = {
 
 
 class Encryption(sal.plugin.Widget):
-    
+
     supported_os_families = [sal.plugin.OSFamilies.darwin]
 
     def get_context(self, queryset, **kwargs):

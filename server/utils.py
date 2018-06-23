@@ -203,11 +203,10 @@ def friendly_machine_model(machine):
             serial_snippet = machine.serial[-3:]
         payload = {'cc': serial_snippet}
         try:
-            output = FriendlyNameCache.objects.get(serial_stub=serial_snippet)
-            machine.machine_model_friendly = output
-            machine.save()
+            friendly_cache_item = FriendlyNameCache.objects.get(serial_stub=serial_snippet)
+            print 'cache item is: {}'.format(friendly_cache_item.friendly_name)
+            output = friendly_cache_item.friendly_name
         except FriendlyNameCache.DoesNotExist:
-
             output = None
             try:
                 r = requests.get('http://support-sp.apple.com/sp/product', params=payload)
@@ -217,9 +216,15 @@ def friendly_machine_model(machine):
 
             try:
                 output = ET.fromstring(r.text).find('configCode').text
-            except Exception:
-                print 'Did not receive a model name for %s, %s. Error:' % (
-                    machine.serial, machine.machine_model)
+
+                new_cache_item = FriendlyNameCache(
+                    serial_stub=serial_snippet,
+                    friendly_name=output
+                )
+                new_cache_item.save()
+            except Exception as e:
+                print 'Did not receive a model name for %s, %s. Error: %s' % (
+                    machine.serial, machine.machine_model, e)
 
     return output
 

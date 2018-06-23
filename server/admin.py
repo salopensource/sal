@@ -208,6 +208,9 @@ class ReportAdmin(admin.ModelAdmin):
 class SalSettingAdmin(admin.ModelAdmin):
     list_display = ('name', 'value')
 
+class FriendlyNameCacheAdmin(admin.ModelAdmin):
+    list_display = ('serial_stub', 'friendly_name')
+
 
 class UpdateHistoryAdmin(admin.ModelAdmin):
     inlines = [UpdateHistoryItemInline, ]
@@ -257,3 +260,4 @@ admin.site.register(UpdateHistory, UpdateHistoryAdmin)
 admin.site.register(UpdateHistoryItem, UpdateHistoryItemAdmin)
 admin.site.unregister(User)
 admin.site.register(User, CustomUserAdmin)
+admin.site.register(FriendlyNameCache, FriendlyNameCacheAdmin)

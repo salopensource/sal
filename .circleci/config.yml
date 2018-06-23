@@ -44,7 +44,7 @@ jobs:
       - store_artifacts:
           path: test-reports
           destination: test-reports
-  build:
+  build_latest:
     docker:
       - image: docker:17.05.0-ce-git
     
@@ -58,4 +58,9 @@ workflows:
   build_and_test:
     jobs:
       - test
-      - build
+      - build_latest:
+        requires:
+          - test
+        filters:
+            branches:
+              only: master

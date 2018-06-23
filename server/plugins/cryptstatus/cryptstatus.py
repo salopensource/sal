@@ -13,6 +13,8 @@ class CryptStatus(sal.plugin.DetailPlugin):
 
     description = 'FileVault Escrow Status'
 
+    supported_os_families = [sal.plugin.OSFamilies.darwin]
+
     def get_context(self, machine, **kwargs):
         context = defaultdict(str)
         context['title'] = self.description

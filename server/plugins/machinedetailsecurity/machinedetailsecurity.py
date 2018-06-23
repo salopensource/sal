@@ -6,6 +6,8 @@ class MachineDetailSecurity(sal.plugin.DetailPlugin):
 
     description = 'Security related information'
 
+    supported_os_families = [sal.plugin.OSFamilies.darwin]
+
     def get_context(self, machine, **kwargs):
         context = self.super_get_context(machine, **kwargs)
 

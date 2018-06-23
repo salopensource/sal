@@ -5,6 +5,7 @@ import sal.plugin
 
 class MachineModels(sal.plugin.Widget):
     description = 'Chart of machine models'
+    supported_os_families = [sal.plugin.OSFamilies.darwin, sal.plugin.OSFamilies.windows]
 
     def get_context(self, machines, **kwargs):
         context = self.super_get_context(machines, **kwargs)

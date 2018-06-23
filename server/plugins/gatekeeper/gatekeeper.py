@@ -12,6 +12,8 @@ SCRIPT_Q = Q(pluginscriptsubmission__pluginscriptrow__pluginscript_name='Gatekee
 
 
 class Gatekeeper(sal.plugin.Widget):
+    
+    supported_os_families = [sal.plugin.OSFamilies.darwin]
 
     def get_context(self, queryset, **kwargs):
         context = self.super_get_context(queryset, **kwargs)

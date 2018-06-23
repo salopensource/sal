@@ -196,7 +196,7 @@ def friendly_machine_model(machine):
         output = machine.machine_model_friendly
 
     if not output and not machine.serial.startswith('VM') and machine.os_family == 'Darwin':
-        if len(machine.serial) < 11:
+        if len(machine.serial) > 11:
             serial_snippet = machine.serial[-4:]
         else:
             # older models product code is the last three characters of the serial

@@ -374,7 +374,7 @@ def checkin(request):
     machine.hd_total = data.get('disk_size', '0')
     space = float(machine.hd_space)
     total = float(machine.hd_total)
-    if machine.hd_total == 0:
+    if machine.hd_total == 0 or machine.hd_space == 0:
         machine.hd_percent = '0'
     else:
         machine.hd_percent = str(int((total - space) / total * 100))

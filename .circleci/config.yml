@@ -59,8 +59,8 @@ workflows:
     jobs:
       - test
       - build_latest:
-        requires:
-          - test
-        filters:
+          requires:
+            - test
+          filters:
             branches:
-              only: master
+              only: master   

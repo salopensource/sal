@@ -439,4 +439,3 @@ class ApiKey(models.Model):
 class FriendlyNameCache(models.Model):
     serial_stub = models.CharField(db_index=True, max_length=5)
     friendly_name = models.CharField(max_length=255)
-    

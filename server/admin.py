@@ -208,6 +208,7 @@ class ReportAdmin(admin.ModelAdmin):
 class SalSettingAdmin(admin.ModelAdmin):
     list_display = ('name', 'value')
 
+
 class FriendlyNameCacheAdmin(admin.ModelAdmin):
     list_display = ('serial_stub', 'friendly_name')
 

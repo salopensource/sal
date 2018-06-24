@@ -362,7 +362,7 @@ def checkin(request):
     if 'os_vers' in machine_info:
         machine.operating_system = machine_info['os_vers']
         # macOS major OS updates don't have a minor version, so add one.
-        if len(machine.operating_system) <= 4:
+        if len(machine.operating_system) <= 4 and machine.os_family == 'Darwin':
             machine.operating_system = machine.operating_system + '.0'
     else:
         # Handle gosal and missing os_vers cases.
@@ -377,7 +377,10 @@ def checkin(request):
     if space == float(0) or total == float(0):
         machine.hd_percent = '0'
     else:
-        machine.hd_percent = str(int((total - space) / total * 100))
+        try:
+            machine.hd_percent = str(int((total - space) / total * 100))
+        except ZeroDivisionError:
+            machine.hd_percent = '0'
 
     # Get macOS System Profiler hardware info.
     # Older versions use `HardwareInfo` key, so start there.
@@ -391,7 +394,7 @@ def checkin(request):
     if hwinfo:
         key_style = 'old' if 'MachineModel' in hwinfo else 'new'
         machine.machine_model = hwinfo.get(MACHINE_KEYS['machine_model'][key_style])
-        machine.machine_model_friendly = machine_info.get('machine_model_friendly')
+        machine.machine_model_friendly = machine_info.get('machine_model_friendly','')
         machine.cpu_type = hwinfo.get(MACHINE_KEYS['cpu_type'][key_style])
         machine.cpu_speed = hwinfo.get(MACHINE_KEYS['cpu_speed'][key_style])
         machine.memory = hwinfo.get(MACHINE_KEYS['memory'][key_style])

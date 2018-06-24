@@ -517,16 +517,16 @@ def process_managed_items(machine, report_data, uuid, now, datelimit):
 
     # Clean up UpdateHistory and items which are over our retention
     # limit and are no longer managed, or which have no history items.
-    histories_to_delete = UpdateHistory.objects.exclude(pk__in=managed_item_histories)
-    for history in histories_to_delete:
-        try:
-            latest = history.updatehistoryitem_set.latest('recorded').recorded
-        except UpdateHistoryItem.DoesNotExist:
-            history.delete()
-            continue
+    # histories_to_delete = UpdateHistory.objects.exclude(pk__in=managed_item_histories)
+    # for history in histories_to_delete:
+    #     try:
+    #         latest = history.updatehistoryitem_set.latest('recorded').recorded
+    #     except UpdateHistoryItem.DoesNotExist:
+    #         history.delete()
+    #         continue
 
-        if latest < datelimit:
-            history.delete()
+    #     if latest < datelimit:
+    #         history.delete()
 
 
 def process_facts(machine, report_data, datelimit):

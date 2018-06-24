@@ -391,6 +391,7 @@ def checkin(request):
     if hwinfo:
         key_style = 'old' if 'MachineModel' in hwinfo else 'new'
         machine.machine_model = hwinfo.get(MACHINE_KEYS['machine_model'][key_style])
+        machine.machine_model_friendly = hwinfo.get('machine_model_friendly')
         machine.cpu_type = hwinfo.get(MACHINE_KEYS['cpu_type'][key_style])
         machine.cpu_speed = hwinfo.get(MACHINE_KEYS['cpu_speed'][key_style])
         machine.memory = hwinfo.get(MACHINE_KEYS['memory'][key_style])
@@ -400,11 +401,11 @@ def checkin(request):
             machine.memory_kb = int(float(machine.memory[:-3])) ** \
                 MEMORY_EXPONENTS[machine.memory[-2:]]
 
-    if not machine.machine_model_friendly:
-        try:
-            machine.machine_model_friendly = utils.friendly_machine_model(machine)
-        except Exception:
-            machine.machine_model_friendly = machine.machine_model
+    # if not machine.machine_model_friendly:
+    #     try:
+    #         machine.machine_model_friendly = utils.friendly_machine_model(machine)
+    #     except Exception:
+    #         machine.machine_model_friendly = machine.machine_model
 
     machine.save()
 

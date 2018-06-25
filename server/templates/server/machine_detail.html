@@ -171,9 +171,9 @@ $( document ).ready(function() {
           <dt>Uptime:</dt>
           <dd>{{ uptime }}</dd>
           {% endif %}
-          {% if report.ConsoleUser %}
+          {% if machine.console_user %}
           <dt>Console user:</dt>
-          <dd>{{ report.ConsoleUser }}</dd>
+          <dd>{{ machine.console_user }}</dd>
           {% endif %}
           <dt>Deploy Status:</dt>
           <dd>

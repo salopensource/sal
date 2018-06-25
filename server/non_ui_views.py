@@ -309,7 +309,6 @@ def checkin(request):
     machine.last_checkin = django.utils.timezone.now()
     machine.hostname = data.get('name', '<NO NAME>')
     machine.sal_version = data.get('sal_version')
-    machine.console_user = data.get('username') if data.get('username') != '_mbsetupuser' else None
 
     if utils.get_django_setting('DEPLOYED_ON_CHECKIN', True):
         machine.deployed = True
@@ -329,6 +328,13 @@ def checkin(request):
             break
 
     machine.report = report
+
+    if data.get('username') != '_mbsetupuser':
+        machine.console_user = data.get('username')
+    elif report.get('ConsoleUser') != '_mbsetupuser':
+        machine.console_user = report.get('ConsoleUser')
+    else:
+        machine.console_user = None
 
     if not report:
         machine.activity = False

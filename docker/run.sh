@@ -30,6 +30,8 @@ DB_PASS=${DB_PASS:-}
 python manage.py migrate --noinput
 python manage.py collectstatic --noinput
 
+/bin/rm -f /var/run/gunicorn.pid
+
 cron
 
 if [ ! -z "$ADMIN_PASS" ] ; then

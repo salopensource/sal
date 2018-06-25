@@ -309,7 +309,6 @@ def checkin(request):
     machine.last_checkin = django.utils.timezone.now()
     machine.hostname = data.get('name', '<NO NAME>')
     machine.sal_version = data.get('sal_version')
-    machine.console_user = data.get('username') if data.get('username') != '_mbsetupuser' else None
 
     if utils.get_django_setting('DEPLOYED_ON_CHECKIN', True):
         machine.deployed = True
@@ -337,6 +336,13 @@ def checkin(request):
 
     report_data = plistlib.readPlistFromString(report)
 
+    if report_data.get('ConsoleUser') and report_data.get('ConsoleUser') != '_mbsetupuser':
+        machine.console_user = report_data.get('ConsoleUser')
+    elif data.get('username') and data.get('username') != '_mbsetupuser':
+        machine.console_user = data.get('username')
+    else:
+        machine.console_user = None
+
     machine.activity = any(report_data.get(s) for s in UPDATE_META.keys())
 
     # Check errors and warnings.
@@ -362,7 +368,7 @@ def checkin(request):
     if 'os_vers' in machine_info:
         machine.operating_system = machine_info['os_vers']
         # macOS major OS updates don't have a minor version, so add one.
-        if len(machine.operating_system) <= 4:
+        if len(machine.operating_system) <= 4 and machine.os_family == 'Darwin':
             machine.operating_system = machine.operating_system + '.0'
     else:
         # Handle gosal and missing os_vers cases.
@@ -374,10 +380,13 @@ def checkin(request):
     machine.hd_total = data.get('disk_size', '0')
     space = float(machine.hd_space)
     total = float(machine.hd_total)
-    if machine.hd_total == 0:
+    if space == float(0) or total == float(0):
         machine.hd_percent = '0'
     else:
-        machine.hd_percent = str(int((total - space) / total * 100))
+        try:
+            machine.hd_percent = str(int((total - space) / total * 100))
+        except ZeroDivisionError:
+            machine.hd_percent = '0'
 
     # Get macOS System Profiler hardware info.
     # Older versions use `HardwareInfo` key, so start there.
@@ -391,6 +400,7 @@ def checkin(request):
     if hwinfo:
         key_style = 'old' if 'MachineModel' in hwinfo else 'new'
         machine.machine_model = hwinfo.get(MACHINE_KEYS['machine_model'][key_style])
+        machine.machine_model_friendly = machine_info.get('machine_model_friendly', '')
         machine.cpu_type = hwinfo.get(MACHINE_KEYS['cpu_type'][key_style])
         machine.cpu_speed = hwinfo.get(MACHINE_KEYS['cpu_speed'][key_style])
         machine.memory = hwinfo.get(MACHINE_KEYS['memory'][key_style])
@@ -400,11 +410,11 @@ def checkin(request):
             machine.memory_kb = int(float(machine.memory[:-3])) ** \
                 MEMORY_EXPONENTS[machine.memory[-2:]]
 
-    if not machine.machine_model_friendly:
-        try:
-            machine.machine_model_friendly = utils.friendly_machine_model(machine)
-        except Exception:
-            machine.machine_model_friendly = machine.machine_model
+    # if not machine.machine_model_friendly:
+    #     try:
+    #         machine.machine_model_friendly = utils.friendly_machine_model(machine)
+    #     except Exception:
+    #         machine.machine_model_friendly = machine.machine_model
 
     machine.save()
 
@@ -513,7 +523,8 @@ def process_managed_items(machine, report_data, uuid, now, datelimit):
 
     # Clean up UpdateHistory and items which are over our retention
     # limit and are no longer managed, or which have no history items.
-    histories_to_delete = UpdateHistory.objects.exclude(pk__in=managed_item_histories)
+    histories_to_delete = UpdateHistory.objects.exclude(pk__in=managed_item_histories).\
+        filter(machine=machine)
     for history in histories_to_delete:
         try:
             latest = history.updatehistoryitem_set.latest('recorded').recorded

@@ -196,24 +196,35 @@ def friendly_machine_model(machine):
         output = machine.machine_model_friendly
 
     if not output and not machine.serial.startswith('VM') and machine.os_family == 'Darwin':
-        if len(machine.serial) == 12:
+        if len(machine.serial) > 11:
             serial_snippet = machine.serial[-4:]
         else:
             # older models product code is the last three characters of the serial
             serial_snippet = machine.serial[-3:]
         payload = {'cc': serial_snippet}
-        output = None
         try:
-            r = requests.get('http://support-sp.apple.com/sp/product', params=payload)
-        except requests.exceptions.RequestException as e:
-            print machine.serial
-            print e
+            friendly_cache_item = FriendlyNameCache.objects.get(serial_stub=serial_snippet)
+            print 'cache item is: {}'.format(friendly_cache_item.friendly_name)
+            output = friendly_cache_item.friendly_name
+        except FriendlyNameCache.DoesNotExist:
+            output = None
+            try:
+                r = requests.get('http://support-sp.apple.com/sp/product', params=payload)
+            except requests.exceptions.RequestException as e:
+                print machine.serial
+                print e
 
-        try:
-            output = ET.fromstring(r.text).find('configCode').text
-        except Exception:
-            print 'Did not receive a model name for %s, %s. Error:' % (
-                machine.serial, machine.machine_model)
+            try:
+                output = ET.fromstring(r.text).find('configCode').text
+
+                new_cache_item = FriendlyNameCache(
+                    serial_stub=serial_snippet,
+                    friendly_name=output
+                )
+                new_cache_item.save()
+            except Exception as e:
+                print 'Did not receive a model name for %s, %s. Error: %s' % (
+                    machine.serial, machine.machine_model, e)
 
     return output
 

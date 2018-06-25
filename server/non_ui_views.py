@@ -329,9 +329,9 @@ def checkin(request):
 
     machine.report = report
 
-    if data.get('username') != '_mbsetupuser':
+    if data.get('username') and data.get('username') != '_mbsetupuser':
         machine.console_user = data.get('username')
-    elif report.get('ConsoleUser') != '_mbsetupuser':
+    elif report.get('ConsoleUser') and report.get('ConsoleUser') != '_mbsetupuser':
         machine.console_user = report.get('ConsoleUser')
     else:
         machine.console_user = None

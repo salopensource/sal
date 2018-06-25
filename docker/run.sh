@@ -24,49 +24,11 @@ DB_PORT_5432_TCP_ADDR=${DB_PORT_5432_TCP_ADDR:-}
 DB_NAME=${DB_NAME:-}
 DB_USER=${DB_USER:-}
 DB_PASS=${DB_PASS:-}
-# export PGPASSWORD=$DB_PASS
-# setBoolean WAIT_FOR_POSTGRES "${WAIT_FOR_POSTGRES:-}"
-#
-# if [ "$WAIT_FOR_POSTGRES" = true ] ; then
-#
-#   if [ ! -z "$DB_HOST" ] ; then
-#     echo "Waiting for database to come up"
-#     while true; do
-#         psql -U $DB_USER -h $DB_HOST -d $DB_NAME < /dev/null
-#         if [ $? -eq 0 ]; then
-#             break
-#         fi
-#         sleep 1
-#     done
-#     echo "Database is up, continuing"
-#   elif [ ! -z "$DB_PORT_5432_TCP_ADDR" ] ; then
-#     echo "Waiting for database to come up"
-#     while true; do
-#         psql -U $DB_USER -h $DB_PORT_5432_TCP_ADDR -d $DB_NAME < /dev/null
-#         if [ $? -eq 0 ]; then
-#             break
-#         fi
-#         sleep 1
-#     done
-#     echo "Database is up, continuing"
-#   elif [ ! -z "$DB_NAME" ] ; then
-#     # Assume they've followed directions...
-#     echo "Waiting for database to come up"
-#     while true; do
-#         psql -U $DB_USER -h db -d $DB_NAME < /dev/null
-#         if [ $? -eq 0 ]; then
-#             break
-#         fi
-#         sleep 1
-#     done
-#     echo "Database is up, continuing"
-#   fi
-# fi
+
+# sleep 2
 
 python manage.py migrate --noinput
 python manage.py collectstatic --noinput
-# python manage.py friendly_model_name
-# python manage.py search_maintenance
 
 cron
 
@@ -76,7 +38,7 @@ else
   python manage.py update_admin_user --username=admin --password=password
 fi
 
-tail -n 0 -f /var/log/gunicorn/gunicorn*.log & tail -n 0 -f $APP_DIR/sal.log &
+# tail -n 0 -f /var/log/gunicorn/gunicorn*.log & tail -n 0 -f $APP_DIR/sal.log &
 export PYTHONPATH=$PYTHONPATH:$APP_DIR
 export DJANGO_SETTINGS_MODULE='sal.settings'
 

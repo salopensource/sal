@@ -394,7 +394,7 @@ def checkin(request):
     if hwinfo:
         key_style = 'old' if 'MachineModel' in hwinfo else 'new'
         machine.machine_model = hwinfo.get(MACHINE_KEYS['machine_model'][key_style])
-        machine.machine_model_friendly = machine_info.get('machine_model_friendly','')
+        machine.machine_model_friendly = machine_info.get('machine_model_friendly', '')
         machine.cpu_type = hwinfo.get(MACHINE_KEYS['cpu_type'][key_style])
         machine.cpu_speed = hwinfo.get(MACHINE_KEYS['cpu_speed'][key_style])
         machine.memory = hwinfo.get(MACHINE_KEYS['memory'][key_style])
@@ -517,16 +517,17 @@ def process_managed_items(machine, report_data, uuid, now, datelimit):
 
     # Clean up UpdateHistory and items which are over our retention
     # limit and are no longer managed, or which have no history items.
-    # histories_to_delete = UpdateHistory.objects.exclude(pk__in=managed_item_histories)
-    # for history in histories_to_delete:
-    #     try:
-    #         latest = history.updatehistoryitem_set.latest('recorded').recorded
-    #     except UpdateHistoryItem.DoesNotExist:
-    #         history.delete()
-    #         continue
+    histories_to_delete = UpdateHistory.objects.exclude(pk__in=managed_item_histories).\
+        filter(machine=machine)
+    for history in histories_to_delete:
+        try:
+            latest = history.updatehistoryitem_set.latest('recorded').recorded
+        except UpdateHistoryItem.DoesNotExist:
+            history.delete()
+            continue
 
-    #     if latest < datelimit:
-    #         history.delete()
+        if latest < datelimit:
+            history.delete()
 
 
 def process_facts(machine, report_data, datelimit):

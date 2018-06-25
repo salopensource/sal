@@ -329,19 +329,19 @@ def checkin(request):
 
     machine.report = report
 
-    if report.get('ConsoleUser') and report.get('ConsoleUser') != '_mbsetupuser':
-        machine.console_user = data.get('username')
-    elif data.get('username') and data.get('username') != '_mbsetupuser':
-        machine.console_user = report.get('ConsoleUser')
-    else:
-        machine.console_user = None
-
     if not report:
         machine.activity = False
         machine.errors = machine.warnings = 0
         return
 
     report_data = plistlib.readPlistFromString(report)
+
+    if report_data.get('ConsoleUser') and report_data.get('ConsoleUser') != '_mbsetupuser':
+        machine.console_user = report_data.get('ConsoleUser')
+    elif data.get('username') and data.get('username') != '_mbsetupuser':
+        machine.console_user = data.get('username')
+    else:
+        machine.console_user = None
 
     machine.activity = any(report_data.get(s) for s in UPDATE_META.keys())
 

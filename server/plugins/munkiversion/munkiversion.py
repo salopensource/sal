@@ -6,6 +6,7 @@ import sal.plugin
 class MunkiVersion(sal.plugin.Widget):
 
     description = 'Chart of installed versions of Munki'
+    supported_os_families = [sal.plugin.OSFamilies.darwin]
 
     def get_context(self, queryset, **kwargs):
         context = self.super_get_context(queryset, **kwargs)

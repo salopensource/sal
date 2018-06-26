@@ -18,6 +18,8 @@ class MunkiInfo(sal.plugin.ReportPlugin):
 
     description = 'Information on Munki configuration.'
 
+    supported_os_families = [sal.plugin.OSFamilies.darwin]
+
     def get_http_only(self, machines):
         return machines.filter(
             REPORT_Q, URL_QS['SoftwareRepo'],

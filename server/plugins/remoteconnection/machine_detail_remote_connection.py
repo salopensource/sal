@@ -9,6 +9,7 @@ from server.utils import get_setting
 class RemoteConnection(sal.plugin.DetailPlugin):
 
     description = "Initiate VNC or SSH connections from a machine detail page."
+    supported_os_families = [sal.plugin.OSFamilies.darwin]
 
     def get_context(self, queryset, **kwargs):
         context = self.super_get_context(queryset, **kwargs)

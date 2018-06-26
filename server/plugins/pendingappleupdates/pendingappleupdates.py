@@ -12,7 +12,7 @@ class PendingAppleUpdates(sal.plugin.Widget):
     description = 'List of pending third party updates'
     template = 'plugins/pendingupdates.html'
     supported_os_families = [sal.plugin.OSFamilies.darwin]
-    
+
     def get_context(self, queryset, **kwargs):
         context = self.super_get_context(queryset, **kwargs)
         updates = (

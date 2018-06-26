@@ -11,7 +11,7 @@ class XprotectVersion(sal.plugin.Widget):
 
     description = 'Xprotect version'
     supported_os_families = [sal.plugin.OSFamilies.darwin]
-    
+
     def get_context(self, queryset, **kwargs):
         context = self.super_get_context(queryset, **kwargs)
         context['data'] = (

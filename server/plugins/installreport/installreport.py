@@ -13,6 +13,8 @@ class InstallReport(sal.plugin.ReportPlugin):
 
     description = 'Information on installation status.'
 
+    supported_os_families = [sal.plugin.OSFamilies.darwin]
+
     def replace_dots(self, item):
         # item['name'] = item['pkginfo']['name']
         item['dotVersion'] = item['version'].replace('.', 'DOT')

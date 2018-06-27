@@ -16,6 +16,7 @@ class Gatekeeper(sal.plugin.Widget):
     supported_os_families = [sal.plugin.OSFamilies.darwin]
 
     def get_context(self, queryset, **kwargs):
+        queryset = queryset.filter(os_family='Darwin')
         context = self.super_get_context(queryset, **kwargs)
         context['ok'] = self._filter(queryset, 'ok').count()
         context['alert'] = self._filter(queryset, 'alert').count()
@@ -28,6 +29,7 @@ class Gatekeeper(sal.plugin.Widget):
         return self._filter(machines, data), TITLES[data]
 
     def _filter(self, machines, data):
+        machines = machines.filter(os_family='Darwin')
         if data == 'ok':
             machines = (
                 machines

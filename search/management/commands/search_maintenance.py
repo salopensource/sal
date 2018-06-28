@@ -55,7 +55,8 @@ class Command(BaseCommand):
         app_versions = Application.objects.values('name', 'bundleid').distinct()
 
         old_cache = SearchFieldCache.objects.all()
-        old_cache.delete()
+        if server.utils.is_postgres() is False:
+            old_cache.delete()
         for f in Machine._meta.fields:
             if f.name not in skip_fields:
                 cached_item = SearchFieldCache(search_model='Machine', search_field=f.name)
@@ -112,6 +113,7 @@ class Command(BaseCommand):
                     cached_item.save()
 
         if server.utils.is_postgres() is True:
+            old_cache.delete()
             SearchFieldCache.objects.bulk_create(search_fields)
 
         # make sure this in an int:

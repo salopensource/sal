@@ -509,7 +509,7 @@ def process_managed_items(machine, report_data, uuid, now, datelimit):
             managed_item_histories.add(update_history.pk)
             # Only create a history item if there are none or
             # if the last one is not the same status.
-            items_set = update_history.updatehistoryitem_set
+            items_set = update_history.updatehistoryitem_set.order_by('recorded')
             if not items_set.exists() or items_set.last().status != status:
                 UpdateHistoryItem.objects.create(
                     update_history=update_history, status=status, recorded=install_time, uuid=uuid)

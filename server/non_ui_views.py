@@ -405,9 +405,9 @@ def checkin(request):
         machine.cpu_speed = hwinfo.get(MACHINE_KEYS['cpu_speed'][key_style])
         machine.memory = hwinfo.get(MACHINE_KEYS['memory'][key_style])
         try:
-            machine.memory_kb = int(machine.memory[:-3]) ** MEMORY_EXPONENTS[machine.memory[-2:]]
+            machine.memory_kb = int(machine.memory[:-3]) * 1024 ** MEMORY_EXPONENTS[machine.memory[-2:]]
         except ValueError:
-            machine.memory_kb = int(float(machine.memory[:-3])) ** \
+            machine.memory_kb = int(float(machine.memory[:-3])) * 1024 ** \
                 MEMORY_EXPONENTS[machine.memory[-2:]]
 
     # if not machine.machine_model_friendly:

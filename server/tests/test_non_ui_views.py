@@ -5,6 +5,7 @@ from django.test import TestCase
 from server.models import *
 from server import non_ui_views
 
+
 class CheckinDataTest(TestCase):
     """Test the checkin from client"""
 

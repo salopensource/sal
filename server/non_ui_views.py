@@ -435,6 +435,7 @@ def checkin(request):
 
     return HttpResponse("Sal report submmitted for %s" % data.get('name'))
 
+
 def process_memory(machine):
     """Convert the amount of memory like '4 GB' to the size in kb as int"""
     try:
@@ -444,6 +445,7 @@ def process_memory(machine):
         memkb = int(float(machine.memory[:-3])) * \
             1024 ** MEMORY_EXPONENTS[machine.memory[-2:]]
     return memkb
+
 
 def process_managed_items(machine, report_data, uuid, now, datelimit):
     """Process Munki updates and removals."""

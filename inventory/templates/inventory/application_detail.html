@@ -28,7 +28,7 @@
 		<legend><h5 class"text-uppercase">Installed Paths</h5></legend>
 		{% for path in paths %}
 		<dt>Path:</dt>
-		<dd><a href="{% url 'inventory_list' application_id=object.id group_type=group_type group_id=group_id %}?field_type=path&field_value={{ path.path }}"><span class="badge">{{ path.count }}</span></a> {{ path.path }}</dd>
+		<dd><a href="{% url 'inventory_list' group_type=group_type group_id=group_id application_id=object.id field_type='path' field_value=path.safe_path%}"><span class="badge">{{ path.count }}</span></a> {{ path.path }}</dd>
 		{% endfor %}
 	</dl>
 {% endblock %}

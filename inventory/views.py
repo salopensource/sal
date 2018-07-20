@@ -3,7 +3,7 @@ import copy
 import hashlib
 import plistlib
 from datetime import datetime
-from urllib import quote, urlencode
+from urllib import quote, unquote
 
 # third-party
 import unicodecsv as csv
@@ -277,8 +277,14 @@ class InventoryListView(DatatableQuerystringMixin, DatatableView, GroupMixin):
         context["group_name"] = (self.group_instance.name if hasattr(
             self.group_instance, "name") else None)
         context["app_name"] = self.application.name
-        context["field_type"] = self.field_type
-        context["field_value"] = self.field_value
+
+        context["field_type"] = self.kwargs["field_type"]
+        if self.kwargs["field_type"] == 'path':
+            field_value = unquote(self.kwargs["field_value"])
+        else:
+            field_value = self.kwargs["field_value"]
+        context["field_value"] = field_value
+
         return context
 
 
@@ -430,7 +436,7 @@ class ApplicationDetailView(DetailView, GroupMixin):
         # Get list of dicts of installation locations and number of
         # installs for each.
         context["paths"] = [
-            {"path": path, "count": details.filter(path=path).count()}
+            {"safe_path": quote(path, safe=''), "path": path, "count": details.filter(path=path).count()}
             for path in paths]
         # Get the total number of installations.
         context["install_count"] = details.count()

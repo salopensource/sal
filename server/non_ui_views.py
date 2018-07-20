@@ -404,12 +404,7 @@ def checkin(request):
         machine.cpu_type = hwinfo.get(MACHINE_KEYS['cpu_type'][key_style])
         machine.cpu_speed = hwinfo.get(MACHINE_KEYS['cpu_speed'][key_style])
         machine.memory = hwinfo.get(MACHINE_KEYS['memory'][key_style])
-        try:
-            machine.memory_kb = int(machine.memory[:-3]) * \
-                1024 ** MEMORY_EXPONENTS[machine.memory[-2:]]
-        except ValueError:
-            machine.memory_kb = int(float(machine.memory[:-3])) * \
-                1024 ** MEMORY_EXPONENTS[machine.memory[-2:]]
+        machine.memory_kb = process_memory(machine)
 
     # if not machine.machine_model_friendly:
     #     try:
@@ -440,6 +435,15 @@ def checkin(request):
 
     return HttpResponse("Sal report submmitted for %s" % data.get('name'))
 
+def process_memory(machine):
+    """Convert the amount of memory like '4 GB' to the size in kb as int"""
+    try:
+        memkb = int(machine.memory[:-3]) * \
+            1024 ** MEMORY_EXPONENTS[machine.memory[-2:]]
+    except ValueError:
+        memkb = int(float(machine.memory[:-3])) * \
+            1024 ** MEMORY_EXPONENTS[machine.memory[-2:]]
+    return memkb
 
 def process_managed_items(machine, report_data, uuid, now, datelimit):
     """Process Munki updates and removals."""

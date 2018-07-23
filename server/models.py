@@ -229,7 +229,7 @@ class UpdateHistoryItem(models.Model):
 class Fact(models.Model):
     id = models.BigAutoField(primary_key=True)
     machine = models.ForeignKey(Machine, related_name='facts')
-    fact_name = models.TextField(db_index=True)
+    fact_name = models.TextField()
     fact_data = models.TextField()
 
     def __unicode__(self):
@@ -242,9 +242,9 @@ class Fact(models.Model):
 class HistoricalFact(models.Model):
     id = models.BigAutoField(primary_key=True)
     machine = models.ForeignKey(Machine, related_name='historical_facts')
-    fact_name = models.CharField(db_index=True, max_length=255)
+    fact_name = models.CharField(max_length=255)
     fact_data = models.TextField()
-    fact_recorded = models.DateTimeField(db_index=True)
+    fact_recorded = models.DateTimeField()
 
     def __unicode__(self):
         return self.fact_name
@@ -256,8 +256,8 @@ class HistoricalFact(models.Model):
 class Condition(models.Model):
     id = models.BigAutoField(primary_key=True)
     machine = models.ForeignKey(Machine, related_name='conditions')
-    condition_name = models.CharField(max_length=255, db_index=True)
-    condition_data = models.TextField(db_index=True)
+    condition_name = models.CharField(max_length=255)
+    condition_data = models.TextField()
 
     def __unicode__(self):
         return self.condition_name
@@ -269,7 +269,7 @@ class Condition(models.Model):
 class PluginScriptSubmission(models.Model):
     id = models.BigAutoField(primary_key=True)
     machine = models.ForeignKey(Machine)
-    plugin = models.CharField(db_index=True, max_length=255)
+    plugin = models.CharField(max_length=255)
     historical = models.BooleanField(default=False)
     recorded = models.DateTimeField(auto_now_add=True)
 
@@ -283,12 +283,12 @@ class PluginScriptSubmission(models.Model):
 class PluginScriptRow(models.Model):
     id = models.BigAutoField(primary_key=True)
     submission = models.ForeignKey(PluginScriptSubmission)
-    pluginscript_name = models.TextField(db_index=True)
-    pluginscript_data = models.TextField(blank=True, null=True, db_index=True)
-    pluginscript_data_string = models.TextField(blank=True, null=True, db_index=True)
+    pluginscript_name = models.TextField()
+    pluginscript_data = models.TextField(blank=True, null=True)
+    pluginscript_data_string = models.TextField(blank=True, null=True)
     pluginscript_data_int = models.IntegerField(default=0)
     pluginscript_data_date = models.DateTimeField(blank=True, null=True)
-    submission_and_script_name = models.TextField(db_index=True)
+    submission_and_script_name = models.TextField()
 
     def save(self):
         try:
@@ -334,7 +334,7 @@ class PendingUpdate(models.Model):
     id = models.BigAutoField(primary_key=True)
     machine = models.ForeignKey(Machine, related_name='pending_updates')
     update = models.CharField(db_index=True, max_length=255, null=True, blank=True)
-    update_version = models.CharField(db_index=True, max_length=255, null=True, blank=True)
+    update_version = models.CharField(max_length=255, null=True, blank=True)
     display_name = models.CharField(max_length=255, null=True, blank=True)
 
     def __unicode__(self):
@@ -348,7 +348,7 @@ class InstalledUpdate(models.Model):
     id = models.BigAutoField(primary_key=True)
     machine = models.ForeignKey(Machine, related_name='installed_updates')
     update = models.CharField(db_index=True, max_length=255, null=True, blank=True)
-    update_version = models.CharField(db_index=True, max_length=255, null=True, blank=True)
+    update_version = models.CharField(max_length=255, null=True, blank=True)
     display_name = models.CharField(max_length=255, null=True, blank=True)
     installed = models.BooleanField()
 
@@ -364,7 +364,7 @@ class PendingAppleUpdate(models.Model):
     id = models.BigAutoField(primary_key=True)
     machine = models.ForeignKey(Machine, related_name='pending_apple_updates')
     update = models.CharField(db_index=True, max_length=255, null=True, blank=True)
-    update_version = models.CharField(db_index=True, max_length=256, null=True, blank=True)
+    update_version = models.CharField(max_length=256, null=True, blank=True)
     display_name = models.CharField(max_length=256, null=True, blank=True)
 
     def __unicode__(self):
@@ -415,8 +415,8 @@ class SalSetting(models.Model):
 
 
 class ApiKey(models.Model):
-    public_key = models.CharField(db_index=True, max_length=255)
-    private_key = models.CharField(db_index=True, max_length=255)
+    public_key = models.CharField(max_length=255)
+    private_key = models.CharField(max_length=255)
     name = models.CharField(max_length=255)
     has_been_seen = models.BooleanField(default=False)
     read_write = models.BooleanField(default=False)
@@ -437,5 +437,5 @@ class ApiKey(models.Model):
 
 
 class FriendlyNameCache(models.Model):
-    serial_stub = models.CharField(db_index=True, max_length=5)
+    serial_stub = models.CharField(max_length=5)
     friendly_name = models.CharField(max_length=255)

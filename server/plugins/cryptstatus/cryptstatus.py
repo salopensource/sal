@@ -20,6 +20,7 @@ class CryptStatus(sal.plugin.DetailPlugin):
         context['title'] = self.description
 
         crypt_url = utils.get_setting('crypt_url', None)
+        machine_url = crypt_url
         if crypt_url:
             crypt_url = crypt_url.rstrip()
 

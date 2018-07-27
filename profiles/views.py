@@ -38,6 +38,7 @@ def submit_profiles(request):
             return HttpResponseNotFound('Serial Number not found')
 
         compression_type = 'base64bz2'
+        compressed_profile = None
         if 'base64bz2profiles' in submission:
             compressed_profiles = submission.get('base64bz2profiles')
         elif 'base64profiles' in submission:

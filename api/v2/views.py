@@ -38,8 +38,8 @@ class FactViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Fact.objects.all()
     serializer_class = FactSerializer
     filter_fields = (
-        'machine__serial', 'machine__hostname', 'fact_name',
-        'fact_data')
+        'machine__serial', 'machine__hostname', 'machine__id', 
+        'fact_name', 'fact_data')
 
 
 class InventoryViewSet(viewsets.ReadOnlyModelViewSet):

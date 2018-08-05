@@ -30,15 +30,15 @@ class ConditionViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Condition.objects.all()
     serializer_class = ConditionSerializer
     filter_fields = (
-        'machine__serial', 'machine__hostname', 'condition_name',
-        'condition_data')
+        'machine__serial', 'machine__hostname', 'machine__id',
+        'condition_name', 'condition_data')
 
 
 class FactViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Fact.objects.all()
     serializer_class = FactSerializer
     filter_fields = (
-        'machine__serial', 'machine__hostname', 'machine__id', 
+        'machine__serial', 'machine__hostname', 'machine__id',
         'fact_name', 'fact_data')
 
 
@@ -56,7 +56,7 @@ class InventoryViewSet(viewsets.ReadOnlyModelViewSet):
     filter_fields = (
         'application__name', 'application__bundleid',
         'application__bundlename', 'machine__hostname', 'machine__serial',
-        'version', 'path')
+        'machine__id', 'version', 'path')
     search_fields = (
         'application__name', 'application__bundleid',
         'application__bundlename',)
@@ -131,8 +131,8 @@ class PendingAppleUpdatesViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = PendingAppleUpdateSerializer
     queryset = PendingAppleUpdate.objects.all()
     filter_fields = (
-        'machine__serial', 'machine__hostname', 'update', 'update_version',
-        'display_name')
+        'machine__serial', 'machine__hostname', 'machine__id',
+        'update', 'update_version', 'display_name')
     search_fields = ('display_name', 'update')
 
 
@@ -147,8 +147,8 @@ class PendingUpdatesViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = PendingUpdateSerializer
     queryset = PendingUpdate.objects.all()
     filter_fields = (
-        'machine__serial', 'machine__hostname', 'update', 'update_version',
-        'display_name')
+        'machine__serial', 'machine__hostname', 'machine__id',
+        'update', 'update_version', 'display_name')
     search_fields = ('display_name', 'update')
 
 
@@ -164,7 +164,7 @@ class ProfileViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Profile.objects.all()
     serializer_class = ProfileSerializer
     filter_fields = (
-        'machine__serial', 'machine__hostname',
+        'machine__serial', 'machine__hostname', 'machine__id',
         'identifier', 'uuid')
     search_fields = ('identifier', 'uuid')
 

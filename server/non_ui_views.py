@@ -565,7 +565,11 @@ def process_facts(machine, report_data, datelimit):
 
         if fact_name in HISTORICAL_FACTS:
             historical_facts_to_be_created.append(
-                HistoricalFact(machine=machine, fact_data=fact_data, fact_name=fact_name))
+                HistoricalFact(
+                    machine=machine,
+                    fact_data=fact_data,
+                    fact_name=fact_name,
+                    fact_recorded=django.utils.timezone.now()))
 
     if facts_to_be_created:
         if IS_POSTGRES:

@@ -558,8 +558,7 @@ def inventory_submit(request):
 
                 if utils.is_postgres():
                     InventoryItem.objects.bulk_create(inventory_items_to_be_created)
-            # @shea - not sure why we're saving the machine again here.
-            # machine.save()
+
             return HttpResponse("Inventory submitted for %s.\n" % submission.get('serial'))
 
     return HttpResponse("No inventory submitted.\n")

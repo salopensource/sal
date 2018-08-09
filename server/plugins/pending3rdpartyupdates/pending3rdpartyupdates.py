@@ -4,7 +4,7 @@ from django.db.models import Count
 from django.shortcuts import get_object_or_404
 
 import sal.plugin
-from server.models import PendingUpdate
+from server.models import InstalledUpdate
 
 
 class Pending3rdPartyUpdates(sal.plugin.Widget):
@@ -16,8 +16,8 @@ class Pending3rdPartyUpdates(sal.plugin.Widget):
     def get_context(self, queryset, **kwargs):
         context = self.super_get_context(queryset, **kwargs)
         updates = (
-            PendingUpdate.objects
-            .filter(machine__in=queryset)
+            InstalledUpdate.objects
+            .filter(machine__in=queryset, installed=False)
             .values('update', 'update_version', 'display_name')
             .annotate(count=Count('update')))
 
@@ -32,14 +32,15 @@ class Pending3rdPartyUpdates(sal.plugin.Widget):
         except ValueError:
             return None, None
 
-        machines = machines.filter(pending_updates__update=update_name,
-                                   pending_updates__update_version=update_version)
+        machines = machines.filter(installed_updates__update=update_name,
+                                   installed_updates__update_version=update_version,
+                                   installed=False)
 
         # get the display name of the update
         try:
             display_name = (
-                PendingUpdate.objects
-                .filter(update=update_name, update_version=update_version)
+                InstalledUpdate.objects
+                .filter(update=update_name, update_version=update_version, installed=False)
                 .values('display_name')
                 .first())['display_name']
         except (AttributeError, TypeError):

@@ -4,7 +4,7 @@ import re
 from django.shortcuts import get_object_or_404
 
 from catalog.models import Catalog
-from server.models import BusinessUnit, InstalledUpdate, PendingUpdate
+from server.models import BusinessUnit, InstalledUpdate
 from server.text_utils import safe_unicode
 import sal.plugin
 
@@ -49,16 +49,13 @@ class InstallReport(sal.plugin.ReportPlugin):
             item['version'] = installed_update['update_version']
             item['name'] = installed_update['update']
             item['description'] = description_dict.get((item['name'], item['version']), '')
-            item['install_count'] = InstalledUpdate.objects.filter(
-                machine__in=machines,
-                update=installed_update['update'],
-                update_version=installed_update['update_version'],
-                installed=True).count()
 
-            item['pending_count'] = PendingUpdate.objects.filter(
+            update_queryset = InstalledUpdate.objects.filter(
                 machine__in=machines,
                 update=installed_update['update'],
-                update_version=installed_update['update_version']).count()
+                update_version=installed_update['update_version'])
+            item['install_count'] = update_queryset.filter(installed=True).count()
+            item['pending_count'] = update_queryset.filter(installed=False).count()
 
             item['installed_url'] = 'Installed?VERSION=%s&&NAME=%s' % (
                 item['version'], item['name'])
@@ -75,28 +72,28 @@ class InstallReport(sal.plugin.ReportPlugin):
 
     def filter(self, machines, data):
         if data.startswith('Installed?'):
-            version_re = re.search('Installed\?VERSION\=(.*)&&NAME', data)
-            version = version_re.group(1)
-            name_re = re.search('&&NAME=(.*)', data)
-            name = name_re.group(1)
-
-            machines = machines.filter(
-                installed_updates__update=name,
-                installed_updates__update_version=version,
-                installed_updates__installed=True)
-            title = 'Machines with %s %s installed' % (name, version)
+            pattern_prefix = 'Installed'
+            verb = 'installed'
 
         elif data.startswith('Pending?'):
-            version_re = re.search('Pending\?VERSION\=(.*)&&NAME', data)
-            version = version_re.group(1)
-            name_re = re.search('&&NAME=(.*)', data)
-            name = name_re.group(1)
-
-            machines = machines.filter(pending_updates__update=name,
-                                       pending_updates__update_version=version)
-            title = 'Machines with %s %s pending' % (name, version)
+            pattern_prefix = 'Pending'
+            verb = 'pending'
 
         else:
+            # Return early for improperly formatted requests.
             return None, None
+
+        name_re = re.search('&&NAME=(.*)', data)
+        version_re = re.search(r'{}\?VERSION\=(.*)&&NAME'.format(pattern_prefix), data)
+
+        version = version_re.group(1)
+        name = name_re.group(1)
+
+        title = 'Machines with %s %s %s' % (name, version, verb)
+
+        machines = machines.filter(
+            installed_updates__update=name,
+            installed_updates__update_version=version,
+            installed_updates__installed=True if verb == 'installed' else False)
 
         return machines, title

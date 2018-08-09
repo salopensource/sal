@@ -445,14 +445,16 @@ def process_memory(machine):
 
 def process_managed_items(machine, report_data, uuid, now, datelimit):
     """Process Munki updates and removals."""
-    items_to_create = defaultdict(list)
-
     # Delete all of these every run, as its faster than comparing
     # between the client/server and removing the difference.
     for related in ('pending_updates', 'pending_apple_updates', 'installed_updates'):
         to_delete = getattr(machine, related).all()
         if to_delete.exists():
             to_delete._raw_delete(to_delete.db)
+
+    # Accumulate items to create, so we can do `bulk_create` on
+    # supported databases.
+    items_to_create = defaultdict(list)
 
     # Keep track of created histories to reduce data-retention
     # processing later
@@ -474,6 +476,7 @@ def process_managed_items(machine, report_data, uuid, now, datelimit):
     seen_updates = set()
     for item in report_data.get('ManagedInstalls', []):
         kwargs = {'update': item['name'], 'machine': machine}
+        kwargs['display_name'] = item.get('display_name', item['name'])
         kwargs['installed'] = item['installed']
         version_key = 'installed_version' if kwargs['installed'] else 'version_to_install'
         kwargs['update_version'] = item.get(version_key, '0')
@@ -489,14 +492,15 @@ def process_managed_items(machine, report_data, uuid, now, datelimit):
 
         items_to_create[InstalledUpdate].append(InstalledUpdate(**kwargs))
 
+        # Change some kwarg names and prepare for the UpdateHIstory models.
+        kwargs['name'] = kwargs.pop('update')
+        kwargs.pop('display_name')
+        kwargs.pop('installed')
+        kwargs['version'] = kwargs.pop('update_version')
+        kwargs['recorded'] = dateutil.parser.parse(str(item['time'])) if 'time' in item else now
+        kwargs['uuid'] = uuid
         update_history_item, update_history = process_update_history_item(
-            machine,
-            'third_party',
-            item['name'],
-            kwargs['update_version'],
-            dateutil.parser.parse(str(item['time'])) if 'time' in item else now,
-            uuid,
-            'pending')
+            update_type='third_party', status='pending', **kwargs)
 
         if update_history_item is not None:
             items_to_create[UpdateHistoryItem].append(update_history_item)
@@ -510,41 +514,34 @@ def process_managed_items(machine, report_data, uuid, now, datelimit):
 
         items_to_create[PendingAppleUpdate].append(PendingAppleUpdate(**kwargs))
 
+        # Change some kwarg names and prepare for the UpdateHIstory models.
+        kwargs['name'] = kwargs.pop('update')
+        kwargs.pop('display_name')
+        kwargs['version'] = kwargs.pop('update_version')
+        kwargs['recorded'] = dateutil.parser.parse(str(item['time'])) if 'time' in item else now
+        kwargs['uuid'] = uuid
         update_history_item, update_history = process_update_history_item(
-            machine,
-            'apple',
-            item['name'],
-            kwargs['update_version'],
-            dateutil.parser.parse(str(item['time'])) if 'time' in item else now,
-            uuid,
-            'pending')
+            update_type='apple', status='pending', **kwargs)
 
         if update_history_item is not None:
             items_to_create[UpdateHistoryItem].append(update_history_item)
             excluded_item_histories.add(update_history.pk)
 
     # Process install and removal results into history items.
-
     for report_key, result_type in (('InstallResults', 'install'), ('RemovalResults', 'removal')):
         for item in report_data.get(report_key, []):
-            if item['status'] != 0:
-                status = 'error'
-            else:
-                status = result_type
+            kwargs = {'name': item['name'], 'machine': machine}
+            kwargs['update_type'] = 'apple' if item['applesus'] else 'third_party'
+            kwargs['version'] = item.get('version', '0')
+            kwargs['status'] = 'error' if item['status'] != 0 else result_type
+            kwargs['recorded'] = dateutil.parser.parse(str(item['time'])) if 'time' in item else now
 
             update_history_item, update_history = process_update_history_item(
-                machine,
-                'apple' if item['applesus'] else 'third_party',
-                item['name'],
-                item.get('version', '0'),
-                dateutil.parser.parse(str(item['time'])) if 'time' in item else now,
-                uuid,
-                status)
+                uuid=uuid, **kwargs)
 
             if update_history_item is not None:
                 items_to_create[UpdateHistoryItem].append(update_history_item)
                 excluded_item_histories.add(update_history.pk)
-
 
     # Bulk create all of the objects we've built up.
     for model, updates_to_save in items_to_create.items():

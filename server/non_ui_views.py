@@ -47,11 +47,6 @@ MACHINE_KEYS = {
     'cpu_type': {'old': 'CPUType', 'new': 'cpu_type'},
     'cpu_speed': {'old': 'CurrentProcessorSpeed', 'new': 'current_processor_speed'},
     'memory': {'old': 'PhysicalMemory', 'new': 'physical_memory'}}
-UPDATE_META = {
-    'AppleUpdates': {'update_type': 'apple'},
-    'ManagedInstalls': {'update_type': 'third_party'},
-    'InstallResults': {'status': 'install'},
-    'RemovalResults': {'status': 'removal'}}
 MEMORY_EXPONENTS = {'KB': 0, 'MB': 1, 'GB': 2, 'TB': 3}
 # Build a translation table for serial numbers, to remove garbage
 # VMware puts in.
@@ -343,7 +338,8 @@ def checkin(request):
     else:
         machine.console_user = None
 
-    machine.activity = any(report_data.get(s) for s in UPDATE_META.keys())
+    activity_keys = ('AppleUpdates', 'ManagedInstalls', 'InstallResults', 'RemovalResults')
+    machine.activity = any(report_data.get(s) for s in activity_keys)
 
     # Check errors and warnings.
     machine.errors = len(report_data.get("Errors", []))

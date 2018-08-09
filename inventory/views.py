@@ -2,35 +2,33 @@
 import copy
 import hashlib
 import plistlib
-from datetime import datetime
-from urllib import quote, urlencode
+from distutils.version import LooseVersion
+from urllib import quote
 
 # third-party
 import unicodecsv as csv
 
 # Django
-from django.conf import settings
-from django.contrib.auth.decorators import login_required
 from django.core.urlresolvers import reverse
-from django.http import (
-    HttpResponse, HttpResponseNotFound, HttpResponseBadRequest)
-from django.shortcuts import get_object_or_404, render_to_response
-from django.template import RequestContext
+from django.db.models import Q
+from django.http import HttpResponse, HttpResponseNotFound
+from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 from django.views.generic import DetailView, View
 
+# 3rd Party Django
 from datatableview import Datatable
 from datatableview.columns import DisplayColumn
 from datatableview.views import DatatableView
 
 # local Django
-from models import Application, Inventory, InventoryItem, Machine
+from inventory.models import Application, Inventory, InventoryItem
+from sal.decorators import (class_login_required, class_access_required, key_auth_required)
 from server import text_utils
 from server import utils
-from sal.decorators import *
-from server.models import BusinessUnit, MachineGroup, Machine  # noqa: F811
+from server.models import BusinessUnit, MachineGroup, Machine
 
 
 class GroupMixin(object):
@@ -48,8 +46,7 @@ class GroupMixin(object):
                "machine_group": MachineGroup}
     access_filter = {
         Application: {
-            BusinessUnit: ("inventoryitem__machine__machine_group__"
-                           "business_unit"),
+            BusinessUnit: "inventoryitem__machine__machine_group__business_unit",
             MachineGroup: "inventoryitem__machine__machine_group",
             Machine: "inventoryitem__machine", },
         InventoryItem: {
@@ -96,8 +93,7 @@ class GroupMixin(object):
         group_id = self.kwargs['group_id']
         group_class = self.classes[group_type]
         if group_class:
-            instance = get_object_or_404(
-                group_class, pk=group_id)
+            instance = get_object_or_404(group_class, pk=group_id)
         else:
             instance = None
 
@@ -198,39 +194,30 @@ class InventoryList(Datatable):
     # processor which filters by group_type. Without greatly increasing
     # the processing time for the view, we therefore cannot sort by
     # install count.
-    install_count = DisplayColumn(
-        "Install Count", source=None, processor='get_install_count')
+    install_count = DisplayColumn("Install Count", source=None, processor='get_install_count')
 
     class Meta:
-        columns = [
-            'hostname', 'serial', 'last_checkin', 'console_user',
-            'install_count']
+        columns = ['hostname', 'serial', 'last_checkin', 'console_user', 'install_count']
         labels = {
-            'hostname': 'Machine', 'serial': 'Serial Number', 'last_checkin':
-            'Last Checkin', 'console_user': 'User'}
-        processors = {
-            'hostname': 'get_machine_link', 'last_checkin': 'format_date'}
+            'hostname': 'Machine', 'serial': 'Serial Number', 'last_checkin': 'Last Checkin',
+            'console_user': 'User'}
+        processors = {'hostname': 'get_machine_link', 'last_checkin': 'format_date'}
         structure_template = 'datatableview/bootstrap_structure.html'
         page_length = utils.get_setting('datatable_page_length')
 
     def get_machine_link(self, instance, **kwargs):
-        url = reverse(
-            "machine_detail", kwargs={"machine_id": instance.pk})
+        url = reverse("machine_detail", kwargs={"machine_id": instance.pk})
 
-        return '<a href="{}">{}</a>'.format(
-            url, instance.hostname.encode("utf-8"))
+        return '<a href="{}">{}</a>'.format(url, instance.hostname.encode("utf-8"))
 
     def get_install_count(self, instance, **kwargs):
-        queryset = instance.inventoryitem_set.filter(
-            application=kwargs['view'].application)
+        queryset = instance.inventoryitem_set.filter(application=kwargs['view'].application)
         field_type = kwargs['view'].field_type
         field_value = kwargs['view'].field_value
         if field_type == "path":
-            queryset = queryset.filter(
-                path=field_value)
+            queryset = queryset.filter(path=field_value)
         elif field_type == "version":
-            queryset = queryset.filter(
-                version=field_value)
+            queryset = queryset.filter(version=field_value)
         return queryset.count()
 
     def format_date(self, instance, **kwargs):
@@ -246,36 +233,34 @@ class InventoryListView(DatatableQuerystringMixin, DatatableView, GroupMixin):
     csv_filename = "sal_inventory_list.csv"
 
     def get_queryset(self):
-        queryset = self.filter_queryset_by_group(self.model.objects.all())
-
-        # Filter based on Application.
-        self.application = get_object_or_404(
-            Application, pk=self.kwargs["application_id"])
-        queryset = queryset.filter(inventoryitem__application=self.application)
-
         # Save request values so we don't have to keep looking them up.
         self.group_type = self.request.GET.get("group_type", "all")
         self.group_id = self.request.GET.get("group_id", "0")
         self.field_type = self.request.GET.get("field_type", "all")
         self.field_value = self.request.GET.get("field_value", "")
 
-        # Filter again based on criteria.
-        if self.field_type == "path":
-            queryset = queryset.filter(
-                inventoryitem__path=self.field_value)
-        elif self.field_type == "version":
-            queryset = queryset.filter(
-                inventoryitem__version=self.field_value)
+        queryset = self.filter_queryset_by_group(self.model.objects.all())
 
-        return queryset.distinct()
+        # Build a Q object to filter based on Application.
+        self.application = get_object_or_404(Application, pk=self.kwargs["application_id"])
+        application_q = Q(inventoryitem__application=self.application)
+
+        # Build a Q object to filter based on the "field_type":
+        # 'path' or 'version'
+        kwargs = {}
+        if self.field_type != "all":
+            kwargs['inventoryitem__{}'.format(self.field_type)] = self.field_value
+        field_q = Q(**kwargs)
+
+        return queryset.filter(application_q, field_q).distinct()
 
     def get_context_data(self, **kwargs):
         context = super(InventoryListView, self).get_context_data(**kwargs)
         context["application_id"] = self.application.id
         context["group_type"] = self.group_type
         context["group_id"] = self.group_id
-        context["group_name"] = (self.group_instance.name if hasattr(
-            self.group_instance, "name") else None)
+        context["group_name"] = (
+            self.group_instance.name if hasattr(self.group_instance, "name") else None)
         context["app_name"] = self.application.name
         context["field_type"] = self.field_type
         context["field_value"] = self.field_value
@@ -290,8 +275,7 @@ class ApplicationList(Datatable):
     # processor which filters by group_type. Without greatly increasing
     # the processing time for the view, we therefore cannot sort by
     # install count.
-    install_count = DisplayColumn(
-        "Install Count", source=None, processor='get_install_count')
+    install_count = DisplayColumn("Install Count", source=None, processor='get_install_count')
 
     class Meta:
         columns = ['name', 'bundleid', 'bundlename', 'install_count']
@@ -308,8 +292,7 @@ class ApplicationList(Datatable):
 
     def get_install_count(self, instance, **kwargs):
         """Get the number of app installs filtered by access group"""
-        queryset = kwargs['view'].filter_queryset_by_group(
-            instance.inventoryitem_set)
+        queryset = kwargs['view'].filter_queryset_by_group(instance.inventoryitem_set)
         count = queryset.count()
 
         # Build a link to InventoryListView for install count badge.
@@ -318,8 +301,7 @@ class ApplicationList(Datatable):
         url = reverse("inventory_list", kwargs=link_kwargs)
 
         # Build the link.
-        anchor = '<a href="{}"><span class="badge">{}</span></a>'.format(
-            url, count)
+        anchor = '<a href="{}"><span class="badge">{}</span></a>'.format(url, count)
         return anchor
 
 
@@ -354,8 +336,7 @@ class ApplicationListView(DatatableView, GroupMixin):
         # 'no' or 'false' (it's a string).
         if utils.get_setting('filter_proxied_virtualization_apps', True):
             # Virtualization proxied apps
-            crufty_bundles.extend([
-                "com\.vmware\.proxyApp\..*", "com\.parallels\.winapp\..*"])
+            crufty_bundles.extend([r"com\.vmware\.proxyApp\..*", r"com\.parallels\.winapp\..*"])
 
         # Apple apps that are not generally used by users; currently
         # unused, but here for reference.
@@ -378,8 +359,7 @@ class ApplicationListView(DatatableView, GroupMixin):
             context["group_name"] = self.group_instance.hostname
         else:
             context["group_name"] = None
-        context["group_id"] = (self.group_instance.id if hasattr(
-            self.group_instance, "id") else 0)
+        context["group_id"] = self.group_instance.id if hasattr(self.group_instance, "id") else 0
         context["application_id"] = 0
         context["field_type"] = "all"
         context["field_value"] = 0
@@ -405,17 +385,17 @@ class ApplicationDetailView(DetailView, GroupMixin):
     def _get_unique_items(self, details):
         """Use optimized DB methods for getting unique items if possible."""
         if utils.is_postgres():
-            versions = details.order_by("version").distinct(
-                "version").values_list("version", flat=True)
-            paths = details.order_by("path").distinct("path").values_list(
-                "path", flat=True)
+            versions = (details
+                        .order_by("version")
+                        .distinct("version")
+                        .values_list("version", flat=True))
+            paths = details.order_by("path").distinct("path").values_list("path", flat=True)
         else:
             details = details.values()
             versions = {item["version"] for item in details}
             paths = {item["path"] for item in details}
 
             # We need to sort the versions for non-Postgres.
-            from distutils.version import LooseVersion
             versions = sorted(list(versions), key=lambda v: LooseVersion(v))
 
         return (versions, paths)
@@ -424,14 +404,12 @@ class ApplicationDetailView(DetailView, GroupMixin):
         # Get list of dicts of installed versions and number of installs
         # for each.
         context["versions"] = [
-            {"version": version,
-             "count": details.filter(version=version).count()} for
-            version in versions]
+            {"version": version, "count": details.filter(version=version).count()} for version in
+            versions]
         # Get list of dicts of installation locations and number of
         # installs for each.
         context["paths"] = [
-            {"path": path, "count": details.filter(path=path).count()}
-            for path in paths]
+            {"path": path, "count": details.filter(path=path).count()} for path in paths]
         # Get the total number of installations.
         context["install_count"] = details.count()
         # Add in access data.
@@ -468,16 +446,15 @@ class CSVExportView(CSVResponseMixin, GroupMixin, View):
 
         if application_id == "0":
             # All Applications.
-            self.set_header(
-                ["Name", "BundleID", "BundleName", "Install Count"])
+            self.set_header(["Name", "BundleID", "BundleName", "Install Count"])
             self.components = ['application', 'list', 'for', group_type]
             if group_type != "all":
                 self.components.append(group_id)
 
             if utils.is_postgres():
-                apps = [self.get_application_entry(item, queryset) for item in
-                        queryset.select_related("application").order_by(
-                ).distinct("application")]
+                apps = [
+                    self.get_application_entry(item, queryset) for item in
+                    queryset.select_related("application").order_by().distinct("application")]
                 data = apps
             else:
                 # TODO: This is super slow. This probably shouldn't be
@@ -488,15 +465,12 @@ class CSVExportView(CSVResponseMixin, GroupMixin, View):
                 data = sorted(apps, key=lambda x: x[0])
         else:
             # Inventory List for one application.
-            self.set_header(
-                ["Hostname", "Serial Number", "Last Checkin", "Console User"])
-            self.components = ["application", application_id,
-                               "for", group_type]
+            self.set_header(["Hostname", "Serial Number", "Last Checkin", "Console User"])
+            self.components = ["application", application_id, "for", group_type]
             if group_type != "all":
                 self.components.append(group_id)
             if field_type != "all":
-                self.components.extend(
-                    ["where", field_type, "is", quote(field_value)])
+                self.components.extend(["where", field_type, "is", quote(field_value)])
 
             queryset = queryset.filter(application=application_id)
             if field_type == "path":
@@ -529,9 +503,7 @@ class CSVExportView(CSVResponseMixin, GroupMixin, View):
 @key_auth_required
 def inventory_submit(request):
     # list of bundleids to ignore
-    bundleid_ignorelist = [
-        'com.apple.print.PrinterProxy'
-    ]
+    bundleid_ignorelist = ['com.apple.print.PrinterProxy']
     submission = request.POST
     serial = submission.get('serial').upper()
     machine = None
@@ -576,8 +548,7 @@ def inventory_submit(request):
                             application=app,
                             version=item.get("version", ""),
                             path=item.get('path', ''),
-                            machine=machine
-                        )
+                            machine=machine)
                         if utils.is_postgres():
                             inventory_items_to_be_created.append(i_item)
                         else:
@@ -586,13 +557,9 @@ def inventory_submit(request):
                 inventory_meta.save()
 
                 if utils.is_postgres():
-                    InventoryItem.objects.bulk_create(
-                        inventory_items_to_be_created)
-            # @shea - not sure why we're saving the machine again here.
-            # machine.save()
-            return HttpResponse(
-                "Inventory submitted for %s.\n" %
-                submission.get('serial'))
+                    InventoryItem.objects.bulk_create(inventory_items_to_be_created)
+
+            return HttpResponse("Inventory submitted for %s.\n" % submission.get('serial'))
 
     return HttpResponse("No inventory submitted.\n")
 

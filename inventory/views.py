@@ -24,11 +24,11 @@ from datatableview.columns import DisplayColumn
 from datatableview.views import DatatableView
 
 # local Django
-from models import Application, Inventory, InventoryItem, Machine
+from inventory.models import Application, Inventory, InventoryItem
+from sal.decorators import (class_login_required, class_access_required, key_auth_required)
 from server import text_utils
 from server import utils
-from sal.decorators import (class_login_required, class_access_required, key_auth_required)
-from server.models import BusinessUnit, MachineGroup, Machine  # noqa: F811
+from server.models import BusinessUnit, MachineGroup, Machine
 
 
 class GroupMixin(object):

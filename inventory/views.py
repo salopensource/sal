@@ -352,7 +352,7 @@ class ApplicationListView(DatatableView, GroupMixin):
         if utils.get_setting('filter_proxied_virtualization_apps', True):
             # Virtualization proxied apps
             crufty_bundles.extend([
-                "com\.vmware\.proxyApp\..*", "com\.parallels\.winapp\..*"])
+                r"com\.vmware\.proxyApp\..*", r"com\.parallels\.winapp\..*"])
 
         # Apple apps that are not generally used by users; currently
         # unused, but here for reference.
@@ -471,9 +471,9 @@ class CSVExportView(CSVResponseMixin, GroupMixin, View):
                 self.components.append(group_id)
 
             if utils.is_postgres():
-                apps = [self.get_application_entry(item, queryset) for item in
-                        queryset.select_related("application").order_by(
-                ).distinct("application")]
+                apps = [
+                    self.get_application_entry(item, queryset) for item in
+                    queryset.select_related("application").order_by().distinct("application")]
                 data = apps
             else:
                 # TODO: This is super slow. This probably shouldn't be

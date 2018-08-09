@@ -2,26 +2,23 @@
 import copy
 import hashlib
 import plistlib
-from datetime import datetime
-from urllib import quote, urlencode
+from distutils.version import LooseVersion
+from urllib import quote
 
 # third-party
 import unicodecsv as csv
 
 # Django
-from django.conf import settings
-from django.contrib.auth.decorators import login_required
 from django.core.urlresolvers import reverse
 from django.db.models import Q
-from django.http import (
-    HttpResponse, HttpResponseNotFound, HttpResponseBadRequest)
-from django.shortcuts import get_object_or_404, render_to_response
-from django.template import RequestContext
+from django.http import HttpResponse, HttpResponseNotFound
+from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 from django.views.generic import DetailView, View
 
+# 3rd Party Django
 from datatableview import Datatable
 from datatableview.columns import DisplayColumn
 from datatableview.views import DatatableView
@@ -30,7 +27,7 @@ from datatableview.views import DatatableView
 from models import Application, Inventory, InventoryItem, Machine
 from server import text_utils
 from server import utils
-from sal.decorators import *
+from sal.decorators import (class_login_required, class_access_required, key_auth_required)
 from server.models import BusinessUnit, MachineGroup, Machine  # noqa: F811
 
 
@@ -415,7 +412,6 @@ class ApplicationDetailView(DetailView, GroupMixin):
             paths = {item["path"] for item in details}
 
             # We need to sort the versions for non-Postgres.
-            from distutils.version import LooseVersion
             versions = sorted(list(versions), key=lambda v: LooseVersion(v))
 
         return (versions, paths)

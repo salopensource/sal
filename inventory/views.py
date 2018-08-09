@@ -12,6 +12,7 @@ import unicodecsv as csv
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.core.urlresolvers import reverse
+from django.db.models import Q
 from django.http import (
     HttpResponse, HttpResponseNotFound, HttpResponseBadRequest)
 from django.shortcuts import get_object_or_404, render_to_response
@@ -246,28 +247,27 @@ class InventoryListView(DatatableQuerystringMixin, DatatableView, GroupMixin):
     csv_filename = "sal_inventory_list.csv"
 
     def get_queryset(self):
-        queryset = self.filter_queryset_by_group(self.model.objects.all())
-
-        # Filter based on Application.
-        self.application = get_object_or_404(
-            Application, pk=self.kwargs["application_id"])
-        queryset = queryset.filter(inventoryitem__application=self.application)
-
         # Save request values so we don't have to keep looking them up.
         self.group_type = self.request.GET.get("group_type", "all")
         self.group_id = self.request.GET.get("group_id", "0")
         self.field_type = self.request.GET.get("field_type", "all")
         self.field_value = self.request.GET.get("field_value", "")
 
-        # Filter again based on criteria.
-        if self.field_type == "path":
-            queryset = queryset.filter(
-                inventoryitem__path=self.field_value)
-        elif self.field_type == "version":
-            queryset = queryset.filter(
-                inventoryitem__version=self.field_value)
+        queryset = self.filter_queryset_by_group(self.model.objects.all())
 
-        return queryset.distinct()
+        # Build a Q object to filter based on Application.
+        self.application = get_object_or_404(
+            Application, pk=self.kwargs["application_id"])
+        application_q = Q(inventoryitem__application=self.application)
+
+        # Build a Q object to filter based on the "field_type":
+        # 'path' or 'version'
+        kwargs = {}
+        if self.field_type != "all":
+            kwargs['inventoryitem__{}'.format(self.field_type)] = self.field_value
+        field_q = Q(**kwargs)
+
+        return queryset.filter(application_q, field_q).distinct()
 
     def get_context_data(self, **kwargs):
         context = super(InventoryListView, self).get_context_data(**kwargs)

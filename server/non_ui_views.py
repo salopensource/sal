@@ -47,11 +47,6 @@ MACHINE_KEYS = {
     'cpu_type': {'old': 'CPUType', 'new': 'cpu_type'},
     'cpu_speed': {'old': 'CurrentProcessorSpeed', 'new': 'current_processor_speed'},
     'memory': {'old': 'PhysicalMemory', 'new': 'physical_memory'}}
-UPDATE_META = {
-    'AppleUpdates': {'update_type': 'apple'},
-    'ManagedInstalls': {'update_type': 'third_party'},
-    'InstallResults': {'status': 'install'},
-    'RemovalResults': {'status': 'removal'}}
 MEMORY_EXPONENTS = {'KB': 0, 'MB': 1, 'GB': 2, 'TB': 3}
 # Build a translation table for serial numbers, to remove garbage
 # VMware puts in.
@@ -343,7 +338,8 @@ def checkin(request):
     else:
         machine.console_user = None
 
-    machine.activity = any(report_data.get(s) for s in UPDATE_META.keys())
+    activity_keys = ('AppleUpdates', 'ManagedInstalls', 'InstallResults', 'RemovalResults')
+    machine.activity = any(report_data.get(s) for s in activity_keys)
 
     # Check errors and warnings.
     machine.errors = len(report_data.get("Errors", []))
@@ -449,8 +445,6 @@ def process_memory(machine):
 
 def process_managed_items(machine, report_data, uuid, now, datelimit):
     """Process Munki updates and removals."""
-    items_to_create = defaultdict(list)
-
     # Delete all of these every run, as its faster than comparing
     # between the client/server and removing the difference.
     for related in ('pending_updates', 'pending_apple_updates', 'installed_updates'):
@@ -458,69 +452,98 @@ def process_managed_items(machine, report_data, uuid, now, datelimit):
         if to_delete.exists():
             to_delete._raw_delete(to_delete.db)
 
+    # Accumulate items to create, so we can do `bulk_create` on
+    # supported databases.
+    items_to_create = defaultdict(list)
+
+    # Keep track of created histories to reduce data-retention
+    # processing later
+    excluded_item_histories = set()
+
     # Process ManagedInstalls for pending and already installed
-    # updates, AppleUpdates for pending, and
-    # [Install|Removal]Results for history items.
-    managed_item_histories = set()
-    for report_key, args in UPDATE_META.items():
-        seen_updates = set()
+    # updates
+
+    # Due to a quirk in how Munki 3 processes updates with
+    # dependencies, it's possible to have multiple entries in the
+    # ManagedInstalls list that share an update_name and
+    # installed_version. This causes an IntegrityError in Django
+    # since (machine_id, update, update_version) must be
+    # unique.Until/(unless!) this is addressed in Munki, we need
+    # to be careful to not add multiple items with the same name
+    # and version.  We'll store each (update_name, version) combo
+    # as we see them.
+    # TODO: Process on the client side to avoid this.
+    seen_updates = set()
+    for item in report_data.get('ManagedInstalls', []):
+        kwargs = {'update': item['name'], 'machine': machine}
+        kwargs['display_name'] = item.get('display_name', item['name'])
+        kwargs['installed'] = item['installed']
+        version_key = 'installed_version' if kwargs['installed'] else 'version_to_install'
+        kwargs['update_version'] = item.get(version_key, '0')
+
+        item_key = (kwargs['update'], kwargs['update_version'])
+        if item_key not in seen_updates:
+            seen_updates.add(item_key)
+        else:
+            # This update has already been processed, start the next.
+            continue
+
+        kwargs['display_name'] = item.get('display_name', item['name'])
+
+        items_to_create[InstalledUpdate].append(InstalledUpdate(**kwargs))
+
+        # Change some kwarg names and prepare for the UpdateHIstory models.
+        kwargs['name'] = kwargs.pop('update')
+        kwargs.pop('display_name')
+        kwargs.pop('installed')
+        kwargs['version'] = kwargs.pop('update_version')
+        kwargs['recorded'] = dateutil.parser.parse(str(item['time'])) if 'time' in item else now
+        kwargs['uuid'] = uuid
+        update_history_item, update_history = process_update_history_item(
+            update_type='third_party', status='pending', **kwargs)
+
+        if update_history_item is not None:
+            items_to_create[UpdateHistoryItem].append(update_history_item)
+            excluded_item_histories.add(update_history.pk)
+
+    # Process pending Apple updates
+    for item in report_data.get('AppleUpdates', []):
+        kwargs = {'update': item['name'], 'machine': machine}
+        kwargs['update_version'] = item.get('version_to_install', '0')
+        kwargs['display_name'] = item.get('display_name', item['name'])
+
+        items_to_create[PendingAppleUpdate].append(PendingAppleUpdate(**kwargs))
+
+        # Change some kwarg names and prepare for the UpdateHIstory models.
+        kwargs['name'] = kwargs.pop('update')
+        kwargs.pop('display_name')
+        kwargs['version'] = kwargs.pop('update_version')
+        kwargs['recorded'] = dateutil.parser.parse(str(item['time'])) if 'time' in item else now
+        kwargs['uuid'] = uuid
+        update_history_item, update_history = process_update_history_item(
+            update_type='apple', status='pending', **kwargs)
+
+        if update_history_item is not None:
+            items_to_create[UpdateHistoryItem].append(update_history_item)
+            excluded_item_histories.add(update_history.pk)
+
+    # Process install and removal results into history items.
+    for report_key, result_type in (('InstallResults', 'install'), ('RemovalResults', 'removal')):
         for item in report_data.get(report_key, []):
-            kwargs = {'update': item['name'], 'machine': machine}
-            kwargs['display_name'] = item.get('display_name', item['name'])
-            installed = item.get('installed')
-            if installed is not None:
-                kwargs['installed'] = installed
-            version_key = 'installed_version' if installed else 'version_to_install'
-            kwargs['update_version'] = item.get(version_key, '0')
+            kwargs = {'name': item['name'], 'machine': machine}
+            kwargs['update_type'] = 'apple' if item['applesus'] else 'third_party'
+            kwargs['version'] = item.get('version', '0')
+            kwargs['status'] = 'error' if item['status'] != 0 else result_type
+            kwargs['recorded'] = dateutil.parser.parse(str(item['time'])) if 'time' in item else now
 
-            update_type = args.get('update_type')
-            if not update_type:
-                if 'applesus' in item:
-                    update_type = 'apple' if item['applesus'] else 'third_party'
-                else:
-                    update_type = 'third_party'
+            update_history_item, update_history = process_update_history_item(
+                uuid=uuid, **kwargs)
 
-            if installed is not None:
-                model = InstalledUpdate
-            elif update_type == 'apple':
-                model = PendingAppleUpdate
-            else:
-                model = PendingUpdate
+            if update_history_item is not None:
+                items_to_create[UpdateHistoryItem].append(update_history_item)
+                excluded_item_histories.add(update_history.pk)
 
-            install_time = dateutil.parser.parse(str(item['time'])) if 'time' in item else now
-
-            status = args.get('status')
-            if status and item['status'] != 0:
-                status = 'error'
-            elif not status:
-                status = 'install' if installed else 'pending'
-
-            # Due to a quirk in how Munki 3 processes updates with
-            # dependencies, it's possible to have multiple entries in the
-            # ManagedInstalls list that share an update_name and
-            # installed_version. This causes an IntegrityError in Django
-            # since (machine_id, update, update_version) must be
-            # unique.Until/(unless!) this is addressed in Munki, we need
-            # to be careful to not add multiple items with the same name
-            # and version.  We'll store each (update_name, version) combo
-            # as we see them.
-            # TODO: Process on the client side to avoid this.
-            item_key = (kwargs['update'], kwargs['update_version'])
-            if item_key not in seen_updates:
-                items_to_create[model].append(model(**kwargs))
-                seen_updates.add(item_key)
-
-            update_history, _ = UpdateHistory.objects.get_or_create(
-                name=kwargs['update'], version=kwargs['update_version'], machine=machine,
-                update_type=update_type)
-            managed_item_histories.add(update_history.pk)
-            # Only create a history item if there are none or
-            # if the last one is not the same status.
-            items_set = update_history.updatehistoryitem_set.order_by('recorded')
-            if not items_set.exists() or items_set.last().status != status:
-                UpdateHistoryItem.objects.create(
-                    update_history=update_history, status=status, recorded=install_time, uuid=uuid)
-
+    # Bulk create all of the objects we've built up.
     for model, updates_to_save in items_to_create.items():
         if IS_POSTGRES:
             model.objects.bulk_create(updates_to_save)
@@ -530,8 +553,13 @@ def process_managed_items(machine, report_data, uuid, now, datelimit):
 
     # Clean up UpdateHistory and items which are over our retention
     # limit and are no longer managed, or which have no history items.
-    histories_to_delete = UpdateHistory.objects.exclude(pk__in=managed_item_histories).\
-        filter(machine=machine)
+
+    # Exclude items we just created to cut down on processing.
+    histories_to_delete = (UpdateHistory
+                           .objects
+                           .exclude(pk__in=excluded_item_histories)
+                           .filter(machine=machine))
+
     for history in histories_to_delete:
         try:
             latest = history.updatehistoryitem_set.latest('recorded').recorded
@@ -541,6 +569,22 @@ def process_managed_items(machine, report_data, uuid, now, datelimit):
 
         if latest < datelimit:
             history.delete()
+
+
+def process_update_history_item(machine, update_type, name, version, recorded, uuid, status):
+    update_history, _ = UpdateHistory.objects.get_or_create(
+        machine=machine, update_type=update_type, name=name, version=version)
+
+    # Only create a history item if there are none or
+    # if the last one is not the same status.
+    items_set = update_history.updatehistoryitem_set.order_by('recorded')
+    if not items_set.exists() or items_set.last().status != status:
+        update_history_item = UpdateHistoryItem(
+            update_history=update_history, status=status, recorded=recorded, uuid=uuid)
+    else:
+        update_history_item = None
+
+    return (update_history_item, update_history)
 
 
 def process_facts(machine, report_data, datelimit):

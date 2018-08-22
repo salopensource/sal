@@ -177,6 +177,10 @@ def search_machines(search_id, machines, full=False):
                     search_field = 'name'
                 elif search_row.search_field == 'Bundle ID':
                     search_field = 'bundleid'
+                elif search_row.search_field == 'Path':
+                    search_field = 'path'
+                elif search_row.search_field == 'Bundle Name':
+                    search_field = 'bundlename'
                 querystring = {
                     'inventoryitem__application__%s%s' % (search_field, operator): search_row.search_term  # noqa: E501
                 }

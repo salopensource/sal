@@ -34,7 +34,7 @@ class Pending3rdPartyUpdates(sal.plugin.Widget):
 
         machines = machines.filter(installed_updates__update=update_name,
                                    installed_updates__update_version=update_version,
-                                   installed=False)
+                                   installed_updates__installed=False)
 
         # get the display name of the update
         try:

@@ -338,7 +338,7 @@ def checkin(request):
     else:
         machine.console_user = None
 
-    activity_keys = ('AppleUpdates', 'ManagedInstalls', 'InstallResults', 'RemovalResults')
+    activity_keys = ('AppleUpdates', 'InstallResults', 'RemovalResults')
     machine.activity = any(report_data.get(s) for s in activity_keys)
 
     # Check errors and warnings.

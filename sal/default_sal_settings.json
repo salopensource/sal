@@ -26,6 +26,10 @@
 	{
 		"name": "datatable_page_length",
 		"value": "20"
+	},
+	{
+		"name": "normalize_chromeos_versions",
+		"value": "true"
 	}
 ]
 

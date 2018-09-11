@@ -3,6 +3,7 @@ from server.models import *
 
 
 class Application(models.Model):
+    id = models.BigAutoField(primary_key=True)
     name = models.CharField(db_index=True, max_length=255)
     bundleid = models.CharField(db_index=True, max_length=255)
     bundlename = models.CharField(db_index=True, max_length=255)
@@ -16,6 +17,7 @@ class Application(models.Model):
 
 
 class Inventory(models.Model):
+    id = models.BigAutoField(primary_key=True)
     machine = models.OneToOneField(Machine)
     datestamp = models.DateTimeField(auto_now=True)
     sha256hash = models.CharField(max_length=64)
@@ -26,10 +28,11 @@ class Inventory(models.Model):
 
 
 class InventoryItem(models.Model):
+    id = models.BigAutoField(primary_key=True)
     machine = models.ForeignKey(Machine)
     application = models.ForeignKey(Application)
     version = models.CharField(db_index=True, max_length=64)
-    path = models.TextField()
+    path = models.TextField(blank=True, null=True)
 
     class Meta:
         ordering = ['application', '-version']

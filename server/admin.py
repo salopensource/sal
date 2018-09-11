@@ -134,7 +134,7 @@ class MachineAdmin(admin.ModelAdmin):
         ('munki_version', 'manifest', 'errors', 'warnings'),
         ('last_checkin', 'first_checkin'),
         ('puppet_version', 'last_puppet_run', 'puppet_errors'),
-        ('sal_version', 'deployed', 'broken_client'),
+        ('sal_version', 'deployed', 'broken_client', 'activity'),
         'report'
     )
     readonly_fields = (business_unit, 'first_checkin', 'last_checkin', 'last_puppet_run')

@@ -59,6 +59,7 @@ class OperatingSystem(sal.plugin.Widget):
                 if not found:
                     item_to_add = {}
                     item_to_add['operating_system'] = version_string
+                    item_to_add['os_family'] = 'ChromeOS'
                     item_to_add['count'] = chrome_item['count']
                     chrome_items.append(item_to_add)
 
@@ -80,7 +81,7 @@ class OperatingSystem(sal.plugin.Widget):
         normalize_chromeos_versions = get_setting('normalize_chromeos_versions')
         if os_family == 'ChromeOS' and normalize_chromeos_versions:
             machines = machines.filter(
-                operating_system__starts_with=operating_system,
+                operating_system__startswith=operating_system,
                 os_family=os_family
             )
         else:

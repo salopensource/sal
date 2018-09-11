@@ -533,6 +533,7 @@ def inventory_submit(request):
                     inventory_meta = Inventory(machine=machine)
                 inventory_meta.sha256hash = \
                     hashlib.sha256(inventory_str).hexdigest()
+                inventory_meta.inventory_str = inventory_str
                 # clear existing inventoryitems
                 machine.inventoryitem_set.all().delete()
                 # insert current inventory items

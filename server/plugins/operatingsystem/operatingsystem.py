@@ -61,7 +61,7 @@ class OperatingSystem(sal.plugin.Widget):
                     item_to_add['operating_system'] = version_string
                     item_to_add['count'] = chrome_item['count']
                     chrome_items.append(item_to_add)
-                
+
             grouped['Chrome OS'] = chrome_items
         # you and your lanbda's @sheacraig...
         os_key = lambda x: LooseVersion(x["operating_system"])  # noqa: E731

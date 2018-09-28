@@ -134,7 +134,7 @@ def search_machines(search_id, machines, full=False):
                 '>': '__gt',
                 '>=': '__gte',
             }
-            for display_operator, actual_operator in operators.iteritems():
+            for display_operator, actual_operator in operators.items():
                 if search_row.operator == display_operator:
                     operator = actual_operator
                     break

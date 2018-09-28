@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 from os import getenv
 import locale
 from system_settings import *

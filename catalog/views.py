@@ -10,7 +10,6 @@ from django.core.urlresolvers import reverse
 from django.db.models import Count, Q
 from django.http import (Http404, HttpRequest, HttpResponse, HttpResponseRedirect)
 from django.shortcuts import get_object_or_404, redirect, render
-from django.template import Context, RequestContext, Template
 from django.template.context_processors import csrf
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST

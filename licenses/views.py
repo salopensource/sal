@@ -4,7 +4,6 @@ import plistlib
 from django.contrib.auth.decorators import login_required, permission_required
 from django.http import (Http404, HttpRequest, HttpResponse, HttpResponseRedirect)
 from django.shortcuts import get_object_or_404, redirect, render
-from django.template import Context, RequestContext, Template
 from django.template.context_processors import csrf
 
 from licenses.forms import *

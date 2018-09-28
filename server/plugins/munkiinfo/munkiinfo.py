@@ -1,5 +1,5 @@
 import re
-import urllib.request, urllib.parse, urllib.error
+import urllib.parse
 
 from django.db.models import Count, F, Q
 from django.http import Http404

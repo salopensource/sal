@@ -1,5 +1,5 @@
 # Django settings for sal project.
-from system_settings import *
+from sal.system_settings import *
 import os
 
 BASIC_AUTH = True

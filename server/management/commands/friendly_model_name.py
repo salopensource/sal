@@ -1,11 +1,10 @@
-'''
-Retrieves the firendly model name for machines that don't have one yet.
-'''
+"""Retrieves the friendly model name for machines that don't have one yet."""
 
 from django.core.management.base import BaseCommand, CommandError
-from server.models import Machine
 from django.db.models import Q
+
 import server.utils as utils
+from server.models import Machine
 
 
 class Command(BaseCommand):
@@ -18,6 +17,6 @@ class Command(BaseCommand):
             Q(machine_model_friendly='')
         ).exclude(machine_model__isnull=True).exclude(machine_model='').filter(os_family='Darwin')
         for machine in no_friendly[:100]:
-            print(f'Processing {machine}'
+            print(f'Processing {machine}')
             machine.machine_model_friendly = utils.friendly_machine_model(machine)
             machine.save()

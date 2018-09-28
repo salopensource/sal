@@ -2,7 +2,7 @@
 
 
 import contextlib
-import cStringIO
+import io
 import sys
 
 from django.urls import reverse
@@ -21,13 +21,13 @@ from server.models import (ApiKey, BusinessUnit, MachineGroup, Machine)
 def no_stdout():
     """Method decorator to prevent stdout from mucking up test output"""
     saved_stdout = sys.stdout
-    sys.stdout = cStringIO.StringIO()
+    sys.stdout = io.StringIO()
     try:
         yield
     except Exception:
         saved_output = sys.stdout
         sys.stdout = saved_stdout
-        print saved_output.getvalue()
+        print(saved_output.getvalue())
         raise
     sys.stdout = saved_stdout
 

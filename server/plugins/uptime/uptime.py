@@ -4,7 +4,7 @@ import sal.plugin
 
 
 # Build some Q objects for use later.
-ALERT_RANGE = list(xrange(0, 90))
+ALERT_RANGE = list(range(0, 90))
 DATA = 'pluginscriptsubmission__pluginscriptrow__pluginscript_data__in={}'
 ALERT_Q = eval('Q({})'.format(DATA.format(ALERT_RANGE)))
 OK_Q = eval('Q({})'.format(DATA.format(ALERT_RANGE[0:30])))

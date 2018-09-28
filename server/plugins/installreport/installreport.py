@@ -34,7 +34,7 @@ class InstallReport(sal.plugin.ReportPlugin):
 
         description_dict = {}
         for catalog in catalog_objects:
-            safe_data = plistlib.readPlistFromString(safe_unicode(catalog.content))
+            safe_data = plistlib.loads(safe_unicode(catalog.content))
             for pkginfo in safe_data:
                 description_dict[pkginfo['name'], pkginfo['version']] = pkginfo.get(
                     'description', '')

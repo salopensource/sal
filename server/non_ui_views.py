@@ -331,7 +331,7 @@ def checkin(request):
         machine.errors = machine.warnings = 0
         return
 
-    report_data = plistlib.readPlistFromString(report)
+    report_data = plistlib.loads(report)
 
     if report_data.get('ConsoleUser') and report_data.get('ConsoleUser') != '_mbsetupuser':
         machine.console_user = report_data.get('ConsoleUser')

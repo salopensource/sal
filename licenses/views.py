@@ -95,11 +95,8 @@ def available(request, key, item_name=''):
         for license in licenses:
             info[license.item_name] = license.available()
 
-    if output_style == 'json':
-        return HttpResponse(json.dumps(info), content_type='application/json')
-    else:
-        return HttpResponse(plistlib.writePlistToString(info),
-                            content_type='application/xml')
+    module = json if output_style == 'json' else plistlib
+    return HttpResponse(module.dumps(info), content_type='application/json')
 
 
 def usage(request, key, item_name=''):
@@ -123,8 +120,5 @@ def usage(request, key, item_name=''):
                 info[name]['total'] - info[name]['used'])
         except (License.DoesNotExist):
             info[name] = {}
-    if output_style == 'json':
-        return HttpResponse(json.dumps(info), content_type='application/json')
-    else:
-        return HttpResponse(plistlib.writePlistToString(info),
-                            content_type='application/xml')
+    module = json if output_style == 'json' else plistlib
+    return HttpResponse(module.dumps(info), content_type='application/json')

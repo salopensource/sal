@@ -6,4 +6,4 @@ cd $SAL_PATH
 export PYTHONPATH=$SAL_PATH/sal/sal:$PYTHONPATH
 export DJANGO_SETTINGS_MODULE='sal.settings'
  
-$SAL_PATH/sal_env/bin/python manage.py search_maintenance
+$SAL_PATH/sal_env/bin/python3 manage.py search_maintenance

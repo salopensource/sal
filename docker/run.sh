@@ -27,17 +27,17 @@ DB_PASS=${DB_PASS:-}
 
 # sleep 2
 
-python manage.py migrate --noinput
-python manage.py collectstatic --noinput
+python3 manage.py migrate --noinput
+python3 manage.py collectstatic --noinput
 
 /bin/rm -f /var/run/gunicorn.pid
 
 cron
 
 if [ ! -z "$ADMIN_PASS" ] ; then
-  python manage.py update_admin_user --username=admin --password=$ADMIN_PASS
+  python3 manage.py update_admin_user --username=admin --password=$ADMIN_PASS
 else
-  python manage.py update_admin_user --username=admin --password=password
+  python3 manage.py update_admin_user --username=admin --password=password
 fi
 
 # tail -n 0 -f /var/log/gunicorn/gunicorn*.log & tail -n 0 -f $APP_DIR/sal.log &
@@ -49,7 +49,7 @@ printenv | sed 's/^\(.*\)$/export \1/g' > /env_vars.sh
 if [ "$DOCKER_SAL_DEBUG" = "true" ] || [ "$DOCKER_SAL_DEBUG" = "True" ] || [ "$DOCKER_SAL_DEBUG" = "TRUE" ] ; then
     service nginx stop
     echo "RUNNING IN DEBUG MODE"
-    python manage.py runserver 0.0.0.0:8000
+    python3 manage.py runserver 0.0.0.0:8000
 else
   supervisord --nodaemon -c $APP_DIR/supervisord.conf
 fi

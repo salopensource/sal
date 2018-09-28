@@ -23,11 +23,12 @@ RUN apt-get update && \
     apt-get -y install \
     git \
     nginx \
-    python-setuptools \
+	python3 \
+    python3-setuptools \
     postgresql \
     postgresql-contrib \
     libpq-dev \
-    python-dev \
+    python3-dev \
     curl \
     supervisor \
     libffi-dev && \
@@ -36,8 +37,7 @@ RUN apt-get update && \
     mkdir /tmp/setup
 COPY setup/requirements.txt /tmp/setup/requirements.txt
 COPY requirements.txt /tmp/requirements.txt
-RUN easy_install pip && \
-    pip install -r /tmp/requirements.txt && \
+RUN pip3 install -r /tmp/requirements.txt && \
     rm /tmp/requirements.txt && \
     rm -rf /tmp/setup && \
     update-rc.d -f postgresql remove && \

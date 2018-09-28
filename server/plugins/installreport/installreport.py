@@ -5,7 +5,7 @@ from django.shortcuts import get_object_or_404
 
 from catalog.models import Catalog
 from server.models import BusinessUnit, InstalledUpdate
-from server.text_utils import safe_unicode
+from server.text_utils import safe_bytes
 import sal.plugin
 
 
@@ -34,7 +34,7 @@ class InstallReport(sal.plugin.ReportPlugin):
 
         description_dict = {}
         for catalog in catalog_objects:
-            safe_data = plistlib.loads(safe_unicode(catalog.content))
+            safe_data = plistlib.loads(safe_bytes(catalog.content))
             for pkginfo in safe_data:
                 description_dict[pkginfo['name'], pkginfo['version']] = pkginfo.get(
                     'description', '')

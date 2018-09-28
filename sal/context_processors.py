@@ -19,5 +19,6 @@ def config_installed(request):
 def sal_version(request):
     # return the value you want as a dictionnary. you may add multiple values in there.
     current_dir = os.path.dirname(os.path.realpath(__file__))
-    version = plistlib.readPlist(os.path.join(current_dir, 'version.plist'))
+    with open(os.path.join(current_dir, 'version.plist'), 'rb') as handle:
+        version = plistlib.load(handle)
     return {'SAL_VERSION': version['version']}

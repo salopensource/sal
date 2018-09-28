@@ -44,7 +44,8 @@ def submit_profiles(request):
             compressed_profiles = compressed_profiles.replace(" ", "+")
             profiles_str = text_utils.decode_to_string(compressed_profiles, compression_type)
             try:
-                profiles_list = plistlib.readPlistFromString(profiles_str)
+                with open(profiles_str, 'rb') as handle:
+                    profiles_list = plistlib.load(handle)
             except Exception:
                 profiles_list = None
 

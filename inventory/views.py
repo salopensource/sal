@@ -523,7 +523,8 @@ def inventory_submit(request):
             compressed_inventory = compressed_inventory.replace(" ", "+")
             inventory_str = text_utils.decode_to_string(compressed_inventory, compression_type)
             try:
-                inventory_list = plistlib.readPlistFromString(inventory_str)
+                with open(inventory_str, 'rb') as handle:
+                    inventory_list = plistlib.load(handle)
             except Exception:
                 inventory_list = None
             if inventory_list:

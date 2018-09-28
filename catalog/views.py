@@ -38,10 +38,10 @@ def submit_catalog(request):
 
         compressed_catalog = submission.get('base64bz2catalog')
         if compressed_catalog:
-            # compressed_catalog = compressed_catalog.replace(" ", "+")
             catalog_str = decode_to_string(compressed_catalog)
             try:
-                catalog_plist = plistlib.readPlistFromString(catalog_str)
+                with open(catalog_str, 'rb') as handle:
+                    catalog_plist = plistlib.load(handle)
             except Exception:
                 catalog_plist = None
             if catalog_plist:
@@ -71,7 +71,7 @@ def catalog_hash(request):
     if catalogs:
         catalogs = decode_to_string(catalogs)
         try:
-            catalogs_plist = plistlib.readPlistFromString(catalogs)
+            catalogs_plist = plistlib.loads(catalogs)
         except Exception:
             catalogs_plist = None
         if catalogs_plist:
@@ -83,4 +83,4 @@ def catalog_hash(request):
                 except Catalog.DoesNotExist:
                     output.append({'name': name, 'sha256hash': 'NOT FOUND'})
 
-    return HttpResponse(plistlib.writePlistToString(output))
+    return HttpResponse(plistlib.dumps(output))

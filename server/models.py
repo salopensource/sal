@@ -155,7 +155,7 @@ class Machine(models.Model):
 
     def get_report(self):
         try:
-            return plistlib.readPlistFromString(self.report)
+            return plistlib.loads(self.report)
         except TypeError:
             return {}
 

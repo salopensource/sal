@@ -69,7 +69,8 @@ def get_instance_and_groups(group_type, group_id):
 
 def get_server_version():
     current_dir = os.path.dirname(os.path.realpath(__file__))
-    version = plistlib.readPlist(os.path.join(os.path.dirname(current_dir), 'sal', 'version.plist'))
+    with open(os.path.join(os.path.dirname(current_dir), 'sal', 'version.plist'), 'rb') as handle:
+        version = plistlib.load(handle)
     return version['version']
 
 
@@ -132,11 +133,12 @@ def send_report():
 
         # version
         current_dir = os.path.dirname(os.path.realpath(__file__))
-        version = plistlib.readPlist(
-            os.path.join(os.path.dirname(current_dir), 'sal', 'version.plist'))
+        path = os.path.join(os.path.dirname(current_dir), 'sal', 'version.plist')
+        with open(path, 'rb') as handle:
+            version = plistlib.load(handle)
         output['version'] = version['version']
         # plist encode output
-        post_data = plistlib.writePlistToString(output)
+        post_data = plistlib.dumps(output)
         response = requests.post('https://version.salopensource.com', data={"data": post_data})
         set_setting('last_sent_data', int(current_time))
         print(response.status_code)

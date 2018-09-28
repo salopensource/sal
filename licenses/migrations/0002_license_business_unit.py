@@ -7,7 +7,7 @@ from django.db import models, migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('server', '0015_auto_20150819_1501'),
+        ('server', '0001_squashed_0023_auto_20151130_1036'),
         ('licenses', '0001_initial'),
     ]
 

@@ -8,8 +8,6 @@ import django.db.models.deletion
 
 class Migration(migrations.Migration):
 
-    replaces = [(b'profiles', '0001_initial'), (b'profiles', '0002_auto_20180411_1423'), (b'profiles', '0003_auto_20180411_1623')]
-
     initial = True
 
     dependencies = [

@@ -208,7 +208,7 @@ class InventoryList(Datatable):
     def get_machine_link(self, instance, **kwargs):
         url = reverse("machine_detail", kwargs={"machine_id": instance.pk})
 
-        return '<a href="{}">{}</a>'.format(url, instance.hostname.encode("utf-8"))
+        return f'<a href="{url}">{instance.hostname}</a>'
 
     def get_install_count(self, instance, **kwargs):
         queryset = instance.inventoryitem_set.filter(application=kwargs['view'].application)
@@ -288,7 +288,7 @@ class ApplicationList(Datatable):
         link_kwargs = copy.copy(kwargs['view'].kwargs)
         link_kwargs['pk'] = instance.pk
         url = reverse("application_detail", kwargs=link_kwargs)
-        return '<a href="{}">{}</a>'.format(url, instance.name.encode("utf-8"))
+        return f'<a href="{url}">{instance.name}</a>'
 
     def get_install_count(self, instance, **kwargs):
         """Get the number of app installs filtered by access group"""

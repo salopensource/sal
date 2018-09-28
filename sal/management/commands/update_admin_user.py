@@ -1,10 +1,10 @@
-'''
-Creates an admin user if there aren't any existing superusers
-'''
+"""Creates an admin user if there aren't any existing superusers."""
 
-from django.core.management.base import BaseCommand, CommandError
-from django.contrib.auth.models import User
+
 from optparse import make_option
+
+from django.contrib.auth.models import User
+from django.core.management.base import BaseCommand, CommandError
 
 
 class Command(BaseCommand):
@@ -27,7 +27,7 @@ class Command(BaseCommand):
         username = options.get('username')
         password = options.get('password')
         if not username or not password:
-            raise StandardError('You must specify a username and password')
+            raise CommandError('You must specify a username and password')
         # Get the current superusers
         su_count = User.objects.filter(is_superuser=True).count()
         if su_count == 0:
@@ -37,6 +37,6 @@ class Command(BaseCommand):
             user.is_staff = True
             user.is_superuser = True
             user.save()
-            print('{0} updated'.format(username))
+            print(f'{username} updated')
         else:
-            print('There are already {0} superusers'.format(su_count))
+            print(f'There are already {su_count} superusers')

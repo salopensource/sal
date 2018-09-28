@@ -15,7 +15,7 @@ from django.template.context_processors import csrf
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 
-from models import *
+from catalog.models import *
 from sal.decorators import *
 from server import utils
 from server.models import *

@@ -139,7 +139,7 @@ def send_report():
         post_data = plistlib.writePlistToString(output)
         response = requests.post('https://version.salopensource.com', data={"data": post_data})
         set_setting('last_sent_data', int(current_time))
-        print response.status_code
+        print(response.status_code)
         if response.status_code == 200:
             return response.text
         else:
@@ -204,15 +204,15 @@ def friendly_machine_model(machine):
         payload = {'cc': serial_snippet}
         try:
             friendly_cache_item = FriendlyNameCache.objects.get(serial_stub=serial_snippet)
-            print 'cache item is: {}'.format(friendly_cache_item.friendly_name)
+            print(f'cache item is: {friendly_cache_item.friendly_name}')
             output = friendly_cache_item.friendly_name
         except FriendlyNameCache.DoesNotExist:
             output = None
             try:
                 r = requests.get('http://support-sp.apple.com/sp/product', params=payload)
             except requests.exceptions.RequestException as e:
-                print machine.serial
-                print e
+                print(machine.serial)
+                print(e)
 
             try:
                 output = ET.fromstring(r.text).find('configCode').text
@@ -223,8 +223,8 @@ def friendly_machine_model(machine):
                 )
                 new_cache_item.save()
             except Exception as e:
-                print 'Did not receive a model name for %s, %s. Error: %s' % (
-                    machine.serial, machine.machine_model, e)
+                print(f'Did not receive a model name for {machine.serial}, '
+                      f'{machine.machine_model}. Error: {e}')
 
     return output
 

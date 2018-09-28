@@ -13,7 +13,7 @@ class ARDInfo(sal.plugin.DetailPlugin):
         context = self.super_get_context(machine, **kwargs)
 
         ard_info = {}
-        for i in xrange(1, 5):
+        for i in range(1, 5):
             key = 'ARD_Info_{}'.format(i)
             row = PluginScriptRow.objects.filter(
                 submission__machine=machine,

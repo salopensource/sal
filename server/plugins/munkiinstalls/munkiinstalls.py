@@ -20,7 +20,7 @@ class MunkiInstalls(sal.plugin.Widget):
         context = self.super_get_context(queryset, **kwargs)
 
         # Set up 14 days back of time ranges as a generator.
-        days = (NOW - timedelta(days=d) for d in xrange(0, 15))
+        days = (NOW - timedelta(days=d) for d in range(0, 15))
         time_ranges = ((
             timezone.make_aware(datetime.combine(d, time.min)),
             timezone.make_aware(datetime.combine(d, time.max))) for d in days)

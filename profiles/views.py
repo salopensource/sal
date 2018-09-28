@@ -2,7 +2,6 @@
 import dateutil.parser
 import plistlib
 
-
 # Django
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
@@ -14,16 +13,13 @@ from django.utils import dateparse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 
-
 # Local
-from models import Profile, Payload
-from server import text_utils
-from server import utils
+from profiles.models import Profile, Payload
 from sal.decorators import *
+from server import utils, text_utils
 from server.models import BusinessUnit, MachineGroup, Machine  # noqa: F811
 
 
-# Create your views here.
 @csrf_exempt
 @require_POST
 @key_auth_required

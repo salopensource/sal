@@ -1,7 +1,8 @@
 from django import forms
-from models import *
 from django.db.models import Q
 from django.contrib.auth.models import User
+
+from server.models import *
 
 User.full_name = property(lambda u: u"%s %s" % (u.first_name, u.last_name))
 

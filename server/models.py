@@ -192,7 +192,7 @@ class UpdateHistory(models.Model):
     version = models.CharField(max_length=254, db_index=True)
 
     def __unicode__(self):
-        return u"%s: %s %s" % (self.machine, self.name, self.version)
+        return "%s: %s %s" % (self.machine, self.name, self.version)
 
     class Meta:
         ordering = ['name']
@@ -214,7 +214,7 @@ class UpdateHistoryItem(models.Model):
     extra = models.TextField(blank=True, null=True)
 
     def __unicode__(self):
-        return u"%s: %s %s %s %s" % (
+        return "%s: %s %s %s %s" % (
             self.update_history.machine,
             self.update_history.name,
             self.update_history.version,
@@ -233,7 +233,7 @@ class Fact(models.Model):
     fact_data = models.TextField()
 
     def __unicode__(self):
-        return u'%s: %s' % (self.fact_name, self.fact_data)
+        return '%s: %s' % (self.fact_name, self.fact_data)
 
     class Meta:
         ordering = ['fact_name']
@@ -274,7 +274,7 @@ class PluginScriptSubmission(models.Model):
     recorded = models.DateTimeField(auto_now_add=True)
 
     def __unicode__(self):
-        return u'%s: %s' % (self.machine, self.plugin)
+        return '%s: %s' % (self.machine, self.plugin)
 
     class Meta:
         ordering = ['recorded', 'plugin']
@@ -324,7 +324,7 @@ class PluginScriptRow(models.Model):
         super(PluginScriptRow, self).save()
 
     def __unicode__(self):
-        return u'%s: %s' % (self.pluginscript_name, self.pluginscript_data)
+        return '%s: %s' % (self.pluginscript_name, self.pluginscript_data)
 
     class Meta:
         ordering = ['pluginscript_name']
@@ -368,7 +368,7 @@ class PendingAppleUpdate(models.Model):
     display_name = models.CharField(max_length=256, null=True, blank=True)
 
     def __unicode__(self):
-        return unicode(self.update) or u''
+        return str(self.update) or ''
 
     class Meta:
         ordering = ['display_name']

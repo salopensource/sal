@@ -16,7 +16,7 @@ def add_default_sal_settings(apps, schema_editor):
         _, created = SalSetting.objects.get_or_create(
             name=setting['name'], defaults={'value': setting['value']})
         if created:
-            print "Created Sal Setting: '{name}' with value: '{value}'.".format(**setting)
+            print("Created Sal Setting: '{name}' with value: '{value}'.".format(**setting))
 
 
 def reverse_default_sal_settings(apps, schema_editor):

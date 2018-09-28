@@ -7,7 +7,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.template import Context, RequestContext, Template
 from django.template.context_processors import csrf
 
-from forms import *
+from licenses.forms import *
 from licenses.models import *
 from sal.decorators import *
 from server.models import *

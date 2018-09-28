@@ -175,7 +175,7 @@ def get_csv_row(machine, facter_headers, condition_headers, plugin_script_header
     for name, value in machine.get_fields():
         if name not in IGNORED_CSV_FIELDS:
             try:
-                row.append(text_utils.safe_unicode(value))
+                row.append(text_utils.safe_bytes(value))
             except Exception:
                 row.append('')
 
@@ -650,7 +650,7 @@ def process_conditions(machine, report_data):
         if 'Facter' in report_data and condition_name.startswith('facter_'):
             continue
 
-        condition_data = text_utils.safe_unicode(text_utils.stringify(condition_data))
+        condition_data = text_utils.safe_bytes(text_utils.stringify(condition_data))
         condition = Condition(
             machine=machine, condition_name=condition_name, condition_data=condition_data)
         conditions_to_be_created.append(condition)

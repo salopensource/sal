@@ -15,7 +15,7 @@ class UtilsTest(TestCase):
     def test_listify_basic(self):
         """Ensure non-collection condition data is only str converted."""
         # Unicode
-        catalogs = u'testing'
+        catalogs = 'testing'
         result = text_utils.stringify(catalogs)
         self.assertEqual(result, catalogs)
         # TODO: Py3 will change this, as str = unicode in py2. Also, the

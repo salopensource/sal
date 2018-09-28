@@ -588,7 +588,7 @@ def get_csv_row(machine, facter_headers, condition_headers, plugin_script_header
     for name, value in machine.get_fields():
         if name not in skip_fields:
             try:
-                row.append(server.text_utils.safe_unicode(value))
+                row.append(server.text_utils.safe_bytes(value))
             except Exception:
                 row.append('')
 

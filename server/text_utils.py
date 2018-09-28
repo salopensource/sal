@@ -7,8 +7,9 @@ def class_to_title(text):
     return re.sub(r'([a-z](?=[A-Z])|[A-Z](?=[A-Z][a-z]))', r'\1 ', text)
 
 
-def safe_unicode(s):
-    if isinstance(s, unicode):
+def safe_bytes(s):
+    """Return utf-8 encoded bytes, replacing chars if needed."""
+    if isinstance(s, str):
         return s.encode('utf-8', errors='replace')
     else:
         return s

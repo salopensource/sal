@@ -4,7 +4,7 @@ from django.contrib.auth.models import User
 
 from server.models import *
 
-User.full_name = property(lambda u: u"%s %s" % (u.first_name, u.last_name))
+User.full_name = property(lambda u: "%s %s" % (u.first_name, u.last_name))
 
 
 def user_new_unicode(self):

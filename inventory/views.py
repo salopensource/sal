@@ -3,7 +3,7 @@ import copy
 import hashlib
 import plistlib
 from distutils.version import LooseVersion
-from urllib import quote
+from urllib.parse import quote
 
 # third-party
 import unicodecsv as csv

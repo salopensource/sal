@@ -1,5 +1,5 @@
 import re
-import urllib
+import urllib.request, urllib.parse, urllib.error
 
 from django.db.models import Count, F, Q
 from django.http import Http404
@@ -74,7 +74,7 @@ class MunkiInfo(sal.plugin.ReportPlugin):
             url_re = re.search(r'(.*)\?URL=\"(.*)\"', data)
             try:
                 key = url_re.group(1)
-                url = urllib.unquote(url_re.group(2))
+                url = urllib.parse.unquote(url_re.group(2))
             except IndexError:
                 raise Http404
 
@@ -100,6 +100,6 @@ class MunkiInfo(sal.plugin.ReportPlugin):
             .order_by(DATA))
 
         for url in processed:
-            url['item_link'] = '{}"{}"'.format(prefix, urllib.quote(url[DATA], safe=''))
+            url['item_link'] = '{}"{}"'.format(prefix, urllib.parse.quote(url[DATA], safe=''))
 
         return processed

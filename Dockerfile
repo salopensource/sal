@@ -1,5 +1,5 @@
 # Sal Dockerfile
-FROM ubuntu:14.04
+FROM python:3.6.6-jessie
 
 MAINTAINER Graham Gilbert <graham@grahamgilbert.com>
 
@@ -23,8 +23,6 @@ RUN apt-get update && \
     apt-get -y install \
     git \
     nginx \
-	python3 \
-    python3-setuptools \
     postgresql \
     postgresql-contrib \
     libpq-dev \
@@ -37,9 +35,9 @@ RUN apt-get update && \
     mkdir /tmp/setup
 COPY setup/requirements.txt /tmp/setup/requirements.txt
 COPY requirements.txt /tmp/requirements.txt
-RUN pip3 install -r /tmp/requirements.txt && \
+RUN pip install -r /tmp/requirements.txt && \
     rm /tmp/requirements.txt && \
-    rm -rf /tmp/setup && \
+    # rm -rf /tmp/setup && \
     update-rc.d -f postgresql remove && \
     update-rc.d -f nginx remove && \
     mkdir -p /home/app && \

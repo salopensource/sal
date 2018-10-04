@@ -10,12 +10,11 @@ from django.core.urlresolvers import reverse
 from django.db.models import Count, Q
 from django.http import (Http404, HttpRequest, HttpResponse, HttpResponseRedirect)
 from django.shortcuts import get_object_or_404, redirect, render
-from django.template import Context, RequestContext, Template
 from django.template.context_processors import csrf
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 
-from models import *
+from catalog.models import *
 from sal.decorators import *
 from server import utils
 from server.models import *
@@ -39,10 +38,10 @@ def submit_catalog(request):
 
         compressed_catalog = submission.get('base64bz2catalog')
         if compressed_catalog:
-            # compressed_catalog = compressed_catalog.replace(" ", "+")
             catalog_str = decode_to_string(compressed_catalog)
             try:
-                catalog_plist = plistlib.readPlistFromString(catalog_str)
+                with open(catalog_str, 'rb') as handle:
+                    catalog_plist = plistlib.load(handle)
             except Exception:
                 catalog_plist = None
             if catalog_plist:
@@ -72,7 +71,7 @@ def catalog_hash(request):
     if catalogs:
         catalogs = decode_to_string(catalogs)
         try:
-            catalogs_plist = plistlib.readPlistFromString(catalogs)
+            catalogs_plist = plistlib.loads(catalogs)
         except Exception:
             catalogs_plist = None
         if catalogs_plist:
@@ -84,4 +83,4 @@ def catalog_hash(request):
                 except Catalog.DoesNotExist:
                     output.append({'name': name, 'sha256hash': 'NOT FOUND'})
 
-    return HttpResponse(plistlib.writePlistToString(output))
+    return HttpResponse(plistlib.dumps(output))

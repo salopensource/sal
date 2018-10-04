@@ -58,7 +58,7 @@ def tableajax(request, plugin_name, data, group_type='all', group_id=None):
     """Table ajax for dataTables"""
     # Pull our variables out of the GET request
     get_data = request.GET['args']
-    get_data = json.loads(get_data.decode('string_escape'))
+    get_data = json.loads(get_data)
     draw = get_data.get('draw', 0)
     start = int(get_data.get('start', 0))
     length = int(get_data.get('length', 0))
@@ -173,7 +173,7 @@ def get_csv_row(machine, facter_headers, condition_headers, plugin_script_header
     for name, value in machine.get_fields():
         if name not in IGNORED_CSV_FIELDS:
             try:
-                row.append(text_utils.safe_unicode(value))
+                row.append(text_utils.safe_bytes(value))
             except Exception:
                 row.append('')
 
@@ -329,7 +329,7 @@ def checkin(request):
         machine.errors = machine.warnings = 0
         return
 
-    report_data = plistlib.readPlistFromString(report)
+    report_data = plistlib.loads(report)
 
     if report_data.get('ConsoleUser') and report_data.get('ConsoleUser') != '_mbsetupuser':
         machine.console_user = report_data.get('ConsoleUser')
@@ -639,7 +639,7 @@ def process_conditions(machine, report_data):
         if 'Facter' in report_data and condition_name.startswith('facter_'):
             continue
 
-        condition_data = text_utils.safe_unicode(text_utils.stringify(condition_data))
+        condition_data = text_utils.safe_bytes(text_utils.stringify(condition_data))
         condition = Condition(
             machine=machine, condition_name=condition_name, condition_data=condition_data)
         conditions_to_be_created.append(condition)

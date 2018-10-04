@@ -1,5 +1,4 @@
-# -*- coding: utf-8 -*-
-from __future__ import unicode_literals
+
 
 from django.db import models, migrations
 from django.conf import settings
@@ -19,9 +18,6 @@ def add_initial_date(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
-    replaces = [(b'server', '0001_initial'), (b'server', '0002_plugin'), (b'server', '0003_auto_20150612_1123'), (b'server', '0004_auto_20150623_1623'), (b'server', '0005_auto_20150717_1827'), (b'server', '0006_auto_20150811_0811'), (b'server', '0007_auto_20150811_0813'), (b'server', '0008_auto_20150811_1001'), (b'server', '0009_auto_20150811_1734'), (b'server', '0010_auto_20150811_2209'), (b'server', '0011_auto_20150811_2243'), (b'server', '0012_auto_20150814_1913'),
-                (b'server', '0013_auto_20150816_1652'), (b'server', '0014_auto_20150817_1646'), (b'server', '0015_auto_20150819_1501'), (b'server', '0016_auto_20151026_0851'), (b'server', '0017_auto_20151103_1800'), (b'server', '0018_auto_20151124_1654'), (b'server', '0019_auto_20151124_1806'), (b'server', '0020_auto_20151125_0848'), (b'server', '0021_auto_20151125_1301'), (b'server', '0022_auto_20151125_1811'), (b'server', '0023_auto_20151130_1036')]
 
     dependencies = [
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),

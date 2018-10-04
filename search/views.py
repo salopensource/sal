@@ -134,7 +134,7 @@ def search_machines(search_id, machines, full=False):
                 '>': '__gt',
                 '>=': '__gte',
             }
-            for display_operator, actual_operator in operators.iteritems():
+            for display_operator, actual_operator in operators.items():
                 if search_row.operator == display_operator:
                     operator = actual_operator
                     break
@@ -588,7 +588,7 @@ def get_csv_row(machine, facter_headers, condition_headers, plugin_script_header
     for name, value in machine.get_fields():
         if name not in skip_fields:
             try:
-                row.append(server.text_utils.safe_unicode(value))
+                row.append(server.text_utils.safe_bytes(value))
             except Exception:
                 row.append('')
 

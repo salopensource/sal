@@ -34,9 +34,7 @@ class OperatingSystem(sal.plugin.Widget):
             os_type = OS_TABLE[version['os_family']]
             grouped[os_type].append(version)
 
-        # print grouped
         normalize_chromeos_versions = get_setting('normalize_chromeos_versions')
-        # print type(normalize_chromeos_versions)
         if normalize_chromeos_versions:
             chrome_items = []
             for chrome_item in grouped['Chrome OS']:

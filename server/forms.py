@@ -1,9 +1,10 @@
 from django import forms
-from models import *
 from django.db.models import Q
 from django.contrib.auth.models import User
 
-User.full_name = property(lambda u: u"%s %s" % (u.first_name, u.last_name))
+from server.models import *
+
+User.full_name = property(lambda u: "%s %s" % (u.first_name, u.last_name))
 
 
 def user_new_unicode(self):

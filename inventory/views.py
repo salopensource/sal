@@ -3,7 +3,7 @@ import copy
 import hashlib
 import plistlib
 from distutils.version import LooseVersion
-from urllib import quote
+from urllib.parse import quote
 
 # third-party
 import unicodecsv as csv
@@ -208,7 +208,7 @@ class InventoryList(Datatable):
     def get_machine_link(self, instance, **kwargs):
         url = reverse("machine_detail", kwargs={"machine_id": instance.pk})
 
-        return '<a href="{}">{}</a>'.format(url, instance.hostname.encode("utf-8"))
+        return f'<a href="{url}">{instance.hostname}</a>'
 
     def get_install_count(self, instance, **kwargs):
         queryset = instance.inventoryitem_set.filter(application=kwargs['view'].application)
@@ -288,7 +288,7 @@ class ApplicationList(Datatable):
         link_kwargs = copy.copy(kwargs['view'].kwargs)
         link_kwargs['pk'] = instance.pk
         url = reverse("application_detail", kwargs=link_kwargs)
-        return '<a href="{}">{}</a>'.format(url, instance.name.encode("utf-8"))
+        return f'<a href="{url}">{instance.name}</a>'
 
     def get_install_count(self, instance, **kwargs):
         """Get the number of app installs filtered by access group"""
@@ -523,7 +523,8 @@ def inventory_submit(request):
             compressed_inventory = compressed_inventory.replace(" ", "+")
             inventory_str = text_utils.decode_to_string(compressed_inventory, compression_type)
             try:
-                inventory_list = plistlib.readPlistFromString(inventory_str)
+                with open(inventory_str, 'rb') as handle:
+                    inventory_list = plistlib.load(handle)
             except Exception:
                 inventory_list = None
             if inventory_list:

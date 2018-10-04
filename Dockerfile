@@ -1,5 +1,5 @@
 # Sal Dockerfile
-FROM ubuntu:14.04
+FROM python:3.6.6-slim-jessie
 
 MAINTAINER Graham Gilbert <graham@grahamgilbert.com>
 
@@ -16,18 +16,19 @@ ENV WAIT_FOR_POSTGRES false
 # ENV DOCKERIZE_VERSION v0.3.0
 
 RUN apt-get update && \
+    mkdir -p /usr/share/man/man1 && \
+    mkdir -p /usr/share/man/man7 && \
     apt-get install -y libc-bin && \
     apt-get install -y software-properties-common && \
     apt-get -y update && \
-    add-apt-repository -y ppa:nginx/stable && \
     apt-get -y install \
     git \
+    gcc \
     nginx \
-    python-setuptools \
     postgresql \
     postgresql-contrib \
     libpq-dev \
-    python-dev \
+    python3-dev \
     curl \
     supervisor \
     libffi-dev && \
@@ -36,10 +37,9 @@ RUN apt-get update && \
     mkdir /tmp/setup
 COPY setup/requirements.txt /tmp/setup/requirements.txt
 COPY requirements.txt /tmp/requirements.txt
-RUN easy_install pip && \
-    pip install -r /tmp/requirements.txt && \
+RUN pip install -r /tmp/requirements.txt && \
     rm /tmp/requirements.txt && \
-    rm -rf /tmp/setup && \
+    # rm -rf /tmp/setup && \
     update-rc.d -f postgresql remove && \
     update-rc.d -f nginx remove && \
     mkdir -p /home/app && \

@@ -22,7 +22,7 @@ from sal.decorators import is_global_admin
 from sal.plugin import (BasePlugin, Widget, OldPluginAdapter, PluginManager, DetailPlugin,
                         ReportPlugin, DEPRECATED_PLUGIN_TYPES)
 from server.models import *
-from server.text_utils import safe_unicode
+from server.text_utils import safe_bytes
 
 
 PLUGIN_ORDER = [
@@ -69,7 +69,8 @@ def get_instance_and_groups(group_type, group_id):
 
 def get_server_version():
     current_dir = os.path.dirname(os.path.realpath(__file__))
-    version = plistlib.readPlist(os.path.join(os.path.dirname(current_dir), 'sal', 'version.plist'))
+    with open(os.path.join(os.path.dirname(current_dir), 'sal', 'version.plist'), 'rb') as handle:
+        version = plistlib.load(handle)
     return version['version']
 
 
@@ -132,14 +133,15 @@ def send_report():
 
         # version
         current_dir = os.path.dirname(os.path.realpath(__file__))
-        version = plistlib.readPlist(
-            os.path.join(os.path.dirname(current_dir), 'sal', 'version.plist'))
+        path = os.path.join(os.path.dirname(current_dir), 'sal', 'version.plist')
+        with open(path, 'rb') as handle:
+            version = plistlib.load(handle)
         output['version'] = version['version']
         # plist encode output
-        post_data = plistlib.writePlistToString(output)
+        post_data = plistlib.dumps(output)
         response = requests.post('https://version.salopensource.com', data={"data": post_data})
         set_setting('last_sent_data', int(current_time))
-        print response.status_code
+        print(response.status_code)
         if response.status_code == 200:
             return response.text
         else:
@@ -204,15 +206,15 @@ def friendly_machine_model(machine):
         payload = {'cc': serial_snippet}
         try:
             friendly_cache_item = FriendlyNameCache.objects.get(serial_stub=serial_snippet)
-            print 'cache item is: {}'.format(friendly_cache_item.friendly_name)
+            print(f'cache item is: {friendly_cache_item.friendly_name}')
             output = friendly_cache_item.friendly_name
         except FriendlyNameCache.DoesNotExist:
             output = None
             try:
                 r = requests.get('http://support-sp.apple.com/sp/product', params=payload)
             except requests.exceptions.RequestException as e:
-                print machine.serial
-                print e
+                print(machine.serial)
+                print(e)
 
             try:
                 output = ET.fromstring(r.text).find('configCode').text
@@ -223,8 +225,8 @@ def friendly_machine_model(machine):
                 )
                 new_cache_item.save()
             except Exception as e:
-                print 'Did not receive a model name for %s, %s. Error: %s' % (
-                    machine.serial, machine.machine_model, e)
+                print(f'Did not receive a model name for {machine.serial}, '
+                      f'{machine.machine_model}. Error: {e}')
 
     return output
 
@@ -378,10 +380,10 @@ def process_plugin_script(results, machine):
         historical = plugin.get('historical', False)
         if not historical:
             PluginScriptSubmission.objects.filter(
-                machine=machine, plugin=safe_unicode(plugin_name)).delete()
+                machine=machine, plugin=safe_bytes(plugin_name)).delete()
 
         plugin_script = PluginScriptSubmission(
-            machine=machine, plugin=safe_unicode(plugin_name), historical=historical)
+            machine=machine, plugin=safe_bytes(plugin_name), historical=historical)
         plugin_script.save()
         data = plugin.get('data')
         # Ill-formed plugin data will throw an exception here.
@@ -389,10 +391,10 @@ def process_plugin_script(results, machine):
             return
         for key, value in data.items():
             plugin_row = PluginScriptRow(
-                submission=safe_unicode(plugin_script),
-                pluginscript_name=safe_unicode(key),
-                pluginscript_data=safe_unicode(value),
-                submission_and_script_name=(safe_unicode('{}: {}'.format(plugin_name, key))))
+                submission=safe_bytes(plugin_script),
+                pluginscript_name=safe_bytes(key),
+                pluginscript_data=safe_bytes(value),
+                submission_and_script_name=(safe_bytes('{}: {}'.format(plugin_name, key))))
             if is_postgres():
                 rows_to_create.append(plugin_row)
             else:

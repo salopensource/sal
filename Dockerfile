@@ -21,7 +21,6 @@ RUN apt-get update && \
     apt-get install -y libc-bin && \
     apt-get install -y software-properties-common && \
     apt-get -y update && \
-    add-apt-repository -y ppa:nginx/stable && \
     apt-get -y install \
     git \
     gcc \

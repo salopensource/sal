@@ -1,0 +1,5 @@
+steps:
+  - label: Example Test
+    command: echo "Hello!"
+    agents:
+      - "queue=linux"

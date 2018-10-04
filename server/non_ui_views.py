@@ -58,7 +58,7 @@ def tableajax(request, plugin_name, data, group_type='all', group_id=None):
     """Table ajax for dataTables"""
     # Pull our variables out of the GET request
     get_data = request.GET['args']
-    get_data = json.loads(get_data.decode('string_escape'))
+    get_data = json.loads(get_data)
     draw = get_data.get('draw', 0)
     start = int(get_data.get('start', 0))
     length = int(get_data.get('length', 0))

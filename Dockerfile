@@ -17,12 +17,15 @@ ENV MAINT_FREQUENCY 300
 # ENV DOCKERIZE_VERSION v0.3.0
 
 RUN apt-get update && \
+    mkdir -p /usr/share/man/man1 && \
+    mkdir -p /usr/share/man/man7 && \
     apt-get install -y libc-bin && \
     apt-get install -y software-properties-common && \
     apt-get -y update && \
     add-apt-repository -y ppa:nginx/stable && \
     apt-get -y install \
     git \
+    gcc \
     nginx \
     postgresql \
     postgresql-contrib \

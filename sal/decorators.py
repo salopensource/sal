@@ -160,7 +160,7 @@ def key_auth_required(function):
             auth = request.META['HTTP_AUTHORIZATION'].split()
             if len(auth) == 2:
                 if auth[0].lower() == "basic":
-                    uname, key = base64.b64decode(auth[1]).split(':'.encode('utf-8'))
+                    uname, key = base64.b64decode(auth[1]).decode('utf-8').split(':')
                     try:
                         machine_group = MachineGroup.objects.get(key=key)
                     except MachineGroup.DoesNotExist:

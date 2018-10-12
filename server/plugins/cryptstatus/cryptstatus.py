@@ -31,6 +31,8 @@ class CryptStatus(sal.plugin.DetailPlugin):
                 verify = True
 
             request_url = '{}/verify/{}/recovery_key/'.format(crypt_url, machine.serial)
+            output = None
+            machine_url = crypt_url
             try:
                 response = requests.get(request_url, verify=verify)
                 if response.status_code == requests.codes.ok:
@@ -41,8 +43,7 @@ class CryptStatus(sal.plugin.DetailPlugin):
             except RequestException:
                 # Either there was an error or the machine hasn't been
                 # seen.
-                output = None
-                machine_url = crypt_url
+                pass
 
             if output:
                 context['escrowed'] = output['escrowed']

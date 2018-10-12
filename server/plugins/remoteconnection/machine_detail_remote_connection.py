@@ -24,8 +24,10 @@ class RemoteConnection(sal.plugin.DetailPlugin):
             except Machine.DoesNotExist:
                 pass
 
-        context['ssh_account'] = get_setting(name='ssh_account', default='').replace('@', '')
-        context["ssh_url"] = "ssh://{}{}".format(context['ssh_account'], ip_address)
-        context["vnc_url"] = "vnc://{}{}".format(context['ssh_account'], ip_address)
+        account = get_setting(name='ssh_account', default='').strip()
+        context['ssh_account'] = account
+        delimiter = '' if not account else '@'
+        context["ssh_url"] = "ssh://{}{}{}".format(account, delimiter, ip_address)
+        context["vnc_url"] = "vnc://{}{}{}".format(account, delimiter, ip_address)
 
         return context

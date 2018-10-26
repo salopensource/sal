@@ -83,6 +83,7 @@ def tableajax(request, plugin_name, data, group_type='all', group_id=None):
     queryset = plugin_object.get_queryset(
         request, group_type=group_type, group_id=group_id)
     machines, _ = plugin_object.filter_machines(queryset, data)
+    machines = machines.values('id', 'hostname', 'console_user', 'last_checkin')
 
     if len(order_name) != 0:
         if order_direction == 'desc':
@@ -112,7 +113,6 @@ def tableajax(request, plugin_name, data, group_type='all', group_id=None):
     except Exception:
         pass
 
-    limited_machines = limited_machines.values('id', 'hostname', 'console_user', 'last_checkin')
     for machine in limited_machines:
         if machine['last_checkin']:
             # formatted_date = pytz.utc.localize(machine.last_checkin)

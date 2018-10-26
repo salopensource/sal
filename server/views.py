@@ -84,10 +84,9 @@ def index(request):
 @login_required
 def machine_list(request, plugin_name, data, group_type='all', group_id=None):
     plugin_object = process_plugin(request, plugin_name, group_type, group_id)
-    queryset = plugin_object.get_queryset(request, group_type=group_type, group_id=group_id)
+    # queryset = plugin_object.get_queryset(request, group_type=group_type, group_id=group_id)
     # Plugin will raise 404 if bad `data` is passed.
-    machines, title = plugin_object.filter_machines(queryset, data)
-    machines = machines.none()
+    machines, title = plugin_object.filter_machines(Machine.objects.none(), data)
     context = {
         'group_type': group_type,
         'group_id': group_id,

@@ -87,6 +87,7 @@ def machine_list(request, plugin_name, data, group_type='all', group_id=None):
     queryset = plugin_object.get_queryset(request, group_type=group_type, group_id=group_id)
     # Plugin will raise 404 if bad `data` is passed.
     machines, title = plugin_object.filter_machines(queryset, data)
+    machines = machines.values('id', 'hostname', 'console_user', 'last_checkin')
     context = {
         'group_type': group_type,
         'group_id': group_id,

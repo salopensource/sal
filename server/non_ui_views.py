@@ -111,20 +111,22 @@ def tableajax(request, plugin_name, data, group_type='all', group_id=None):
         settings_time_zone = pytz.timezone(settings.TIME_ZONE)
     except Exception:
         pass
+
+    limited_machines = machines.values('id', 'hostname', 'console_user', 'last_checkin')
     for machine in limited_machines:
-        if machine.last_checkin:
+        if machine['last_checkin']:
             # formatted_date = pytz.utc.localize(machine.last_checkin)
             if settings_time_zone:
-                formatted_date = machine.last_checkin.astimezone(
+                formatted_date = machine['last_checkin'].astimezone(
                     settings_time_zone).strftime("%Y-%m-%d %H:%M %Z")
             else:
-                formatted_date = machine.last_checkin.strftime("%Y-%m-%d %H:%M")
+                formatted_date = machine['last_checkin'].strftime("%Y-%m-%d %H:%M")
         else:
             formatted_date = ""
         hostname_link = "<a href=\"%s\">%s</a>" % (
-            reverse('machine_detail', args=[machine.id]), machine.hostname)
+            reverse('machine_detail', args=[machine['id']]), machine['hostname'])
 
-        list_data = [hostname_link, machine.console_user, formatted_date]
+        list_data = [hostname_link, machine['console_user'], formatted_date]
         return_data['data'].append(list_data)
 
     return JsonResponse(return_data)

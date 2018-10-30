@@ -533,9 +533,9 @@ def process_managed_items(machine, report_data, uuid, now, datelimit):
     for report_key, result_type in (('InstallResults', 'install'), ('RemovalResults', 'removal')):
         for item in report_data.get(report_key, []):
             kwargs = {'name': item['name'], 'machine': machine}
-            kwargs['update_type'] = 'apple' if item['applesus'] else 'third_party'
+            kwargs['update_type'] = 'apple' if item.get('applesus') else 'third_party'
             kwargs['version'] = item.get('version', '0')
-            kwargs['status'] = 'error' if item['status'] != 0 else result_type
+            kwargs['status'] = 'error' if item.get('status') != 0 else result_type
             kwargs['recorded'] = dateutil.parser.parse(str(item['time'])) if 'time' in item else now
 
             update_history_item, update_history = process_update_history_item(

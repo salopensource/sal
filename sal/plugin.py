@@ -327,7 +327,7 @@ class FilterMixin(object):
             Http404 if plugin's `filter` method responds with None, None
         """
         machines, data = self.filter(machines, data)
-        if not machines and not data:
+        if not machines.exists() and not data:
             raise Http404
         return machines, data
 

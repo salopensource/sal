@@ -51,9 +51,9 @@ jobs:
     steps:
       - checkout
       - setup_remote_docker
-      - run: docker build -t grahamgilbert/sal-manual:latest .
+      - run: docker build -t macadmins/sal:latest .
       - run: docker login -u $DOCKER_USER -p $DOCKER_PASS
-      - run: docker push grahamgilbert/sal-manual:latest
+      - run: docker push macadmins/sal:latest
 
   build_branch:
     docker:

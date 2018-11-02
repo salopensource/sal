@@ -63,9 +63,9 @@ jobs:
       - checkout
       - setup_remote_docker:
           docker_layer_caching: true
-      - run: docker build -t grahamgilbert/sal-manual:$CIRCLE_BRANCH .
+      - run: docker build -t macadmins/sal:$CIRCLE_BRANCH .
       - run: docker login -u $DOCKER_USER -p $DOCKER_PASS
-      - run: docker push grahamgilbert/sal-manual:$CIRCLE_BRANCH
+      - run: docker push macadmins/sal:$CIRCLE_BRANCH
 
   build_tag:
     docker:
@@ -75,9 +75,9 @@ jobs:
       - checkout
       - setup_remote_docker:
           docker_layer_caching: true
-      - run: docker build -t grahamgilbert/sal-manual:$CIRCLE_TAG .
+      - run: docker build -t macadmins/sal:$CIRCLE_TAG .
       - run: docker login -u $DOCKER_USER -p $DOCKER_PASS
-      - run: docker push grahamgilbert/sal-manual:$CIRCLE_TAG
+      - run: docker push macadmins/sal:$CIRCLE_TAG
 
 workflows:
   version: 2

@@ -101,4 +101,4 @@ workflows:
             - test
           filters:
             tags:
-              only: /^\S.*/
+              only: /^\d.*/

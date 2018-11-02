@@ -83,7 +83,10 @@ workflows:
   version: 2
   build_and_test:
     jobs:
-      - test
+      - test:
+          filters:
+            tags:
+              only: /.*/
       - build_latest:
           requires:
             - test
@@ -101,4 +104,6 @@ workflows:
             - test
           filters:
             tags:
-              only: /^\d.*/
+              only: /.*/
+            branches:
+              ignore: /.*/

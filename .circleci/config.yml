@@ -47,20 +47,63 @@ jobs:
   build_latest:
     docker:
       - image: docker:17.05.0-ce-git
-    
+
     steps:
       - checkout
       - setup_remote_docker
+      - run: docker build -t grahamgilbert/sal-manual:latest .
+      - run: docker login -u $DOCKER_USER -p $DOCKER_PASS
+      - run: docker push grahamgilbert/sal-manual:latest
+
+  build_branch:
+    docker:
+      - image: docker:17.05.0-ce-git
+
+    steps:
+      - checkout
+      - setup_remote_docker:
+          docker_layer_caching: true
       - run: docker build -t macadmins/sal:$CIRCLE_BRANCH .
+      - run: docker login -u $DOCKER_USER -p $DOCKER_PASS
+      - run: docker push macadmins/sal:$CIRCLE_BRANCH
+
+  build_tag:
+    docker:
+      - image: docker:17.05.0-ce-git
+
+    steps:
+      - checkout
+      - setup_remote_docker:
+          docker_layer_caching: true
+      - run: docker build -t macadmins/sal:$CIRCLE_TAG .
+      - run: docker login -u $DOCKER_USER -p $DOCKER_PASS
+      - run: docker push macadmins/sal:$CIRCLE_TAG
 
 workflows:
   version: 2
   build_and_test:
     jobs:
-      - test
+      - test:
+          filters:
+            tags:
+              only: /.*/
       - build_latest:
           requires:
             - test
           filters:
             branches:
-              only: master   
+              only: master
+      - build_branch:
+          requires:
+            - test
+          filters:
+            branches:
+              ignore: master
+      - build_tag:
+          requires:
+            - test
+          filters:
+            tags:
+              only: /.*/
+            branches:
+              ignore: /.*/

@@ -47,11 +47,24 @@ jobs:
   build_latest:
     docker:
       - image: docker:17.05.0-ce-git
-    
+
     steps:
       - checkout
       - setup_remote_docker
-      - run: docker build -t macadmins/sal:$CIRCLE_BRANCH .
+      - run: docker build -t grahamgilbert/sal-manual:latest .
+      - run: docker login -u $DOCKER_USER -p $DOCKER_PASS
+      - run: docker push grahamgilbert/sal-manual:latest
+
+  build_branch:
+    docker:
+      - image: docker:17.05.0-ce-git
+
+    steps:
+      - checkout
+      - setup_remote_docker
+      - run: docker build -t grahamgilbert/sal-manual:$CIRCLE_BRANCH .
+      - run: docker login -u $DOCKER_USER -p $DOCKER_PASS
+      - run: docker push grahamgilbert/sal-manual:$CIRCLE_BRANCH
 
 workflows:
   version: 2
@@ -63,4 +76,10 @@ workflows:
             - test
           filters:
             branches:
-              only: master   
+              only: master
+      - build_branch:
+          requires:
+            - test
+          filters:
+            branches:
+              ignore: master

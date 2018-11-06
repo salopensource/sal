@@ -392,7 +392,7 @@ def checkin(request):
     if not hwinfo:
         for profile in machine_info.get('SystemProfile', []):
             if profile['_dataType'] == 'SPHardwareDataType':
-                hwinfo = profile._items[0]
+                hwinfo = profile['_items'][0]
                 break
 
     if hwinfo:

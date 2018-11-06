@@ -474,7 +474,7 @@ def get_plugin_scripts(plugin, hash_only=False, script_name=None):
             continue
 
         script_output = {'plugin': plugin.name, 'filename': script}
-        script_output['hash'] = hashlib.sha256(script_content).hexdigest()
+        script_output['hash'] = hashlib.sha256(script_content.encode()).hexdigest()
         if not hash_only:
             script_output['content'] = script_content
 

@@ -1,6 +1,7 @@
 # Standard Library
 import dateutil.parser
 import plistlib
+import xml.parsers.expat
 
 # Django
 from django.conf import settings
@@ -44,15 +45,13 @@ def submit_profiles(request):
             compressed_profiles = compressed_profiles.replace(" ", "+")
             profiles_str = text_utils.decode_to_string(compressed_profiles, compression_type)
             try:
-                with open(profiles_str, 'rb') as handle:
-                    profiles_list = plistlib.load(handle)
-            except Exception:
-                profiles_list = None
+                profiles_list = plistlib.loads(profiles_str)
+            except (plistlib.InvalidFileException, xml.parsers.expat.ExpatError):
+                profiles_list = {}
 
             profiles_to_be_added = []
             machine.profile_set.all().delete()
-            if '_computerlevel' in profiles_list:
-                profiles_list = profiles_list['_computerlevel']
+            profiles_list = profiles_list.get('_computerlevel', [])
             for profile in profiles_list:
                 parsed_date = dateutil.parser.parse(profile.get('ProfileInstallDate'))
                 profile_item = Profile(

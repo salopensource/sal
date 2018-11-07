@@ -22,7 +22,10 @@ class Pending3rdPartyUpdates(sal.plugin.Widget):
             .annotate(count=Count('update')))
 
         # Sort first by version number, then name.
-        updates = sorted(updates, key=lambda x: LooseVersion(x['update_version']), reverse=True)
+        # Some updates don't have a version number and show up as just
+        # whitespace, so we have to treat them as a 0.0 version.
+        version_sort = lambda i: LooseVersion(i['update_version'].strip() or '0.0')
+        updates = sorted(updates, key=version_sort, reverse=True)
         context['data'] = sorted(updates, key=lambda x: x['display_name'])
         return context
 

@@ -54,6 +54,16 @@ jobs:
       - run: docker build -t macadmins/sal:latest .
       - run: docker login -u $DOCKER_USER -p $DOCKER_PASS
       - run: docker push macadmins/sal:latest
+      - run:
+        command: |
+          curl -X POST --header "Content-Type: application/json" -d '{
+          "parallel": 2, //optional, default null
+          "revision": "f1baeb913288519dd9a942499cef2873f5b1c2bf" // optional
+          "build_parameters": { // optional
+            "TAG": "latest"
+          }
+        }
+        ' https://circleci.com/api/v1.1/salopensource/github/grahamgilbert/sal/tree/master?circle-token=$CIRCLE_API_USER_TOKEN
 
   build_branch:
     docker:
@@ -66,6 +76,17 @@ jobs:
       - run: docker build -t macadmins/sal:$CIRCLE_BRANCH .
       - run: docker login -u $DOCKER_USER -p $DOCKER_PASS
       - run: docker push macadmins/sal:$CIRCLE_BRANCH
+      - run:
+        command: |
+          curl -X POST --header "Content-Type: application/json" -d '{
+          "parallel": 2, //optional, default null
+          "revision": "f1baeb913288519dd9a942499cef2873f5b1c2bf" // optional
+          "build_parameters": { // optional
+            "TAG": $CIRCLE_BRANCH
+          }
+        }
+        ' https://circleci.com/api/v1.1/salopensource/github/grahamgilbert/sal/tree/master?circle-token=$CIRCLE_API_USER_TOKEN
+
 
   build_tag:
     docker:
@@ -78,6 +99,16 @@ jobs:
       - run: docker build -t macadmins/sal:$CIRCLE_TAG .
       - run: docker login -u $DOCKER_USER -p $DOCKER_PASS
       - run: docker push macadmins/sal:$CIRCLE_TAG
+      - run:
+        command: |
+          curl -X POST --header "Content-Type: application/json" -d '{
+          "parallel": 2, //optional, default null
+          "revision": "f1baeb913288519dd9a942499cef2873f5b1c2bf" // optional
+          "build_parameters": { // optional
+            "TAG": $CIRCLE_TAG
+          }
+        }
+        ' https://circleci.com/api/v1.1/salopensource/github/grahamgilbert/sal/tree/master?circle-token=$CIRCLE_API_USER_TOKEN
 
 workflows:
   version: 2

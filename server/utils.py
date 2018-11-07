@@ -3,6 +3,7 @@ import itertools
 import json
 import logging
 import os
+import pathlib
 import plistlib
 import time
 import xml.etree.ElementTree as ET
@@ -35,6 +36,7 @@ TRUTHY = {'TRUE', 'YES'}
 FALSY = {'FALSE', 'NO'}
 STRINGY_BOOLS = TRUTHY.union(FALSY)
 TWENTY_FOUR_HOURS = 86400
+EXCLUDED_SCRIPT_TYPES = ('.pyc',)
 
 
 def db_table_exists(table_name):
@@ -448,32 +450,29 @@ def get_plugin_scripts(plugin, hash_only=False, script_name=None):
             content (str): Content of script (NOT hash_only).
     """
     results = []
-    plugin_path = os.path.join(plugin.path, 'scripts')
-    server_path = os.path.abspath(os.path.join(plugin.path, '..', 'scripts'))
-    if os.path.exists(plugin_path):
+    plugin_path = pathlib.Path(plugin.path) / 'scripts'
+    server_path = (pathlib.Path(plugin.path).parent / 'scripts').absolute()
+    if plugin_path.exists():
         scripts_dir = plugin_path
-    elif os.path.exists(server_path):
+    elif server_path.exists():
         scripts_dir = server_path
     else:
         return results
 
     if script_name:
-        dir_contents = [script_name]
+        dir_contents = [pathlib.Path(script_name)]
     else:
-        dir_contents = os.listdir(scripts_dir)
+        dir_contents = (p for p in scripts_dir.iterdir() if p.suffix not in EXCLUDED_SCRIPT_TYPES)
 
     for script in dir_contents:
-        path = os.path.join(scripts_dir, script)
         try:
-            with open(path, "r") as script_handle:
-                script_content = script_handle.read()
-
+            script_content = script.read_text()
             if not script_content.startswith('#!'):
                 continue
         except IOError:
             continue
 
-        script_output = {'plugin': plugin.name, 'filename': script}
+        script_output = {'plugin': plugin.name, 'filename': str(script)}
         script_output['hash'] = hashlib.sha256(script_content.encode()).hexdigest()
         if not hash_only:
             script_output['content'] = script_content

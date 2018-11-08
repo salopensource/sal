@@ -23,7 +23,7 @@ from sal.decorators import is_global_admin
 from sal.plugin import (BasePlugin, Widget, OldPluginAdapter, PluginManager, DetailPlugin,
                         ReportPlugin, DEPRECATED_PLUGIN_TYPES)
 from server.models import *
-from server.text_utils import safe_bytes
+from server.text_utils import safe_text
 
 
 PLUGIN_ORDER = [
@@ -383,10 +383,10 @@ def process_plugin_script(results, machine):
         historical = plugin.get('historical', False)
         if not historical:
             PluginScriptSubmission.objects.filter(
-                machine=machine, plugin=safe_bytes(plugin_name)).delete()
+                machine=machine, plugin=safe_text(plugin_name)).delete()
 
         submission = PluginScriptSubmission.objects.create(
-            machine=machine, plugin=safe_bytes(plugin_name), historical=historical)
+            machine=machine, plugin=safe_text(plugin_name), historical=historical)
         data = plugin.get('data')
         # Ill-formed plugin data will throw an exception here.
         if not isinstance(data, dict):
@@ -394,9 +394,9 @@ def process_plugin_script(results, machine):
         for key, value in data.items():
             plugin_row = PluginScriptRow(
                 submission=submission,
-                pluginscript_name=safe_bytes(key),
-                pluginscript_data=safe_bytes(value),
-                submission_and_script_name=(safe_bytes('{}: {}'.format(plugin_name, key))))
+                pluginscript_name=safe_text(key),
+                pluginscript_data=safe_text(value),
+                submission_and_script_name=(safe_text('{}: {}'.format(plugin_name, key))))
             if is_postgres():
                 rows_to_create.append(plugin_row)
             else:

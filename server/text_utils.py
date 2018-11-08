@@ -1,6 +1,7 @@
 import base64
 import bz2
 import re
+import typing
 
 
 def class_to_title(text):
@@ -20,6 +21,17 @@ def safe_bytes(s):
     # text as input; but sometimes it's getting bools or model instances
     # so we can't just blindly do a replcae method on everything!
     return s
+
+
+def safe_text(text: typing.Any) -> str:
+    """Process text of any type to ensure it can be saved in the DB."""
+    # Ensure bytes get decoded, no matter what, to unicode.
+    if isinstance(text, bytes):
+        text = text.decode('UTF-8', errors='replace')
+    elif not isinstance(text, str):
+        text = str(text)
+    # Replace null characters with nothing to prevent db errors.
+    return text.replace('\x00', '')
 
 
 def stringify(data):

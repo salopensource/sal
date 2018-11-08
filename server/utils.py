@@ -385,16 +385,15 @@ def process_plugin_script(results, machine):
             PluginScriptSubmission.objects.filter(
                 machine=machine, plugin=safe_bytes(plugin_name)).delete()
 
-        plugin_script = PluginScriptSubmission(
+        submission = PluginScriptSubmission.objects.create(
             machine=machine, plugin=safe_bytes(plugin_name), historical=historical)
-        plugin_script.save()
         data = plugin.get('data')
         # Ill-formed plugin data will throw an exception here.
         if not isinstance(data, dict):
             return
         for key, value in data.items():
             plugin_row = PluginScriptRow(
-                submission=safe_bytes(plugin_script),
+                submission=submission,
                 pluginscript_name=safe_bytes(key),
                 pluginscript_data=safe_bytes(value),
                 submission_and_script_name=(safe_bytes('{}: {}'.format(plugin_name, key))))

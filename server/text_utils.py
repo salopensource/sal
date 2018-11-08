@@ -9,10 +9,17 @@ def class_to_title(text):
 
 def safe_bytes(s):
     """Return utf-8 encoded bytes, replacing chars if needed."""
+    # This handles the special case that postgres can't write a null
+    # charecter to a TextField.
+    # TODO: This function is provisional until we can remove it.
     if isinstance(s, str):
-        return s.encode('utf-8', errors='replace')
-    else:
-        return s
+        s = s.encode('utf-8', errors='replace')
+    if isinstance(s, bytes):
+        s = s.replace(b'\x00', b'')
+    # What's going on here? Most of the time this is supposed to take
+    # text as input; but sometimes it's getting bools or model instances
+    # so we can't just blindly do a replcae method on everything!
+    return s
 
 
 def stringify(data):

@@ -1,12 +1,10 @@
 # standard library
 import copy
+import csv
 import hashlib
 import plistlib
 from distutils.version import LooseVersion
 from urllib.parse import quote
-
-# third-party
-import unicodecsv as csv
 
 # Django
 from django.core.urlresolvers import reverse

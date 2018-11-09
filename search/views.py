@@ -572,4 +572,4 @@ def export_csv(request, search_id):
     machines = Machine.objects.all().defer('report')
     machines = search_machines(search_id, machines, full=True)
     title = get_object_or_404(SavedSearch, pk=search_id).name
-    return utils.csv.get_csv_response(machines, title)
+    return utils.csv.get_csv_response(machines, utils.csv.machine_fields(), title)

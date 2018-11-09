@@ -4,12 +4,14 @@
 import csv
 import io
 import itertools
+from typing import List, Dict, Any
+
+from django.db.models.query import QuerySet
+from django.http import StreamingHttpResponse
 
 import server.models
 import server.text_utils
 import server.utils
-
-from django.http import StreamingHttpResponse
 
 
 IGNORED_CSV_FIELDS = ('id', 'machine_group', 'report')
@@ -26,20 +28,43 @@ class PassthroughIO(io.StringIO):
         return value
 
 
-def machine_row(machine):
-    rows = (getattr(machine, field) for field in MACHINE_FIELDS)
-    # Manually add in foreign key traversals to BU and MG names.
-    group_names = [machine.machine_group.business_unit.name, machine.machine_group.name]
-    return itertools.chain(rows, group_names)
+def row_helper(item, fields: Dict) -> List[Any]:
+    """Given a dict of fields, extract an output tuple
+
+    The fields dict should be formed with:
+        key: Output name
+        value: Dot notated reference to attribute to extract.
+    """
+    row = []
+    for name, reference in fields.items():
+        if not reference:
+            row.append(getattr(item, name))
+        else:
+            obj = item
+            for sub_field in reference.split('.'):
+                obj = getattr(obj, sub_field)
+            row.append(obj)
+    return row
 
 
-def get_csv_response(machines, title):
+def machine_fields():
+    machine_fields = {
+        field.name: None for field in server.models.Machine._meta.get_fields()
+        if not field.is_relation and field.name not in IGNORED_CSV_FIELDS}
+    machine_fields['business unit'] = 'machine_group.business_unit.name'
+    machine_fields['machine group'] = 'machine_group.name'
+    return machine_fields
+
+
+def get_csv_response(queryset: QuerySet,
+                     fields: dict,
+                     title: str) -> StreamingHttpResponse:
     writer = csv.writer(PassthroughIO())
 
     # Nest field names into an iterable of 1 so it can be chained.
     # Add in our two foreign key traversals by name.
-    headers = [MACHINE_FIELDS + ['Business Unit', 'Machine Group']]
-    data = (machine_row(machine) for machine in machines)
+    headers = [fields.keys()]
+    data = (row_helper(item, fields) for item in queryset)
     # Chain the headers and the data into a single iterator.
     generator = (writer.writerow(row) for row in itertools.chain(headers, data))
 

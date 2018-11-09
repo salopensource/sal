@@ -24,7 +24,6 @@ class PendingAppleUpdates(sal.plugin.Widget):
         # Sort first by version number, then name.
         # Some updates don't have a version number and show up as just
         # whitespace, so we have to treat them as a 0.0 version.
-        version_sort = lambda i: LooseVersion(i['update_version'].strip() or '0.0')
         updates = sorted(updates, key=version_sort, reverse=True)
         context['data'] = sorted(updates, key=lambda x: x['display_name'])
         return context
@@ -50,3 +49,7 @@ class PendingAppleUpdates(sal.plugin.Widget):
             return None, None
 
         return machines, 'Machines that need to install {} {}'.format(display_name, update_version)
+
+
+def version_sort(i):
+    return LooseVersion(i['update_version'].strip() or '0.0')

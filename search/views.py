@@ -11,8 +11,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.template.context_processors import csrf
 from django.views.decorators.csrf import csrf_exempt, csrf_protect
 
-import search.utils as utils
-import search.views
+import search.utils
 import server.text_utils
 import server.utils
 from inventory.models import *
@@ -29,7 +28,7 @@ def index(request):
     if ('q' in request.GET) and request.GET['q'].strip():
         query_string = request.GET['q'].strip()
     else:
-        return redirect(search.views.list)
+        return redirect(list_view)
 
     # Make sure we're searching across Machines the user has access to:
     machines = Machine.objects.all()
@@ -91,7 +90,7 @@ def quick_search(machines, query_string):
 
 
 @login_required
-def list(request):
+def list_view(request):
     saved_searches = SavedSearch.objects.filter(save_search=True)
     user = request.user
     user_level = user.userprofile.level
@@ -309,11 +308,11 @@ def new_search(request):
     # Create a new search group
     search_group = SearchGroup(
         saved_search=new_search,
-        position=utils.next_position(new_search)
+        position=search.utils.next_position(new_search)
     )
     search_group.save()
 
-    return redirect(search.views.build_search, new_search.id)
+    return redirect(build_search, new_search.id)
 
 # Save search
 
@@ -328,7 +327,7 @@ def save_search(request, search_id):
             row = form.save(commit=False)
             row.save_search = True
             row.save()
-            return redirect(search.views.build_search, saved_search.id)
+            return redirect(build_search, saved_search.id)
     else:
         form = SaveSearchForm(instance=saved_search)
 
@@ -361,21 +360,21 @@ def delete_search(request, search_id):
     saved_search = get_object_or_404(SavedSearch, pk=search_id)
     if is_global_admin(request.user) or request.user == saved_search.created_by:
         saved_search.delete()
-    return redirect(search.views.list)
+    return redirect(list_view)
 
 
 @login_required
 def edit_search(request, search_id):
     saved_search = get_object_or_404(SavedSearch, pk=search_id)
     if not is_global_admin(request.user) and saved_search.created_by != request.user:
-        return redirect(search.views.list)
+        return redirect(list_view)
     if request.method == 'POST':
         form = SearchRowForm(request.POST, instance=search_row)
         if form.is_valid():
             row = form.save(commit=False)
             row.save_search = True
             row.save()
-            return redirect(search.views.build_search, search_row.search_group.saved_search.id)
+            return redirect(build_search, search_row.search_group.saved_search.id)
     else:
         form = SearchRowForm(instance=search_row)
     c = {'form': form, 'saved_search': saved_search}
@@ -389,10 +388,10 @@ def new_search_group(request, search_id):
     new_search = get_object_or_404(SavedSearch, pk=search_id)
     search_group = SearchGroup(
         saved_search=new_search,
-        position=utils.next_position(new_search)
+        position=search.utils.next_position(new_search)
     )
     search_group.save()
-    return redirect(search.views.build_search, new_search.id)
+    return redirect(build_search, new_search.id)
 
 # Edit group - not required at the moment as we have a toggle for and / or
 # @login_required
@@ -401,7 +400,7 @@ def new_search_group(request, search_id):
 #     saved_search = search_group.saved_search
 #     if is_global_admin(request.user) or request.user == saved_search.created_by:
 #         search_group.delete()
-#     return redirect(search.views.build_search, saved_search.id)
+#     return redirect(build_search, saved_search.id)
 
 # And or toggle for group
 
@@ -416,7 +415,7 @@ def group_and_or(request, search_group_id):
         else:
             search_group.and_or = 'AND'
         search_group.save()
-    return redirect(search.views.build_search, saved_search.id)
+    return redirect(build_search, saved_search.id)
 
 # Delete group
 
@@ -427,7 +426,7 @@ def delete_group(request, search_group_id):
     saved_search = search_group.saved_search
     if is_global_admin(request.user) or request.user == saved_search.created_by:
         search_group.delete()
-    return redirect(search.views.build_search, saved_search.id)
+    return redirect(build_search, saved_search.id)
 
 # New row
 
@@ -436,15 +435,15 @@ def delete_group(request, search_group_id):
 def new_search_row(request, search_group_id):
     search_group = get_object_or_404(SearchGroup, pk=search_group_id)
     if not is_global_admin(request.user) and search_group.saved_search.created_by != request.user:
-        return redirect(search.views.list)
+        return redirect(list_view)
     if request.method == 'POST':
         form = SearchRowForm(request.POST)
         if form.is_valid():
             row = form.save(commit=False)
             row.search_group = search_group
-            row.position = utils.next_position(search_group, model='search_row')
+            row.position = search.utils.next_position(search_group, model='search_row')
             row.save()
-            return redirect(search.views.build_search, search_group.saved_search.id)
+            return redirect(build_search, search_group.saved_search.id)
     else:
         form = SearchRowForm(search_group=search_group)
 
@@ -466,7 +465,7 @@ def edit_search_row(request, search_row_id):
             row = form.save(commit=False)
             row.save_search = True
             row.save()
-            return redirect(search.views.build_search, search_row.search_group.saved_search.id)
+            return redirect(build_search, search_row.search_group.saved_search.id)
     else:
         form = SearchRowForm(instance=search_row)
         search_fields = []
@@ -515,7 +514,7 @@ def delete_row(request, search_row_id):
     saved_search = search_group.saved_search
     if is_global_admin(request.user) or request.user == saved_search.created_by:
         search_row.delete()
-    return redirect(search.views.build_search, saved_search.id)
+    return redirect(build_search, saved_search.id)
 
 # Response for ajax to pupulate dropdown
 

@@ -1,8 +1,6 @@
 import json
 import re
 
-import unicodecsv as csv
-
 from django.contrib.auth.decorators import login_required
 from django.db.models import CharField, Q
 from django.http import JsonResponse, StreamingHttpResponse
@@ -10,6 +8,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.template.context_processors import csrf
 from django.views.decorators.csrf import csrf_exempt, csrf_protect
 
+import utils.csv
 import sal.settings as settings
 import search.utils
 import server.text_utils
@@ -568,82 +567,9 @@ def get_fields(request, model):
     return JsonResponse(output)
 
 
-class Echo(object):
-    """An object that implements just the write method of the file-like interface.
-    """
-
-    def write(self, value):
-        """Write the value by returning it, instead of storing in a buffer."""
-        return value
-
-
-def get_csv_row(machine, facter_headers, condition_headers, plugin_script_headers):
-    row = []
-    skip_fields = [
-        'id',
-        'report',
-        'machine_group'
-    ]
-    for name, value in machine.get_fields():
-        if name not in skip_fields:
-            try:
-                row.append(server.text_utils.safe_bytes(value))
-            except Exception:
-                row.append('')
-
-    row.append(machine.machine_group.business_unit.name)
-    row.append(machine.machine_group.name)
-    return row
-
-
-# Helper function to inject headers
-def stream_csv(header_row, machines, facter_headers, condition_headers, plugin_script_headers):
-    if header_row:
-        yield header_row
-    for machine in machines:
-        yield get_csv_row(machine, facter_headers, condition_headers, plugin_script_headers)
-
-
 @login_required
 def export_csv(request, search_id):
     machines = Machine.objects.all().defer('report')
-
     machines = search_machines(search_id, machines, full=True)
-
-    saved_search = get_object_or_404(SavedSearch, pk=search_id)
-    pseudo_buffer = Echo()
-    writer = csv.writer(pseudo_buffer)
-
-    # Fields
-    header_row = []
-    fields = Machine._meta.get_fields()
-    skip_fields = [
-        'id',
-        'report',
-    ]
-    for field in fields:
-        if not field.is_relation and field.name not in skip_fields:
-            header_row.append(field.name)
-
-    facter_headers = []
-    condition_headers = []
-    plugin_script_headers = []
-
-    header_row.append('business_unit')
-    header_row.append('machine_group')
-
-    response = StreamingHttpResponse(
-        (writer.writerow(row) for row in stream_csv(
-            header_row=header_row,
-            machines=machines,
-            facter_headers=facter_headers,
-            condition_headers=condition_headers,
-            plugin_script_headers=plugin_script_headers)),
-        content_type="text/csv")
-    # Create the HttpResponse object with the appropriate CSV header.
-    if getattr(settings, 'DEBUG_CSV', False):
-        pass
-    else:
-        response['Content-Disposition'] = 'attachment; filename="%s.csv"' % saved_search.name
-
-    return response
+    title = get_object_or_404(SavedSearch, pk=search_id).name
+    return utils.csv.get_csv_response(machines, title)

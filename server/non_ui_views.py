@@ -166,18 +166,7 @@ def export_csv(request, plugin_name, data, group_type='all', group_id=None):
         request, group_type=group_type, group_id=group_id)
     machines, title = plugin_object.filter_machines(queryset, data)
 
-    return utils.csv.get_csv_response(machines, title)
-    # pseudo_buffer = Echo()
-    # writer = csv.writer(pseudo_buffer)
-
-    # # Nest fieldnames into an iterable of 1 so it can be chained.
-    # headers = [fieldnames]
-    # data = (machine_row(machine, fieldnames) for machine in machines)
-    # generator = (writer.writerow(row) for row in itertools.chain(headers, data))
-
-    # response = StreamingHttpResponse(generator, content_type="text/csv")
-    # response['Content-Disposition'] = 'attachment; filename="%s.csv"' % title
-    # return response
+    return utils.csv.get_csv_response(machines, utils.csv.machine_fields(), title)
 
 
 @csrf_exempt

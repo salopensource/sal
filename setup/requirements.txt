@@ -23,6 +23,5 @@ python-memcached==1.57
 pytz==2014.3
 requests==2.20.1
 six==1.10.0
-unicodecsv==0.14.1
 urllib3==1.24.1
 Yapsy==1.11.223

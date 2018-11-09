@@ -1,7 +1,6 @@
 # standard library
 import collections
 import copy
-import csv
 import hashlib
 import itertools
 import plistlib
@@ -40,7 +39,7 @@ ApplicationTuple = collections.namedtuple(
 APPLICATION_FIELDS = dict(itertools.zip_longest(ApplicationTuple._fields, []))
 
 
-class GroupMixin(object):
+class GroupMixin():
     """Mixin to add get_business_unit method for access decorators.
 
     The view must have the URL configured so that kwargs for
@@ -150,7 +149,7 @@ class GroupMixin(object):
         return queryset
 
 
-class DatatableQuerystringMixin(object):
+class DatatableQuerystringMixin():
     """Mixin to allow querystrings to work with DatatableViews
 
     Must come in a higher precedence spot in the MRO. (i.e. <<<---)
@@ -167,7 +166,7 @@ class DatatableQuerystringMixin(object):
         return kwargs
 
 
-class CSVResponseMixin(object):
+class CSVResponseMixin():
     csv_filename = "sal_inventory"
     csv_ext = ".csv"
     components = []

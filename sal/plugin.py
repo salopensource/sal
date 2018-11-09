@@ -47,7 +47,7 @@ DEPRECATED_PAGES = {
     'machine': 'machine_detail'}
 
 
-class OSFamilies(object):
+class OSFamilies():
     chromeos = "ChromeOS"
     darwin = "Darwin"
     linux = "Linux"
@@ -304,7 +304,7 @@ class BasePlugin(IPlugin):
         pass
 
 
-class FilterMixin(object):
+class FilterMixin():
     """Adds filter_machines method to Plugins
 
     Public_Methods
@@ -480,7 +480,7 @@ class OldPluginAdapter(BasePlugin):
             self.plugin.profiles_processor(machine, profiles_list)
 
 
-class PluginManager(object):
+class PluginManager():
     """Simplifies finding, retrieving, and instantiating plugins
 
     All plugin instance retrieval should be done through this manager

@@ -42,4 +42,4 @@ urlpatterns = [
     url(r'^csv/(?P<search_id>.+)/', views.export_csv, name='search_export_csv'),
 
     # Get field names
-    url(r'^get_fields/(?P<model>.+)/', views.get_fields, name='search_get_fields'),]
+    url(r'^get_fields/(?P<model>.+)/', views.get_fields, name='search_get_fields'), ]

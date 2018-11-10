@@ -9,7 +9,7 @@ from dateutil.parser import parse
 from django.contrib.auth.models import User
 from django.db import models
 
-from server import text_utils
+from utils import text_utils
 
 
 OS_CHOICES = (
@@ -362,7 +362,7 @@ class PendingAppleUpdate(models.Model):
     display_name = models.CharField(max_length=256, null=True, blank=True)
 
     def __unicode__(self):
-        return str(self.update) or ''
+        return self.update or ''
 
     class Meta:
         ordering = ['display_name']

@@ -8,11 +8,10 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.template.context_processors import csrf
 from django.views.decorators.csrf import csrf_exempt, csrf_protect
 
-import utils.csv
 import sal.settings as settings
 import search.utils
-import server.text_utils
 import server.utils
+import utils
 from inventory.models import *
 from sal.decorators import *
 from search.forms import *

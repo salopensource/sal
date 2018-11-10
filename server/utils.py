@@ -23,7 +23,7 @@ from sal.decorators import is_global_admin
 from sal.plugin import (BasePlugin, Widget, OldPluginAdapter, PluginManager, DetailPlugin,
                         ReportPlugin, DEPRECATED_PLUGIN_TYPES)
 from server.models import *
-from server.text_utils import safe_text
+from utils.text_utils import safe_text
 
 
 PLUGIN_ORDER = [

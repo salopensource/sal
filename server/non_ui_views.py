@@ -605,7 +605,7 @@ def process_conditions(machine, report_data):
 @csrf_exempt
 @key_auth_required
 def install_log_hash(request, serial):
-    sha256hash = hashlib.sha256('Update sal-scripts!'.encode('utf-8')).hexdigest()
+    sha256hash = hashlib.sha256('Update sal-scripts!'.encode()).hexdigest()
     return HttpResponse(sha256hash)
 
 

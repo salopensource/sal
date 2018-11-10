@@ -1,13 +1,10 @@
-import base64
-import bz2
 import plistlib
-import pytz
 import random
 import string
 from datetime import datetime
-from xml.parsers.expat import ExpatError
 
-from dateutil.parser import *
+import pytz
+from dateutil.parser import parse
 
 from django.contrib.auth.models import User
 from django.db import models
@@ -293,20 +290,17 @@ class PluginScriptRow(models.Model):
     def save(self):
         try:
             self.pluginscript_data_int = int(self.pluginscript_data)
-        except Exception:
+        except (ValueError, TypeError):
             self.pluginscript_data_int = 0
 
-        try:
-            self.pluginscript_data_string = str(self.pluginscript_data)
-        except Exception:
-            self.pluginscript_data_string = ""
+        self.pluginscript_data_string = str(self.pluginscript_data)
 
         try:
             date_data = parse(self.pluginscript_data)
             if not date_data.tzinfo:
                 date_data = date_data.replace(tzinfo=pytz.UTC)
             self.pluginscript_data_date = date_data
-        except Exception:
+        except ValueError:
             # Try converting it to an int if we're here
             try:
                 if int(self.pluginscript_data) != 0:
@@ -314,11 +308,11 @@ class PluginScriptRow(models.Model):
                     try:
                         self.pluginscript_data_date = datetime.fromtimestamp(
                             int(self.pluginscript_data), tz=pytz.UTC)
-                    except Exception:
+                    except (ValueError, TypeError):
                         self.pluginscript_data_date = None
                 else:
                     self.pluginscript_data_date = None
-            except Exception:
+            except (ValueError, TypeError):
                 self.pluginscript_data_date = None
 
         super(PluginScriptRow, self).save()

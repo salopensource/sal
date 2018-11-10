@@ -18,7 +18,7 @@ from catalog.models import *
 from sal.decorators import *
 from server import utils
 from server.models import *
-from server.text_utils import decode_to_string
+from utils.text_utils import decode_to_string
 
 
 @csrf_exempt

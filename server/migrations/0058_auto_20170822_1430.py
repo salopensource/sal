@@ -8,7 +8,7 @@ from django.db import migrations, models
 
 import sal.plugin
 from server.models import Plugin
-from server import text_utils
+from utils import text_utils
 
 
 def update_os_families(apps, schema_editor):

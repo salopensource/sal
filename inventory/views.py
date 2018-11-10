@@ -27,8 +27,8 @@ import server.utils
 import utils.csv
 from inventory.models import Application, Inventory, InventoryItem
 from sal.decorators import (class_login_required, class_access_required, key_auth_required)
-from server import text_utils
 from server.models import BusinessUnit, MachineGroup, Machine
+from utils import text_utils
 
 
 ApplicationTuple = collections.namedtuple(

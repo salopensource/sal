@@ -7,7 +7,7 @@ from django import template
 from django.shortcuts import get_object_or_404
 from django.utils.timezone import utc
 
-import server.text_utils
+import utils.text_utils
 from server.models import MachineGroup, BusinessUnit
 
 

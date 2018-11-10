@@ -24,10 +24,10 @@ import utils.csv
 from sal.decorators import key_auth_required
 from sal.plugin import (Widget, ReportPlugin, OldPluginAdapter, PluginManager,
                         DEPRECATED_PLUGIN_TYPES)
-from server import text_utils
 from server.models import (Machine, Condition, Fact, HistoricalFact, MachineGroup, UpdateHistory,
                            UpdateHistoryItem, InstalledUpdate, PendingAppleUpdate,
                            PluginScriptSubmission, Plugin, Report, MachineDetailPlugin)
+from utils import text_utils
 
 if settings.DEBUG:
     import logging

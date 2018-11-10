@@ -13,7 +13,6 @@ from django.views.decorators.csrf import csrf_exempt, csrf_protect
 
 import utils.csv
 import search.utils
-import server.text_utils
 import server.utils
 from inventory.models import *
 from sal.decorators import *

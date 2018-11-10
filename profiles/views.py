@@ -17,8 +17,9 @@ from django.views.decorators.http import require_POST
 # Local
 from profiles.models import Profile, Payload
 from sal.decorators import *
-from server import utils, text_utils
+from server import utils
 from server.models import BusinessUnit, MachineGroup, Machine  # noqa: F811
+from utils import text_utils
 
 
 @csrf_exempt

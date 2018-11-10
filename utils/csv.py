@@ -10,8 +10,8 @@ from django.db.models.query import QuerySet
 from django.http import StreamingHttpResponse
 
 import server.models
-import server.text_utils
 import server.utils
+import utils.text_utils
 
 
 IGNORED_CSV_FIELDS = ('id', 'machine_group', 'report')

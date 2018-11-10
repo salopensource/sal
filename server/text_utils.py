@@ -8,21 +8,6 @@ def class_to_title(text):
     return re.sub(r'([a-z](?=[A-Z])|[A-Z](?=[A-Z][a-z]))', r'\1 ', text)
 
 
-def safe_bytes(s):
-    """Return utf-8 encoded bytes, replacing chars if needed."""
-    # This handles the special case that postgres can't write a null
-    # charecter to a TextField.
-    # TODO: This function is provisional until we can remove it.
-    if isinstance(s, str):
-        s = s.encode('utf-8', errors='replace')
-    if isinstance(s, bytes):
-        s = s.replace(b'\x00', b'')
-    # What's going on here? Most of the time this is supposed to take
-    # text as input; but sometimes it's getting bools or model instances
-    # so we can't just blindly do a replcae method on everything!
-    return s
-
-
 def safe_text(text: typing.Any) -> str:
     """Process text of any type to ensure it can be saved in the DB."""
     # Ensure bytes get decoded, no matter what, to unicode.

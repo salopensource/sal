@@ -2,6 +2,7 @@ import base64
 import bz2
 import hashlib
 import plistlib
+from xml.parsers.expat import ExpatError
 
 from django import forms
 from django.conf import settings
@@ -38,11 +39,10 @@ def submit_catalog(request):
 
         compressed_catalog = submission.get('base64bz2catalog')
         if compressed_catalog:
-            catalog_str = decode_to_string(compressed_catalog)
+            catalog_bytes = decode_to_string(compressed_catalog).encode()
             try:
-                with open(catalog_str, 'rb') as handle:
-                    catalog_plist = plistlib.load(handle)
-            except Exception:
+                catalog_plist = plistlib.loads(catalog_bytes)
+            except (InvalidFileException, ExpatError):
                 catalog_plist = None
             if catalog_plist:
                 try:
@@ -69,10 +69,10 @@ def catalog_hash(request):
         except MachineGroup.DoesNotExist:
             raise Http404
     if catalogs:
-        catalogs = decode_to_string(catalogs)
+        catalogs = decode_to_string(catalogs).encode()
         try:
             catalogs_plist = plistlib.loads(catalogs)
-        except Exception:
+        except (InvalidFileException, ExpatError):
             catalogs_plist = None
         if catalogs_plist:
             for item in catalogs_plist:
@@ -83,4 +83,4 @@ def catalog_hash(request):
                 except Catalog.DoesNotExist:
                     output.append({'name': name, 'sha256hash': 'NOT FOUND'})
 
-    return HttpResponse(plistlib.dumps(output))
+    return HttpResponse(plistlib.dumps(output).decode())

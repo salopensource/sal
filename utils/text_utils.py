@@ -90,9 +90,12 @@ def decode_submission_data(data: Text, compression: str = '') -> bytes:
 
 
 def submission_plist_loads(data: Text, compression: str = '') -> Plist:
-    decoded = decode_submission_data(data, compression)
+    if compression:
+        data = decode_submission_data(data, compression)
+    if isinstance(data, str):
+        data = data.encode()
     try:
-        plist = plistlib.loads(decoded)
+        plist = plistlib.loads(data)
     except (plistlib.InvalidFileException, ExpatError):
         plist = {}
     return plist

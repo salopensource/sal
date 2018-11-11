@@ -494,28 +494,27 @@ def inventory_submit(request):
         except Machine.DoesNotExist:
             return HttpResponseNotFound('Serial Number not found')
 
-        compression_type = 'base64bz2'
         if 'base64bz2inventory' in submission:
             compressed_inventory = submission.get('base64bz2inventory')
+            compression_type = 'base64bz2'
         elif 'base64inventory' in submission:
             compressed_inventory = submission.get('base64inventory')
             compression_type = 'base64'
+        else:
+            compressed_inventory = ''
+
         if compressed_inventory:
             compressed_inventory = compressed_inventory.replace(" ", "+")
-            inventory_str = text_utils.decode_submission_data(
+            inventory_bytes = text_utils.decode_submission_data(
                 compressed_inventory, compression_type)
-            try:
-                inventory_list = plistlib.loads(inventory_str)
-            except (plistlib.InvalidFileException, ExpatError):
-                inventory_list = None
+            inventory_list = text_utils.submission_plist_loads(inventory_bytes)
+
             if inventory_list:
                 try:
                     inventory_meta = Inventory.objects.get(machine=machine)
                 except Inventory.DoesNotExist:
                     inventory_meta = Inventory(machine=machine)
-                inventory_meta.sha256hash = \
-                    hashlib.sha256(inventory_str).hexdigest()
-                inventory_meta.inventory_str = inventory_str
+                inventory_meta.sha256hash = hashlib.sha256(inventory_bytes).hexdigest()
                 # clear existing inventoryitems
                 machine.inventoryitem_set.all().delete()
                 # insert current inventory items

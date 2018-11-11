@@ -503,7 +503,7 @@ def inventory_submit(request):
         if compressed_inventory:
             compressed_inventory = compressed_inventory.replace(" ", "+")
             inventory_str = text_utils.decode_to_string(
-                compressed_inventory, compression_type).encode()
+                compressed_inventory, compression_type)
             try:
                 inventory_list = plistlib.loads(inventory_str)
             except (plistlib.InvalidFileException, ExpatError):

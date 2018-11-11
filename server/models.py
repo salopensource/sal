@@ -2,6 +2,7 @@ import plistlib
 import random
 import string
 from datetime import datetime
+from xml.parsers.expat import ExpatError
 
 import pytz
 from dateutil.parser import parse
@@ -152,8 +153,8 @@ class Machine(models.Model):
 
     def get_report(self):
         try:
-            return plistlib.loads(self.report)
-        except TypeError:
+            return plistlib.loads(self.report.encode())
+        except (plistlib.InvalidFileException, ExpatError):
             return {}
 
     def __unicode__(self):

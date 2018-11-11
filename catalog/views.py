@@ -39,7 +39,7 @@ def submit_catalog(request):
 
         compressed_catalog = submission.get('base64bz2catalog')
         if compressed_catalog:
-            catalog_bytes = decode_to_string(compressed_catalog).encode()
+            catalog_bytes = decode_to_string(compressed_catalog)
             try:
                 catalog_plist = plistlib.loads(catalog_bytes)
             except (plistlib.InvalidFileException, ExpatError):
@@ -69,7 +69,7 @@ def catalog_hash(request):
         except MachineGroup.DoesNotExist:
             raise Http404
     if catalogs:
-        catalogs = decode_to_string(catalogs).encode()
+        catalogs = decode_to_string(catalogs)
         try:
             catalogs_plist = plistlib.loads(catalogs)
         except (plistlib.InvalidFileException, ExpatError):

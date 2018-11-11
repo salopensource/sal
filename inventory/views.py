@@ -6,6 +6,7 @@ import itertools
 import plistlib
 from distutils.version import LooseVersion
 from urllib.parse import quote
+from xml.parsers.expat import ExpatError
 
 # Django
 from django.core.urlresolvers import reverse
@@ -501,11 +502,11 @@ def inventory_submit(request):
             compression_type = 'base64'
         if compressed_inventory:
             compressed_inventory = compressed_inventory.replace(" ", "+")
-            inventory_str = text_utils.decode_to_string(compressed_inventory, compression_type)
+            inventory_str = text_utils.decode_to_string(
+                compressed_inventory, compression_type).encode()
             try:
-                with open(inventory_str, 'rb') as handle:
-                    inventory_list = plistlib.load(handle)
-            except Exception:
+                inventory_list = plistlib.loads(inventory_str)
+            except (plistlib.InvalidFileException, ExpatError):
                 inventory_list = None
             if inventory_list:
                 try:

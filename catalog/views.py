@@ -42,7 +42,7 @@ def submit_catalog(request):
             catalog_bytes = decode_to_string(compressed_catalog).encode()
             try:
                 catalog_plist = plistlib.loads(catalog_bytes)
-            except (InvalidFileException, ExpatError):
+            except (plistlib.InvalidFileException, ExpatError):
                 catalog_plist = None
             if catalog_plist:
                 try:
@@ -72,7 +72,7 @@ def catalog_hash(request):
         catalogs = decode_to_string(catalogs).encode()
         try:
             catalogs_plist = plistlib.loads(catalogs)
-        except (InvalidFileException, ExpatError):
+        except (plistlib.InvalidFileException, ExpatError):
             catalogs_plist = None
         if catalogs_plist:
             for item in catalogs_plist:

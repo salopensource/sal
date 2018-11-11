@@ -502,7 +502,7 @@ def inventory_submit(request):
             compression_type = 'base64'
         if compressed_inventory:
             compressed_inventory = compressed_inventory.replace(" ", "+")
-            inventory_str = text_utils.decode_to_string(
+            inventory_str = text_utils.decode_submission_data(
                 compressed_inventory, compression_type)
             try:
                 inventory_list = plistlib.loads(inventory_str)

@@ -29,12 +29,12 @@ class PluginUtilsTest(TestCase):
 class ServerUtilsTest(TestCase):
     """Test the server app utilities"""
 
-    @unittest.mock.patch('pathlib.Path.open', new_callable=unittest.mock.mock_open())
-    @unittest.mock.patch('plistlib.load')
-    def test_get_server_version(self, mock_load, mock_open):
+    @unittest.mock.patch('pathlib.Path.read_text')
+    @unittest.mock.patch('plistlib.loads')
+    def test_get_server_version(self, mock_loads, mock_read_text):
         """Test that the server version getter works"""
         version = '4.0.0'
-        mock_load.return_value = {'version': version}
+        mock_loads.return_value = {'version': version}
         version_result = utils.get_server_version()
 
         self.assertEqual(version_result, version)

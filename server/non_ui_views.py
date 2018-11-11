@@ -261,7 +261,7 @@ def checkin(request):
     for key in ('bz2report', 'base64report', 'base64bz2report'):
         if key in data:
             encoded_report = data[key]
-            report = text_utils.decode_to_string(encoded_report, compression=key)
+            report = text_utils.decode_submission_data(encoded_report, compression=key)
             break
 
     machine.report = report

@@ -22,6 +22,7 @@ from django.shortcuts import get_object_or_404
 from sal.decorators import is_global_admin
 from sal.plugin import (BasePlugin, Widget, OldPluginAdapter, PluginManager, DetailPlugin,
                         ReportPlugin, DEPRECATED_PLUGIN_TYPES)
+from sal.settings import PROJECT_DIR
 from server.models import *
 from utils.text_utils import safe_text
 
@@ -70,9 +71,8 @@ def get_instance_and_groups(group_type, group_id):
 
 
 def get_server_version():
-    current_dir = pathlib.Path(__file__).resolve().parent
-    with (current_dir.parent / 'sal/version.plist').open('rb') as handle:
-        return plistlib.load(handle)['version']
+    data = (pathlib.Path(PROJECT_DIR) / 'sal/version.plist').read_bytes()
+    return plistlib.loads(data)['version']
 
 
 def get_current_release_version_number():
@@ -119,25 +119,14 @@ def send_report():
 
     if last_sent < (current_time - TWENTY_FOUR_HOURS):
         output = {}
-
-        # get total number of machines
         output['machines'] = Machine.objects.count()
-
-        # get list of plugins
         output['plugins'] = [p.name for p in chain(Plugin.objects.all(), Report.objects.all())]
-
-        # get install type
         output['install_type'] = get_install_type()
 
         # get database type
         output['database'] = settings.DATABASES['default']['ENGINE']
 
-        # version
-        current_dir = os.path.dirname(os.path.realpath(__file__))
-        path = os.path.join(os.path.dirname(current_dir), 'sal', 'version.plist')
-        with open(path, 'rb') as handle:
-            version = plistlib.load(handle)
-        output['version'] = version['version']
+        output['version'] = get_server_version()
         # plist encode output
         post_data = plistlib.dumps(output)
         response = requests.post('https://version.salopensource.com', data={"data": post_data})
@@ -321,12 +310,9 @@ def add_default_sal_settings():
 def get_defaults():
     """Get the default settings from our defaults file."""
     # The file is stored in the project root /sal folder.
-    default_sal_settings_path = os.path.join(
-        os.path.dirname(os.path.abspath(__file__)), "../sal", 'default_sal_settings.json')
-    with open(default_sal_settings_path) as handle:
-        default_sal_settings = json.load(handle)
-
-    return default_sal_settings
+    defaults = (
+        pathlib.Path(PROJECT_DIR) / 'sal/default_sal_settings.json').resolve().read_text()
+    return json.loads(defaults)
 
 
 def set_setting(name, value):

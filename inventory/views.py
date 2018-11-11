@@ -3,10 +3,8 @@ import collections
 import copy
 import hashlib
 import itertools
-import plistlib
 from distutils.version import LooseVersion
 from urllib.parse import quote
-from xml.parsers.expat import ExpatError
 
 # Django
 from django.core.urlresolvers import reverse

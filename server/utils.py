@@ -71,7 +71,7 @@ def get_instance_and_groups(group_type, group_id):
 
 def get_server_version():
     current_dir = pathlib.Path(__file__).resolve().parent
-    with (current_dir.parent.parent / 'sal/version.plist').open('rb') as handle:
+    with (current_dir.parent / 'sal/version.plist').open('rb') as handle:
         return plistlib.load(handle)['version']
 
 

@@ -12,7 +12,7 @@ class Application(models.Model):
         ordering = ['name']
         unique_together = (('name', 'bundleid', 'bundlename'))
 
-    def __unicode__(self):
+    def __str__(self):
         return self.name
 
 

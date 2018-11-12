@@ -16,7 +16,7 @@ class Profile(models.Model):
     class Meta:
         ordering = ['display_name']
 
-    def __unicode__(self):
+    def __str__(self):
         return self.display_name
 
     def get_fields(self):
@@ -33,7 +33,7 @@ class Payload(models.Model):
     class Meta:
         ordering = ['identifier']
 
-    def __unicode__(self):
+    def __str__(self):
         return '{} {}'.format(self.identifier, self.uuid)
 
     def get_fields(self):

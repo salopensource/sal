@@ -7,12 +7,12 @@ from server.models import *
 User.full_name = property(lambda u: "%s %s" % (u.first_name, u.last_name))
 
 
-def user_new_unicode(self):
+def user_new_str(self):
     return self.username if self.get_full_name() == "" else self.get_full_name()
 
 
-# Replace the __unicode__ method in the User class with out new implementation
-User.__unicode__ = user_new_unicode
+# Replace the __str__ method in the User class with our new implementation
+User.__str__ = user_new_str
 
 LEVEL_CHOICES = (
     ('RO', 'Read Only'),

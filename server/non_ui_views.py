@@ -224,19 +224,7 @@ def preflight_v2_get_script(request, plugin_name, script_name):
 @key_auth_required
 def checkin(request):
     data = request.POST
-
-    # Take out some of the weird junk VMware puts in. Keep an eye out in case
-    # Apple actually uses these:
-    serial = data.get('serial', '').upper().translate(SERIAL_TRANSLATE)
-    # Are we using Sal for some sort of inventory (like, I don't know, Puppet?)
-    if server.utils.get_django_setting('ADD_NEW_MACHINES', True):
-        if serial:
-            try:
-                machine = Machine.objects.get(serial=serial)
-            except Machine.DoesNotExist:
-                machine = Machine(serial=serial)
-    else:
-        machine = get_object_or_404(Machine, serial=serial)
+    machine = process_checkin_serial(data.get('serial', ''))
 
     machine_group_key = data.get('key')
     if machine_group_key in (None, 'None'):
@@ -374,6 +362,25 @@ def checkin(request):
         server.utils.send_report()
 
     return HttpResponse("Sal report submmitted for %s" % data.get('name'))
+
+
+def process_checkin_serial(serial):
+    # Take out some of the weird junk VMware puts in. Keep an eye out in case
+    # Apple actually uses these:
+    serial = serial.upper().translate(SERIAL_TRANSLATE)
+
+    # A serial number is required.
+    if not serial:
+        raise Http404
+    # Are we using Sal for some sort of inventory (like, I don't know, Puppet?)
+    if server.utils.get_django_setting('ADD_NEW_MACHINES', True):
+            try:
+                machine = Machine.objects.get(serial=serial)
+            except Machine.DoesNotExist:
+                machine = Machine(serial=serial)
+    else:
+        machine = get_object_or_404(Machine, serial=serial)
+    return machine
 
 
 def process_memory(machine):

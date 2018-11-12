@@ -147,14 +147,10 @@ def key_auth_required(function):
 
     @wraps(function)
     def wrap(request, *args, **kwargs):
-        # Check for valid basic auth header
-        if hasattr(settings, 'BASIC_AUTH'):
-            use_auth = settings.BASIC_AUTH
-        else:
-            use_auth = True
-
-        if use_auth is False:
-            return view(request, *args, **kwargs)  # noqa: F821
+        if not getattr(settings, 'BASIC_AUTH', True):
+            # If we're not using BASIC AUTH for some reason (testing)
+            # go ahead and return the func.
+            return function(request, *args, **kwargs)
 
         if 'HTTP_AUTHORIZATION' in request.META:
             auth = request.META['HTTP_AUTHORIZATION'].split()

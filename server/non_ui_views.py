@@ -245,7 +245,7 @@ def checkin(request):
 
     # Find the report in the submitted data. It could be encoded
     # and/or compressed with base64 and bz2.
-    report_bytes = None
+    report_bytes = b''
     for key in ('bz2report', 'base64report', 'base64bz2report'):
         if key in data:
             encoded_report = data[key]

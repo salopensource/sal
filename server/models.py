@@ -134,7 +134,7 @@ class Machine(models.Model):
                                  choices=OS_CHOICES, verbose_name="OS Family", default="Darwin")
     last_checkin = models.DateTimeField(db_index=True, blank=True, null=True)
     first_checkin = models.DateTimeField(db_index=True, blank=True, null=True, auto_now_add=True)
-    report = models.BinaryField(editable=True, null=True)
+    report = models.TextField(editable=True, null=True)
     errors = models.IntegerField(default=0)
     warnings = models.IntegerField(default=0)
     activity = models.BooleanField(editable=True, default=False)

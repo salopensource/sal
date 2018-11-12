@@ -261,17 +261,19 @@ def checkin(request):
     for key in ('bz2report', 'base64report', 'base64bz2report'):
         if key in data:
             encoded_report = data[key]
-            report = text_utils.decode_submission_data(encoded_report, compression=key)
+            report_bytes = text_utils.decode_submission_data(encoded_report, compression=key)
             break
 
-    machine.report = report
-
-    if not report:
+    report_data = text_utils.submission_plist_loads(report_bytes)
+    if report_data:
+        # If we get something back, we know the data is good, so store
+        # the bytes.
+        machine.report = report_bytes
+    else:
+        # Otherwise, zero everything out and return early.
         machine.activity = False
         machine.errors = machine.warnings = 0
         return
-
-    report_data = plistlib.loads(report)
 
     if report_data.get('ConsoleUser') and report_data.get('ConsoleUser') != '_mbsetupuser':
         machine.console_user = report_data.get('ConsoleUser')

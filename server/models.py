@@ -63,7 +63,7 @@ class UserProfile(models.Model):
     )
     level = models.CharField(max_length=2, choices=LEVEL_CHOICES, default='RO')
 
-    def __unicode__(self):
+    def __str__(self):
         return self.user.username
 
 
@@ -74,7 +74,7 @@ class BusinessUnit(models.Model):
     name = models.CharField(max_length=100)
     users = models.ManyToManyField(User, blank=True)
 
-    def __unicode__(self):
+    def __str__(self):
         return self.name
 
     @classmethod
@@ -96,7 +96,7 @@ class MachineGroup(models.Model):
             self.key = GenerateKey()
         super(MachineGroup, self).save()
 
-    def __unicode__(self):
+    def __str__(self):
         return self.name
 
     @classmethod
@@ -154,7 +154,7 @@ class Machine(models.Model):
     def get_report(self):
         return text_utils.submission_plist_loads(self.report)
 
-    def __unicode__(self):
+    def __str__(self):
         if self.hostname:
             return self.hostname
         else:
@@ -186,7 +186,7 @@ class UpdateHistory(models.Model):
     name = models.CharField(max_length=255, db_index=True)
     version = models.CharField(max_length=254, db_index=True)
 
-    def __unicode__(self):
+    def __str__(self):
         return "%s: %s %s" % (self.machine, self.name, self.version)
 
     class Meta:
@@ -208,7 +208,7 @@ class UpdateHistoryItem(models.Model):
     status = models.CharField(max_length=254, choices=UPDATE_STATUS, verbose_name="Status")
     extra = models.TextField(blank=True, null=True)
 
-    def __unicode__(self):
+    def __str__(self):
         return "%s: %s %s %s %s" % (
             self.update_history.machine,
             self.update_history.name,
@@ -227,7 +227,7 @@ class Fact(models.Model):
     fact_name = models.TextField()
     fact_data = models.TextField()
 
-    def __unicode__(self):
+    def __str__(self):
         return '%s: %s' % (self.fact_name, self.fact_data)
 
     class Meta:
@@ -241,7 +241,7 @@ class HistoricalFact(models.Model):
     fact_data = models.TextField()
     fact_recorded = models.DateTimeField()
 
-    def __unicode__(self):
+    def __str__(self):
         return self.fact_name
 
     class Meta:
@@ -254,7 +254,7 @@ class Condition(models.Model):
     condition_name = models.CharField(max_length=255)
     condition_data = models.TextField()
 
-    def __unicode__(self):
+    def __str__(self):
         return self.condition_name
 
     class Meta:
@@ -268,7 +268,7 @@ class PluginScriptSubmission(models.Model):
     historical = models.BooleanField(default=False)
     recorded = models.DateTimeField(auto_now_add=True)
 
-    def __unicode__(self):
+    def __str__(self):
         return '%s: %s' % (self.machine, self.plugin)
 
     class Meta:
@@ -315,7 +315,7 @@ class PluginScriptRow(models.Model):
 
         super(PluginScriptRow, self).save()
 
-    def __unicode__(self):
+    def __str__(self):
         return '%s: %s' % (self.pluginscript_name, self.pluginscript_data)
 
     class Meta:
@@ -329,7 +329,7 @@ class PendingUpdate(models.Model):
     update_version = models.CharField(max_length=255, null=True, blank=True)
     display_name = models.CharField(max_length=255, null=True, blank=True)
 
-    def __unicode__(self):
+    def __str__(self):
         return self.update
 
     class Meta:
@@ -344,7 +344,7 @@ class InstalledUpdate(models.Model):
     display_name = models.CharField(max_length=255, null=True, blank=True)
     installed = models.BooleanField()
 
-    def __unicode__(self):
+    def __str__(self):
         return self.update
 
     class Meta:
@@ -359,7 +359,7 @@ class PendingAppleUpdate(models.Model):
     update_version = models.CharField(max_length=256, null=True, blank=True)
     display_name = models.CharField(max_length=256, null=True, blank=True)
 
-    def __unicode__(self):
+    def __str__(self):
         return self.update or ''
 
     class Meta:
@@ -370,7 +370,7 @@ class Plugin(models.Model):
     name = models.CharField(max_length=255, unique=True)
     order = models.IntegerField()
 
-    def __unicode__(self):
+    def __str__(self):
         return self.name
 
     class Meta:
@@ -381,7 +381,7 @@ class MachineDetailPlugin(models.Model):
     name = models.CharField(max_length=255, unique=True)
     order = models.IntegerField()
 
-    def __unicode__(self):
+    def __str_(self):
         return self.name
 
     class Meta:
@@ -391,7 +391,7 @@ class MachineDetailPlugin(models.Model):
 class Report(models.Model):
     name = models.CharField(max_length=255, unique=True)
 
-    def __unicode__(self):
+    def __str__(self):
         return self.name
 
     class Meta:
@@ -402,7 +402,7 @@ class SalSetting(models.Model):
     name = models.CharField(max_length=255, unique=True)
     value = models.TextField()
 
-    def __unicode__(self):
+    def __str__(self):
         return self.name
 
 
@@ -420,7 +420,7 @@ class ApiKey(models.Model):
                 string.ascii_lowercase + string.digits) for x in range(64))
         super(ApiKey, self).save(*args, **kwargs)
 
-    def __unicode__(self):
+    def __str__(self):
         return self.name
 
     class Meta:

@@ -44,11 +44,7 @@ def submit_profiles(request):
             compression_type = 'base64'
         if compressed_profiles:
             compressed_profiles = compressed_profiles.replace(" ", "+")
-            profiles_str = text_utils.decode_submission_data(compressed_profiles, compression_type)
-            try:
-                profiles_list = plistlib.loads(profiles_str)
-            except (plistlib.InvalidFileException, xml.parsers.expat.ExpatError):
-                profiles_list = {}
+            profiles_list = text_utils.submission_plist_loads(compressed_profiles, compression_type)
 
             profiles_to_be_added = []
             machine.profile_set.all().delete()

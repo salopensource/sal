@@ -243,9 +243,9 @@ def checkin(request):
         machine.save()
         return HttpResponse("Broken Client report submmitted for %s" % data.get('serial'))
 
-    report = None
     # Find the report in the submitted data. It could be encoded
     # and/or compressed with base64 and bz2.
+    report_bytes = None
     for key in ('bz2report', 'base64report', 'base64bz2report'):
         if key in data:
             encoded_report = data[key]

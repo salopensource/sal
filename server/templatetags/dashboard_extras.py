@@ -88,7 +88,7 @@ def print_timestamp(timestamp):
 
 @register.filter
 def stringify(data):
-    return server.text_utils.stringify(data)
+    return utils.text_utils.stringify(data)
 
 
 @register.filter

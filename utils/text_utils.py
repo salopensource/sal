@@ -105,7 +105,7 @@ def is_valid_plist(data: Text) -> bool:
     if isinstance(data, str):
         data = data.encode()
     try:
-        _ = plistlib.loads(data)
+        plistlib.loads(data)
         return True
     except (plistlib.InvalidFileException, ExpatError):
         return False

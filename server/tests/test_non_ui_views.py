@@ -77,4 +77,3 @@ class MiscTest(TestCase):
         for key in memconv:
             test_machine.memory = key
             self.assertEqual(non_ui_views.process_memory(test_machine), memconv[key])
-

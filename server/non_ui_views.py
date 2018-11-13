@@ -224,6 +224,10 @@ def preflight_v2_get_script(request, plugin_name, script_name):
 @require_POST
 @key_auth_required
 def checkin(request):
+    historical_days = server.utils.get_setting('historical_retention')
+    now = django.utils.timezone.now()
+    datelimit = now - timedelta(days=historical_days)
+
     data = request.POST
     machine = process_checkin_serial(data.get('serial', ''))
     machine.machine_group = get_checkin_machine_group(data.get('key'))
@@ -254,96 +258,30 @@ def checkin(request):
     machine.report = report_bytes
     machine.console_user = get_console_user(report_data)
 
-    activity_keys = ('AppleUpdates', 'InstallResults', 'RemovalResults')
-    machine.activity = any(report_data.get(s) for s in activity_keys)
-
-    # Check errors and warnings.
-    machine.errors = len(report_data.get("Errors", []))
-    machine.warnings = len(report_data.get("Warnings", []))
-
-    machine.puppet_version = report_data.get('Puppet_Version')
-    machine.manifest = report_data.get('ManifestName')
-    machine.munki_version = report_data.get('ManagedInstallVersion')
-
-    puppet = report_data.get('Puppet', {})
-    if 'time' in puppet:
-        last_run_epoch = float(puppet['time']['last_run'])
-        machine.last_puppet_run = datetime.fromtimestamp(last_run_epoch, tz=pytz.UTC)
-    if 'events' in puppet:
-        machine.puppet_errors = puppet['events']['failure']
-
-    # Handle gosal submissions slightly differently from others.
-    os_family = report_data.get('OSFamily') or report_data.get('os_family')
-    if os_family:
-        machine.os_family = os_family
-
-    machine_info = report_data.get('MachineInfo', {})
-    if 'os_vers' in machine_info:
-        machine.operating_system = machine_info['os_vers']
-        # macOS major OS updates don't have a minor version, so add one.
-        if len(machine.operating_system) <= 4 and machine.os_family == 'Darwin':
-            machine.operating_system = machine.operating_system + '.0'
-    else:
-        # Handle gosal and missing os_vers cases.
-        machine.operating_system = machine_info.get('OSVers')
-
-    # TODO: These should be a number type.
-    # TODO: Cleanup all of the casting to str if we make a number.
-    machine.hd_space = report_data.get('AvailableDiskSpace', '0')
-    machine.hd_total = report_data.get('disk_size', '0')
-    space = float(machine.hd_space)
-    total = float(machine.hd_total)
-    if space == float(0) or total == float(0):
-        machine.hd_percent = '0'
-    else:
-        try:
-            machine.hd_percent = str(int((total - space) / total * 100))
-        except ZeroDivisionError:
-            machine.hd_percent = '0'
-
-    # Get macOS System Profiler hardware info.
-    # Older versions use `HardwareInfo` key, so start there.
-    hwinfo = machine_info.get('HardwareInfo', {})
-    if not hwinfo:
-        for profile in machine_info.get('SystemProfile', []):
-            if profile['_dataType'] == 'SPHardwareDataType':
-                hwinfo = profile['_items'][0]
-                break
-
-    if hwinfo:
-        key_style = 'old' if 'MachineModel' in hwinfo else 'new'
-        machine.machine_model = hwinfo.get(MACHINE_KEYS['machine_model'][key_style])
-        machine.machine_model_friendly = machine_info.get('machine_model_friendly', '')
-        machine.cpu_type = hwinfo.get(MACHINE_KEYS['cpu_type'][key_style])
-        machine.cpu_speed = hwinfo.get(MACHINE_KEYS['cpu_speed'][key_style])
-        machine.memory = hwinfo.get(MACHINE_KEYS['memory'][key_style])
-        machine.memory_kb = process_memory(machine)
+    machine = process_munki_data(data, report_data, machine, now, datelimit)
+    machine = process_puppet_data(report_data, machine)
+    machine = process_machine_info(report_data, machine)
 
     try:
         machine.save()
     except ValueError:
         logging.warning(f"Sal report submmitted for {data.get('serial')} failed with a ValueError!")
 
-    historical_days = server.utils.get_setting('historical_retention')
-    now = django.utils.timezone.now()
-    datelimit = now - timedelta(days=historical_days)
-
     # Process plugin scripts.
     # Clear out too-old plugin script submissions first.
     PluginScriptSubmission.objects.filter(recorded__lt=datelimit).delete()
     server.utils.process_plugin_script(report_data.get('Plugin_Results', []), machine)
-
-    process_managed_items(machine, report_data, data.get('uuid'), now, datelimit)
-    process_facts(machine, report_data, datelimit)
-    process_conditions(machine, report_data)
-
     server.utils.run_plugin_processing(machine, report_data)
+
+    process_facts(machine, report_data, datelimit)
 
     if server.utils.get_setting('send_data') in (None, True):
         # If setting is None, it hasn't been configured yet; assume True
         server.utils.send_report()
 
-    return HttpResponse("Sal report submmitted for %s" % data.get('serial'))
+    msg = f"Sal report submmitted for {machine.serial}"
+    logging.debug(msg)
+    return HttpResponse(msg)
 
 
 def process_checkin_serial(serial):
@@ -392,6 +330,92 @@ def get_report_bytes(data):
             break
 
     return report_bytes
+
+
+def process_puppet_data(report_data, machine):
+    machine.puppet_version = report_data.get('Puppet_Version')
+    puppet = report_data.get('Puppet', {})
+    if 'time' in puppet:
+        try:
+            last_run_epoch = float(puppet['time'].get('last_run'))
+        except ValueError:
+            last_run_epoch = None
+        if last_run_epoch:
+            machine.last_puppet_run = datetime.fromtimestamp(last_run_epoch, tz=pytz.UTC)
+    if 'events' in puppet:
+        errors = puppet['events'].get('failure', 0)
+        try:
+            int(errors)
+        except ValueError:
+            errors = 0
+    return machine
+
+
+def process_munki_data(submission_data, report_data, machine, now, datelimit):
+    activity_keys = ('AppleUpdates', 'InstallResults', 'RemovalResults')
+    machine.activity = any(report_data.get(s) for s in activity_keys)
+
+    # Check errors and warnings.
+    machine.errors = len(report_data.get("Errors", []))
+    machine.warnings = len(report_data.get("Warnings", []))
+
+    machine.manifest = report_data.get('ManifestName')
+    machine.munki_version = report_data.get('ManagedInstallVersion')
+
+    process_managed_items(machine, report_data, submission_data.get('uuid'), now, datelimit)
+    process_conditions(machine, report_data)
+    return machine
+
+
+def process_machine_info(report_data, machine):
+    # Handle gosal submissions slightly differently from others.
+    os_family = report_data.get('OSFamily') or report_data.get('os_family')
+    if os_family:
+        machine.os_family = os_family
+
+    machine_info = report_data.get('MachineInfo', {})
+    if 'os_vers' in machine_info:
+        machine.operating_system = machine_info['os_vers']
+        # macOS major OS updates don't have a minor version, so add one.
+        if len(machine.operating_system) <= 4 and machine.os_family == 'Darwin':
+            machine.operating_system = machine.operating_system + '.0'
+    else:
+        # Handle gosal and missing os_vers cases.
+        machine.operating_system = machine_info.get('OSVers')
+
+    # TODO: These should be a number type.
+    # TODO: Cleanup all of the casting to str if we make a number.
+    machine.hd_space = report_data.get('AvailableDiskSpace', '0')
+    machine.hd_total = report_data.get('disk_size', '0')
+    space = float(machine.hd_space)
+    total = float(machine.hd_total)
+    if space == float(0) or total == float(0):
+        machine.hd_percent = '0'
+    else:
+        try:
+            machine.hd_percent = str(int((total - space) / total * 100))
+        except ZeroDivisionError:
+            machine.hd_percent = '0'
+
+    # Get macOS System Profiler hardware info.
+    # Older versions use `HardwareInfo` key, so start there.
+    hwinfo = machine_info.get('HardwareInfo', {})
+    if not hwinfo:
+        for profile in machine_info.get('SystemProfile', []):
+            if profile['_dataType'] == 'SPHardwareDataType':
+                hwinfo = profile['_items'][0]
+                break
+
+    if hwinfo:
+        key_style = 'old' if 'MachineModel' in hwinfo else 'new'
+        machine.machine_model = hwinfo.get(MACHINE_KEYS['machine_model'][key_style])
+        machine.machine_model_friendly = machine_info.get('machine_model_friendly', '')
+        machine.cpu_type = hwinfo.get(MACHINE_KEYS['cpu_type'][key_style])
+        machine.cpu_speed = hwinfo.get(MACHINE_KEYS['cpu_speed'][key_style])
+        machine.memory = hwinfo.get(MACHINE_KEYS['memory'][key_style])
+        machine.memory_kb = process_memory(machine)
+
+    return machine
 
 
 def process_memory(machine):

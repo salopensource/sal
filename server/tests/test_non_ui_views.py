@@ -3,7 +3,9 @@
 
 import base64
 import bz2
+import datetime
 import plistlib
+import pytz
 from unittest.mock import patch
 
 from django.conf import settings
@@ -197,3 +199,40 @@ class CheckinHelperTest(TestCase):
         report = base64.b64encode(bz2.compress(plistlib.dumps(self.report)))
         data = {'base64bz2report': report}
         self.assertEqual(non_ui_views.get_report_bytes(data), plistlib.dumps(self.report))
+
+    def test_process_puppet_no_data(self):
+        """Ensure a non-puppet client passes this func."""
+        report = {}
+        machine = non_ui_views.process_puppet_data(report, Machine.objects.get(pk=1))
+        checked_attrs = (machine.puppet_version, machine.puppet_errors)
+        checked = all(not attr for attr in checked_attrs)
+        self.assertTrue(checked)
+        # We're simulating checking a puppetless client; but the
+        # fixture has a last_puppet_run, which we should retain even if
+        # puppet has been removed.
+        self.assertTrue(machine.last_puppet_run)
+
+    def test_process_puppet(self):
+        """Ensure a non-puppet client passes this func."""
+        report = {
+            'Puppet_Version': '1.0.0',
+            'Puppet': {'time': {'last_run': 1000},
+                       'events': {'failure': 99}}}
+        machine = non_ui_views.process_puppet_data(report, Machine.objects.get(pk=1))
+        self.assertEqual(machine.puppet_version, report['Puppet_Version'])
+        self.assertEqual(
+            machine.last_puppet_run,
+            datetime.datetime.fromtimestamp(report['Puppet']['time']['last_run'], pytz.UTC))
+
+    def test_process_puppet_bad_data(self):
+        """Ensure a non-puppet client passes this func."""
+        report = {
+            'Puppet_Version': False,
+            'Puppet': {'time': {'last_run': 'last monday'},
+                       'events': {'failure': 'never ever'}}}
+        machine = Machine.objects.get(pk=1)
+        last_run = machine.last_puppet_run
+        machine = non_ui_views.process_puppet_data(report, machine)
+        self.assertEqual(machine.puppet_version, False)
+        self.assertEqual(machine.puppet_errors, 0)
+        self.assertEqual(machine.last_puppet_run, last_run)

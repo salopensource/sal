@@ -273,8 +273,9 @@ def checkin(request):
         machine.puppet_errors = puppet['events']['failure']
 
     # Handle gosal submissions slightly differently from others.
-    machine.os_family = (
-        report_data['OSFamily'] if 'OSFamily' in report_data else report_data.get('os_family'))
+    os_family = report_data.get('OSFamily') or report_data.get('os_family')
+    if os_family:
+        machine.os_family = os_family
 
     machine_info = report_data.get('MachineInfo', {})
     if 'os_vers' in machine_info:
@@ -289,7 +290,7 @@ def checkin(request):
     # TODO: These should be a number type.
     # TODO: Cleanup all of the casting to str if we make a number.
     machine.hd_space = report_data.get('AvailableDiskSpace', '0')
-    machine.hd_total = data.get('disk_size', '0')
+    machine.hd_total = report_data.get('disk_size', '0')
     space = float(machine.hd_space)
     total = float(machine.hd_total)
     if space == float(0) or total == float(0):
@@ -342,7 +343,7 @@ def checkin(request):
         # If setting is None, it hasn't been configured yet; assume True
         server.utils.send_report()
 
-    return HttpResponse("Sal report submmitted for %s" % data.get('name'))
+    return HttpResponse("Sal report submmitted for %s" % data.get('serial'))
 
 
 def process_checkin_serial(serial):

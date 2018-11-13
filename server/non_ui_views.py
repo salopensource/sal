@@ -225,12 +225,7 @@ def preflight_v2_get_script(request, plugin_name, script_name):
 def checkin(request):
     data = request.POST
     machine = process_checkin_serial(data.get('serial', ''))
-
-    machine_group_key = data.get('key')
-    if machine_group_key in (None, 'None'):
-        machine_group_key = server.utils.get_django_setting('DEFAULT_MACHINE_GROUP_KEY')
-    machine.machine_group = get_object_or_404(MachineGroup, key=machine_group_key)
-
+    machine.machine_group = get_checkin_machine_group(data.get('key'))
     machine.last_checkin = django.utils.timezone.now()
     machine.hostname = data.get('name', '<NO NAME>')
     machine.sal_version = data.get('sal_version')
@@ -261,14 +256,10 @@ def checkin(request):
         # Otherwise, zero everything out and return early.
         machine.activity = False
         machine.errors = machine.warnings = 0
-        return
+        machine.save()
+        return HttpResponse(f"Sal report submmitted for {data.get('name', '')} with no activity")
 
-    if report_data.get('ConsoleUser') and report_data.get('ConsoleUser') != '_mbsetupuser':
-        machine.console_user = report_data.get('ConsoleUser')
-    elif data.get('username') and data.get('username') != '_mbsetupuser':
-        machine.console_user = data.get('username')
-    else:
-        machine.console_user = None
+    machine.console_user = get_console_user(report)
 
     activity_keys = ('AppleUpdates', 'InstallResults', 'RemovalResults')
     machine.activity = any(report_data.get(s) for s in activity_keys)
@@ -383,6 +374,21 @@ def process_checkin_serial(serial):
     return machine
 
 
+def get_checkin_machine_group(key):
+    if key in (None, 'None'):
+        key = server.utils.get_django_setting('DEFAULT_MACHINE_GROUP_KEY')
+    return get_object_or_404(MachineGroup, key=key)
+
+
+def get_console_user(report):
+    """Get the console user, or None."""
+    excluded = ('_mbsetupuser',)
+    for key in ('ConsoleUser', 'username'):
+        user = report.get(key)
+        if user and user not in excluded:
+            break
+    return user
+
 def process_memory(machine):
     """Convert the amount of memory like '4 GB' to the size in kb as int"""
     try:
@@ -444,16 +450,15 @@ def process_managed_items(machine, report_data, uuid, now, datelimit):
 
         items_to_create[InstalledUpdate].append(InstalledUpdate(**kwargs))
 
-        # Change some kwarg names and prepare for the UpdateHIstory models.
-        installed = kwargs.pop('installed')
-        if not installed:
-            kwargs['name'] = kwargs.pop('update')
-            kwargs.pop('display_name')
-            kwargs['version'] = kwargs.pop('update_version')
-            kwargs['recorded'] = start_time
-            kwargs['uuid'] = uuid
-            update_history_item, update_history = process_update_history_item(
-                update_type='third_party', status='pending', **kwargs)
+        # Change some kwarg names and prepare for the UpdateHistory models.
+        kwargs['name'] = kwargs.pop('update')
+        kwargs.pop('display_name')
+        kwargs.pop('installed')
+        kwargs['version'] = kwargs.pop('update_version')
+        kwargs['recorded'] = dateutil.parser.parse(str(item['time'])) if 'time' in item else now
+        kwargs['uuid'] = uuid
+        update_history_item, update_history = process_update_history_item(
+            update_type='third_party', status='pending', **kwargs)
 
             if update_history_item is not None:
                 items_to_create[UpdateHistoryItem].append(update_history_item)

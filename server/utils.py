@@ -444,7 +444,7 @@ def get_plugin_scripts(plugin, hash_only=False, script_name=None):
         return results
 
     if script_name:
-        dir_contents = [pathlib.Path(script_name)]
+        dir_contents = [scripts_dir / script_name]
     else:
         dir_contents = (p for p in scripts_dir.iterdir() if p.suffix not in EXCLUDED_SCRIPT_TYPES)
 
@@ -456,7 +456,7 @@ def get_plugin_scripts(plugin, hash_only=False, script_name=None):
         except IOError:
             continue
 
-        script_output = {'plugin': plugin.name, 'filename': str(script)}
+        script_output = {'plugin': plugin.name, 'filename': str(script.name)}
         script_output['hash'] = hashlib.sha256(script_content.encode()).hexdigest()
         if not hash_only:
             script_output['content'] = script_content

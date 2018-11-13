@@ -238,28 +238,20 @@ def checkin(request):
         machine.save()
         return HttpResponse("Broken Client report submmitted for %s" % data.get('serial'))
 
-    # Find the report in the submitted data. It could be encoded
-    # and/or compressed with base64 and bz2.
-    report_bytes = b''
-    for key in ('bz2report', 'base64report', 'base64bz2report'):
-        if key in data:
-            encoded_report = data[key]
-            report_bytes = text_utils.decode_submission_data(encoded_report, compression=key)
-            break
+    report_bytes = get_report_bytes(data)
 
     report_data = text_utils.submission_plist_loads(report_bytes)
-    if report_data:
-        # If we get something back, we know the data is good, so store
-        # the bytes.
-        machine.report = report_bytes
-    else:
+    if not report_data:
         # Otherwise, zero everything out and return early.
         machine.activity = False
         machine.errors = machine.warnings = 0
         machine.save()
         return HttpResponse(f"Sal report submmitted for {data.get('name', '')} with no activity")
 
-    machine.console_user = get_console_user(report)
+    # If we get something back, we know the data is good, so store
+    # the bytes.
+    machine.report = report_bytes
+    machine.console_user = get_console_user(report_data)
 
     activity_keys = ('AppleUpdates', 'InstallResults', 'RemovalResults')
     machine.activity = any(report_data.get(s) for s in activity_keys)
@@ -388,6 +380,20 @@ def get_console_user(report):
         if user and user not in excluded:
             break
     return user
+
+
+def get_report_bytes(data):
+    # Find the report in the submitted data. It could be encoded
+    # and/or compressed with base64 and bz2.
+    report_bytes = b''
+    for key in ('bz2report', 'base64report', 'base64bz2report'):
+        if key in data:
+            encoded_report = data[key]
+            report_bytes = text_utils.decode_submission_data(encoded_report, compression=key)
+            break
+
+    return report_bytes
+
 
 def process_memory(machine):
     """Convert the amount of memory like '4 GB' to the size in kb as int"""

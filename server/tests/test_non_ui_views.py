@@ -2,6 +2,8 @@
 
 
 import base64
+import bz2
+import plistlib
 from unittest.mock import patch
 
 from django.conf import settings
@@ -13,7 +15,7 @@ from server import non_ui_views
 
 
 class CheckinDataTest(TestCase):
-    """Test client checkins are resiliant."""
+    """Functional tests for client checkins."""
 
     fixtures = ['machine_group_fixture.json', 'business_unit_fixture.json', 'machine_fixture.json']
 
@@ -41,6 +43,98 @@ class CheckinDataTest(TestCase):
         # number, which should be absent when sent with the wrong
         # content_type.
         self.assertEqual(response.status_code, 404)
+
+    def test_deployed_on_checkin(self):
+        """Test that a machine's deployed bool gets toggled."""
+        machine = Machine.objects.get(serial='C0DEADBEEF')
+        machine.deployed = False
+        machine.save()
+        settings.DEPLOYED_ON_CHECKIN = True
+        self.client.post(
+            '/checkin/', data={'serial': machine.serial, 'key': machine.machine_group.key})
+        machine.refresh_from_db()
+        self.assertTrue(machine.deployed)
+
+    def test_not_deployed_on_checkin(self):
+        """Test that a machine's deployed bool is not updated on checkin."""
+        machine = Machine.objects.get(serial='C0DEADBEEF')
+        machine.deployed = False
+        settings.DEPLOYED_ON_CHECKIN = False
+        machine.save()
+        self.client.post(
+            '/checkin/', data={'serial': machine.serial, 'key': machine.machine_group.key})
+        machine.refresh_from_db()
+        self.assertFalse(machine.deployed)
+
+    def test_broken_client_checkin(self):
+        """Test that a machine's deployed bool is not updated on checkin."""
+        machine = Machine.objects.get(serial='C0DEADBEEF')
+        data = {
+            'serial': machine.serial, 'key': machine.machine_group.key, 'broken_client': 'True'}
+        self.client.post('/checkin/', data=data)
+        machine.refresh_from_db()
+        self.assertTrue(machine.broken_client)
+
+    def test_bad_report_data_type(self):
+        """Test checkin can complete with bare minimum data and bad report."""
+        machine = Machine.objects.get(serial='C0DEADBEEF')
+        data = {
+            'serial': machine.serial,
+            'key': machine.machine_group.key,
+            'base64report': (b'SSBhbSBhIHNlcnZhbnQgb2YgdGhlIFNlY3JldCBGaXJlLCB3aWVsZGVyIG9mIHRoZSBm'
+                             b'bGFtZSBvZiBBbm9yLiBZb3UgY2Fubm90IHBhc3MhIFRoZSBkYXJrIGZpcmUgd2lsbCBu'
+                             b'b3QgYXZhaWwgeW91LCBmbGFtZSBvZiBVZMO7bi4=')}
+        response = self.client.post('/checkin/', data=data)
+        self.assertEqual(response.status_code, 200)
+
+    def test_no_report_completes(self):
+        """Test checkin can complete with only the essential data."""
+        machine = Machine.objects.get(serial='C0DEADBEEF')
+        data = {'serial': machine.serial, 'key': machine.machine_group.key}
+        response = self.client.post('/checkin/', data=data)
+        self.assertEqual(response.status_code, 200)
+
+    @patch('server.models.Machine.save')
+    @patch('utils.text_utils.submission_plist_loads')
+    def test_incorrect_data_type_completes(self, mock_plist_loads, mock_save):
+        """Test that using invalid data types in the report works."""
+        machine = Machine.objects.get(serial='C0DEADBEEF')
+        mock_plist_loads.return_value = {'Puppet': {'events': {'failure': 'nyancat'}}}
+
+        def raise_value_error():
+            raise ValueError
+        # Mock out the save failing when trying to commit a str to an
+        # IntegerField. There's a way to do this with
+        # django.db.transaction.atomic as a context manager, but that
+        # is only a problem when testing.
+        mock_save.side_effect = raise_value_error
+
+        data = {'serial': machine.serial, 'key': machine.machine_group.key}
+        response = self.client.post('/checkin/', data=data)
+        self.assertEqual(response.status_code, 200)
+
+
+class CheckinHelperTest(TestCase):
+    """Tests for helper functions that support the checkin view."""
+
+    fixtures = ['machine_group_fixture.json', 'business_unit_fixture.json', 'machine_fixture.json']
+
+    def setUp(self):
+        self.report = {'test': 'I heard you were dead'}
+
+    def test_checkin_memory_value_conversion(self):
+        """Ensure conversion of memory to memory_kb is correct"""
+
+        # hash of string description to number of KB
+        memconv = {'4 GB': 4194304,
+                   '8 GB': 8388608,
+                   '1 TB': 1073741824}
+
+        # pass each value and check proper value returned
+        test_machine = Machine(serial='testtesttest123')
+        for key in memconv:
+            test_machine.memory = key
+            self.assertEqual(non_ui_views.process_memory(test_machine), memconv[key])
 
     def test_vmware_serial(self):
         """Ensure serial translation for crazy VMWare serials works."""
@@ -77,43 +171,8 @@ class CheckinDataTest(TestCase):
         settings.DEFAULT_MACHINE_GROUP_KEY = group.key
         self.assertEqual(non_ui_views.get_checkin_machine_group(None), group)
 
-    def test_bad_report_data_type(self):
-        """Test basic function."""
-        response = self.client.post(
-            '/checkin/', data={'serial': 'C0DEADBEEF', 'name': 1.0})
-        self.assertEqual(response.status_code, 200)
-
-    def test_deployed_on_checkin(self):
-        """Test that a machine's deployed bool gets toggled."""
-        machine = Machine.objects.get(serial='C0DEADBEEF')
-        machine.deployed = False
-        settings.DEPLOYED_ON_CHECKIN = True
-        response = self.client.post(
-            '/checkin/', data={'serial': machine.serial, 'key': machine.machine_group.key})
-        machine.refresh_from_db()
-        self.assertTrue(machine.deployed)
-
-    def test_not_deployed_on_checkin(self):
-        """Test that a machine's deployed bool is not updated on checkin."""
-        machine = Machine.objects.get(serial='C0DEADBEEF')
-        machine.deployed = False
-        response = self.client.post(
-            '/checkin/', data={'serial': machine.serial, 'key': machine.machine_group.key})
-        machine.refresh_from_db()
-        self.assertFalse(machine.deployed)
-
-    def test_broken_client_checkin(self):
-        """Test that a machine's deployed bool is not updated on checkin."""
-        machine = Machine.objects.get(serial='C0DEADBEEF')
-        data= {
-            'serial': machine.serial,
-            'key': machine.machine_group.key,
-            'broken_client': 'True'}
-        response = self.client.post('/checkin/', data=data)
-        machine.refresh_from_db()
-        self.assertTrue(machine.broken_client)
-
     def test_get_console_user(self):
+        """Test that user can be safely set from helper function."""
         user = 'Snake Plisskin'
         report = {'ConsoleUser': user}
         self.assertTrue(non_ui_views.get_console_user(report), user)
@@ -121,18 +180,20 @@ class CheckinDataTest(TestCase):
         self.assertTrue(non_ui_views.get_console_user(report), user)
         self.assertEqual(non_ui_views.get_console_user({}), None)
 
+    def test_get_report_bytes_b64(self):
+        """Ensure base64 encoded reports can be retrieved."""
+        report = base64.b64encode(plistlib.dumps(self.report))
+        data = {'base64report': report}
+        self.assertEqual(non_ui_views.get_report_bytes(data), plistlib.dumps(self.report))
 
-class MiscTest(TestCase):
-    def test_checkin_memory_value_conversion(self):
-        """Ensure conversion of memory to memory_kb is correct"""
+    def test_get_report_bytes_bz2(self):
+        """Ensure bz2 compressed reports can be retrieved."""
+        report = bz2.compress(plistlib.dumps(self.report))
+        data = {'bz2report': report}
+        self.assertEqual(non_ui_views.get_report_bytes(data), plistlib.dumps(self.report))
 
-        # hash of string description to number of KB
-        memconv = {'4 GB': 4194304,
-                   '8 GB': 8388608,
-                   '1 TB': 1073741824}
-
-        # pass each value and check proper value returned
-        test_machine = Machine(serial='testtesttest123')
-        for key in memconv:
-            test_machine.memory = key
-            self.assertEqual(non_ui_views.process_memory(test_machine), memconv[key])
+    def test_get_report_bytes_bz2b64(self):
+        """Ensure base64 encoded bz2 compressed reports can be retrieved."""
+        report = base64.b64encode(bz2.compress(plistlib.dumps(self.report)))
+        data = {'base64bz2report': report}
+        self.assertEqual(non_ui_views.get_report_bytes(data), plistlib.dumps(self.report))

@@ -31,7 +31,6 @@ from server.models import (Machine, Condition, Fact, HistoricalFact, MachineGrou
 from utils import text_utils
 
 if settings.DEBUG:
-    import logging
     logging.basicConfig(level=logging.INFO)
 
 

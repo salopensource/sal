@@ -8,7 +8,7 @@ from django.conf import settings
 from django.http.response import Http404
 from django.test import TestCase, Client
 
-from server.models import *
+from server.models import MachineGroup, Machine
 from server import non_ui_views
 
 
@@ -61,6 +61,65 @@ class CheckinDataTest(TestCase):
         """Ensure 404 is raised when no ADD_NEW_MACHINES."""
         settings.ADD_NEW_MACHINES = False
         self.assertRaises(Http404, non_ui_views.process_checkin_serial, 'NotInDB')
+
+    def test_get_checkin_machine_group(self):
+        """Test basic function."""
+        group = MachineGroup.objects.get(pk=1)
+        self.assertEqual(non_ui_views.get_checkin_machine_group(group.key), group)
+
+    def test_get_checkin_machine_group_bad_key(self):
+        """Test basic function."""
+        self.assertRaises(Http404, non_ui_views.get_checkin_machine_group, 'NotInDB')
+
+    def test_get_checkin_machine_group_default(self):
+        """Test basic function."""
+        group = MachineGroup.objects.get(pk=1)
+        settings.DEFAULT_MACHINE_GROUP_KEY = group.key
+        self.assertEqual(non_ui_views.get_checkin_machine_group(None), group)
+
+    def test_bad_report_data_type(self):
+        """Test basic function."""
+        response = self.client.post(
+            '/checkin/', data={'serial': 'C0DEADBEEF', 'name': 1.0})
+        self.assertEqual(response.status_code, 200)
+
+    def test_deployed_on_checkin(self):
+        """Test that a machine's deployed bool gets toggled."""
+        machine = Machine.objects.get(serial='C0DEADBEEF')
+        machine.deployed = False
+        settings.DEPLOYED_ON_CHECKIN = True
+        response = self.client.post(
+            '/checkin/', data={'serial': machine.serial, 'key': machine.machine_group.key})
+        machine.refresh_from_db()
+        self.assertTrue(machine.deployed)
+
+    def test_not_deployed_on_checkin(self):
+        """Test that a machine's deployed bool is not updated on checkin."""
+        machine = Machine.objects.get(serial='C0DEADBEEF')
+        machine.deployed = False
+        response = self.client.post(
+            '/checkin/', data={'serial': machine.serial, 'key': machine.machine_group.key})
+        machine.refresh_from_db()
+        self.assertFalse(machine.deployed)
+
+    def test_broken_client_checkin(self):
+        """Test that a machine's deployed bool is not updated on checkin."""
+        machine = Machine.objects.get(serial='C0DEADBEEF')
+        data= {
+            'serial': machine.serial,
+            'key': machine.machine_group.key,
+            'broken_client': 'True'}
+        response = self.client.post('/checkin/', data=data)
+        machine.refresh_from_db()
+        self.assertTrue(machine.broken_client)
+
+    def test_get_console_user(self):
+        user = 'Snake Plisskin'
+        report = {'ConsoleUser': user}
+        self.assertTrue(non_ui_views.get_console_user(report), user)
+        report = {'username': user}
+        self.assertTrue(non_ui_views.get_console_user(report), user)
+        self.assertEqual(non_ui_views.get_console_user({}), None)
 
 
 class MiscTest(TestCase):

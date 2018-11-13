@@ -1,4 +1,5 @@
 import base64
+import binascii
 import bz2
 import plistlib
 import re
@@ -72,7 +73,7 @@ def decode_submission_data(data: Text, compression: str = '') -> bytes:
     if 'base64' in compression:
         try:
             data = base64.b64decode(data)
-        except TypeError:
+        except (TypeError, binascii.Error):
             data = b''
 
     if 'bz2' in compression:

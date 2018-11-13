@@ -1,6 +1,7 @@
 import hashlib
 import itertools
 import json
+import logging
 import plistlib
 from collections import defaultdict
 from datetime import datetime, timedelta
@@ -317,13 +318,10 @@ def checkin(request):
         machine.memory = hwinfo.get(MACHINE_KEYS['memory'][key_style])
         machine.memory_kb = process_memory(machine)
 
-    # if not machine.machine_model_friendly:
-    #     try:
-    #         machine.machine_model_friendly = utils.friendly_machine_model(machine)
-    #     except Exception:
-    #         machine.machine_model_friendly = machine.machine_model
-
-    machine.save()
+    try:
+        machine.save()
+    except ValueError:
+        logging.warning(f"Sal report submmitted for {data.get('serial')} failed with a ValueError!")
 
     historical_days = server.utils.get_setting('historical_retention')
     now = django.utils.timezone.now()

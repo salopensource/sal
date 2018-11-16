@@ -594,6 +594,7 @@ def process_update_history_item(machine, update_type, name, version, recorded, u
 def needs_history_item_creation(items_set, status, recorded):
     return items_set.last().status != status and items_set.last().recorded < recorded
 
+
 def process_facts(machine, report_data, datelimit):
     # TODO: May need to come through and do get_or_create on machine, name, updating data, and
     # deleting now missing facts and conditions for non-postgres.

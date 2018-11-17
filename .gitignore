@@ -69,3 +69,5 @@ setup/.vagrant
 db/*
 internal_root.crt
 .vscode
+
+SAL_ENVS

@@ -14,8 +14,8 @@ else
 fi
 
 URL="https://circleci.com/api/v1.1/project/github/salopensource/sal/tree/${BRANCH}"
-
-jq -n '{TAG: "${TAG}"' | curl -X POST -d @- \
+echo $TAG
+jq -n '{TAG: "$TAG"}' | curl -X POST -d @- \
   --user ${CIRCLE_API_USER_TOKEN}: \
   --url $URL \
   -H 'Content-Type: application/json' \

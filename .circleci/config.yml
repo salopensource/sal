@@ -54,9 +54,9 @@ jobs:
       - run: docker build -t macadmins/sal:latest .
       - run: docker login -u $DOCKER_USER -p $DOCKER_PASS
       - run: docker push macadmins/sal:latest
-      - run: apk update
-      - run: apk add curl
-      - run: curl --user ${CIRCLE_API_USER_TOKEN} --data build_parameters="{\"TAG\":\"latest\"}" https://circleci.com/api/v1.1/project/github/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME/tree/$CIRCLE_BRANCH
+      - run: apk add python2 py2-pip
+      - run: pip install requests
+      - run: python remote_build.py latest
 
   build_branch:
     docker:
@@ -70,8 +70,9 @@ jobs:
       - run: docker login -u $DOCKER_USER -p $DOCKER_PASS
       - run: docker push macadmins/sal:$CIRCLE_BRANCH
       - run: apk update
-      - run: apk add curl
-      - run: curl --user ${CIRCLE_API_USER_TOKEN} --data build_parameters="{\"TAG\":\"$CIRCLE_BRANCH\"}" https://circleci.com/api/v1.1/project/github/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME/tree/$CIRCLE_BRANCH
+      - run: apk add python2 py2-pip
+      - run: pip install requests
+      - run: python remote_build.py $CIRCLE_BRANCH
 
   build_tag:
     docker:
@@ -84,10 +85,9 @@ jobs:
       - run: docker build -t macadmins/sal:$CIRCLE_TAG .
       - run: docker login -u $DOCKER_USER -p $DOCKER_PASS
       - run: docker push macadmins/sal:$CIRCLE_TAG
-      - run: apk update
-      - run: apk add curl
-      - run:
-        command: curl --user ${CIRCLE_API_USER_TOKEN} --data build_parameters="{\"TAG\":\"$CIRCLE_TAG\"}" https://circleci.com/api/v1.1/project/github/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME/tree/$CIRCLE_BRANCH
+      - run: apk add python2 py2-pip
+      - run: pip install requests
+      - run: python remote_build.py $CIRCLE_TAG
 
 workflows:
   version: 2

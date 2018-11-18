@@ -25,3 +25,4 @@ url = "https://circleci.com/api/v1.1/project/github/{}/{}/tree/{}".format(
 )
 
 the_request = requests.post(url, json=post_data, auth=(api_user_token, ''))
+print the_request.text

@@ -18,10 +18,9 @@ project_reponame = os.getenv('CIRCLE_PROJECT_REPONAME')
 post_data = {}
 post_data['build_parameters'] = {'TAG': args.build_tag}
 
-url = "https://circleci.com/api/v1.1/project/github/{}/{}/tree/{}".format(
+url = "https://circleci.com/api/v1.1/project/github/{}/{}/tree/master".format(
     project_username,
-    project_reponame,
-    args.build_tag
+    project_reponame
 )
 
 the_request = requests.post(url, json=post_data, auth=(api_user_token, ''))

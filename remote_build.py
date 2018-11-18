@@ -11,9 +11,10 @@ parser.add_argument('build_tag', type=str, help='The tag to build.')
 args = parser.parse_args()
 print args.build_tag
 
-project_username = os.getenv('CIRCLE_PROJECT_USERNAME')
+
 api_user_token = os.getenv('CIRCLE_API_USER_TOKEN')
-project_reponame = os.getenv('CIRCLE_PROJECT_REPONAME')
+project_reponame = 'sal-saml'
+project_username = 'salopensource'
 
 post_data = {}
 post_data['build_parameters'] = {'TAG': args.build_tag}
@@ -24,4 +25,7 @@ url = "https://circleci.com/api/v1.1/project/github/{}/{}/tree/master".format(
 )
 
 the_request = requests.post(url, json=post_data, auth=(api_user_token, ''))
-print the_request.text
+if the_request.status_code == requests.codes.ok:
+    print the_request.json
+else:
+    print the_request.json

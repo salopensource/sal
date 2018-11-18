@@ -9,8 +9,6 @@ parser = argparse.ArgumentParser(description='Process a build.')
 parser.add_argument('build_tag', type=str, help='The tag to build.')
 
 args = parser.parse_args()
-print args.build_tag
-
 
 api_user_token = os.getenv('CIRCLE_API_USER_TOKEN')
 project_reponame = 'sal-saml'

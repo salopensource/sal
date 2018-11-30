@@ -476,6 +476,7 @@ def process_managed_items(machine, report_data, uuid, now, datelimit):
     # as we see them.
     # TODO: Process on the client side to avoid this.
     seen_updates = set()
+    start_time = dateutil.parser.parse(report_data['StartTime'])
     for item in report_data.get('ManagedInstalls', []):
         kwargs = {'update': item['name'], 'machine': machine}
         kwargs['display_name'] = item.get('display_name', item['name'])
@@ -495,18 +496,19 @@ def process_managed_items(machine, report_data, uuid, now, datelimit):
         items_to_create[InstalledUpdate].append(InstalledUpdate(**kwargs))
 
         # Change some kwarg names and prepare for the UpdateHIstory models.
-        kwargs['name'] = kwargs.pop('update')
-        kwargs.pop('display_name')
-        kwargs.pop('installed')
-        kwargs['version'] = kwargs.pop('update_version')
-        kwargs['recorded'] = dateutil.parser.parse(str(item['time'])) if 'time' in item else now
-        kwargs['uuid'] = uuid
-        update_history_item, update_history = process_update_history_item(
-            update_type='third_party', status='pending', **kwargs)
+        installed = kwargs.pop('installed')
+        if not installed:
+            kwargs['name'] = kwargs.pop('update')
+            kwargs.pop('display_name')
+            kwargs['version'] = kwargs.pop('update_version')
+            kwargs['recorded'] = start_time
+            kwargs['uuid'] = uuid
+            update_history_item, update_history = process_update_history_item(
+                update_type='third_party', status='pending', **kwargs)
 
-        if update_history_item is not None:
-            items_to_create[UpdateHistoryItem].append(update_history_item)
-            excluded_item_histories.add(update_history.pk)
+            if update_history_item is not None:
+                items_to_create[UpdateHistoryItem].append(update_history_item)
+                excluded_item_histories.add(update_history.pk)
 
     # Process pending Apple updates
     for item in report_data.get('AppleUpdates', []):
@@ -516,11 +518,11 @@ def process_managed_items(machine, report_data, uuid, now, datelimit):
 
         items_to_create[PendingAppleUpdate].append(PendingAppleUpdate(**kwargs))
 
-        # Change some kwarg names and prepare for the UpdateHIstory models.
+        # Change some kwarg names and prepare for the UpdateHistory models.
         kwargs['name'] = kwargs.pop('update')
         kwargs.pop('display_name')
         kwargs['version'] = kwargs.pop('update_version')
-        kwargs['recorded'] = dateutil.parser.parse(str(item['time'])) if 'time' in item else now
+        kwargs['recorded'] = start_time
         kwargs['uuid'] = uuid
         update_history_item, update_history = process_update_history_item(
             update_type='apple', status='pending', **kwargs)
@@ -536,7 +538,7 @@ def process_managed_items(machine, report_data, uuid, now, datelimit):
             kwargs['update_type'] = 'apple' if item.get('applesus') else 'third_party'
             kwargs['version'] = item.get('version', '0')
             kwargs['status'] = 'error' if item.get('status') != 0 else result_type
-            kwargs['recorded'] = dateutil.parser.parse(str(item['time'])) if 'time' in item else now
+            kwargs['recorded'] = pytz.timezone('UTC').localize(item['time'])
 
             update_history_item, update_history = process_update_history_item(
                 uuid=uuid, **kwargs)
@@ -580,13 +582,17 @@ def process_update_history_item(machine, update_type, name, version, recorded, u
     # Only create a history item if there are none or
     # if the last one is not the same status.
     items_set = update_history.updatehistoryitem_set.order_by('recorded')
-    if not items_set.exists() or items_set.last().status != status:
+    if not items_set.exists() or needs_history_item_creation(items_set, status, recorded):
         update_history_item = UpdateHistoryItem(
             update_history=update_history, status=status, recorded=recorded, uuid=uuid)
     else:
         update_history_item = None
 
     return (update_history_item, update_history)
+
+
+def needs_history_item_creation(items_set, status, recorded):
+    return items_set.last().status != status and items_set.last().recorded < recorded
 
 
 def process_facts(machine, report_data, datelimit):

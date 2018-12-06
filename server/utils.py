@@ -167,15 +167,16 @@ def check_version():
     # Only do something if running version is out of date.
     if LooseVersion(current_release_version) > LooseVersion(server_version):
         # Determine whether to notify, or just not bother.
-        next_notify_date = get_setting('next_notify_date', 0)
+        next_notify_date = get_setting('next_notify_date', '0')
         if next_notify_date == 'never':
             last_notified_version = get_setting('last_notified_version')
             if last_notified_version != current_release_version:
                 set_setting('last_notified_version', current_release_version)
-                set_setting('next_notify_date', '')
+                next_notify_date = '0'
+                set_setting('next_notify_date', next_notify_date)
 
         current_time = time.time()
-        if current_time > next_notify_date:
+        if next_notify_date != 'never' and current_time > int(next_notify_date):
             result['new_version_available'] = True
             result['server_version'] = server_version
             result['current_release_version'] = current_release_version

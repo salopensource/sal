@@ -2,7 +2,7 @@ from django.conf import settings
 from server.models import *
 
 
-class AddToBU(object):
+class AddToBU():
     """
     This middleware will add the current user to any BU's they've not already
     been explicitly added to.

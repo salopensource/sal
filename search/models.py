@@ -3,7 +3,7 @@ from __future__ import unicode_literals
 import django.utils.timezone
 from django.db import models
 from django.contrib.auth.models import User
-from current_user import get_current_user
+from search.current_user import get_current_user
 from server.models import *
 # Create your models here.
 
@@ -27,7 +27,7 @@ class SavedSearch(models.Model):
             return 'Unsaved Search %s' % str(now)
         return attr
 
-    def __unicode__(self):
+    def __str__(self):
         return self.name
 
     class Meta:
@@ -93,7 +93,7 @@ class SearchFieldCache(models.Model):
                                     default='AND', max_length=254, verbose_name='Search item')
     search_field = models.CharField(max_length=254)
 
-    def __unicode__(self):
+    def __str__(self):
         return '%s: %s' % (self.search_model, self.search_field)
 
 

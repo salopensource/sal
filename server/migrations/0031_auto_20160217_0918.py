@@ -1,9 +1,9 @@
-# -*- coding: utf-8 -*-
-from __future__ import unicode_literals
-from server.models import *
+
+
 from django.db import models, migrations
 from django.db.models import Q
-import plistlib
+
+from server.models import *
 
 
 def fix_hostname(apps, schema_editor):

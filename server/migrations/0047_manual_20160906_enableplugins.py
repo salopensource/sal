@@ -1,5 +1,4 @@
-# -*- coding: utf-8 -*-
-from __future__ import unicode_literals
+
 from server.models import *
 from django.db import migrations, models
 from server import utils

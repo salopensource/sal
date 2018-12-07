@@ -12,7 +12,7 @@ class Application(models.Model):
         ordering = ['name']
         unique_together = (('name', 'bundleid', 'bundlename'))
 
-    def __unicode__(self):
+    def __str__(self):
         return self.name
 
 
@@ -21,7 +21,6 @@ class Inventory(models.Model):
     machine = models.OneToOneField(Machine)
     datestamp = models.DateTimeField(auto_now=True)
     sha256hash = models.CharField(max_length=64)
-    inventory_str = models.TextField(blank=True, null=True)
 
     class Meta:
         ordering = ['datestamp']

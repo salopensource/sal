@@ -4,10 +4,9 @@ import plistlib
 from django.contrib.auth.decorators import login_required, permission_required
 from django.http import (Http404, HttpRequest, HttpResponse, HttpResponseRedirect)
 from django.shortcuts import get_object_or_404, redirect, render
-from django.template import Context, RequestContext, Template
 from django.template.context_processors import csrf
 
-from forms import *
+from licenses.forms import *
 from licenses.models import *
 from sal.decorators import *
 from server.models import *
@@ -96,11 +95,8 @@ def available(request, key, item_name=''):
         for license in licenses:
             info[license.item_name] = license.available()
 
-    if output_style == 'json':
-        return HttpResponse(json.dumps(info), content_type='application/json')
-    else:
-        return HttpResponse(plistlib.writePlistToString(info),
-                            content_type='application/xml')
+    module = json if output_style == 'json' else plistlib
+    return HttpResponse(module.dumps(info), content_type='application/json')
 
 
 def usage(request, key, item_name=''):
@@ -124,8 +120,5 @@ def usage(request, key, item_name=''):
                 info[name]['total'] - info[name]['used'])
         except (License.DoesNotExist):
             info[name] = {}
-    if output_style == 'json':
-        return HttpResponse(json.dumps(info), content_type='application/json')
-    else:
-        return HttpResponse(plistlib.writePlistToString(info),
-                            content_type='application/xml')
+    module = json if output_style == 'json' else plistlib
+    return HttpResponse(module.dumps(info), content_type='application/json')

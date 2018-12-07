@@ -1,47 +1,44 @@
 import hashlib
 import itertools
 import json
+import logging
 import plistlib
-import re
 from collections import defaultdict
 from datetime import datetime, timedelta
 
 import dateutil.parser
 import pytz
-import unicodecsv as csv
 
 import django.utils.timezone
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.core.urlresolvers import reverse
-from django.db.models import Q, Count
-from django.http import (HttpResponse, HttpResponseNotFound, JsonResponse, StreamingHttpResponse)
+from django.db.models import Q
+from django.http import HttpResponse, JsonResponse
 from django.http.response import Http404
 from django.shortcuts import get_object_or_404
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 
-from inventory.models import Inventory
+import server.utils
+import utils.csv
 from sal.decorators import key_auth_required
 from sal.plugin import (Widget, ReportPlugin, OldPluginAdapter, PluginManager,
                         DEPRECATED_PLUGIN_TYPES)
-from server import text_utils
-from server import utils
 from server.models import (Machine, Condition, Fact, HistoricalFact, MachineGroup, UpdateHistory,
                            UpdateHistoryItem, InstalledUpdate, PendingAppleUpdate,
-                           PluginScriptSubmission, PendingUpdate, Plugin, Report,
-                           MachineDetailPlugin)
+                           PluginScriptSubmission, Plugin, Report, MachineDetailPlugin)
+from utils import text_utils
 
 if settings.DEBUG:
-    import logging
     logging.basicConfig(level=logging.INFO)
 
 
 # The database probably isn't going to change while this is loaded.
-IS_POSTGRES = utils.is_postgres()
+IS_POSTGRES = server.utils.is_postgres()
+HISTORICAL_FACTS = server.utils.get_django_setting('HISTORICAL_FACTS', [])
 IGNORED_CSV_FIELDS = ('id', 'machine_group', 'report', 'os_family')
-HISTORICAL_FACTS = utils.get_django_setting('HISTORICAL_FACTS', [])
-IGNORE_PREFIXES = utils.get_django_setting('IGNORE_FACTS', [])
+IGNORE_PREFIXES = server.utils.get_django_setting('IGNORE_FACTS', [])
 MACHINE_KEYS = {
     'machine_model': {'old': 'MachineModel', 'new': 'machine_model'},
     'cpu_type': {'old': 'CPUType', 'new': 'cpu_type'},
@@ -58,7 +55,7 @@ def tableajax(request, plugin_name, data, group_type='all', group_id=None):
     """Table ajax for dataTables"""
     # Pull our variables out of the GET request
     get_data = request.GET['args']
-    get_data = json.loads(get_data.decode('string_escape'))
+    get_data = json.loads(get_data)
     draw = get_data.get('draw', 0)
     start = int(get_data.get('start', 0))
     length = int(get_data.get('length', 0))
@@ -92,10 +89,10 @@ def tableajax(request, plugin_name, data, group_type='all', group_id=None):
             order_string = "%s" % order_name
 
     if len(search_value) != 0:
-        searched_machines = machines.filter(
-            Q(hostname__icontains=search_value) |
-            Q(console_user__icontains=search_value) |
-            Q(last_checkin__icontains=search_value)).order_by(order_string)
+        hostname_q = Q(hostname__icontains=search_value)
+        user_q = Q(console_user__icontains=search_value)
+        checkin_q = Q(last_checkin__icontains=search_value)
+        searched_machines = machines.filter(hostname_q | user_q | checkin_q).order_by(order_string)
     else:
         searched_machines = machines.order_by(order_string)
 
@@ -162,36 +159,6 @@ def process_plugin(request, plugin_name, group_type='all', group_id=None):
     return plugin
 
 
-class Echo(object):
-    """Implements just the write method of the file-like interface."""
-
-    def write(self, value):
-        """Write the value by returning it, instead of storing in a buffer."""
-        return value
-
-
-def get_csv_row(machine, facter_headers, condition_headers, plugin_script_headers):
-    row = []
-    for name, value in machine.get_fields():
-        if name not in IGNORED_CSV_FIELDS:
-            try:
-                row.append(text_utils.safe_unicode(value))
-            except Exception:
-                row.append('')
-
-    row.append(machine.machine_group.business_unit.name)
-    row.append(machine.machine_group.name)
-    return row
-
-
-def stream_csv(header_row, machines, facter_headers, condition_headers, plugin_script_headers):
-    """Helper function to inject headers"""
-    if header_row:
-        yield header_row
-    for machine in machines:
-        yield get_csv_row(machine, facter_headers, condition_headers, plugin_script_headers)
-
-
 @login_required
 def export_csv(request, plugin_name, data, group_type='all', group_id=None):
     plugin_object = process_plugin(request, plugin_name, group_type, group_id)
@@ -199,34 +166,7 @@ def export_csv(request, plugin_name, data, group_type='all', group_id=None):
         request, group_type=group_type, group_id=group_id)
     machines, title = plugin_object.filter_machines(queryset, data)
 
-    pseudo_buffer = Echo()
-    writer = csv.writer(pseudo_buffer)
-
-    # Fields
-    header_row = []
-    fields = Machine._meta.get_fields()
-    for field in fields:
-        if not field.is_relation and field.name not in IGNORED_CSV_FIELDS:
-            header_row.append(field.name)
-
-    facter_headers = []
-    condition_headers = []
-    plugin_script_headers = []
-
-    header_row.append('business_unit')
-    header_row.append('machine_group')
-
-    response = StreamingHttpResponse(
-        (writer.writerow(row) for row in stream_csv(
-            header_row=header_row,
-            machines=machines,
-            facter_headers=facter_headers,
-            condition_headers=condition_headers,
-            plugin_script_headers=plugin_script_headers)),
-        content_type="text/csv")
-
-    response['Content-Disposition'] = 'attachment; filename="%s.csv"' % title
-    return response
+    return utils.csv.get_csv_response(machines, utils.csv.machine_fields(), title)
 
 
 @csrf_exempt
@@ -245,7 +185,7 @@ def preflight(request):
 def preflight_v2(request):
     """Find plugins that have embedded preflight scripts."""
     # Load in the default plugins if needed
-    utils.load_default_plugins()
+    server.utils.load_default_plugins()
     manager = PluginManager()
     output = []
     # Old Sal scripts just do a GET; just send everything in that case.
@@ -259,7 +199,7 @@ def preflight_v2(request):
         if not plugin:
             continue
         if os_family is None or os_family in plugin.get_supported_os_families():
-            scripts = utils.get_plugin_scripts(plugin, hash_only=True)
+            scripts = server.utils.get_plugin_scripts(plugin, hash_only=True)
             if scripts:
                 output += scripts
 
@@ -272,7 +212,7 @@ def preflight_v2_get_script(request, plugin_name, script_name):
     output = []
     plugin = PluginManager().get_plugin_by_name(plugin_name)
     if plugin:
-        content = utils.get_plugin_scripts(plugin, script_name=script_name)
+        content = server.utils.get_plugin_scripts(plugin, script_name=script_name)
         if content:
             output += content
 
@@ -283,31 +223,18 @@ def preflight_v2_get_script(request, plugin_name, script_name):
 @require_POST
 @key_auth_required
 def checkin(request):
+    historical_days = server.utils.get_setting('historical_retention')
+    now = django.utils.timezone.now()
+    datelimit = now - timedelta(days=historical_days)
+
     data = request.POST
-
-    # Take out some of the weird junk VMware puts in. Keep an eye out in case
-    # Apple actually uses these:
-    serial = data.get('serial', '').upper().translate(SERIAL_TRANSLATE)
-    # Are we using Sal for some sort of inventory (like, I don't know, Puppet?)
-    if utils.get_django_setting('ADD_NEW_MACHINES', True):
-        if serial:
-            try:
-                machine = Machine.objects.get(serial=serial)
-            except Machine.DoesNotExist:
-                machine = Machine(serial=serial)
-    else:
-        machine = get_object_or_404(Machine, serial=serial)
-
-    machine_group_key = data.get('key')
-    if machine_group_key in (None, 'None'):
-        machine_group_key = utils.get_django_setting('DEFAULT_MACHINE_GROUP_KEY')
-    machine.machine_group = get_object_or_404(MachineGroup, key=machine_group_key)
-
+    machine = process_checkin_serial(data.get('serial', ''))
+    machine.machine_group = get_checkin_machine_group(data.get('key'))
     machine.last_checkin = django.utils.timezone.now()
     machine.hostname = data.get('name', '<NO NAME>')
     machine.sal_version = data.get('sal_version')
 
-    if utils.get_django_setting('DEPLOYED_ON_CHECKIN', True):
+    if server.utils.get_django_setting('DEPLOYED_ON_CHECKIN', True):
         machine.deployed = True
 
     if bool(data.get('broken_client', False)):
@@ -315,31 +242,115 @@ def checkin(request):
         machine.save()
         return HttpResponse("Broken Client report submmitted for %s" % data.get('serial'))
 
-    report = None
+    report_bytes = get_report_bytes(data)
+
+    report_data = text_utils.submission_plist_loads(report_bytes)
+    if not report_data:
+        # Otherwise, zero everything out and return early.
+        machine.activity = False
+        machine.errors = machine.warnings = 0
+        machine.save()
+        return HttpResponse(f"Sal report submmitted for {data.get('name', '')} with no activity")
+
+    # If we get something back, we know the data is good, so store
+    # the bytes.
+    machine.report = report_bytes
+    machine.console_user = get_console_user(report_data)
+
+    machine = process_munki_data(data, report_data, machine, now, datelimit)
+    machine = process_puppet_data(report_data, machine)
+    machine = process_machine_info(report_data, machine)
+
+    try:
+        machine.save()
+    except ValueError:
+        logging.warning(f"Sal report submmitted for {data.get('serial')} failed with a ValueError!")
+
+    # Process plugin scripts.
+    # Clear out too-old plugin script submissions first.
+    PluginScriptSubmission.objects.filter(recorded__lt=datelimit).delete()
+    server.utils.process_plugin_script(report_data.get('Plugin_Results', []), machine)
+    server.utils.run_plugin_processing(machine, report_data)
+
+    process_facts(machine, report_data, datelimit)
+
+    if server.utils.get_setting('send_data') in (None, True):
+        # If setting is None, it hasn't been configured yet; assume True
+        server.utils.send_report()
+
+    msg = f"Sal report submmitted for {machine.serial}"
+    logging.debug(msg)
+    return HttpResponse(msg)
+
+
+def process_checkin_serial(serial):
+    # Take out some of the weird junk VMware puts in. Keep an eye out in case
+    # Apple actually uses these:
+    serial = serial.upper().translate(SERIAL_TRANSLATE)
+
+    # A serial number is required.
+    if not serial:
+        raise Http404
+    # Are we using Sal for some sort of inventory (like, I don't know, Puppet?)
+    if server.utils.get_django_setting('ADD_NEW_MACHINES', True):
+            try:
+                machine = Machine.objects.get(serial=serial)
+            except Machine.DoesNotExist:
+                machine = Machine(serial=serial)
+    else:
+        machine = get_object_or_404(Machine, serial=serial)
+    return machine
+
+
+def get_checkin_machine_group(key):
+    if key in (None, 'None'):
+        key = server.utils.get_django_setting('DEFAULT_MACHINE_GROUP_KEY')
+    return get_object_or_404(MachineGroup, key=key)
+
+
+def get_console_user(report):
+    """Get the console user, or None."""
+    excluded = ('_mbsetupuser',)
+    for key in ('ConsoleUser', 'username'):
+        user = report.get(key)
+        if user and user not in excluded:
+            break
+    return user
+
+
+def get_report_bytes(data):
     # Find the report in the submitted data. It could be encoded
     # and/or compressed with base64 and bz2.
+    report_bytes = b''
     for key in ('bz2report', 'base64report', 'base64bz2report'):
         if key in data:
             encoded_report = data[key]
-            report = text_utils.decode_to_string(encoded_report, compression=key)
+            report_bytes = text_utils.decode_submission_data(encoded_report, compression=key)
             break
 
-    machine.report = report
+    return report_bytes
 
-    if not report:
-        machine.activity = False
-        machine.errors = machine.warnings = 0
-        return
 
-    report_data = plistlib.readPlistFromString(report)
+def process_puppet_data(report_data, machine):
+    machine.puppet_version = report_data.get('Puppet_Version')
+    puppet = report_data.get('Puppet', {})
+    if 'time' in puppet:
+        try:
+            last_run_epoch = float(puppet['time'].get('last_run'))
+        except ValueError:
+            last_run_epoch = None
+        if last_run_epoch:
+            machine.last_puppet_run = datetime.fromtimestamp(last_run_epoch, tz=pytz.UTC)
+    if 'events' in puppet:
+        errors = puppet['events'].get('failure', 0)
+        try:
+            int(errors)
+        except ValueError:
+            errors = 0
+    return machine
 
-    if report_data.get('ConsoleUser') and report_data.get('ConsoleUser') != '_mbsetupuser':
-        machine.console_user = report_data.get('ConsoleUser')
-    elif data.get('username') and data.get('username') != '_mbsetupuser':
-        machine.console_user = data.get('username')
-    else:
-        machine.console_user = None
 
+def process_munki_data(submission_data, report_data, machine, now, datelimit):
     activity_keys = ('AppleUpdates', 'InstallResults', 'RemovalResults')
     machine.activity = any(report_data.get(s) for s in activity_keys)
 
@@ -347,20 +358,19 @@ def checkin(request):
     machine.errors = len(report_data.get("Errors", []))
     machine.warnings = len(report_data.get("Warnings", []))
 
-    machine.puppet_version = report_data.get('Puppet_Version')
     machine.manifest = report_data.get('ManifestName')
     machine.munki_version = report_data.get('ManagedInstallVersion')
 
-    puppet = report_data.get('Puppet', {})
-    if 'time' in puppet:
-        last_run_epoch = float(puppet['time']['last_run'])
-        machine.last_puppet_run = datetime.fromtimestamp(last_run_epoch, tz=pytz.UTC)
-    if 'events' in puppet:
-        machine.puppet_errors = puppet['events']['failure']
+    process_managed_items(machine, report_data, submission_data.get('uuid'), now, datelimit)
+    process_conditions(machine, report_data)
+    return machine
 
+
+def process_machine_info(report_data, machine):
     # Handle gosal submissions slightly differently from others.
-    machine.os_family = (
-        report_data['OSFamily'] if 'OSFamily' in report_data else report_data.get('os_family'))
+    os_family = report_data.get('OSFamily') or report_data.get('os_family')
+    if os_family:
+        machine.os_family = os_family
 
     machine_info = report_data.get('MachineInfo', {})
     if 'os_vers' in machine_info:
@@ -375,7 +385,7 @@ def checkin(request):
     # TODO: These should be a number type.
     # TODO: Cleanup all of the casting to str if we make a number.
     machine.hd_space = report_data.get('AvailableDiskSpace', '0')
-    machine.hd_total = data.get('disk_size', '0')
+    machine.hd_total = report_data.get('disk_size', '0')
     space = float(machine.hd_space)
     total = float(machine.hd_total)
     if space == float(0) or total == float(0):
@@ -392,7 +402,7 @@ def checkin(request):
     if not hwinfo:
         for profile in machine_info.get('SystemProfile', []):
             if profile['_dataType'] == 'SPHardwareDataType':
-                hwinfo = profile._items[0]
+                hwinfo = profile['_items'][0]
                 break
 
     if hwinfo:
@@ -404,34 +414,7 @@ def checkin(request):
         machine.memory = hwinfo.get(MACHINE_KEYS['memory'][key_style])
         machine.memory_kb = process_memory(machine)
 
-    # if not machine.machine_model_friendly:
-    #     try:
-    #         machine.machine_model_friendly = utils.friendly_machine_model(machine)
-    #     except Exception:
-    #         machine.machine_model_friendly = machine.machine_model
-
-    machine.save()
-
-    historical_days = utils.get_setting('historical_retention')
-    now = django.utils.timezone.now()
-    datelimit = now - timedelta(days=historical_days)
-
-    # Process plugin scripts.
-    # Clear out too-old plugin script submissions first.
-    PluginScriptSubmission.objects.filter(recorded__lt=datelimit).delete()
-    utils.process_plugin_script(report_data.get('Plugin_Results', []), machine)
-
-    process_managed_items(machine, report_data, data.get('uuid'), now, datelimit)
-    process_facts(machine, report_data, datelimit)
-    process_conditions(machine, report_data)
-
-    utils.run_plugin_processing(machine, report_data)
-
-    if utils.get_setting('send_data') in (None, True):
-        # If setting is None, it hasn't been configured yet; assume True
-        utils.send_report()
-
-    return HttpResponse("Sal report submmitted for %s" % data.get('name'))
+    return machine
 
 
 def process_memory(machine):
@@ -476,7 +459,10 @@ def process_managed_items(machine, report_data, uuid, now, datelimit):
     # as we see them.
     # TODO: Process on the client side to avoid this.
     seen_updates = set()
-    start_time = dateutil.parser.parse(report_data['StartTime'])
+    # Munki reports should contain the StartTime key; but just in case,
+    # we'll fall back to using `now`.
+    start_time = report_data.get('StartTime')
+    start_time = dateutil.parser.parse(start_time) if start_time else django.utils.timezone.now()
     for item in report_data.get('ManagedInstalls', []):
         kwargs = {'update': item['name'], 'machine': machine}
         kwargs['display_name'] = item.get('display_name', item['name'])
@@ -495,7 +481,7 @@ def process_managed_items(machine, report_data, uuid, now, datelimit):
 
         items_to_create[InstalledUpdate].append(InstalledUpdate(**kwargs))
 
-        # Change some kwarg names and prepare for the UpdateHIstory models.
+        # Change some kwarg names and prepare for the UpdateHistory models.
         installed = kwargs.pop('installed')
         if not installed:
             kwargs['name'] = kwargs.pop('update')
@@ -647,7 +633,7 @@ def process_conditions(machine, report_data):
         if 'Facter' in report_data and condition_name.startswith('facter_'):
             continue
 
-        condition_data = text_utils.safe_unicode(text_utils.stringify(condition_data))
+        condition_data = text_utils.safe_text(text_utils.stringify(condition_data))
         condition = Condition(
             machine=machine, condition_name=condition_name, condition_data=condition_data)
         conditions_to_be_created.append(condition)
@@ -665,7 +651,7 @@ def process_conditions(machine, report_data):
 @csrf_exempt
 @key_auth_required
 def install_log_hash(request, serial):
-    sha256hash = hashlib.sha256('Update sal-scripts!').hexdigest()
+    sha256hash = hashlib.sha256('Update sal-scripts!'.encode()).hexdigest()
     return HttpResponse(sha256hash)
 
 

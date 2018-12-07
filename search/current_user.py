@@ -3,7 +3,7 @@ from threading import local
 _user = local()
 
 
-class CurrentUserMiddleware(object):
+class CurrentUserMiddleware():
     def process_request(self, request):
         _user.value = request.user
 

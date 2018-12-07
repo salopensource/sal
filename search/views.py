@@ -1,8 +1,6 @@
 import json
 import re
 
-import unicodecsv as csv
-
 from django.contrib.auth.decorators import login_required
 from django.db.models import CharField, Q
 from django.http import JsonResponse, StreamingHttpResponse
@@ -11,10 +9,9 @@ from django.template.context_processors import csrf
 from django.views.decorators.csrf import csrf_exempt, csrf_protect
 
 import sal.settings as settings
-import search.utils as utils
-import search.views
-import server.text_utils
+import search.utils
 import server.utils
+import utils
 from inventory.models import *
 from sal.decorators import *
 from search.forms import *
@@ -29,7 +26,7 @@ def index(request):
     if ('q' in request.GET) and request.GET['q'].strip():
         query_string = request.GET['q'].strip()
     else:
-        return redirect(search.views.list)
+        return redirect(search.views.list_view)
 
     # Make sure we're searching across Machines the user has access to:
     machines = Machine.objects.all()
@@ -91,7 +88,7 @@ def quick_search(machines, query_string):
 
 
 @login_required
-def list(request):
+def list_view(request):
     saved_searches = SavedSearch.objects.filter(save_search=True)
     user = request.user
     user_level = user.userprofile.level
@@ -134,7 +131,7 @@ def search_machines(search_id, machines, full=False):
                 '>': '__gt',
                 '>=': '__gte',
             }
-            for display_operator, actual_operator in operators.iteritems():
+            for display_operator, actual_operator in operators.items():
                 if search_row.operator == display_operator:
                     operator = actual_operator
                     break
@@ -309,11 +306,11 @@ def new_search(request):
     # Create a new search group
     search_group = SearchGroup(
         saved_search=new_search,
-        position=utils.next_position(new_search)
+        position=search.utils.next_position(new_search)
     )
     search_group.save()
 
-    return redirect(search.views.build_search, new_search.id)
+    return redirect(build_search, new_search.id)
 
 # Save search
 
@@ -328,7 +325,7 @@ def save_search(request, search_id):
             row = form.save(commit=False)
             row.save_search = True
             row.save()
-            return redirect(search.views.build_search, saved_search.id)
+            return redirect(build_search, saved_search.id)
     else:
         form = SaveSearchForm(instance=saved_search)
 
@@ -361,21 +358,21 @@ def delete_search(request, search_id):
     saved_search = get_object_or_404(SavedSearch, pk=search_id)
     if is_global_admin(request.user) or request.user == saved_search.created_by:
         saved_search.delete()
-    return redirect(search.views.list)
+    return redirect(list_view)
 
 
 @login_required
 def edit_search(request, search_id):
     saved_search = get_object_or_404(SavedSearch, pk=search_id)
     if not is_global_admin(request.user) and saved_search.created_by != request.user:
-        return redirect(search.views.list)
+        return redirect(list_view)
     if request.method == 'POST':
         form = SearchRowForm(request.POST, instance=search_row)
         if form.is_valid():
             row = form.save(commit=False)
             row.save_search = True
             row.save()
-            return redirect(search.views.build_search, search_row.search_group.saved_search.id)
+            return redirect(build_search, search_row.search_group.saved_search.id)
     else:
         form = SearchRowForm(instance=search_row)
     c = {'form': form, 'saved_search': saved_search}
@@ -389,10 +386,10 @@ def new_search_group(request, search_id):
     new_search = get_object_or_404(SavedSearch, pk=search_id)
     search_group = SearchGroup(
         saved_search=new_search,
-        position=utils.next_position(new_search)
+        position=search.utils.next_position(new_search)
     )
     search_group.save()
-    return redirect(search.views.build_search, new_search.id)
+    return redirect(build_search, new_search.id)
 
 # Edit group - not required at the moment as we have a toggle for and / or
 # @login_required
@@ -401,7 +398,7 @@ def new_search_group(request, search_id):
 #     saved_search = search_group.saved_search
 #     if is_global_admin(request.user) or request.user == saved_search.created_by:
 #         search_group.delete()
-#     return redirect(search.views.build_search, saved_search.id)
+#     return redirect(build_search, saved_search.id)
 
 # And or toggle for group
 
@@ -416,7 +413,7 @@ def group_and_or(request, search_group_id):
         else:
             search_group.and_or = 'AND'
         search_group.save()
-    return redirect(search.views.build_search, saved_search.id)
+    return redirect(build_search, saved_search.id)
 
 # Delete group
 
@@ -427,7 +424,7 @@ def delete_group(request, search_group_id):
     saved_search = search_group.saved_search
     if is_global_admin(request.user) or request.user == saved_search.created_by:
         search_group.delete()
-    return redirect(search.views.build_search, saved_search.id)
+    return redirect(build_search, saved_search.id)
 
 # New row
 
@@ -436,15 +433,15 @@ def delete_group(request, search_group_id):
 def new_search_row(request, search_group_id):
     search_group = get_object_or_404(SearchGroup, pk=search_group_id)
     if not is_global_admin(request.user) and search_group.saved_search.created_by != request.user:
-        return redirect(search.views.list)
+        return redirect(list_view)
     if request.method == 'POST':
         form = SearchRowForm(request.POST)
         if form.is_valid():
             row = form.save(commit=False)
             row.search_group = search_group
-            row.position = utils.next_position(search_group, model='search_row')
+            row.position = search.utils.next_position(search_group, model='search_row')
             row.save()
-            return redirect(search.views.build_search, search_group.saved_search.id)
+            return redirect(build_search, search_group.saved_search.id)
     else:
         form = SearchRowForm(search_group=search_group)
 
@@ -466,7 +463,7 @@ def edit_search_row(request, search_row_id):
             row = form.save(commit=False)
             row.save_search = True
             row.save()
-            return redirect(search.views.build_search, search_row.search_group.saved_search.id)
+            return redirect(build_search, search_row.search_group.saved_search.id)
     else:
         form = SearchRowForm(instance=search_row)
         search_fields = []
@@ -515,7 +512,7 @@ def delete_row(request, search_row_id):
     saved_search = search_group.saved_search
     if is_global_admin(request.user) or request.user == saved_search.created_by:
         search_row.delete()
-    return redirect(search.views.build_search, saved_search.id)
+    return redirect(build_search, saved_search.id)
 
 # Response for ajax to pupulate dropdown
 
@@ -569,82 +566,9 @@ def get_fields(request, model):
     return JsonResponse(output)
 
 
-class Echo(object):
-    """An object that implements just the write method of the file-like interface.
-    """
-
-    def write(self, value):
-        """Write the value by returning it, instead of storing in a buffer."""
-        return value
-
-
-def get_csv_row(machine, facter_headers, condition_headers, plugin_script_headers):
-    row = []
-    skip_fields = [
-        'id',
-        'report',
-        'machine_group'
-    ]
-    for name, value in machine.get_fields():
-        if name not in skip_fields:
-            try:
-                row.append(server.text_utils.safe_unicode(value))
-            except Exception:
-                row.append('')
-
-    row.append(machine.machine_group.business_unit.name)
-    row.append(machine.machine_group.name)
-    return row
-
-
-# Helper function to inject headers
-def stream_csv(header_row, machines, facter_headers, condition_headers, plugin_script_headers):
-    if header_row:
-        yield header_row
-    for machine in machines:
-        yield get_csv_row(machine, facter_headers, condition_headers, plugin_script_headers)
-
-
 @login_required
 def export_csv(request, search_id):
     machines = Machine.objects.all().defer('report')
-
     machines = search_machines(search_id, machines, full=True)
-
-    saved_search = get_object_or_404(SavedSearch, pk=search_id)
-    pseudo_buffer = Echo()
-    writer = csv.writer(pseudo_buffer)
-
-    # Fields
-    header_row = []
-    fields = Machine._meta.get_fields()
-    skip_fields = [
-        'id',
-        'report',
-    ]
-    for field in fields:
-        if not field.is_relation and field.name not in skip_fields:
-            header_row.append(field.name)
-
-    facter_headers = []
-    condition_headers = []
-    plugin_script_headers = []
-
-    header_row.append('business_unit')
-    header_row.append('machine_group')
-
-    response = StreamingHttpResponse(
-        (writer.writerow(row) for row in stream_csv(
-            header_row=header_row,
-            machines=machines,
-            facter_headers=facter_headers,
-            condition_headers=condition_headers,
-            plugin_script_headers=plugin_script_headers)),
-        content_type="text/csv")
-    # Create the HttpResponse object with the appropriate CSV header.
-    if getattr(settings, 'DEBUG_CSV', False):
-        pass
-    else:
-        response['Content-Disposition'] = 'attachment; filename="%s.csv"' % saved_search.name
-
-    return response
+    title = get_object_or_404(SavedSearch, pk=search_id).name
+    return utils.csv.get_csv_response(machines, utils.csv.machine_fields(), title)

@@ -20,7 +20,7 @@ def main():
 
     data = {
         sal_result_key.format(i): ard_prefs.get(prefs_key_prefix.format(i), "")
-        for i in xrange(1, 5)}
+        for i in range(1, 5)}
 
     add_plugin_results('ARD_Info', data)
 

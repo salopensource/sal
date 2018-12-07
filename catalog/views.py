@@ -1,25 +1,13 @@
-import base64
-import bz2
-import hashlib
 import plistlib
 
-from django import forms
-from django.conf import settings
-from django.contrib.auth.decorators import login_required, permission_required
-from django.core.urlresolvers import reverse
-from django.db.models import Count, Q
-from django.http import (Http404, HttpRequest, HttpResponse, HttpResponseRedirect)
-from django.shortcuts import get_object_or_404, redirect, render
-from django.template import Context, RequestContext, Template
-from django.template.context_processors import csrf
+from django.http import Http404, HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 
-from models import *
-from sal.decorators import *
-from server import utils
-from server.models import *
-from server.text_utils import decode_to_string
+from catalog.models import Catalog
+from sal.decorators import key_auth_required
+from server.models import MachineGroup
+from utils import text_utils
 
 
 @csrf_exempt
@@ -29,8 +17,6 @@ def submit_catalog(request):
     submission = request.POST
     key = submission.get('key')
     name = submission.get('name')
-    sha = submission.get('sha256hash')
-    machine_group = None
     if key:
         try:
             machine_group = MachineGroup.objects.get(key=key)
@@ -39,19 +25,14 @@ def submit_catalog(request):
 
         compressed_catalog = submission.get('base64bz2catalog')
         if compressed_catalog:
-            # compressed_catalog = compressed_catalog.replace(" ", "+")
-            catalog_str = decode_to_string(compressed_catalog)
-            try:
-                catalog_plist = plistlib.readPlistFromString(catalog_str)
-            except Exception:
-                catalog_plist = None
-            if catalog_plist:
+            catalog_bytes = text_utils.decode_submission_data(compressed_catalog, 'base64bz2')
+            if text_utils.is_valid_plist(catalog_bytes):
                 try:
                     catalog = Catalog.objects.get(name=name, machine_group=machine_group)
                 except Catalog.DoesNotExist:
                     catalog = Catalog(name=name, machine_group=machine_group)
-                catalog.sha256hash = sha
-                catalog.content = catalog_str
+                catalog.sha256hash = submission.get('sha256hash')
+                catalog.content = catalog_bytes
                 catalog.save()
     return HttpResponse("Catalogs submitted.")
 
@@ -60,21 +41,18 @@ def submit_catalog(request):
 @require_POST
 @key_auth_required
 def catalog_hash(request):
-    output = []
     submission = request.POST
     key = submission.get('key')
-    catalogs = submission.get('catalogs')
     if key:
         try:
             machine_group = MachineGroup.objects.get(key=key)
         except MachineGroup.DoesNotExist:
             raise Http404
+
+    output = []
+    catalogs = submission.get('catalogs')
     if catalogs:
-        catalogs = decode_to_string(catalogs)
-        try:
-            catalogs_plist = plistlib.readPlistFromString(catalogs)
-        except Exception:
-            catalogs_plist = None
+        catalogs_plist = text_utils.submission_plist_loads(catalogs, 'base64bz2')
         if catalogs_plist:
             for item in catalogs_plist:
                 name = item['name']
@@ -84,4 +62,4 @@ def catalog_hash(request):
                 except Catalog.DoesNotExist:
                     output.append({'name': name, 'sha256hash': 'NOT FOUND'})
 
-    return HttpResponse(plistlib.writePlistToString(output))
+    return HttpResponse(plistlib.dumps(output))

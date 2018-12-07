@@ -1,18 +1,16 @@
-import base64
-import bz2
 import plistlib
-import pytz
 import random
 import string
 from datetime import datetime
 from xml.parsers.expat import ExpatError
 
-from dateutil.parser import *
+import pytz
+from dateutil.parser import parse
 
 from django.contrib.auth.models import User
 from django.db import models
 
-from server import text_utils
+from utils import text_utils
 
 
 OS_CHOICES = (
@@ -65,7 +63,7 @@ class UserProfile(models.Model):
     )
     level = models.CharField(max_length=2, choices=LEVEL_CHOICES, default='RO')
 
-    def __unicode__(self):
+    def __str__(self):
         return self.user.username
 
 
@@ -76,7 +74,7 @@ class BusinessUnit(models.Model):
     name = models.CharField(max_length=100)
     users = models.ManyToManyField(User, blank=True)
 
-    def __unicode__(self):
+    def __str__(self):
         return self.name
 
     @classmethod
@@ -98,7 +96,7 @@ class MachineGroup(models.Model):
             self.key = GenerateKey()
         super(MachineGroup, self).save()
 
-    def __unicode__(self):
+    def __str__(self):
         return self.name
 
     @classmethod
@@ -154,12 +152,9 @@ class Machine(models.Model):
         return [(field.name, field.value_to_string(self)) for field in Machine._meta.fields]
 
     def get_report(self):
-        try:
-            return plistlib.readPlistFromString(self.report)
-        except TypeError:
-            return {}
+        return text_utils.submission_plist_loads(self.report)
 
-    def __unicode__(self):
+    def __str__(self):
         if self.hostname:
             return self.hostname
         else:
@@ -191,8 +186,8 @@ class UpdateHistory(models.Model):
     name = models.CharField(max_length=255, db_index=True)
     version = models.CharField(max_length=254, db_index=True)
 
-    def __unicode__(self):
-        return u"%s: %s %s" % (self.machine, self.name, self.version)
+    def __str__(self):
+        return "%s: %s %s" % (self.machine, self.name, self.version)
 
     class Meta:
         ordering = ['name']
@@ -213,8 +208,8 @@ class UpdateHistoryItem(models.Model):
     status = models.CharField(max_length=254, choices=UPDATE_STATUS, verbose_name="Status")
     extra = models.TextField(blank=True, null=True)
 
-    def __unicode__(self):
-        return u"%s: %s %s %s %s" % (
+    def __str__(self):
+        return "%s: %s %s %s %s" % (
             self.update_history.machine,
             self.update_history.name,
             self.update_history.version,
@@ -232,8 +227,8 @@ class Fact(models.Model):
     fact_name = models.TextField()
     fact_data = models.TextField()
 
-    def __unicode__(self):
-        return u'%s: %s' % (self.fact_name, self.fact_data)
+    def __str__(self):
+        return '%s: %s' % (self.fact_name, self.fact_data)
 
     class Meta:
         ordering = ['fact_name']
@@ -246,7 +241,7 @@ class HistoricalFact(models.Model):
     fact_data = models.TextField()
     fact_recorded = models.DateTimeField()
 
-    def __unicode__(self):
+    def __str__(self):
         return self.fact_name
 
     class Meta:
@@ -259,7 +254,7 @@ class Condition(models.Model):
     condition_name = models.CharField(max_length=255)
     condition_data = models.TextField()
 
-    def __unicode__(self):
+    def __str__(self):
         return self.condition_name
 
     class Meta:
@@ -273,8 +268,8 @@ class PluginScriptSubmission(models.Model):
     historical = models.BooleanField(default=False)
     recorded = models.DateTimeField(auto_now_add=True)
 
-    def __unicode__(self):
-        return u'%s: %s' % (self.machine, self.plugin)
+    def __str__(self):
+        return '%s: %s' % (self.machine, self.plugin)
 
     class Meta:
         ordering = ['recorded', 'plugin']
@@ -293,20 +288,17 @@ class PluginScriptRow(models.Model):
     def save(self):
         try:
             self.pluginscript_data_int = int(self.pluginscript_data)
-        except Exception:
+        except (ValueError, TypeError):
             self.pluginscript_data_int = 0
 
-        try:
-            self.pluginscript_data_string = str(self.pluginscript_data)
-        except Exception:
-            self.pluginscript_data_string = ""
+        self.pluginscript_data_string = str(self.pluginscript_data)
 
         try:
             date_data = parse(self.pluginscript_data)
             if not date_data.tzinfo:
                 date_data = date_data.replace(tzinfo=pytz.UTC)
             self.pluginscript_data_date = date_data
-        except Exception:
+        except ValueError:
             # Try converting it to an int if we're here
             try:
                 if int(self.pluginscript_data) != 0:
@@ -314,17 +306,17 @@ class PluginScriptRow(models.Model):
                     try:
                         self.pluginscript_data_date = datetime.fromtimestamp(
                             int(self.pluginscript_data), tz=pytz.UTC)
-                    except Exception:
+                    except (ValueError, TypeError):
                         self.pluginscript_data_date = None
                 else:
                     self.pluginscript_data_date = None
-            except Exception:
+            except (ValueError, TypeError):
                 self.pluginscript_data_date = None
 
         super(PluginScriptRow, self).save()
 
-    def __unicode__(self):
-        return u'%s: %s' % (self.pluginscript_name, self.pluginscript_data)
+    def __str__(self):
+        return '%s: %s' % (self.pluginscript_name, self.pluginscript_data)
 
     class Meta:
         ordering = ['pluginscript_name']
@@ -337,7 +329,7 @@ class PendingUpdate(models.Model):
     update_version = models.CharField(max_length=255, null=True, blank=True)
     display_name = models.CharField(max_length=255, null=True, blank=True)
 
-    def __unicode__(self):
+    def __str__(self):
         return self.update
 
     class Meta:
@@ -352,7 +344,7 @@ class InstalledUpdate(models.Model):
     display_name = models.CharField(max_length=255, null=True, blank=True)
     installed = models.BooleanField()
 
-    def __unicode__(self):
+    def __str__(self):
         return self.update
 
     class Meta:
@@ -367,8 +359,8 @@ class PendingAppleUpdate(models.Model):
     update_version = models.CharField(max_length=256, null=True, blank=True)
     display_name = models.CharField(max_length=256, null=True, blank=True)
 
-    def __unicode__(self):
-        return unicode(self.update) or u''
+    def __str__(self):
+        return self.update or ''
 
     class Meta:
         ordering = ['display_name']
@@ -378,7 +370,7 @@ class Plugin(models.Model):
     name = models.CharField(max_length=255, unique=True)
     order = models.IntegerField()
 
-    def __unicode__(self):
+    def __str__(self):
         return self.name
 
     class Meta:
@@ -389,7 +381,7 @@ class MachineDetailPlugin(models.Model):
     name = models.CharField(max_length=255, unique=True)
     order = models.IntegerField()
 
-    def __unicode__(self):
+    def __str_(self):
         return self.name
 
     class Meta:
@@ -399,7 +391,7 @@ class MachineDetailPlugin(models.Model):
 class Report(models.Model):
     name = models.CharField(max_length=255, unique=True)
 
-    def __unicode__(self):
+    def __str__(self):
         return self.name
 
     class Meta:
@@ -410,7 +402,7 @@ class SalSetting(models.Model):
     name = models.CharField(max_length=255, unique=True)
     value = models.TextField()
 
-    def __unicode__(self):
+    def __str__(self):
         return self.name
 
 
@@ -428,7 +420,7 @@ class ApiKey(models.Model):
                 string.ascii_lowercase + string.digits) for x in range(64))
         super(ApiKey, self).save(*args, **kwargs)
 
-    def __unicode__(self):
+    def __str__(self):
         return self.name
 
     class Meta:

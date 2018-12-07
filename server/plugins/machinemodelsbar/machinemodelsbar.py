@@ -43,10 +43,10 @@ class MachineModelsBar(sal.plugin.Widget):
         model_conversion = {
             machine.machine_model_friendly: machine.machine_model
             for machine in machines if machine.machine_model_friendly}
-        machines = machines.filter(
-            Q(machine_model_friendly=data) |
-            Q(machine_model=model_conversion.get(data, data),
-              machine_model_friendly=None))
+        friendly_q = Q(machine_model_friendly=data)
+        conversion_q = Q(
+            machine_model=model_conversion.get(data, data), machine_model_friendly=None)
+        machines = machines.filter(friendly_q | conversion_q)
         title = "All machines with model: {}".format(data)
 
         return machines, title

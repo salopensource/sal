@@ -482,14 +482,15 @@ def process_managed_items(machine, report_data, uuid, now, datelimit):
         items_to_create[InstalledUpdate].append(InstalledUpdate(**kwargs))
 
         # Change some kwarg names and prepare for the UpdateHistory models.
-        kwargs['name'] = kwargs.pop('update')
-        kwargs.pop('display_name')
-        kwargs.pop('installed')
-        kwargs['version'] = kwargs.pop('update_version')
-        kwargs['recorded'] = dateutil.parser.parse(str(item['time'])) if 'time' in item else now
-        kwargs['uuid'] = uuid
-        update_history_item, update_history = process_update_history_item(
-            update_type='third_party', status='pending', **kwargs)
+        installed = kwargs.pop('installed')
+        if not installed:
+            kwargs['name'] = kwargs.pop('update')
+            kwargs.pop('display_name')
+            kwargs['version'] = kwargs.pop('update_version')
+            kwargs['recorded'] = start_time
+            kwargs['uuid'] = uuid
+            update_history_item, update_history = process_update_history_item(
+                update_type='third_party', status='pending', **kwargs)
 
             if update_history_item is not None:
                 items_to_create[UpdateHistoryItem].append(update_history_item)

@@ -459,7 +459,10 @@ def process_managed_items(machine, report_data, uuid, now, datelimit):
     # as we see them.
     # TODO: Process on the client side to avoid this.
     seen_updates = set()
-    start_time = dateutil.parser.parse(report_data['StartTime'])
+    # Munki reports should contain the StartTime key; but just in case,
+    # we'll fall back to using `now`.
+    start_time = report_data.get('StartTime')
+    start_time = dateutil.parser.parse(start_time) if start_time else django.utils.timezone.now()
     for item in report_data.get('ManagedInstalls', []):
         kwargs = {'update': item['name'], 'machine': machine}
         kwargs['display_name'] = item.get('display_name', item['name'])

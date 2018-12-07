@@ -23,7 +23,7 @@ def get_uptime():
     p = subprocess.Popen(cmd, shell=False, stdin=subprocess.PIPE,
                          stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     (output, unused_error) = p.communicate()
-    sec = int(re.sub('.*sec = (\d+),.*', '\\1', output))
+    sec = int(re.sub(r'.*sec = (\d+),.*', '\\1', output))
     up = int(time.time() - sec)
     return up if up > 0 else -1
 

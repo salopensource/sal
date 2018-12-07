@@ -24,6 +24,6 @@ url = "https://circleci.com/api/v1.1/project/github/{}/{}/tree/master".format(
 
 the_request = requests.post(url, json=post_data, auth=(api_user_token, ''))
 if the_request.status_code == requests.codes.ok:
-    print the_request.json
+    print(the_request.json)
 else:
-    print the_request.text
+    print(the_request.text)

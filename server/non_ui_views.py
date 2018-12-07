@@ -89,10 +89,10 @@ def tableajax(request, plugin_name, data, group_type='all', group_id=None):
             order_string = "%s" % order_name
 
     if len(search_value) != 0:
-        searched_machines = machines.filter(
-            Q(hostname__icontains=search_value) |
-            Q(console_user__icontains=search_value) |
-            Q(last_checkin__icontains=search_value)).order_by(order_string)
+        hostname_q = Q(hostname__icontains=search_value)
+        user_q = Q(console_user__icontains=search_value)
+        checkin_q = Q(last_checkin__icontains=search_value)
+        searched_machines = machines.filter(hostname_q | user_q | checkin_q).order_by(order_string)
     else:
         searched_machines = machines.order_by(order_string)
 

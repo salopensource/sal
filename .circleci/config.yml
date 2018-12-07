@@ -2,7 +2,7 @@ version: 2
 jobs:
   test:
     docker:
-      - image: circleci/python:3.6.4-jessie-node-browsers
+      - image: circleci/python:3.7.1
 
     working_directory: ~/repo
 

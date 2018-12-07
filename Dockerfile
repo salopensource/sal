@@ -1,5 +1,5 @@
 # Sal Dockerfile
-FROM python:3.6.6-slim-jessie
+FROM python:3.7.1
 
 MAINTAINER Graham Gilbert <graham@grahamgilbert.com>
 

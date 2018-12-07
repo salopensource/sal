@@ -17,7 +17,7 @@ class Command(BaseCommand):
                 Q(machine_model_friendly__isnull=True) | Q(machine_model_friendly=''))
             .exclude(machine_model__isnull=True)
             .exclude(machine_model='')
-            .filter(os_family='Darwin')
+            .filter(os_family='Darwin'))
         for machine in no_friendly[:100]:
             print(f'Processing {machine}')
             machine.machine_model_friendly = utils.friendly_machine_model(machine)

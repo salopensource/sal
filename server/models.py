@@ -114,7 +114,7 @@ class DeployedManager(models.Manager):
 
 class Machine(models.Model):
     id = models.BigAutoField(primary_key=True)
-    machine_group = models.ForeignKey(MachineGroup, on_delete=models.SET_NULL)
+    machine_group = models.ForeignKey(MachineGroup, on_delete=models.CASCADE)
     serial = models.CharField(db_index=True, max_length=100, unique=True)
     hostname = models.CharField(max_length=256, null=True, blank=True)
     operating_system = models.CharField(db_index=True, max_length=256, null=True, blank=True)
@@ -356,7 +356,7 @@ class PendingAppleUpdate(models.Model):
     id = models.BigAutoField(primary_key=True)
     machine = models.ForeignKey(
         Machine, related_name='pending_apple_updates', on_delete=models.CASCADE)
-    update = models.CharField(db_index=True, max_length=255, null=True, blank=True)
+    update = models.CharField(db_index=True, max_length=254, null=True, blank=True)
     update_version = models.CharField(max_length=256, null=True, blank=True)
     display_name = models.CharField(max_length=256, null=True, blank=True)
 

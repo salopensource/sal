@@ -18,7 +18,7 @@ class SavedSearch(models.Model):
     name = models.CharField(max_length=100, blank=True, null=True)
     created = models.DateTimeField(auto_now_add=True)
     save_search = models.BooleanField(default=False)
-    created_by = models.ForeignKey(User, default=get_current_user, on_delete=models.SET_NULL)
+    created_by = models.ForeignKey(User, default=get_current_user, on_delete=models.CASCADE)
 
     def __getattribute__(self, name):
         attr = models.Model.__getattribute__(self, name)

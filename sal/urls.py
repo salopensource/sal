@@ -15,7 +15,7 @@ urlpatterns = [
         r'^changepassword/done/$', auth_views.PasswordChangeDoneView, name='password_change_done'),
     url(r'^', include('server.urls')),
     url(r'^admin/doc/', include('django.contrib.admindocs.urls')),
-    url(r'^admin/', include(admin.site.urls)),
+    url(r'^admin/', admin.site.urls),
     url(r'^api/', include('api.v1.urls')),
     url(r'^api/v1/', include('api.v1.urls')),
     url(r'^api/v2/', include('api.v2.urls')),
@@ -24,7 +24,6 @@ urlpatterns = [
     url(r'^licenses/', include('licenses.urls')),
     url(r'^catalog/', include('catalog.urls')),
     url(r'^profiles/', include('profiles.urls')),
-
 ]
 
 if settings.DEBUG:

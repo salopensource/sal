@@ -30,7 +30,7 @@ class Migration(migrations.Migration):
                 ('plugin', models.CharField(max_length=255)),
                 ('historical', models.BooleanField(default=False)),
                 ('recorded', models.DateTimeField(auto_now_add=True)),
-                ('machine', models.ForeignKey(to='server.Machine')),
+                ('machine', models.ForeignKey(to='server.Machine', on_delete=models.CASCADE)),
             ],
             options={
                 'ordering': ['recorded', 'plugin'],
@@ -39,6 +39,6 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='pluginscriptrow',
             name='submission',
-            field=models.ForeignKey(to='server.PluginScriptSubmission'),
+            field=models.ForeignKey(to='server.PluginScriptSubmission', on_delete=models.CASCADE),
         ),
     ]

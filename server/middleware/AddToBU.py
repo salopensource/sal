@@ -1,8 +1,10 @@
 from django.conf import settings
+from django.utils.deprecation import MiddlewareMixin
+
 from server.models import *
 
 
-class AddToBU():
+class AddToBU(MiddlewareMixin):
     """
     This middleware will add the current user to any BU's they've not already
     been explicitly added to.

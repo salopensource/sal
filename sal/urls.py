@@ -26,4 +26,4 @@ urlpatterns = [
 ]
 
 if settings.DEBUG:
-    urlpatterns += [url(r'^static/(?P<path>.*)$', views.serve),]
+    urlpatterns.append(url(r'^static/(?P<path>.*)$', views.serve))

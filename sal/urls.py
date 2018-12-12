@@ -8,10 +8,11 @@ from django.contrib.staticfiles import views
 admin.autodiscover()
 
 urlpatterns = [
-    url(r'^login/*$', auth_views.LoginView, name='login'),
+    url(r'^login/*$', auth_views.LoginView.as_view(), name='login'),
     url(r'^logout/$', auth_views.logout_then_login, name='logout_then_login'),
-    url(r'^changepassword/$', auth_views.PasswordChangeView, name='password_change'),
-    url(r'^changepassword/done/$', auth_views.PasswordChangeDoneView, name='password_change_done'),
+    url(r'^changepassword/$', auth_views.PasswordChangeView.as_view(), name='password_change'),
+    url(r'^changepassword/done/$', auth_views.PasswordChangeDoneView.as_view(),
+        name='password_change_done'),
     url(r'^', include('server.urls')),
     url(r'^admin/doc/', include('django.contrib.admindocs.urls')),
     url(r'^admin/', admin.site.urls),

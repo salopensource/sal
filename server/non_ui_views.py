@@ -257,6 +257,10 @@ def checkin(request):
     machine.report = report_bytes
     machine.console_user = get_console_user(report_data)
 
+    # We need to save now or else further processing of related fields
+    # will fail.
+    machine.save()
+
     machine = process_munki_data(data, report_data, machine, now, datelimit)
     machine = process_puppet_data(report_data, machine)
     machine = process_machine_info(report_data, machine)

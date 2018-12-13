@@ -259,12 +259,16 @@ def checkin(request):
 
     # We need to save now or else further processing of related fields
     # will fail.
-    machine.save()
+    try:
+        machine.save()
+    except ValueError:
+        logging.warning(f"Sal report submmitted for {data.get('serial')} failed with a ValueError!")
 
     machine = process_munki_data(data, report_data, machine, now, datelimit)
     machine = process_puppet_data(report_data, machine)
     machine = process_machine_info(report_data, machine)
 
+    # Save again to add in Munki, Puppet, and hardware info.
     try:
         machine.save()
     except ValueError:

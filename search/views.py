@@ -3,6 +3,7 @@ import re
 
 import unicodecsv as csv
 
+from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.db.models import CharField, Q
 from django.http import JsonResponse, StreamingHttpResponse
@@ -10,7 +11,6 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.template.context_processors import csrf
 from django.views.decorators.csrf import csrf_exempt, csrf_protect
 
-import sal.settings as settings
 import search.utils as utils
 import search.views
 import server.text_utils

@@ -250,7 +250,7 @@ def checkin(request):
         machine.activity = False
         machine.errors = machine.warnings = 0
         machine.save()
-        return HttpResponse(f"Sal report submmitted for {data.get('name', '')} with no activity")
+        return HttpResponse(f"Sal report submitted for {data.get('name', '')} with no activity")
 
     # If we get something back, we know the data is good, so store
     # the bytes.

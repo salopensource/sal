@@ -253,8 +253,8 @@ def checkin(request):
         return HttpResponse(f"Sal report submitted for {data.get('name', '')} with no activity")
 
     # If we get something back, we know the data is good, so store
-    # the bytes.
-    machine.report = report_bytes
+    # the bytes as unicode (otherwise it gets munged).
+    machine.report = report_bytes.decode()
     machine.console_user = get_console_user(report_data)
 
     # We need to save now or else further processing of related fields

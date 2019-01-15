@@ -98,8 +98,8 @@ class CheckinDataTest(TestCase):
 
     @patch('server.models.Machine.save')
     @patch('utils.text_utils.submission_plist_loads')
-    def test_incorrect_data_type_completes(self, mock_plist_loads, mock_save):
-        """Test that using invalid data types in the report works."""
+    def test_incorrect_data_type_stops_early(self, mock_plist_loads, mock_save):
+        """Test that invalid data types in the report bail with a 500."""
         machine = Machine.objects.get(serial='C0DEADBEEF')
         mock_plist_loads.return_value = {'Puppet': {'events': {'failure': 'nyancat'}}}
 
@@ -113,7 +113,7 @@ class CheckinDataTest(TestCase):
 
         data = {'serial': machine.serial, 'key': machine.machine_group.key}
         response = self.client.post('/checkin/', data=data)
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, 500)
 
 
 class CheckinHelperTest(TestCase):

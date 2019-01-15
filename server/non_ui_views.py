@@ -13,7 +13,7 @@ import django.utils.timezone
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.db.models import Q
-from django.http import HttpResponse, JsonResponse
+from django.http import HttpResponse, JsonResponse, HttpResponseServerError
 from django.http.response import Http404
 from django.shortcuts import get_object_or_404
 from django.urls import reverse
@@ -263,6 +263,7 @@ def checkin(request):
         machine.save()
     except ValueError:
         logging.warning(f"Sal report submmitted for {data.get('serial')} failed with a ValueError!")
+        return HttpResponseServerError()
 
     machine = process_munki_data(data, report_data, machine, now, datelimit)
     machine = process_puppet_data(report_data, machine)

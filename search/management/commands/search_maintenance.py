@@ -3,6 +3,7 @@ Cleans up old searches and rebuilds search fields cache
 '''
 import operator
 from time import sleep
+import gc
 
 from django.core.management.base import BaseCommand, CommandError
 from django.conf import settings
@@ -171,3 +172,4 @@ class Command(BaseCommand):
 
         sleep_time = options['sleep_time']
         sleep(sleep_time)
+        gc.collect()

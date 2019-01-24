@@ -27,6 +27,9 @@ class Command(BaseCommand):
         parser.add_argument('sleep_time', type=int, nargs='?', default=0)
 
     def handle(self, *args, **options):
+
+        sleep_time = options['sleep_time']
+        sleep(sleep_time)
         old_searches = SavedSearch.objects.filter(
             created__lt=datetime.datetime.today() - datetime.timedelta(days=30), save_search=False)
         old_searches.delete()
@@ -65,20 +68,20 @@ class Command(BaseCommand):
                 if server.utils.is_postgres() is False:
                     cached_item.save()
 
-        for fact in facts:
+        for fact in facts.iterator():
             cached_item = SearchFieldCache(search_model='Facter', search_field=fact['fact_name'])
             search_fields.append(cached_item)
             if server.utils.is_postgres() is False:
                 cached_item.save()
 
-        for condition in conditions:
+        for condition in conditions.iterator():
             cached_item = SearchFieldCache(search_model='Condition',
                                            search_field=condition['condition_name'])
             search_fields.append(cached_item)
             if server.utils.is_postgres() is False:
                 cached_item.save()
 
-        for row in plugin_sript_rows:
+        for row in plugin_sript_rows.iterator():
             string = '%s=>%s' % (row['submission__plugin'], row['pluginscript_name'])
             cached_item = SearchFieldCache(search_model='External Script', search_field=string)
             search_fields.append(cached_item)
@@ -92,7 +95,7 @@ class Command(BaseCommand):
             if server.utils.is_postgres() is False:
                 cached_item.save()
 
-        for app in app_versions:
+        for app in app_versions.iterator():
             string = '%s=>%s' % (app['name'], app['bundleid'])
             cached_item = SearchFieldCache(search_model='Application Version', search_field=string)
             search_fields.append(cached_item)
@@ -141,7 +144,7 @@ class Command(BaseCommand):
                 qs = qs | query
 
             facts = Fact.objects.filter(qs)
-            for fact in facts:
+            for fact in facts.iterator():
                 cached_item = SearchCache(machine=fact.machine, search_item=fact.fact_data)
                 items_to_be_inserted.append(cached_item)
                 if not server.utils.is_postgres():
@@ -157,7 +160,7 @@ class Command(BaseCommand):
                 qs = qs | query
 
             conditions = Condition.objects.filter(qs)
-            for condition in conditions:
+            for condition in conditions.iterator():
                 cached_item = SearchCache(machine=condition.machine,
                                           search_item=condition.condition_data)
                 items_to_be_inserted.append(cached_item)
@@ -170,6 +173,4 @@ class Command(BaseCommand):
         # Clean up orhpaned Application objects.
         Application.objects.filter(inventoryitem=None).delete()
 
-        sleep_time = options['sleep_time']
-        sleep(sleep_time)
         gc.collect()

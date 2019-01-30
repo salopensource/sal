@@ -4,10 +4,10 @@ from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
-from django.core.urlresolvers import reverse
 from django.http import HttpResponseRedirect
 from django.shortcuts import get_object_or_404, redirect, render
 from django.template.context_processors import csrf
+from django.urls import reverse
 
 import sal.plugin
 from sal.decorators import required_level, staff_required

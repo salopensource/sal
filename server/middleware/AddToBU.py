@@ -1,8 +1,10 @@
 from django.conf import settings
+from django.utils.deprecation import MiddlewareMixin
+
 from server.models import *
 
 
-class AddToBU():
+class AddToBU(MiddlewareMixin):
     """
     This middleware will add the current user to any BU's they've not already
     been explicitly added to.
@@ -10,7 +12,7 @@ class AddToBU():
 
     def process_view(self, request, view_func, view_args, view_kwargs):
         if hasattr(settings, 'ADD_TO_ALL_BUSINESS_UNITS'):
-            if request.user.is_authenticated():
+            if request.user.is_authenticated:
                 if settings.ADD_TO_ALL_BUSINESS_UNITS \
                         and request.user.userprofile.level != 'GA':
                     for business_unit in BusinessUnit.objects.all():

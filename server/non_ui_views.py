@@ -12,11 +12,11 @@ import pytz
 import django.utils.timezone
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
-from django.core.urlresolvers import reverse
 from django.db.models import Q
-from django.http import HttpResponse, JsonResponse
+from django.http import HttpResponse, JsonResponse, HttpResponseServerError
 from django.http.response import Http404
 from django.shortcuts import get_object_or_404
+from django.urls import reverse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 
@@ -250,17 +250,26 @@ def checkin(request):
         machine.activity = False
         machine.errors = machine.warnings = 0
         machine.save()
-        return HttpResponse(f"Sal report submmitted for {data.get('name', '')} with no activity")
+        return HttpResponse(f"Sal report submitted for {data.get('name', '')} with no activity")
 
     # If we get something back, we know the data is good, so store
-    # the bytes.
-    machine.report = report_bytes
+    # the bytes as unicode (otherwise it gets munged).
+    machine.report = report_bytes.decode()
     machine.console_user = get_console_user(report_data)
+
+    # We need to save now or else further processing of related fields
+    # will fail.
+    try:
+        machine.save()
+    except ValueError:
+        logging.warning(f"Sal report submmitted for {data.get('serial')} failed with a ValueError!")
+        return HttpResponseServerError()
 
     machine = process_munki_data(data, report_data, machine, now, datelimit)
     machine = process_puppet_data(report_data, machine)
     machine = process_machine_info(report_data, machine)
 
+    # Save again to add in Munki, Puppet, and hardware info.
     try:
         machine.save()
     except ValueError:

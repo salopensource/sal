@@ -1,7 +1,6 @@
 import json
 import re
 
-from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.db.models import CharField, Q
 from django.http import JsonResponse, StreamingHttpResponse
@@ -9,10 +8,9 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.template.context_processors import csrf
 from django.views.decorators.csrf import csrf_exempt, csrf_protect
 
-import utils.csv
 import search.utils
 import server.utils
-import utils
+import utils.csv
 from inventory.models import *
 from sal.decorators import *
 from search.forms import *
@@ -27,11 +25,7 @@ def index(request):
     if ('q' in request.GET) and request.GET['q'].strip():
         query_string = request.GET['q'].strip()
     else:
-<<<<<<< HEAD
         return redirect(list_view)
-=======
-        return redirect(search.views.list_view)
->>>>>>> b4b6200b3c25fc38cc51fd41dd3e5c667faa7ad5
 
     # Make sure we're searching across Machines the user has access to:
     machines = Machine.objects.all()

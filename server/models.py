@@ -6,6 +6,7 @@ from xml.parsers.expat import ExpatError
 
 import pytz
 from dateutil.parser import parse
+from ulid2 import generate_ulid_as_uuid
 
 from django.contrib.auth.models import User
 from django.db import models
@@ -432,3 +433,29 @@ class ApiKey(models.Model):
 class FriendlyNameCache(models.Model):
     serial_stub = models.CharField(max_length=5)
     friendly_name = models.CharField(max_length=255)
+
+
+class ManagementSource(models.Model):
+    id = models.UUIDField(default=generate_ulid_as_uuid, primary_key=True)
+    name = models.CharField(max_length=255, unique=True)
+
+
+class ManagedItem(models.Model):
+    id = models.UUIDField(default=generate_ulid_as_uuid, primary_key=True)
+    name = models.CharField(max_length=255, unique=True)
+    machine = models.ForeignKey(Machine, on_delete=models.CASCADE)
+    management_source = models.ForeignKey(ManagementSource, on_delete=models.CASCADE)
+    date_managed = models.DateTimeField()
+
+    STATUS_CHOICES = (
+        ('PRESENT', 'Present'),
+        ('ABSENT', 'Absent'),
+        ('PENDING', 'Pending'),
+        ('ERROR', 'Error'),
+        ('UNKNOWN', 'Unknown'),
+    )
+    status = models.CharField(max_length=7, choices=STATUS_CHOICES, default='UNKNOWN')
+    # Whether to delete ManagedItem on every checkin or to save it as a historical
+    # value. True == don't delete.
+    retention = models.BooleanField(default=False)
+    data = models.TextField(editable=True, null=True)

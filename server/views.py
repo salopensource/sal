@@ -414,8 +414,6 @@ def machine_detail(request, **kwargs):
         'machine_group': machine_group,
         'business_unit': business_unit,
         'report': report,
-        'install_results': install_results,
-        'removal_results': removal_results,
         'machine': machine,
         'ip_address': ip_address,
         'uptime': uptime,

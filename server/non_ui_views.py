@@ -313,6 +313,9 @@ def checkin_v3(request):
 
     machine = process_checkin_serial(submission['machine']['serial'])
     machine.hostname = machine_submission.get('hostname', '<NO NAME>')
+    # TODO: Do we need to ignore "_mbsetupuser" still?
+    machine.console_user = machine_submission.get('console_user')
+    # TODO: Other "machine" stuff moved here.
 
     # Process Sal checkin information.
     sal_submission = machine.get('sal', {})
@@ -342,7 +345,6 @@ def checkin_v3(request):
     # If we get something back, we know the data is good, so store
     # the bytes as unicode (otherwise it gets munged).
     machine.report = report_bytes.decode()
-    machine.console_user = get_console_user(report_data)
 
     # We need to save now or else further processing of related fields
     # will fail.

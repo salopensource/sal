@@ -27,7 +27,8 @@ from sal.plugin import (Widget, ReportPlugin, OldPluginAdapter, PluginManager,
                         DEPRECATED_PLUGIN_TYPES)
 from server.models import (Machine, Condition, Fact, HistoricalFact, MachineGroup, UpdateHistory,
                            UpdateHistoryItem, InstalledUpdate, PendingAppleUpdate,
-                           PluginScriptSubmission, Plugin, Report, MachineDetailPlugin)
+                           PluginScriptSubmission, Plugin, Report, MachineDetailPlugin,
+                           ManagementSource, ManagedItem)
 from utils import text_utils
 
 if settings.DEBUG:

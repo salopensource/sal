@@ -293,6 +293,9 @@ def checkin(request):
     return HttpResponse(msg)
 
 
+@csrf_exempt
+@require_POST
+@key_auth_required
 def checkin_v3(request):
     # TODO: Possibly remove. Anything dealing with retention should be moved to the maintenance
     # script.

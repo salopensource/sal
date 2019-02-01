@@ -17,13 +17,10 @@ urlpatterns = [
     url(r'^machine_detail/(?P<machine_id>.+)/', machine_detail, name='machine_detail'),
 
     # Checkin routes.
+    # Deprecated and will be removed in Sal version 4.
     url(r'^checkin/', checkin, name='checkin'),
-    # TODO: Remove after sal-scripts have reasonably been updated to
-    # not hit this endpoint.
-    url(r'^installlog/hash/(?P<serial>.+)/$', install_log_hash, name='install_log_hash'),
-    # TODO: Remove after sal-scripts have reasonably been updated to
-    # not hit this endpoint.
-    url(r'^installlog/submit/$', install_log_submit, name='install_log_submit'),
+    url(r'^checkin_v3/', checkin, name='checkin_v3'),
+    # Deprecated and will be removed in Sal version 4.
     url(r'^preflight/$', preflight, name='preflight'),
     url(r'^preflight-v2/get-script/(?P<plugin_name>.+)/(?P<script_name>.+)/$',
         preflight_v2_get_script, name='preflight_v2_get_script'),

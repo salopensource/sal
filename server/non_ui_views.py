@@ -654,20 +654,3 @@ def process_conditions(machine, report_data):
         else:
             for condition in conditions_to_be_created:
                 condition.save()
-
-
-# TODO: Remove after sal-scripts have reasonably been updated to not hit
-# this endpoint.
-@csrf_exempt
-@key_auth_required
-def install_log_hash(request, serial):
-    sha256hash = hashlib.sha256('Update sal-scripts!'.encode()).hexdigest()
-    return HttpResponse(sha256hash)
-
-
-# TODO: Remove after sal-scripts have reasonably been updated to not hit
-# this endpoint.
-@csrf_exempt
-@key_auth_required
-def install_log_submit(request):
-    return HttpResponse("Update sal-scripts!")

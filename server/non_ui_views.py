@@ -356,6 +356,7 @@ def process_puppet_data(report_data, machine):
             int(errors)
         except ValueError:
             errors = 0
+        machine.errors = errors
     return machine
 
 

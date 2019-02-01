@@ -315,7 +315,17 @@ def checkin_v3(request):
     machine.hostname = machine_submission.get('hostname', '<NO NAME>')
     # TODO: Do we need to ignore "_mbsetupuser" still?
     machine.console_user = machine_submission.get('console_user')
-    # TODO: Other "machine" stuff moved here.
+    machine.os_family = machine_submission.get('os_family', 'Darwin')
+    machine.operating_system = machine_submission.get('operating_system')
+    machine.hd_space = machine_submission.get('hd_space')
+    machine.hd_total = machine_submission.get('hd_total')
+    machine.hd_percent = machine_submission.get('hd_percent')
+    machine.machine_model = machine_submission.get('machine_model')
+    machine.machine_model_friendly = machine_submission.get('machine_model_friendly')
+    machine.cpu_type = machine_submission.get('cpu_type')
+    machine.cpu_speed = machine_submission.get('cpu_speed')
+    machine.memory = machine_submission.get('memory')
+    machine.memory_kb = machine_submission.get('memory_kb')
 
     # Process Sal checkin information.
     sal_submission = machine.get('sal', {})
@@ -362,7 +372,6 @@ def checkin_v3(request):
 
     machine = process_munki_data(submission, report_data, machine, now, datelimit)
     machine = process_puppet_data(report_data, machine)
-    machine = process_machine_info(report_data, machine)
 
     # Save again to add in Munki, Puppet, and hardware info.
     try:
@@ -473,6 +482,7 @@ def process_munki_data(submission_data, report_data, machine, now, datelimit):
     return machine
 
 
+# TODO: remove when you remove checkin_v2
 def process_machine_info(report_data, machine):
     # Handle gosal submissions slightly differently from others.
     os_family = report_data.get('OSFamily') or report_data.get('os_family')
@@ -524,6 +534,7 @@ def process_machine_info(report_data, machine):
     return machine
 
 
+# TODO: Remove when you remove checkin v2
 def process_memory(machine):
     """Convert the amount of memory like '4 GB' to the size in kb as int"""
     try:

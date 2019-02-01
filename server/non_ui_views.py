@@ -343,27 +343,60 @@ def checkin_v3(request):
         machine.save()
         return HttpResponse("Broken Client report submmitted for %s" % submission.get('serial'))
 
-    report_bytes = get_report_bytes(submission)
+    # Process management sources
 
-    report_data = text_utils.submission_plist_loads(report_bytes)
-    if not report_data:
-        # Otherwise, zero everything out and return early.
-        machine.activity = False
-        machine.errors = machine.warnings = 0
-        machine.save()
-        return HttpResponse(f"Sal report submitted for {submission.get('name', '')} with no activity")
+    # Clear out existing Facts and start from scratch.
+    facts = machine.facts.all()
+    if facts.exists():
+        facts._raw_delete(facts.db)
+
+    core_modules = ('machine', 'sal')
+    for management_source_name, management_data in submission.items():
+        if management_source_name in core_modules:
+            continue
+
+        # TODO: Iterate, and call a generic processor for most sources, but a special one for Munki,
+        # Apple, etc.
+
+        management_source = ManagementSource.objects.get_or_create(name=management_source_name)
+
+        for fact_name, fact_data in management_data.get('facts', {}).items():
+            # TODO: Figure out how we're doing this in the process facts code.
+            Fact.DO_IT(fact_name=fact_name, fact_data=fact_data)
+            # process_facts(machine, report_data, datelimit)
+            # TODO: This is my stopping place. I think we can still jump into an updated
+            # process_facts function. Since we're iterating over this multiple times, break Fact
+            # instantiation up from Fact bulk saving (do that at the end of management source
+            # processing).
+
+        for name, managed_item in management_data.get('managed_items', {}).items():
+            # TODO: Add a managed item.
+            pass
+
+
+
+    # report_bytes = get_report_bytes(submission)
+
+    # report_data = text_utils.submission_plist_loads(report_bytes)
+    # if not report_data:
+    #     # Otherwise, zero everything out and return early.
+    #     machine.activity = False
+    #     machine.errors = machine.warnings = 0
+    #     machine.save()
+    #     return HttpResponse(f"Sal report submitted for {submission.get('name', '')} with no activity")
 
     # If we get something back, we know the data is good, so store
     # the bytes as unicode (otherwise it gets munged).
-    machine.report = report_bytes.decode()
+    # machine.report = report_bytes.decode()
 
+    # TODO: Audit save timing now that everyting has been shuffled around.
     # We need to save now or else further processing of related fields
     # will fail.
-    try:
-        machine.save()
-    except ValueError:
-        logging.warning(f"Sal report submmitted for {submission.get('serial')} failed with a ValueError!")
-        return HttpResponseServerError()
+    # try:
+    #     machine.save()
+    # except ValueError:
+    #     logging.warning(f"Sal report submmitted for {submission.get('serial')} failed with a ValueError!")
+    #     return HttpResponseServerError()
 
     # TODO: Possibly remove. Anything dealing with retention should be moved to the maintenance
     # script.
@@ -371,22 +404,24 @@ def checkin_v3(request):
     now = django.utils.timezone.now()
     datelimit = now - timedelta(days=historical_days)
 
-    machine = process_munki_data(submission, report_data, machine, now, datelimit)
-    machine = process_puppet_data(report_data, machine)
+    # machine = process_munki_data(submission, report_data, machine, now, datelimit)
+    # machine = process_puppet_data(report_data, machine)
 
+    # TODO: Audit save timing now that everyting has been shuffled around.
     # Save again to add in Munki, Puppet, and hardware info.
-    try:
-        machine.save()
-    except ValueError:
-        logging.warning(f"Sal report submmitted for {submission.get('serial')} failed with a ValueError!")
+    # try:
+    #     machine.save()
+    # except ValueError:
+    #     logging.warning(f"Sal report submmitted for {submission.get('serial')} failed with a ValueError!")
 
     # Process plugin scripts.
     # Clear out too-old plugin script submissions first.
+    # TODO: Move to maintenance script
     PluginScriptSubmission.objects.filter(recorded__lt=datelimit).delete()
-    server.utils.process_plugin_script(report_data.get('Plugin_Results', []), machine)
-    server.utils.run_plugin_processing(machine, report_data)
 
-    process_facts(machine, report_data, datelimit)
+    server.utils.process_plugin_script(submission.get('plugin_results', []), machine)
+    # TODO: Plugins need to update to the new submission format. Add documentation!
+    server.utils.run_plugin_processing(machine, submission)
 
     if server.utils.get_setting('send_data') in (None, True):
         # If setting is None, it hasn't been configured yet; assume True

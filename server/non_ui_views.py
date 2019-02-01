@@ -297,8 +297,11 @@ def checkin(request):
 @require_POST
 @key_auth_required
 def checkin_v3(request):
-    submission = request.POST
     # Ensure we have the bare minimum data before continuing.
+    try:
+        submission = json.loads(request.body)
+    except json.JSONDecodeError:
+        return HttpResponseBadRequest()
     if not isinstance(submission, dict) or 'machine' not in submission:
         return HttpResponseBadRequest()
 

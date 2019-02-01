@@ -219,6 +219,7 @@ def preflight_v2_get_script(request, plugin_name, script_name):
     return HttpResponse(json.dumps(output))
 
 
+# TODO: This view is deprecated and will be removed for the v4 release.
 @csrf_exempt
 @require_POST
 @key_auth_required

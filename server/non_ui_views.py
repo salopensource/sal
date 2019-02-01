@@ -297,12 +297,6 @@ def checkin(request):
 @require_POST
 @key_auth_required
 def checkin_v3(request):
-    # TODO: Possibly remove. Anything dealing with retention should be moved to the maintenance
-    # script.
-    historical_days = server.utils.get_setting('historical_retention')
-    now = django.utils.timezone.now()
-    datelimit = now - timedelta(days=historical_days)
-
     submission = request.POST
     # Ensure we have the bare minimum data before continuing.
     if not isinstance(submission, dict) or 'machine' not in submission:
@@ -354,6 +348,12 @@ def checkin_v3(request):
     except ValueError:
         logging.warning(f"Sal report submmitted for {submission.get('serial')} failed with a ValueError!")
         return HttpResponseServerError()
+
+    # TODO: Possibly remove. Anything dealing with retention should be moved to the maintenance
+    # script.
+    historical_days = server.utils.get_setting('historical_retention')
+    now = django.utils.timezone.now()
+    datelimit = now - timedelta(days=historical_days)
 
     machine = process_munki_data(submission, report_data, machine, now, datelimit)
     machine = process_puppet_data(report_data, machine)

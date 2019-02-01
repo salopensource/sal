@@ -13,8 +13,8 @@ import django.utils.timezone
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.db.models import Q
-from django.http import HttpResponse, JsonResponse, HttpResponseServerError
-from django.http.response import Http404
+from django.http import (
+    HttpResponse, JsonResponse, HttpResponseServerError, Http404, HttpResponseBadRequest)
 from django.shortcuts import get_object_or_404
 from django.urls import reverse
 from django.views.decorators.csrf import csrf_exempt
@@ -292,14 +292,102 @@ def checkin(request):
     return HttpResponse(msg)
 
 
+def checkin_v3(request):
+    # TODO: Possibly remove. Anything dealing with retention should be moved to the maintenance
+    # script.
+    historical_days = server.utils.get_setting('historical_retention')
+    now = django.utils.timezone.now()
+    datelimit = now - timedelta(days=historical_days)
+
+    submission = request.POST
+    # Ensure we have the bare minimum data before continuing.
+    if not isinstance(submission, dict) or 'machine' not in submission:
+        return HttpResponseBadRequest()
+
+    # Process machine submission information.
+    machine_submission = submission['machine']
+    serial = machine_submission.get('serial')
+    if not serial:
+        return HttpResponseBadRequest()
+
+    machine = process_checkin_serial(submission['machine']['serial'])
+    machine.hostname = machine_submission.get('hostname', '<NO NAME>')
+
+    # Process Sal checkin information.
+    sal_submission = machine.get('sal', {})
+    machine.machine_group = get_checkin_machine_group(sal_submission.get('key'))
+    machine.sal_version = sal_submission.get('sal_version')
+    machine.last_checkin = django.utils.timezone.now()
+
+    if server.utils.get_django_setting('DEPLOYED_ON_CHECKIN', True):
+        machine.deployed = True
+
+    # Cast to bool just in case.
+    if bool(sal_submission.get('broken_client', False)):
+        machine.broken_client = True
+        machine.save()
+        return HttpResponse("Broken Client report submmitted for %s" % submission.get('serial'))
+
+    report_bytes = get_report_bytes(submission)
+
+    report_data = text_utils.submission_plist_loads(report_bytes)
+    if not report_data:
+        # Otherwise, zero everything out and return early.
+        machine.activity = False
+        machine.errors = machine.warnings = 0
+        machine.save()
+        return HttpResponse(f"Sal report submitted for {submission.get('name', '')} with no activity")
+
+    # If we get something back, we know the data is good, so store
+    # the bytes as unicode (otherwise it gets munged).
+    machine.report = report_bytes.decode()
+    machine.console_user = get_console_user(report_data)
+
+    # We need to save now or else further processing of related fields
+    # will fail.
+    try:
+        machine.save()
+    except ValueError:
+        logging.warning(f"Sal report submmitted for {submission.get('serial')} failed with a ValueError!")
+        return HttpResponseServerError()
+
+    machine = process_munki_data(submission, report_data, machine, now, datelimit)
+    machine = process_puppet_data(report_data, machine)
+    machine = process_machine_info(report_data, machine)
+
+    # Save again to add in Munki, Puppet, and hardware info.
+    try:
+        machine.save()
+    except ValueError:
+        logging.warning(f"Sal report submmitted for {submission.get('serial')} failed with a ValueError!")
+
+    # Process plugin scripts.
+    # Clear out too-old plugin script submissions first.
+    PluginScriptSubmission.objects.filter(recorded__lt=datelimit).delete()
+    server.utils.process_plugin_script(report_data.get('Plugin_Results', []), machine)
+    server.utils.run_plugin_processing(machine, report_data)
+
+    process_facts(machine, report_data, datelimit)
+
+    if server.utils.get_setting('send_data') in (None, True):
+        # If setting is None, it hasn't been configured yet; assume True
+        server.utils.send_report()
+
+    msg = f"Sal report submmitted for {machine.serial}"
+    logging.debug(msg)
+    return HttpResponse(msg)
+
+
 def process_checkin_serial(serial):
     # Take out some of the weird junk VMware puts in. Keep an eye out in case
     # Apple actually uses these:
     serial = serial.upper().translate(SERIAL_TRANSLATE)
 
+    # TODO: Remove this check once checkin_v2 is removed, as checkin_v3 handles this.
     # A serial number is required.
     if not serial:
         raise Http404
+
     # Are we using Sal for some sort of inventory (like, I don't know, Puppet?)
     if server.utils.get_django_setting('ADD_NEW_MACHINES', True):
             try:

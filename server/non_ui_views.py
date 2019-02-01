@@ -424,6 +424,7 @@ def get_checkin_machine_group(key):
     return get_object_or_404(MachineGroup, key=key)
 
 
+# TODO: remove when you remove checkin_v2
 def get_console_user(report):
     """Get the console user, or None."""
     excluded = ('_mbsetupuser',)
@@ -434,6 +435,7 @@ def get_console_user(report):
     return user
 
 
+# TODO: remove when you remove checkin_v2
 def get_report_bytes(data):
     # Find the report in the submitted data. It could be encoded
     # and/or compressed with base64 and bz2.
@@ -447,6 +449,7 @@ def get_report_bytes(data):
     return report_bytes
 
 
+# TODO: remove when you remove checkin_v2
 def process_puppet_data(report_data, machine):
     machine.puppet_version = report_data.get('Puppet_Version')
     puppet = report_data.get('Puppet', {})
@@ -467,6 +470,7 @@ def process_puppet_data(report_data, machine):
     return machine
 
 
+# TODO: remove when you remove checkin_v2
 def process_munki_data(submission_data, report_data, machine, now, datelimit):
     activity_keys = ('AppleUpdates', 'InstallResults', 'RemovalResults')
     machine.activity = any(report_data.get(s) for s in activity_keys)
@@ -547,6 +551,7 @@ def process_memory(machine):
     return memkb
 
 
+# TODO: remove when you remove checkin_v2
 def process_managed_items(machine, report_data, uuid, now, datelimit):
     """Process Munki updates and removals."""
     # Delete all of these every run, as its faster than comparing
@@ -680,6 +685,7 @@ def process_managed_items(machine, report_data, uuid, now, datelimit):
             history.delete()
 
 
+# TODO: remove when you remove checkin_v2
 def process_update_history_item(machine, update_type, name, version, recorded, uuid, status):
     update_history, _ = UpdateHistory.objects.get_or_create(
         machine=machine, update_type=update_type, name=name, version=version)
@@ -696,6 +702,7 @@ def process_update_history_item(machine, update_type, name, version, recorded, u
     return (update_history_item, update_history)
 
 
+# TODO: remove when you remove checkin_v2
 def needs_history_item_creation(items_set, status, recorded):
     return items_set.last().status != status and items_set.last().recorded < recorded
 
@@ -742,6 +749,7 @@ def process_facts(machine, report_data, datelimit):
                 fact.save()
 
 
+# TODO: remove when you remove checkin_v2
 def process_conditions(machine, report_data):
     conditions_to_delete = machine.conditions.all()
     if conditions_to_delete.exists():

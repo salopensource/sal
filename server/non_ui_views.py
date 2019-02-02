@@ -344,6 +344,7 @@ def checkin_v3(request):
         return HttpResponse("Broken Client report submmitted for %s" % submission.get('serial'))
 
     # Process management sources
+    now = django.utils.timezone.now()
 
     # Clear out existing Facts and start from scratch.
     facts = machine.facts.all()
@@ -352,7 +353,13 @@ def checkin_v3(request):
 
     facts_to_create = []
     historical_facts_to_create = []
-    now = django.utils.timezone.now()
+
+    # Clear out existing ManagedItems and start from scratch.
+    managed_items = machine.manageditem_set.all()
+    if managed_items.exists():
+        managed_items._raw_delete(managed_items.db)
+
+    managed_items_to_create = []
 
     core_modules = ('machine', 'sal')
     for management_source_name, management_data in submission.items():
@@ -370,7 +377,8 @@ def checkin_v3(request):
                 continue
 
             facts_to_create.append(
-                Fact(machine=machine, fact_data=fact_data, fact_name=fact_name))
+                Fact(machine=machine, fact_data=fact_data, fact_name=fact_name,
+                     management_source=management_source))
 
             if fact_name in HISTORICAL_FACTS:
                 historical_facts_to_be_create.append(
@@ -379,16 +387,22 @@ def checkin_v3(request):
                         fact_recorded=now))
 
         for name, managed_item in management_data.get('managed_items', {}).items():
-            # TODO: Add a managed item.
-            pass
+            date_managed = 'TODO'
+            status = 'TODO'
+            data = 'TODO'
+            managed_items_to_create.append(
+                ManagedItem(
+                    name=name, machine=machine, management_source=management_source,
+                    date_managed=date_managed, status=status, data=data))
 
-    # Bulk create Fact and HistoricalFact objects.
+    # Bulk create Fact, HistoricalFact, and ManagedItem objects.
     if facts_to_create:
         if IS_POSTGRES:
             Fact.objects.bulk_create(facts_to_create)
         else:
             for fact in facts_to_create:
                 fact.save()
+
     if historical_facts_to_create:
         if IS_POSTGRES:
             HistoricalFact.objects.bulk_create(historical_facts_to_create)
@@ -396,6 +410,12 @@ def checkin_v3(request):
             for fact in historical_facts_to_create:
                 fact.save()
 
+    if managed_items_to_create:
+        if IS_POSTGRES:
+            ManagedItem.objects.bulk_create(managed_items_to_create)
+        else:
+            for item in managed_items_to_create:
+                item.save()
 
     # report_bytes = get_report_bytes(submission)
 

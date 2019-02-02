@@ -350,6 +350,10 @@ def checkin_v3(request):
     if facts.exists():
         facts._raw_delete(facts.db)
 
+    facts_to_create = []
+    historical_facts_to_create = []
+    now = django.utils.timezone.now()
+
     core_modules = ('machine', 'sal')
     for management_source_name, management_data in submission.items():
         if management_source_name in core_modules:
@@ -362,17 +366,35 @@ def checkin_v3(request):
 
         for fact_name, fact_data in management_data.get('facts', {}).items():
             # TODO: Figure out how we're doing this in the process facts code.
-            Fact.DO_IT(fact_name=fact_name, fact_data=fact_data)
-            # process_facts(machine, report_data, datelimit)
-            # TODO: This is my stopping place. I think we can still jump into an updated
-            # process_facts function. Since we're iterating over this multiple times, break Fact
-            # instantiation up from Fact bulk saving (do that at the end of management source
-            # processing).
+            if any(fact_name.startswith(p) for p in IGNORE_PREFIXES):
+                continue
+
+            facts_to_create.append(
+                Fact(machine=machine, fact_data=fact_data, fact_name=fact_name))
+
+            if fact_name in HISTORICAL_FACTS:
+                historical_facts_to_be_create.append(
+                    HistoricalFact(
+                        machine=machine, fact_data=fact_data, fact_name=fact_name,
+                        fact_recorded=now))
 
         for name, managed_item in management_data.get('managed_items', {}).items():
             # TODO: Add a managed item.
             pass
 
+    # Bulk create Fact and HistoricalFact objects.
+    if facts_to_create:
+        if IS_POSTGRES:
+            Fact.objects.bulk_create(facts_to_create)
+        else:
+            for fact in facts_to_create:
+                fact.save()
+    if historical_facts_to_create:
+        if IS_POSTGRES:
+            HistoricalFact.objects.bulk_create(historical_facts_to_create)
+        else:
+            for fact in historical_facts_to_create:
+                fact.save()
 
 
     # report_bytes = get_report_bytes(submission)
@@ -401,7 +423,6 @@ def checkin_v3(request):
     # TODO: Possibly remove. Anything dealing with retention should be moved to the maintenance
     # script.
     historical_days = server.utils.get_setting('historical_retention')
-    now = django.utils.timezone.now()
     datelimit = now - timedelta(days=historical_days)
 
     # machine = process_munki_data(submission, report_data, machine, now, datelimit)

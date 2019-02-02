@@ -455,7 +455,4 @@ class ManagedItem(models.Model):
         ('UNKNOWN', 'Unknown'),
     )
     status = models.CharField(max_length=7, choices=STATUS_CHOICES, default='UNKNOWN')
-    # Whether to delete ManagedItem on every checkin or to save it as a historical
-    # value. True == don't delete.
-    retention = models.BooleanField(default=False)
     data = models.TextField(editable=True, null=True)

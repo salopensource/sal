@@ -337,6 +337,8 @@ def checkin_v3(request):
     if server.utils.get_django_setting('DEPLOYED_ON_CHECKIN', True):
         machine.deployed = True
 
+    machine.save()
+
     # Cast to bool just in case.
     if bool(sal_submission.get('broken_client', False)):
         machine.broken_client = True
@@ -387,9 +389,9 @@ def checkin_v3(request):
                         fact_recorded=now))
 
         for name, managed_item in management_data.get('managed_items', {}).items():
-            date_managed = 'TODO'
-            status = 'TODO'
-            data = 'TODO'
+            date_managed = managed_item.get('date_managed', now)
+            status = managed_item.get('status', 'UNKNOWN')
+            data = managed_item.get('data')
             managed_items_to_create.append(
                 ManagedItem(
                     name=name, machine=machine, management_source=management_source,
@@ -431,29 +433,10 @@ def checkin_v3(request):
     # the bytes as unicode (otherwise it gets munged).
     # machine.report = report_bytes.decode()
 
-    # TODO: Audit save timing now that everyting has been shuffled around.
-    # We need to save now or else further processing of related fields
-    # will fail.
-    # try:
-    #     machine.save()
-    # except ValueError:
-    #     logging.warning(f"Sal report submmitted for {submission.get('serial')} failed with a ValueError!")
-    #     return HttpResponseServerError()
-
     # TODO: Possibly remove. Anything dealing with retention should be moved to the maintenance
     # script.
     historical_days = server.utils.get_setting('historical_retention')
     datelimit = now - timedelta(days=historical_days)
-
-    # machine = process_munki_data(submission, report_data, machine, now, datelimit)
-    # machine = process_puppet_data(report_data, machine)
-
-    # TODO: Audit save timing now that everyting has been shuffled around.
-    # Save again to add in Munki, Puppet, and hardware info.
-    # try:
-    #     machine.save()
-    # except ValueError:
-    #     logging.warning(f"Sal report submmitted for {submission.get('serial')} failed with a ValueError!")
 
     # Process plugin scripts.
     # Clear out too-old plugin script submissions first.

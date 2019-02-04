@@ -329,7 +329,7 @@ def checkin_v3(request):
     machine.memory_kb = machine_submission.get('memory_kb', 0)
 
     # Process Sal checkin information.
-    sal_submission = machine.get('sal', {})
+    sal_submission = submission.get('sal', {})
     machine.machine_group = get_checkin_machine_group(sal_submission.get('key'))
     machine.sal_version = sal_submission.get('sal_version')
     machine.last_checkin = django.utils.timezone.now()

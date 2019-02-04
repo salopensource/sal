@@ -139,14 +139,27 @@ class CheckinV3DataTest(TestCase):
         response = self.client.post(self.url, data=json.dumps({}), content_type=self.content_type)
         self.assertEqual(response.status_code, 400)
 
-    def test_checkin_incorrect_content_type(self):
-        """Ensure checkin only accepts form encoded data."""
-        response = self.client.post(
-            '/checkin_v3/', data={'serial': 'C0DEADBEEF'}, content_type='text/xml')
-        # Should return 404 when looking up the machine's serial
-        # number, which should be absent when sent with the wrong
-        # content_type.
+    def test_checkin_data_missing_required_machine_key(self):
+        """Ensure that checkins with no machine dict get a 400 response."""
+        response = self.client.post(self.url, data=json.dumps({}), content_type=self.content_type)
         self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.content, b'Checkin JSON is missing required key "machine"!')
+
+    def test_checkin_data_missing_required_serial_key(self):
+        """Ensure that checkins with no machine dict get a 400 response."""
+        response = self.client.post(
+            self.url, data=json.dumps({'machine': {}}), content_type=self.content_type)
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(
+            response.content, b'Checkin JSON is missing required "machine" key "serial"!')
+
+    def test_checkin_incorrect_content_type(self):
+        """Ensure checkin only accepts JSON encoded data."""
+        # Send a form-encoded request.
+        response = self.client.post(
+            self.url, data={'serial': 'C0DEADBEEF'}, content_type='text/xml')
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.content, b'Checkin must be content-type "application/json"!')
 
     def test_deployed_on_checkin(self):
         """Test that a machine's deployed bool gets toggled."""

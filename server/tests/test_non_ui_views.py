@@ -194,14 +194,13 @@ class CheckinV3DataTest(TestCase):
         machine.refresh_from_db()
         self.assertTrue(machine.broken_client)
 
-    def test_bad_report_data_type(self):
-        """Test checkin can complete with bare minimum data and bad report."""
+    def test_minimal_data(self):
+        """Test checkin can complete with bare minimum data."""
         machine = Machine.objects.get(serial='C0DEADBEEF')
         data = json.dumps({
             'machine': {'serial': machine.serial},
             'sal': {'key': machine.machine_group.key}})
-        # response = self.client.post('/checkin_v3/', data=data)
-        response = self.client.post('/checkin_v3/', data, 'content_type="application/json')
+        response = self.client.post('/checkin_v3/', data, content_type=self.content_type)
         self.assertEqual(response.status_code, 200)
 
     def test_no_report_completes(self):

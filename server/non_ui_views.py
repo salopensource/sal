@@ -326,7 +326,7 @@ def checkin_v3(request):
     machine.cpu_type = machine_submission.get('cpu_type')
     machine.cpu_speed = machine_submission.get('cpu_speed')
     machine.memory = machine_submission.get('memory')
-    machine.memory_kb = machine_submission.get('memory_kb')
+    machine.memory_kb = machine_submission.get('memory_kb', 0)
 
     # Process Sal checkin information.
     sal_submission = machine.get('sal', {})

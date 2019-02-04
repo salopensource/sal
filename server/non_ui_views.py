@@ -373,7 +373,7 @@ def checkin_v3(request):
         # TODO: Iterate, and call a generic processor for most sources, but a special one for Munki,
         # Apple, etc.
 
-        management_source = ManagementSource.objects.get_or_create(name=management_source_name)
+        management_source, _ = ManagementSource.objects.get_or_create(name=management_source_name)
 
         for fact_name, fact_data in management_data.get('facts', {}).items():
             # TODO: Figure out how we're doing this in the process facts code.

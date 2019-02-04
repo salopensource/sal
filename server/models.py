@@ -222,33 +222,6 @@ class UpdateHistoryItem(models.Model):
         unique_together = (("update_history", "recorded", "status"),)
 
 
-class Fact(models.Model):
-    id = models.BigAutoField(primary_key=True)
-    machine = models.ForeignKey(Machine, related_name='facts', on_delete=models.CASCADE)
-    fact_name = models.TextField()
-    fact_data = models.TextField()
-
-    def __str__(self):
-        return '%s: %s' % (self.fact_name, self.fact_data)
-
-    class Meta:
-        ordering = ['fact_name']
-
-
-class HistoricalFact(models.Model):
-    id = models.BigAutoField(primary_key=True)
-    machine = models.ForeignKey(Machine, related_name='historical_facts', on_delete=models.CASCADE)
-    fact_name = models.CharField(max_length=255)
-    fact_data = models.TextField()
-    fact_recorded = models.DateTimeField()
-
-    def __str__(self):
-        return self.fact_name
-
-    class Meta:
-        ordering = ['fact_name', 'fact_recorded']
-
-
 class Condition(models.Model):
     id = models.BigAutoField(primary_key=True)
     machine = models.ForeignKey(Machine, related_name='conditions', on_delete=models.CASCADE)
@@ -456,3 +429,36 @@ class ManagedItem(models.Model):
     )
     status = models.CharField(max_length=7, choices=STATUS_CHOICES, default='UNKNOWN')
     data = models.TextField(editable=True, null=True)
+
+
+class Fact(models.Model):
+    id = models.BigAutoField(primary_key=True)
+    machine = models.ForeignKey(Machine, related_name='facts', on_delete=models.CASCADE)
+    management_source = models.ForeignKey(
+        ManagementSource, related_name='facts', on_delete=models.CASCADE, null=True)
+    fact_name = models.TextField()
+    fact_data = models.TextField()
+
+    def __str__(self):
+        return '%s: %s' % (self.fact_name, self.fact_data)
+
+    class Meta:
+        ordering = ['fact_name']
+
+
+class HistoricalFact(models.Model):
+    id = models.BigAutoField(primary_key=True)
+    machine = models.ForeignKey(Machine, related_name='historical_facts', on_delete=models.CASCADE)
+    management_source = models.ForeignKey(
+        ManagementSource, related_name='historical_facts', on_delete=models.CASCADE, null=True)
+    fact_name = models.CharField(max_length=255)
+    fact_data = models.TextField()
+    fact_recorded = models.DateTimeField()
+
+    def __str__(self):
+        return self.fact_name
+
+    class Meta:
+        ordering = ['fact_name', 'fact_recorded']
+
+

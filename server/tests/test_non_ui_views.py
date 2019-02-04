@@ -15,7 +15,7 @@ from django.test import TestCase, Client
 
 import server.utils
 from server import non_ui_views
-from server.models import MachineGroup, Machine, ManagementSource, ManagedItem
+from server.models import MachineGroup, Machine, ManagementSource, ManagedItem, Fact, HistoricalFact
 
 
 class CheckinDataTest(TestCase):
@@ -253,6 +253,64 @@ class CheckinV3DataTest(TestCase):
             'munki': {}})
         self.client.post(self.url, data, content_type=self.content_type)
         self.assertTrue(ManagementSource.objects.filter(name='munki').exists())
+
+
+class CheckinV3FactTest(TestCase):
+    """Functional tests for client checkins for Fact/HistoricalFact."""
+
+    fixtures = ['machine_group_fixture.json', 'business_unit_fixture.json', 'machine_fixture.json']
+
+    def setUp(self):
+        settings.BASIC_AUTH = False
+        self.client = Client()
+        self.content_type = 'application/json'
+        self.url = '/checkin_v3/'
+        # Avoid sending analytics to the project while testing!
+        server.utils.set_setting('send_data', False)
+
+    def test_facts_cleanup(self):
+        """Test that all of a machine's facts get dropped."""
+        machine = Machine.objects.get(serial='C0DEADBEEF')
+        data = json.dumps({
+            'machine': {'serial': machine.serial},
+            'sal': {'key': machine.machine_group.key}})
+        response = self.client.post(self.url, data, content_type=self.content_type)
+        self.assertEqual(Fact.objects.count(), 0)
+
+    def test_facts_created(self):
+        """Test that facts get created."""
+        machine = Machine.objects.get(serial='C0DEADBEEF')
+        data = json.dumps({
+            'machine': {'serial': machine.serial},
+            'sal': {'key': machine.machine_group.key},
+            'munki': {'facts': {'test_user': 'Snake Plisskin'}}
+        })
+        response = self.client.post(self.url, data, content_type=self.content_type)
+        machine.refresh_from_db()
+        fact = machine.facts.get(fact_name='test_user')
+        self.assertEqual(fact.fact_name, 'test_user')
+        self.assertEqual(fact.fact_data, 'Snake Plisskin')
+        self.assertEqual(fact.management_source.name, 'munki')
+
+    @patch('server.non_ui_views.HISTORICAL_FACTS', ['test_user'])
+    def test_historical_facts_created(self):
+        """Test historical facts get created."""
+        machine = Machine.objects.get(serial='C0DEADBEEF')
+        data = json.dumps({
+            'machine': {'serial': machine.serial},
+            'sal': {'key': machine.machine_group.key},
+            'munki': {'facts': {'test_user': 'Snake Plisskin'}}
+        })
+        response = self.client.post(self.url, data, content_type=self.content_type)
+        machine.refresh_from_db()
+        fact = machine.facts.get(fact_name='test_user')
+        historical_fact = machine.historical_facts.get(fact_name='test_user')
+        self.assertEqual(fact.fact_name, 'test_user')
+        self.assertEqual(fact.fact_data, 'Snake Plisskin')
+        self.assertEqual(fact.management_source.name, 'munki')
+        self.assertEqual(historical_fact.fact_name, 'test_user')
+        self.assertEqual(historical_fact.fact_data, 'Snake Plisskin')
+        self.assertEqual(historical_fact.management_source.name, 'munki')
 
 
 class CheckinHelperTest(TestCase):

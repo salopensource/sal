@@ -125,12 +125,13 @@ class CheckinV3DataTest(TestCase):
     def setUp(self):
         settings.BASIC_AUTH = False
         self.client = Client()
-        self.content_type = 'content-type application/json'
+        self.content_type = 'application/json'
+        self.url = '/checkin_v3/'
 
     def test_checkin_requires_key_auth(self):
         """Ensure that key auth is enforced."""
         settings.BASIC_AUTH = True
-        response = self.client.post('/checkin_v3/', data={})
+        response = self.client.post(self.url, data={})
         self.assertEqual(response.status_code, 401)
 
     def test_checkin_data_empty(self):

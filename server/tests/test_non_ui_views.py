@@ -15,7 +15,7 @@ from django.test import TestCase, Client
 
 import server.utils
 from server import non_ui_views
-from server.models import MachineGroup, Machine
+from server.models import MachineGroup, Machine, ManagementSource, ManagedItem
 
 
 class CheckinDataTest(TestCase):
@@ -243,6 +243,16 @@ class CheckinV3DataTest(TestCase):
             'sal': {'key': machine.machine_group.key}})
         response = self.client.post(self.url, data, content_type=self.content_type)
         self.assertEqual(response.status_code, 200)
+
+    def test_management_source_creation(self):
+        """Test checkin creates management sources."""
+        machine = Machine.objects.get(serial='C0DEADBEEF')
+        data = json.dumps({
+            'machine': {'serial': machine.serial},
+            'sal': {'key': machine.machine_group.key},
+            'munki': {}})
+        response = self.client.post(self.url, data, content_type=self.content_type)
+        self.assertTrue(ManagementSource.objects.filter(name='munki').exists())
 
 
 class CheckinHelperTest(TestCase):

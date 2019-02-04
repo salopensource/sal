@@ -345,7 +345,7 @@ def checkin_v3(request):
     if bool(sal_submission.get('broken_client', False)):
         machine.broken_client = True
         machine.save()
-        return HttpResponse("Broken Client report submmitted for %s" % submission.get('serial'))
+        return HttpResponse("Broken Client report submmitted for %s" % serial)
 
     # Process management sources
     now = django.utils.timezone.now()

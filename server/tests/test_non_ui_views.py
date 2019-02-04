@@ -229,9 +229,11 @@ class CheckinV3DataTest(TestCase):
         data = json.dumps({
             'machine': {'serial': machine.serial},
             'sal': {'key': machine.machine_group.key, 'broken_client': True}})
-        self.client.post(self.url, data=data, content_type=self.content_type)
+        response = self.client.post(self.url, data=data, content_type=self.content_type)
         machine.refresh_from_db()
         self.assertTrue(machine.broken_client)
+        self.assertEqual(
+            response.content, b'Broken Client report submmitted for %s' % machine.serial.encode())
 
     def test_minimal_data(self):
         """Test checkin can complete with bare minimum data."""

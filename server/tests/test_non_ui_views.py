@@ -201,19 +201,27 @@ class CheckinV3DataTest(TestCase):
 
     def test_new_machine_on_checkin(self):
         """Test that a machine gets created when it doesn't already exist."""
-        breakpoint()
         machine = Machine.objects.get(serial='C0DEADBEEF')
         test_serial = 'New machine'.upper()
         settings.ADD_NEW_MACHINES = True
-        # machine.deployed = False
-        # machine.save()
-        # settings.DEPLOYED_ON_CHECKIN = True
         data = json.dumps({
             'machine': {'serial': test_serial},
             'sal': {'key': machine.machine_group.key}})
         self.client.post(self.url, data=data, content_type=self.content_type)
         machine.refresh_from_db()
         self.assertTrue(Machine.objects.get(serial=test_serial))
+
+    def test_no_new_machine_on_checkin(self):
+        """Test that a machine doesn't get created."""
+        machine = Machine.objects.get(serial='C0DEADBEEF')
+        test_serial = 'New machine'.upper()
+        settings.ADD_NEW_MACHINES = False
+        data = json.dumps({
+            'machine': {'serial': test_serial},
+            'sal': {'key': machine.machine_group.key}})
+        self.client.post(self.url, data=data, content_type=self.content_type)
+        machine.refresh_from_db()
+        self.assertRaises(Machine.DoesNotExist, Machine.objects.get, serial=test_serial)
 
     def test_broken_client_checkin(self):
         """Test that a machine's broken bool is updated on checkin."""

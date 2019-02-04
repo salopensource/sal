@@ -314,6 +314,19 @@ class CheckinV3FactTest(TestCase):
         self.assertEqual(historical_fact.fact_data, 'Snake Plisskin')
         self.assertEqual(historical_fact.management_source.name, 'munki')
 
+    @patch('server.non_ui_views.IGNORE_PREFIXES', ['ignore'])
+    def test_ignore_facts_setting_works(self):
+        """Test the ignore prefixes setting for facts works."""
+        machine = Machine.objects.get(serial='C0DEADBEEF')
+        data = json.dumps({
+            'machine': {'serial': machine.serial},
+            'sal': {'key': machine.machine_group.key},
+            'munki': {'facts': {'test_user': 'Snake Plisskin', 'ignore_this': 'Yep'}}
+        })
+        response = self.client.post(self.url, data, content_type=self.content_type)
+        machine.refresh_from_db()
+        self.assertRaises(Fact.DoesNotExist, machine.facts.get, fact_name='ignore_this')
+
 
 class CheckinV3ManagedItemTest(TestCase):
     """Functional tests for client checkins for ManagedItem."""

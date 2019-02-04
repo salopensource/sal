@@ -4,6 +4,7 @@
 import base64
 import bz2
 import datetime
+import json
 import plistlib
 import pytz
 from unittest.mock import patch
@@ -69,7 +70,7 @@ class CheckinDataTest(TestCase):
         self.assertFalse(machine.deployed)
 
     def test_broken_client_checkin(self):
-        """Test that a machine's deployed bool is not updated on checkin."""
+        """Test that a machine's broken bool is updated on checkin."""
         machine = Machine.objects.get(serial='C0DEADBEEF')
         data = {
             'serial': machine.serial, 'key': machine.machine_group.key, 'broken_client': 'True'}
@@ -113,6 +114,104 @@ class CheckinDataTest(TestCase):
 
         data = {'serial': machine.serial, 'key': machine.machine_group.key}
         response = self.client.post('/checkin/', data=data)
+        self.assertEqual(response.status_code, 500)
+
+
+class CheckinV3DataTest(TestCase):
+    """Functional tests for client checkins."""
+
+    fixtures = ['machine_group_fixture.json', 'business_unit_fixture.json', 'machine_fixture.json']
+
+    def setUp(self):
+        settings.BASIC_AUTH = False
+        self.client = Client()
+        self.content_type = 'content-type application/json'
+
+    def test_checkin_requires_key_auth(self):
+        """Ensure that key auth is enforced."""
+        settings.BASIC_AUTH = True
+        response = self.client.post('/checkin_v3/', data={})
+        self.assertEqual(response.status_code, 401)
+
+    def test_checkin_data_empty(self):
+        """Ensure that checkins with missing data get a 400 response."""
+        response = self.client.post('/checkin_v3/', data={}, content_type=self.content_type)
+        self.assertEqual(response.status_code, 400)
+
+    def test_checkin_incorrect_content_type(self):
+        """Ensure checkin only accepts form encoded data."""
+        response = self.client.post(
+            '/checkin_v3/', data={'serial': 'C0DEADBEEF'}, content_type='text/xml')
+        # Should return 404 when looking up the machine's serial
+        # number, which should be absent when sent with the wrong
+        # content_type.
+        self.assertEqual(response.status_code, 400)
+
+    def test_deployed_on_checkin(self):
+        """Test that a machine's deployed bool gets toggled."""
+        machine = Machine.objects.get(serial='C0DEADBEEF')
+        machine.deployed = False
+        machine.save()
+        settings.DEPLOYED_ON_CHECKIN = True
+        self.client.post(
+            '/checkin_v3/', data={'serial': machine.serial, 'key': machine.machine_group.key})
+        machine.refresh_from_db()
+        self.assertTrue(machine.deployed)
+
+    def test_not_deployed_on_checkin(self):
+        """Test that a machine's deployed bool is not updated on checkin."""
+        machine = Machine.objects.get(serial='C0DEADBEEF')
+        machine.deployed = False
+        settings.DEPLOYED_ON_CHECKIN = False
+        machine.save()
+        self.client.post(
+            '/checkin_v3/', data={'serial': machine.serial, 'key': machine.machine_group.key})
+        machine.refresh_from_db()
+        self.assertFalse(machine.deployed)
+
+    def test_broken_client_checkin(self):
+        """Test that a machine's broken bool is updated on checkin."""
+        machine = Machine.objects.get(serial='C0DEADBEEF')
+        data = {
+            'serial': machine.serial, 'key': machine.machine_group.key, 'broken_client': 'True'}
+        self.client.post('/checkin_v3/', data=data)
+        machine.refresh_from_db()
+        self.assertTrue(machine.broken_client)
+
+    def test_bad_report_data_type(self):
+        """Test checkin can complete with bare minimum data and bad report."""
+        machine = Machine.objects.get(serial='C0DEADBEEF')
+        data = json.dumps({
+            'machine': {'serial': machine.serial},
+            'sal': {'key': machine.machine_group.key}})
+        # response = self.client.post('/checkin_v3/', data=data)
+        response = self.client.post('/checkin_v3/', data, 'content_type="application/json')
+        self.assertEqual(response.status_code, 200)
+
+    def test_no_report_completes(self):
+        """Test checkin can complete with only the essential data."""
+        machine = Machine.objects.get(serial='C0DEADBEEF')
+        data = {'serial': machine.serial, 'key': machine.machine_group.key}
+        response = self.client.post('/checkin_v3/', data=data)
+        self.assertEqual(response.status_code, 200)
+
+    @patch('server.models.Machine.save')
+    @patch('utils.text_utils.submission_plist_loads')
+    def test_incorrect_data_type_stops_early(self, mock_plist_loads, mock_save):
+        """Test that invalid data types in the report bail with a 500."""
+        machine = Machine.objects.get(serial='C0DEADBEEF')
+        mock_plist_loads.return_value = {'Puppet': {'events': {'failure': 'nyancat'}}}
+
+        def raise_value_error():
+            raise ValueError
+        # Mock out the save failing when trying to commit a str to an
+        # IntegerField. There's a way to do this with
+        # django.db.transaction.atomic as a context manager, but that
+        # is only a problem when testing.
+        mock_save.side_effect = raise_value_error
+
+        data = {'serial': machine.serial, 'key': machine.machine_group.key}
+        response = self.client.post('/checkin_v3/', data=data)
         self.assertEqual(response.status_code, 500)
 
 

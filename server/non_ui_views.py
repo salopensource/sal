@@ -385,7 +385,7 @@ def checkin_v3(request):
                      management_source=management_source))
 
             if fact_name in HISTORICAL_FACTS:
-                historical_facts_to_be_created.append(
+                historical_facts_to_create.append(
                     HistoricalFact(
                         machine=machine, fact_data=fact_data, fact_name=fact_name,
                         management_source=management_source, fact_recorded=now))

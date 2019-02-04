@@ -251,7 +251,7 @@ class CheckinV3DataTest(TestCase):
             'machine': {'serial': machine.serial},
             'sal': {'key': machine.machine_group.key},
             'munki': {}})
-        response = self.client.post(self.url, data, content_type=self.content_type)
+        self.client.post(self.url, data, content_type=self.content_type)
         self.assertTrue(ManagementSource.objects.filter(name='munki').exists())
 
 

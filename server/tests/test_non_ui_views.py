@@ -382,6 +382,10 @@ class CheckinV3ManagedItemTest(TestCase):
                 'Dwarf Fortress': {
                     'date_managed': '2020-02-29T13:00:00Z',
                     'status': 'PRESENT',
+                    'data': {'comment': '...and there was much rejoicing.'}},
+                'Nethack': {
+                    'date_managed': '2020-02-29T13:00:00Z',
+                    'status': 'ABSENT',
                     'data': {'comment': '...and there was much rejoicing.'}}
                 }}})
         response = self.client.post(self.url, data, content_type=self.content_type)
@@ -391,6 +395,12 @@ class CheckinV3ManagedItemTest(TestCase):
         self.assertEqual(managed_item.date_managed, dateutil.parser.parse('2020-02-29T13:00:00Z'))
         self.assertEqual(managed_item.status, 'PRESENT')
         self.assertTrue('comment' in json.loads(managed_item.data).keys())
+        managed_item = machine.manageditem_set.get(name='Nethack')
+        self.assertEqual(managed_item.name, 'Nethack')
+        self.assertEqual(managed_item.date_managed, dateutil.parser.parse('2020-02-29T13:00:00Z'))
+        self.assertEqual(managed_item.status, 'ABSENT')
+        self.assertTrue('comment' in json.loads(managed_item.data).keys())
+
 
 class CheckinHelperTest(TestCase):
     """Tests for helper functions that support the checkin view."""

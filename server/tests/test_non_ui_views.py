@@ -12,6 +12,7 @@ from unittest.mock import patch
 from django.conf import settings
 from django.http.response import Http404
 from django.test import TestCase, Client
+from django.utils.timezone import now
 
 import server.utils
 from server import non_ui_views
@@ -311,6 +312,64 @@ class CheckinV3FactTest(TestCase):
         self.assertEqual(historical_fact.fact_name, 'test_user')
         self.assertEqual(historical_fact.fact_data, 'Snake Plisskin')
         self.assertEqual(historical_fact.management_source.name, 'munki')
+
+
+class CheckinV3ManagedItemTest(TestCase):
+    """Functional tests for client checkins for ManagedItem."""
+
+    fixtures = ['machine_group_fixture.json', 'business_unit_fixture.json', 'machine_fixture.json']
+
+    def setUp(self):
+        settings.BASIC_AUTH = False
+        self.client = Client()
+        self.content_type = 'application/json'
+        self.url = '/checkin_v3/'
+        # Avoid sending analytics to the project while testing!
+        server.utils.set_setting('send_data', False)
+
+    def test_managed_item_cleanup(self):
+        """Test that all of a machine's managed items get dropped."""
+        machine = Machine.objects.get(serial='C0DEADBEEF')
+        data = json.dumps({
+            'machine': {'serial': machine.serial},
+            'sal': {'key': machine.machine_group.key}})
+        response = self.client.post(self.url, data, content_type=self.content_type)
+        self.assertEqual(ManagedItem.objects.count(), 0)
+
+    def test_managed_item_created(self):
+        """Test that managed items get created."""
+        machine = Machine.objects.get(serial='C0DEADBEEF')
+        now = datetime.datetime.now()
+        data = json.dumps({
+            'machine': {'serial': machine.serial},
+            'sal': {'key': machine.machine_group.key},
+            'munki': {'managed_items': {
+                'Dwarf Fortress': {}}}})
+        response = self.client.post(self.url, data, content_type=self.content_type)
+        machine.refresh_from_db()
+        managed_item = machine.manageditem_set.get(name='Dwarf Fortress')
+        self.assertEqual(managed_item.name, 'Dwarf Fortress')
+        self.assertEqual(managed_item.management_source.name, 'munki')
+
+    @patch('django.utils.timezone.now')
+    def test_managed_item_created_with_defaults(self, mock_now):
+        """Test that managed items get created."""
+        machine = Machine.objects.get(serial='C0DEADBEEF')
+        mock_now.return_value = now()
+        data = json.dumps({
+            'machine': {'serial': machine.serial},
+            'sal': {'key': machine.machine_group.key},
+            'munki': {'managed_items': {
+                'Dwarf Fortress': {}}}})
+                #     'date_managed': now,
+                # }}
+        response = self.client.post(self.url, data, content_type=self.content_type)
+        machine.refresh_from_db()
+        managed_item = machine.manageditem_set.get(name='Dwarf Fortress')
+        self.assertEqual(managed_item.name, 'Dwarf Fortress')
+        self.assertEqual(managed_item.date_managed, mock_now.return_value)
+        self.assertEqual(managed_item.status, 'UNKNOWN')
+        self.assertEqual(managed_item.data, None)
 
 
 class CheckinHelperTest(TestCase):

@@ -170,7 +170,7 @@ class CheckinV3DataTest(TestCase):
         data = json.dumps({
             'machine': {'serial': machine.serial},
             'sal': {'key': machine.machine_group.key}})
-        self.client.post('/checkin_v3/', data=data, content_type=self.content_type)
+        self.client.post(self.url, data=data, content_type=self.content_type)
         machine.refresh_from_db()
         self.assertTrue(machine.deployed)
 
@@ -180,8 +180,10 @@ class CheckinV3DataTest(TestCase):
         machine.deployed = False
         settings.DEPLOYED_ON_CHECKIN = False
         machine.save()
-        self.client.post(
-            '/checkin_v3/', data={'serial': machine.serial, 'key': machine.machine_group.key})
+        data = json.dumps({
+            'machine': {'serial': machine.serial},
+            'sal': {'key': machine.machine_group.key}})
+        self.client.post(self.url, data=data, content_type=self.content_type)
         machine.refresh_from_db()
         self.assertFalse(machine.deployed)
 

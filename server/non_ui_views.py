@@ -385,10 +385,10 @@ def checkin_v3(request):
                      management_source=management_source))
 
             if fact_name in HISTORICAL_FACTS:
-                historical_facts_to_be_create.append(
+                historical_facts_to_be_created.append(
                     HistoricalFact(
                         machine=machine, fact_data=fact_data, fact_name=fact_name,
-                        fact_recorded=now))
+                        management_source=management_source, fact_recorded=now))
 
         for name, managed_item in management_data.get('managed_items', {}).items():
             date_managed = managed_item.get('date_managed', now)
@@ -429,7 +429,8 @@ def checkin_v3(request):
     #     machine.activity = False
     #     machine.errors = machine.warnings = 0
     #     machine.save()
-    #     return HttpResponse(f"Sal report submitted for {submission.get('name', '')} with no activity")
+    #     return HttpResponse(
+    #         f"Sal report submitted for {submission.get('name', '')} with no activity")
 
     # If we get something back, we know the data is good, so store
     # the bytes as unicode (otherwise it gets munged).

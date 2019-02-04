@@ -136,7 +136,7 @@ class CheckinV3DataTest(TestCase):
 
     def test_checkin_data_empty(self):
         """Ensure that checkins with missing data get a 400 response."""
-        response = self.client.post('/checkin_v3/', data={}, content_type=self.content_type)
+        response = self.client.post(self.url, data=json.dumps({}), content_type=self.content_type)
         self.assertEqual(response.status_code, 400)
 
     def test_checkin_incorrect_content_type(self):

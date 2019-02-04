@@ -167,8 +167,10 @@ class CheckinV3DataTest(TestCase):
         machine.deployed = False
         machine.save()
         settings.DEPLOYED_ON_CHECKIN = True
-        self.client.post(
-            '/checkin_v3/', data={'serial': machine.serial, 'key': machine.machine_group.key})
+        data = json.dumps({
+            'machine': {'serial': machine.serial},
+            'sal': {'key': machine.machine_group.key}})
+        self.client.post('/checkin_v3/', data=data, content_type=self.content_type)
         machine.refresh_from_db()
         self.assertTrue(machine.deployed)
 

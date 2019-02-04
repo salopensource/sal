@@ -391,13 +391,15 @@ def checkin_v3(request):
                         management_source=management_source, fact_recorded=now))
 
         for name, managed_item in management_data.get('managed_items', {}).items():
-            date_managed = managed_item.get('date_managed', now)
+            submitted_date = managed_item.get('date_managed')
+            date_managed = dateutil.parser.parse(submitted_date) if submitted_date else now
             status = managed_item.get('status', 'UNKNOWN')
             data = managed_item.get('data')
+            dumped_data = json.dumps(data) if data else None
             managed_items_to_create.append(
                 ManagedItem(
                     name=name, machine=machine, management_source=management_source,
-                    date_managed=date_managed, status=status, data=data))
+                    date_managed=date_managed, status=status, data=dumped_data))
 
     # Bulk create Fact, HistoricalFact, and ManagedItem objects.
     if facts_to_create:

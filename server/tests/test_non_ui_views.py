@@ -4,6 +4,7 @@
 import base64
 import bz2
 import datetime
+import dateutil
 import json
 import plistlib
 import pytz
@@ -371,6 +372,25 @@ class CheckinV3ManagedItemTest(TestCase):
         self.assertEqual(managed_item.status, 'UNKNOWN')
         self.assertEqual(managed_item.data, None)
 
+    def test_managed_item_created_with_values(self):
+        """Test that managed items get created."""
+        machine = Machine.objects.get(serial='C0DEADBEEF')
+        data = json.dumps({
+            'machine': {'serial': machine.serial},
+            'sal': {'key': machine.machine_group.key},
+            'munki': {'managed_items': {
+                'Dwarf Fortress': {
+                    'date_managed': '2020-02-29T13:00:00Z',
+                    'status': 'PRESENT',
+                    'data': {'comment': '...and there was much rejoicing.'}}
+                }}})
+        response = self.client.post(self.url, data, content_type=self.content_type)
+        machine.refresh_from_db()
+        managed_item = machine.manageditem_set.get(name='Dwarf Fortress')
+        self.assertEqual(managed_item.name, 'Dwarf Fortress')
+        self.assertEqual(managed_item.date_managed, dateutil.parser.parse('2020-02-29T13:00:00Z'))
+        self.assertEqual(managed_item.status, 'PRESENT')
+        self.assertTrue('comment' in json.loads(managed_item.data).keys())
 
 class CheckinHelperTest(TestCase):
     """Tests for helper functions that support the checkin view."""

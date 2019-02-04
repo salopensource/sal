@@ -300,7 +300,7 @@ def checkin(request):
 def checkin_v3(request):
     # Ensure we have the bare minimum data before continuing.
     try:
-        submission = json.loads(request.body)
+        submission = json.loads(request.body.decode())
     except json.JSONDecodeError:
         return HttpResponseBadRequest()
     if not isinstance(submission, dict) or 'machine' not in submission:

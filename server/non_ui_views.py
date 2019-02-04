@@ -298,19 +298,21 @@ def checkin(request):
 @require_POST
 @key_auth_required
 def checkin_v3(request):
+    if request.content_type != 'application/json':
+        return HttpResponseBadRequest('Checkin must be content-type "application/json"!')
     # Ensure we have the bare minimum data before continuing.
     try:
         submission = json.loads(request.body.decode())
     except json.JSONDecodeError:
-        return HttpResponseBadRequest()
+        return HttpResponseBadRequest('Checkin has invalid JSON')
     if not isinstance(submission, dict) or 'machine' not in submission:
-        return HttpResponseBadRequest()
+        return HttpResponseBadRequest('Checkin JSON is missing required key "machine"!')
 
     # Process machine submission information.
     machine_submission = submission['machine']
     serial = machine_submission.get('serial')
     if not serial:
-        return HttpResponseBadRequest()
+        return HttpResponseBadRequest('Checkin JSON is missing required "machine" key "serial"!')
 
     machine = process_checkin_serial(submission['machine']['serial'])
     machine.hostname = machine_submission.get('hostname', '<NO NAME>')

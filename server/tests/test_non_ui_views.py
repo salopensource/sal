@@ -156,8 +156,7 @@ class CheckinV3DataTest(TestCase):
     def test_checkin_incorrect_content_type(self):
         """Ensure checkin only accepts JSON encoded data."""
         # Send a form-encoded request.
-        response = self.client.post(
-            self.url, data={'serial': 'C0DEADBEEF'}, content_type='text/xml')
+        response = self.client.post(self.url, data='', content_type='text/xml')
         self.assertEqual(response.status_code, 400)
         self.assertEqual(response.content, b'Checkin must be content-type "application/json"!')
 
@@ -190,9 +189,10 @@ class CheckinV3DataTest(TestCase):
     def test_broken_client_checkin(self):
         """Test that a machine's broken bool is updated on checkin."""
         machine = Machine.objects.get(serial='C0DEADBEEF')
-        data = {
-            'serial': machine.serial, 'key': machine.machine_group.key, 'broken_client': 'True'}
-        self.client.post('/checkin_v3/', data=data)
+        data = json.dumps({
+            'machine': {'serial': machine.serial},
+            'sal': {'key': machine.machine_group.key, 'broken_client': True}})
+        self.client.post(self.url, data=data, content_type=self.content_type)
         machine.refresh_from_db()
         self.assertTrue(machine.broken_client)
 

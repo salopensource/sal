@@ -430,6 +430,9 @@ class ManagedItem(models.Model):
     status = models.CharField(max_length=7, choices=STATUS_CHOICES, default='UNKNOWN')
     data = models.TextField(editable=True, null=True)
 
+    class Meta:
+        unique_together = (("machine", "name", "management_source"),)
+
 
 class Fact(models.Model):
     id = models.BigAutoField(primary_key=True)

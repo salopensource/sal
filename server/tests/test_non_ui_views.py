@@ -13,8 +13,9 @@ from django.conf import settings
 from django.http.response import Http404
 from django.test import TestCase, Client
 
-from server.models import MachineGroup, Machine
+import server.utils
 from server import non_ui_views
+from server.models import MachineGroup, Machine
 
 
 class CheckinDataTest(TestCase):
@@ -26,6 +27,8 @@ class CheckinDataTest(TestCase):
         settings.BASIC_AUTH = False
         self.client = Client()
         self.content_type = 'content-type application/x-www-form-urlencoded'
+        # Avoid sending analytics to the project while testing!
+        server.utils.set_setting('send_data', False)
 
     def test_checkin_requires_key_auth(self):
         """Ensure that key auth is enforced."""
@@ -127,6 +130,8 @@ class CheckinV3DataTest(TestCase):
         self.client = Client()
         self.content_type = 'application/json'
         self.url = '/checkin_v3/'
+        # Avoid sending analytics to the project while testing!
+        server.utils.set_setting('send_data', False)
 
     def test_checkin_requires_key_auth(self):
         """Ensure that key auth is enforced."""

@@ -160,6 +160,14 @@ class CheckinV3DataTest(TestCase):
         self.assertEqual(response.status_code, 400)
         self.assertEqual(response.content, b'Checkin must be content-type "application/json"!')
 
+    def test_checkin_invalid_json(self):
+        """Ensure fails for invalid JSON."""
+        # Send a form-encoded request.
+        response = self.client.post(
+            self.url, data='this is not json', content_type='application/json')
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.content, b'Checkin has invalid JSON!')
+
     def test_deployed_on_checkin(self):
         """Test that a machine's deployed bool gets toggled."""
         machine = Machine.objects.get(serial='C0DEADBEEF')
@@ -202,34 +210,8 @@ class CheckinV3DataTest(TestCase):
         data = json.dumps({
             'machine': {'serial': machine.serial},
             'sal': {'key': machine.machine_group.key}})
-        response = self.client.post('/checkin_v3/', data, content_type=self.content_type)
+        response = self.client.post(self.url, data, content_type=self.content_type)
         self.assertEqual(response.status_code, 200)
-
-    def test_no_report_completes(self):
-        """Test checkin can complete with only the essential data."""
-        machine = Machine.objects.get(serial='C0DEADBEEF')
-        data = {'serial': machine.serial, 'key': machine.machine_group.key}
-        response = self.client.post('/checkin_v3/', data=data)
-        self.assertEqual(response.status_code, 200)
-
-    @patch('server.models.Machine.save')
-    @patch('utils.text_utils.submission_plist_loads')
-    def test_incorrect_data_type_stops_early(self, mock_plist_loads, mock_save):
-        """Test that invalid data types in the report bail with a 500."""
-        machine = Machine.objects.get(serial='C0DEADBEEF')
-        mock_plist_loads.return_value = {'Puppet': {'events': {'failure': 'nyancat'}}}
-
-        def raise_value_error():
-            raise ValueError
-        # Mock out the save failing when trying to commit a str to an
-        # IntegerField. There's a way to do this with
-        # django.db.transaction.atomic as a context manager, but that
-        # is only a problem when testing.
-        mock_save.side_effect = raise_value_error
-
-        data = {'serial': machine.serial, 'key': machine.machine_group.key}
-        response = self.client.post('/checkin_v3/', data=data)
-        self.assertEqual(response.status_code, 500)
 
 
 class CheckinHelperTest(TestCase):

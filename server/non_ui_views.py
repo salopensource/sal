@@ -304,7 +304,7 @@ def checkin_v3(request):
     try:
         submission = json.loads(request.body.decode())
     except json.JSONDecodeError:
-        return HttpResponseBadRequest('Checkin has invalid JSON')
+        return HttpResponseBadRequest('Checkin has invalid JSON!')
     if not isinstance(submission, dict) or 'machine' not in submission:
         return HttpResponseBadRequest('Checkin JSON is missing required key "machine"!')
 

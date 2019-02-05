@@ -398,9 +398,20 @@ def checkin_v3(request):
 
 
 def process_management_submission(management_source, management_data, machine, object_queue):
+    """Process a single management source's data
+
+    This function first optionally calls any additional processors for
+    the management source in question (Munki for example).
+
+    Then it processes Facts.
+    Then ManagedItems.
+    """
     def default_func(management_data, machine):
         return
 
+    # Add custom processor funcs to this dictionary.
+    # The key should be the same name used in the submission for ManagementSource.
+    # The func's signature must be f(management_data: dict, machine: Machine)
     processing_funcs = {'munki': process_munki_extra_keys}
 
     processing_func = processing_funcs.get(management_source.name, default_func)

@@ -374,21 +374,6 @@ def checkin_v3(request):
 
     create_objects(object_queue)
 
-    # report_bytes = get_report_bytes(submission)
-
-    # report_data = text_utils.submission_plist_loads(report_bytes)
-    # if not report_data:
-    #     # Otherwise, zero everything out and return early.
-    #     machine.activity = False
-    #     machine.errors = machine.warnings = 0
-    #     machine.save()
-    #     return HttpResponse(
-    #         f"Sal report submitted for {submission.get('name', '')} with no activity")
-
-    # If we get something back, we know the data is good, so store
-    # the bytes as unicode (otherwise it gets munged).
-    # machine.report = report_bytes.decode()
-
     # TODO: Possibly remove. Anything dealing with retention should be moved to the maintenance
     # script.
     historical_days = server.utils.get_setting('historical_retention')
@@ -416,7 +401,7 @@ def process_management_submission(management_source, management_data, machine, o
     def default_func(management_data, machine):
         return
 
-    processing_funcs = {}
+    processing_funcs = {'munki': process_munki_extra_keys}
 
     processing_func = processing_funcs.get(management_source.name, default_func)
     processing_func(management_data, machine)
@@ -461,6 +446,17 @@ def process_managed_items(management_source, management_data, machine, object_qu
                 date_managed=date_managed, status=status, data=dumped_data))
 
     return object_queue
+
+
+def process_munki_extra_keys(management_data, machine):
+    machine.munki_version = management_data.get('munki_version')
+    machine.manifest = management_data.get('manifest')
+    machine.save()
+    process_update_history(management_data.get('update_history', []), machine)
+
+
+def process_update_history(update_history, machine):
+    pass
 
 
 def create_objects(object_queue):

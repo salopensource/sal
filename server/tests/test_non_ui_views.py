@@ -411,6 +411,34 @@ class CheckinV3ManagedItemTest(TestCase):
         self.assertTrue('comment' in json.loads(managed_item.data).keys())
 
 
+class CheckinV3MunkiItemTest(TestCase):
+    """Functional tests for client checkins for Munki."""
+
+    fixtures = ['machine_group_fixture.json', 'business_unit_fixture.json', 'machine_fixture.json']
+
+    def setUp(self):
+        settings.BASIC_AUTH = False
+        self.client = Client()
+        self.content_type = 'application/json'
+        self.url = '/checkin_v3/'
+        # Avoid sending analytics to the project while testing!
+        server.utils.set_setting('send_data', False)
+
+    def test_managed_item_created(self):
+        """Test that managed items get created."""
+        machine = Machine.objects.get(serial='C0DEADBEEF')
+        manifest = 'the_firm'
+        munki_version = '1000.0.0'
+        data = json.dumps({
+            'machine': {'serial': machine.serial},
+            'sal': {'key': machine.machine_group.key},
+            'munki': {'manifest': manifest, 'munki_version': munki_version}})
+        self.client.post(self.url, data, content_type=self.content_type)
+        machine.refresh_from_db()
+        self.assertEqual(machine.manifest, manifest)
+        self.assertEqual(machine.munki_version, munki_version)
+
+
 class CheckinHelperTest(TestCase):
     """Tests for helper functions that support the checkin view."""
 

@@ -283,7 +283,7 @@ def checkin(request):
     server.utils.process_plugin_script(report_data.get('Plugin_Results', []), machine)
     server.utils.run_plugin_processing(machine, report_data)
 
-    process_facts(machine, report_data, datelimit)
+    process_facts_v2(machine, report_data, datelimit)
 
     if server.utils.get_setting('send_data') in (None, True):
         # If setting is None, it hasn't been configured yet; assume True
@@ -347,81 +347,32 @@ def checkin_v3(request):
         machine.save()
         return HttpResponse("Broken Client report submmitted for %s" % serial)
 
-    # Process management sources
-    now = django.utils.timezone.now()
-
     # Clear out existing Facts and start from scratch.
     facts = machine.facts.all()
     if facts.exists():
         facts._raw_delete(facts.db)
-
-    facts_to_create = []
-    historical_facts_to_create = []
 
     # Clear out existing ManagedItems and start from scratch.
     managed_items = machine.manageditem_set.all()
     if managed_items.exists():
         managed_items._raw_delete(managed_items.db)
 
-    managed_items_to_create = []
+    object_queue = {
+        'facts': [],
+        'historical_facts': [],
+        'managed_items': []}
 
+    # TODO: This can come out when we do function swapping.
     core_modules = ('machine', 'sal')
     for management_source_name, management_data in submission.items():
         if management_source_name in core_modules:
             continue
 
-        # TODO: Iterate, and call a generic processor for most sources, but a special one for Munki,
-        # Apple, etc.
-
         management_source, _ = ManagementSource.objects.get_or_create(name=management_source_name)
+        object_queue = process_management_submission(
+            management_source, management_data, machine, object_queue)
 
-        for fact_name, fact_data in management_data.get('facts', {}).items():
-            # TODO: Figure out how we're doing this in the process facts code.
-            if any(fact_name.startswith(p) for p in IGNORE_PREFIXES):
-                continue
-
-            facts_to_create.append(
-                Fact(machine=machine, fact_data=fact_data, fact_name=fact_name,
-                     management_source=management_source))
-
-            if fact_name in HISTORICAL_FACTS:
-                historical_facts_to_create.append(
-                    HistoricalFact(
-                        machine=machine, fact_data=fact_data, fact_name=fact_name,
-                        management_source=management_source, fact_recorded=now))
-
-        for name, managed_item in management_data.get('managed_items', {}).items():
-            submitted_date = managed_item.get('date_managed')
-            date_managed = dateutil.parser.parse(submitted_date) if submitted_date else now
-            status = managed_item.get('status', 'UNKNOWN')
-            data = managed_item.get('data')
-            dumped_data = json.dumps(data) if data else None
-            managed_items_to_create.append(
-                ManagedItem(
-                    name=name, machine=machine, management_source=management_source,
-                    date_managed=date_managed, status=status, data=dumped_data))
-
-    # Bulk create Fact, HistoricalFact, and ManagedItem objects.
-    if facts_to_create:
-        if IS_POSTGRES:
-            Fact.objects.bulk_create(facts_to_create)
-        else:
-            for fact in facts_to_create:
-                fact.save()
-
-    if historical_facts_to_create:
-        if IS_POSTGRES:
-            HistoricalFact.objects.bulk_create(historical_facts_to_create)
-        else:
-            for fact in historical_facts_to_create:
-                fact.save()
-
-    if managed_items_to_create:
-        if IS_POSTGRES:
-            ManagedItem.objects.bulk_create(managed_items_to_create)
-        else:
-            for item in managed_items_to_create:
-                item.save()
+    create_objects(object_queue)
 
     # report_bytes = get_report_bytes(submission)
 
@@ -441,7 +392,7 @@ def checkin_v3(request):
     # TODO: Possibly remove. Anything dealing with retention should be moved to the maintenance
     # script.
     historical_days = server.utils.get_setting('historical_retention')
-    datelimit = now - timedelta(days=historical_days)
+    datelimit = django.utils.timezone.now() - timedelta(days=historical_days)
 
     # Process plugin scripts.
     # Clear out too-old plugin script submissions first.
@@ -459,6 +410,73 @@ def checkin_v3(request):
     msg = f"Sal report submmitted for {machine.serial}"
     logging.debug(msg)
     return HttpResponse(msg)
+
+
+def process_management_submission(management_source, management_data, machine, object_queue):
+    def default_func(management_data, machine):
+        return
+
+    processing_funcs = {}
+
+    processing_func = processing_funcs.get(management_source.name, default_func)
+    processing_func(management_data, machine)
+
+    object_queue = process_facts(management_source, management_data, machine, object_queue)
+    object_queue = process_managed_items(management_source, management_data, machine, object_queue)
+
+    return object_queue
+
+
+def process_facts(management_source, management_data, machine, object_queue):
+    now = django.utils.timezone.now()
+    for fact_name, fact_data in management_data.get('facts', {}).items():
+        # TODO: Figure out how we're doing this in the process facts code.
+        if any(fact_name.startswith(p) for p in IGNORE_PREFIXES):
+            continue
+
+        object_queue['facts'].append(
+            Fact(machine=machine, fact_data=fact_data, fact_name=fact_name,
+                    management_source=management_source))
+
+        if fact_name in HISTORICAL_FACTS:
+            object_queue['historical_facts'].append(
+                HistoricalFact(
+                    machine=machine, fact_data=fact_data, fact_name=fact_name,
+                    management_source=management_source, fact_recorded=now))
+
+    return object_queue
+
+
+def process_managed_items(management_source, management_data, machine, object_queue):
+    now = django.utils.timezone.now()
+    for name, managed_item in management_data.get('managed_items', {}).items():
+        submitted_date = managed_item.get('date_managed')
+        date_managed = dateutil.parser.parse(submitted_date) if submitted_date else now
+        status = managed_item.get('status', 'UNKNOWN')
+        data = managed_item.get('data')
+        dumped_data = json.dumps(data) if data else None
+        object_queue['managed_items'].append(
+            ManagedItem(
+                name=name, machine=machine, management_source=management_source,
+                date_managed=date_managed, status=status, data=dumped_data))
+
+    return object_queue
+
+
+def create_objects(object_queue):
+    """Bulk create Fact, HistoricalFact, and ManagedItem objects."""
+    models = {'facts': Fact, 'historical_facts': HistoricalFact, 'managed_items': ManagedItem}
+
+    for name, objects in object_queue.items():
+        _bulk_create_or_iterate_save(objects, models[name])
+
+
+def _bulk_create_or_iterate_save(objects, model):
+    if objects and IS_POSTGRES:
+        model.objects.bulk_create(objects)
+    else:
+        for item in objects:
+            item.save()
 
 
 def process_checkin_serial(serial):
@@ -546,7 +564,7 @@ def process_munki_data(submission_data, report_data, machine, now, datelimit):
     machine.manifest = report_data.get('ManifestName')
     machine.munki_version = report_data.get('ManagedInstallVersion')
 
-    process_managed_items(machine, report_data, submission_data.get('uuid'), now, datelimit)
+    process_munki_managed_items(machine, report_data, submission_data.get('uuid'), now, datelimit)
     process_conditions(machine, report_data)
     return machine
 
@@ -616,7 +634,7 @@ def process_memory(machine):
 
 
 # TODO: remove when you remove checkin_v2
-def process_managed_items(machine, report_data, uuid, now, datelimit):
+def process_munki_managed_items(machine, report_data, uuid, now, datelimit):
     """Process Munki updates and removals."""
     # Delete all of these every run, as its faster than comparing
     # between the client/server and removing the difference.
@@ -771,7 +789,7 @@ def needs_history_item_creation(items_set, status, recorded):
     return items_set.last().status != status and items_set.last().recorded < recorded
 
 
-def process_facts(machine, report_data, datelimit):
+def process_facts_v2(machine, report_data, datelimit):
     # TODO: May need to come through and do get_or_create on machine, name, updating data, and
     # deleting now missing facts and conditions for non-postgres.
     # if Facter data is submitted, we need to first remove any existing facts for this machine

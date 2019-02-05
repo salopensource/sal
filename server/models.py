@@ -463,5 +463,3 @@ class HistoricalFact(models.Model):
 
     class Meta:
         ordering = ['fact_name', 'fact_recorded']
-
-

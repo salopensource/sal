@@ -276,7 +276,7 @@ class CheckinV3FactTest(TestCase):
         data = json.dumps({
             'machine': {'serial': machine.serial},
             'sal': {'key': machine.machine_group.key}})
-        response = self.client.post(self.url, data, content_type=self.content_type)
+        self.client.post(self.url, data, content_type=self.content_type)
         self.assertEqual(Fact.objects.count(), 0)
 
     def test_facts_created(self):
@@ -287,7 +287,7 @@ class CheckinV3FactTest(TestCase):
             'sal': {'key': machine.machine_group.key},
             'munki': {'facts': {'test_user': 'Snake Plisskin'}}
         })
-        response = self.client.post(self.url, data, content_type=self.content_type)
+        self.client.post(self.url, data, content_type=self.content_type)
         machine.refresh_from_db()
         fact = machine.facts.get(fact_name='test_user')
         self.assertEqual(fact.fact_name, 'test_user')
@@ -303,7 +303,7 @@ class CheckinV3FactTest(TestCase):
             'sal': {'key': machine.machine_group.key},
             'munki': {'facts': {'test_user': 'Snake Plisskin'}}
         })
-        response = self.client.post(self.url, data, content_type=self.content_type)
+        self.client.post(self.url, data, content_type=self.content_type)
         machine.refresh_from_db()
         fact = machine.facts.get(fact_name='test_user')
         historical_fact = machine.historical_facts.get(fact_name='test_user')
@@ -323,7 +323,7 @@ class CheckinV3FactTest(TestCase):
             'sal': {'key': machine.machine_group.key},
             'munki': {'facts': {'test_user': 'Snake Plisskin', 'ignore_this': 'Yep'}}
         })
-        response = self.client.post(self.url, data, content_type=self.content_type)
+        self.client.post(self.url, data, content_type=self.content_type)
         machine.refresh_from_db()
         self.assertRaises(Fact.DoesNotExist, machine.facts.get, fact_name='ignore_this')
 
@@ -347,19 +347,18 @@ class CheckinV3ManagedItemTest(TestCase):
         data = json.dumps({
             'machine': {'serial': machine.serial},
             'sal': {'key': machine.machine_group.key}})
-        response = self.client.post(self.url, data, content_type=self.content_type)
+        self.client.post(self.url, data, content_type=self.content_type)
         self.assertEqual(ManagedItem.objects.count(), 0)
 
     def test_managed_item_created(self):
         """Test that managed items get created."""
         machine = Machine.objects.get(serial='C0DEADBEEF')
-        now = datetime.datetime.now()
         data = json.dumps({
             'machine': {'serial': machine.serial},
             'sal': {'key': machine.machine_group.key},
             'munki': {'managed_items': {
                 'Dwarf Fortress': {}}}})
-        response = self.client.post(self.url, data, content_type=self.content_type)
+        self.client.post(self.url, data, content_type=self.content_type)
         machine.refresh_from_db()
         managed_item = machine.manageditem_set.get(name='Dwarf Fortress')
         self.assertEqual(managed_item.name, 'Dwarf Fortress')
@@ -375,9 +374,7 @@ class CheckinV3ManagedItemTest(TestCase):
             'sal': {'key': machine.machine_group.key},
             'munki': {'managed_items': {
                 'Dwarf Fortress': {}}}})
-                #     'date_managed': now,
-                # }}
-        response = self.client.post(self.url, data, content_type=self.content_type)
+        self.client.post(self.url, data, content_type=self.content_type)
         machine.refresh_from_db()
         managed_item = machine.manageditem_set.get(name='Dwarf Fortress')
         self.assertEqual(managed_item.name, 'Dwarf Fortress')
@@ -399,9 +396,8 @@ class CheckinV3ManagedItemTest(TestCase):
                 'Nethack': {
                     'date_managed': '2020-02-29T13:00:00Z',
                     'status': 'ABSENT',
-                    'data': {'comment': '...and there was much rejoicing.'}}
-                }}})
-        response = self.client.post(self.url, data, content_type=self.content_type)
+                    'data': {'comment': '...and there was much rejoicing.'}}}}})
+        self.client.post(self.url, data, content_type=self.content_type)
         machine.refresh_from_db()
         managed_item = machine.manageditem_set.get(name='Dwarf Fortress')
         self.assertEqual(managed_item.name, 'Dwarf Fortress')

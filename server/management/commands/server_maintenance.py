@@ -11,7 +11,7 @@ from django.db.models import Q
 import django.utils.timezone
 
 import server.utils
-from server.models import PluginScriptSubmission
+from server.models import PluginScriptSubmission, UpdateHistory, UpdateHistoryItem
 
 
 class Command(BaseCommand):

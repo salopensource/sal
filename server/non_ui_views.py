@@ -466,8 +466,74 @@ def process_munki_extra_keys(management_data, machine):
     process_update_history(management_data.get('update_history', []), machine)
 
 
-def process_update_history(update_history, machine):
-    pass
+def process_update_history(update_histories, machine):
+    """Process Munki updates and removals."""
+    # Delete all of these every run, as its faster than comparing
+    # between the client/server and removing the difference.
+    to_delete = machine.pending_apple_updates.all()
+    if to_delete.exists():
+        to_delete._raw_delete(to_delete.db)
+
+    # Accumulate items to create, so we can do `bulk_create` on
+    # supported databases.
+    items_to_create = defaultdict(list)
+
+    # TODO: Move to maintenance script
+    # Keep track of created histories to reduce data-retention
+    # processing later
+    excluded_item_histories = set()
+
+    for update in update_histories:
+        update_history, _ = UpdateHistory.objects.get_or_create(
+            machine=machine, update_type=update['update_type'], name=update['name'],
+            version=update['version'])
+
+        # Only create a history item if there are none or
+        # if the last one is not the same status.
+        items_set = update_history.updatehistoryitem_set.order_by('recorded')
+        status = update['status']
+        recorded = update['date']
+        if not items_set.exists() or needs_history_item_creation(items_set, status, recorded):
+            items_to_create[UpdateHistoryItem].append(
+                UpdateHistoryItem(update_history=update_history, status=status, recorded=recorded))
+            # TODO: Remove with refactor to maintenance script.
+            excluded_item_histories.add(update_history.pk)
+
+        if status == 'pending' and update['update_type'] == 'apple':
+            pending_apple_item = PendingAppleUpdate(
+                machine=machine, update=update['name'], update_version=update['version'],
+                display_name=update.get('display_name'))
+            items_to_create[PendingAppleUpdate].append(pending_apple_item)
+
+    # Bulk create all of the objects we've built up.
+    for model, updates_to_save in items_to_create.items():
+        if IS_POSTGRES:
+            model.objects.bulk_create(updates_to_save)
+        else:
+            for item in updates_to_save:
+                item.save()
+
+    # TODO: Remove with refactor to maintenance script.
+    # Clean up UpdateHistory and items which are over our retention
+    # limit and are no longer managed, or which have no history items.
+    historical_days = server.utils.get_setting('historical_retention')
+    datelimit = django.utils.timezone.now() - timedelta(days=historical_days)
+
+    # Exclude items we just created to cut down on processing.
+    histories_to_delete = (UpdateHistory
+                           .objects
+                           .exclude(pk__in=excluded_item_histories)
+                           .filter(machine=machine))
+
+    for history in histories_to_delete:
+        try:
+            latest = history.updatehistoryitem_set.latest('recorded').recorded
+        except UpdateHistoryItem.DoesNotExist:
+            history.delete()
+            continue
+
+        if latest < datelimit:
+            history.delete()
 
 
 def create_objects(object_queue):
@@ -791,7 +857,6 @@ def process_update_history_item(machine, update_type, name, version, recorded, u
     return (update_history_item, update_history)
 
 
-# TODO: remove when you remove checkin_v2
 def needs_history_item_creation(items_set, status, recorded):
     return items_set.last().status != status and items_set.last().recorded < recorded
 

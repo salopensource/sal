@@ -374,18 +374,7 @@ def checkin_v3(request):
 
     create_objects(object_queue)
 
-    # TODO: Possibly remove. Anything dealing with retention should be moved to the maintenance
-    # script.
-    historical_days = server.utils.get_setting('historical_retention')
-    datelimit = django.utils.timezone.now() - timedelta(days=historical_days)
-
-    # Process plugin scripts.
-    # Clear out too-old plugin script submissions first.
-    # TODO: Move to maintenance script
-    PluginScriptSubmission.objects.filter(recorded__lt=datelimit).delete()
-
     server.utils.process_plugin_script(submission.get('plugin_results', []), machine)
-    # TODO: Plugins need to update to the new submission format. Add documentation!
     server.utils.run_plugin_processing(machine, submission)
 
     if server.utils.get_setting('send_data') in (None, True):
@@ -478,11 +467,6 @@ def process_update_history(update_histories, machine):
     # supported databases.
     items_to_create = defaultdict(list)
 
-    # TODO: Move to maintenance script
-    # Keep track of created histories to reduce data-retention
-    # processing later
-    excluded_item_histories = set()
-
     for update in update_histories:
         update_history, _ = UpdateHistory.objects.get_or_create(
             machine=machine, update_type=update['update_type'], name=update['name'],
@@ -496,8 +480,6 @@ def process_update_history(update_histories, machine):
         if not items_set.exists() or needs_history_item_creation(items_set, status, recorded):
             items_to_create[UpdateHistoryItem].append(
                 UpdateHistoryItem(update_history=update_history, status=status, recorded=recorded))
-            # TODO: Remove with refactor to maintenance script.
-            excluded_item_histories.add(update_history.pk)
 
         if status == 'pending' and update['update_type'] == 'apple':
             pending_apple_item = PendingAppleUpdate(
@@ -512,28 +494,6 @@ def process_update_history(update_histories, machine):
         else:
             for item in updates_to_save:
                 item.save()
-
-    # TODO: Remove with refactor to maintenance script.
-    # Clean up UpdateHistory and items which are over our retention
-    # limit and are no longer managed, or which have no history items.
-    historical_days = server.utils.get_setting('historical_retention')
-    datelimit = django.utils.timezone.now() - timedelta(days=historical_days)
-
-    # Exclude items we just created to cut down on processing.
-    histories_to_delete = (UpdateHistory
-                           .objects
-                           .exclude(pk__in=excluded_item_histories)
-                           .filter(machine=machine))
-
-    for history in histories_to_delete:
-        try:
-            latest = history.updatehistoryitem_set.latest('recorded').recorded
-        except UpdateHistoryItem.DoesNotExist:
-            history.delete()
-            continue
-
-        if latest < datelimit:
-            history.delete()
 
 
 def create_objects(object_queue):

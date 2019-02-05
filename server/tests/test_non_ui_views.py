@@ -17,7 +17,9 @@ from django.utils.timezone import now
 
 import server.utils
 from server import non_ui_views
-from server.models import MachineGroup, Machine, ManagementSource, ManagedItem, Fact, HistoricalFact
+from server.models import (
+    MachineGroup, Machine, ManagementSource, ManagedItem, Fact, HistoricalFact, PendingAppleUpdate,
+    UpdateHistory, UpdateHistoryItem)
 
 
 class CheckinDataTest(TestCase):
@@ -437,6 +439,85 @@ class CheckinV3MunkiItemTest(TestCase):
         machine.refresh_from_db()
         self.assertEqual(machine.manifest, manifest)
         self.assertEqual(machine.munki_version, munki_version)
+
+    def test_pending_apple_item_created(self):
+        """Test that pending apple updates get created."""
+        machine = Machine.objects.get(serial='C0DEADBEEF')
+        data = json.dumps({
+            'machine': {'serial': machine.serial},
+            'sal': {'key': machine.machine_group.key},
+            'munki': {
+                'update_history': [
+                    {'update_type': 'apple',
+                     'name': 'macOS 10.99.1 Heavy Metal Update',
+                     'version': '1.0.0',
+                     'date': '2050-01-30T13:00:00Z',
+                     'status': 'pending'}]}})
+        self.client.post(self.url, data, content_type=self.content_type)
+        machine.refresh_from_db()
+        self.assertTrue(PendingAppleUpdate.objects.exists())
+
+    def test_update_history_creation(self):
+        """Test that update histories get created."""
+        machine = Machine.objects.get(serial='C0DEADBEEF')
+        data = json.dumps({
+            'machine': {'serial': machine.serial},
+            'sal': {'key': machine.machine_group.key},
+            'munki': {
+                'update_history': [
+                    {'update_type': 'apple',
+                     'name': 'macOS 10.99.1 Heavy Metal Update',
+                     'version': '1.0.0',
+                     'date': '2050-01-30T13:00:00Z',
+                     'status': 'pending'}]}})
+        self.client.post(self.url, data, content_type=self.content_type)
+        machine.refresh_from_db()
+        self.assertTrue(UpdateHistory.objects.exists())
+
+    def test_update_history_item_creation(self):
+        """Test that update history items get created."""
+        machine = Machine.objects.get(serial='C0DEADBEEF')
+        data = json.dumps({
+            'machine': {'serial': machine.serial},
+            'sal': {'key': machine.machine_group.key},
+            'munki': {
+                'update_history': [
+                    {'update_type': 'apple',
+                     'name': 'macOS 10.99.1 Heavy Metal Update',
+                     'version': '1.0.0',
+                     'date': '2050-01-30T13:00:00Z',
+                     'status': 'pending'}]}})
+        self.client.post(self.url, data, content_type=self.content_type)
+        machine.refresh_from_db()
+        self.assertTrue(UpdateHistoryItem.objects.exists())
+
+    def test_update_history_item_skipped(self):
+        """Test that update history items are skipped when duplicate."""
+        machine = Machine.objects.get(serial='C0DEADBEEF')
+        update_type = 'third_party'
+        name = 'Dwarf Fortress'
+        version = '1.5'
+        status = 'pending'
+        recorded = '2050-01-30T13:00:00Z'
+
+        update_history = UpdateHistory.objects.create(
+            machine=machine, update_type=update_type, name=name, version=version)
+        UpdateHistoryItem.objects.create(
+            update_history=update_history, status=status, recorded=recorded)
+
+        data = json.dumps({
+            'machine': {'serial': machine.serial},
+            'sal': {'key': machine.machine_group.key},
+            'munki': {
+                'update_history': [
+                    {'update_type': update_type,
+                     'name': name,
+                     'version': version,
+                     'date': recorded,
+                     'status': status}]}})
+        self.client.post(self.url, data, content_type=self.content_type)
+        machine.refresh_from_db()
+        self.assertTrue(UpdateHistoryItem.objects.count() == 1)
 
 
 class CheckinHelperTest(TestCase):

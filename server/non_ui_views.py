@@ -218,7 +218,86 @@ def checkin(request):
     if not serial:
         return HttpResponseBadRequest('Checkin JSON is missing required "machine" key "serial"!')
 
-    machine = process_checkin_serial(submission['machine']['serial'])
+    machine = process_checkin_serial(serial)
+    machine.machine_group = get_checkin_machine_group(submission['sal'].get('key'))
+    machine.save()
+
+    clean_related(machine)
+
+    object_queue = {
+        'facts': [],
+        'historical_facts': [],
+        'managed_items': []}
+
+    core_modules = ('machine', 'sal')
+    for management_source_name, management_data in submission.items():
+        if management_source_name not in core_modules:
+            management_source, _ = ManagementSource.objects.get_or_create(
+                name=management_source_name)
+        else:
+            management_source = management_source_name
+
+        object_queue = process_management_submission(
+            management_source, management_data, machine, object_queue)
+
+    create_objects(object_queue)
+
+    server.utils.process_plugin_script(submission.get('plugin_results', []), machine)
+    server.utils.run_plugin_processing(machine, submission)
+
+    if server.utils.get_setting('send_data') in (None, True):
+        # If setting is None, it hasn't been configured yet; assume True
+        server.utils.send_report()
+
+    if machine.broken_client:
+        msg = f"Broken Client report submmitted for {machine.serial}"
+    else:
+        msg = f"Sal report submmitted for {machine.serial}"
+    logging.debug(msg)
+    return HttpResponse(msg)
+
+
+def clean_related(machine):
+    # Clear out existing Facts and start from scratch.
+    facts = machine.facts.all()
+    if facts.exists():
+        facts._raw_delete(facts.db)
+
+    # Clear out existing ManagedItems and start from scratch.
+    managed_items = machine.manageditem_set.all()
+    if managed_items.exists():
+        managed_items._raw_delete(managed_items.db)
+
+
+def process_management_submission(source, management_data, machine, object_queue):
+    """Process a single management source's data
+
+    This function first optionally calls any additional processors for
+    the management source in question (Munki for example).
+
+    Then it processes Facts.
+    Then ManagedItems.
+    """
+    # Add custom processor funcs to this dictionary.
+    # The key should be the same name used in the submission for ManagementSource.
+    # The func's signature must be f(management_data: dict, machine: Machine)
+    processing_funcs = {
+        'machine': process_machine_submission,
+        'sal': process_sal_submission,
+        'munki': process_munki_extra_keys}
+
+    key = source.name if isinstance(source, ManagementSource) else source
+    processing_func = processing_funcs.get(key)
+    if processing_func:
+        processing_func(management_data, machine)
+
+    object_queue = process_facts(source, management_data, machine, object_queue)
+    object_queue = process_managed_items(source, management_data, machine, object_queue)
+
+    return object_queue
+
+
+def process_machine_submission(machine_submission, machine):
     machine.hostname = machine_submission.get('hostname', '<NO NAME>')
     # Drop the setup assistant user if encountered.
     console_user = machine_submission.get('console_user')
@@ -235,87 +314,21 @@ def checkin(request):
     machine.cpu_speed = machine_submission.get('cpu_speed')
     machine.memory = machine_submission.get('memory')
     machine.memory_kb = machine_submission.get('memory_kb', 0)
+    machine.save()
 
-    # Process Sal checkin information.
-    sal_submission = submission.get('sal', {})
-    machine.machine_group = get_checkin_machine_group(sal_submission.get('key'))
+
+def process_sal_submission(sal_submission, machine):
     machine.sal_version = sal_submission.get('sal_version')
     machine.last_checkin = django.utils.timezone.now()
 
     if server.utils.get_django_setting('DEPLOYED_ON_CHECKIN', True):
         machine.deployed = True
 
-    machine.save()
-
     # Cast to bool just in case.
     if bool(sal_submission.get('broken_client', False)):
         machine.broken_client = True
-        machine.save()
-        return HttpResponse("Broken Client report submmitted for %s" % serial)
 
-    # Clear out existing Facts and start from scratch.
-    facts = machine.facts.all()
-    if facts.exists():
-        facts._raw_delete(facts.db)
-
-    # Clear out existing ManagedItems and start from scratch.
-    managed_items = machine.manageditem_set.all()
-    if managed_items.exists():
-        managed_items._raw_delete(managed_items.db)
-
-    object_queue = {
-        'facts': [],
-        'historical_facts': [],
-        'managed_items': []}
-
-    # TODO: This can come out when we do function swapping.
-    core_modules = ('machine', 'sal')
-    for management_source_name, management_data in submission.items():
-        if management_source_name in core_modules:
-            continue
-
-        management_source, _ = ManagementSource.objects.get_or_create(name=management_source_name)
-        object_queue = process_management_submission(
-            management_source, management_data, machine, object_queue)
-
-    create_objects(object_queue)
-
-    server.utils.process_plugin_script(submission.get('plugin_results', []), machine)
-    server.utils.run_plugin_processing(machine, submission)
-
-    if server.utils.get_setting('send_data') in (None, True):
-        # If setting is None, it hasn't been configured yet; assume True
-        server.utils.send_report()
-
-    msg = f"Sal report submmitted for {machine.serial}"
-    logging.debug(msg)
-    return HttpResponse(msg)
-
-
-def process_management_submission(management_source, management_data, machine, object_queue):
-    """Process a single management source's data
-
-    This function first optionally calls any additional processors for
-    the management source in question (Munki for example).
-
-    Then it processes Facts.
-    Then ManagedItems.
-    """
-    def default_func(management_data, machine):
-        return
-
-    # Add custom processor funcs to this dictionary.
-    # The key should be the same name used in the submission for ManagementSource.
-    # The func's signature must be f(management_data: dict, machine: Machine)
-    processing_funcs = {'munki': process_munki_extra_keys}
-
-    processing_func = processing_funcs.get(management_source.name, default_func)
-    processing_func(management_data, machine)
-
-    object_queue = process_facts(management_source, management_data, machine, object_queue)
-    object_queue = process_managed_items(management_source, management_data, machine, object_queue)
-
-    return object_queue
+    machine.save()
 
 
 def process_facts(management_source, management_data, machine, object_queue):

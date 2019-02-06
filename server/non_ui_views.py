@@ -213,8 +213,7 @@ def checkin(request):
         return HttpResponseBadRequest('Checkin JSON is missing required key "machine"!')
 
     # Process machine submission information.
-    machine_submission = submission['machine']
-    serial = machine_submission.get('serial')
+    serial = submission['machine'].get('serial')
     if not serial:
         return HttpResponseBadRequest('Checkin JSON is missing required "machine" key "serial"!')
 
@@ -255,6 +254,33 @@ def checkin(request):
         msg = f"Sal report submmitted for {machine.serial}"
     logging.debug(msg)
     return HttpResponse(msg)
+
+
+def process_checkin_serial(serial):
+    # Take out some of the weird junk VMware puts in. Keep an eye out in case
+    # Apple actually uses these:
+    serial = serial.upper().translate(SERIAL_TRANSLATE)
+
+    # TODO: Remove this check once checkin_v2 is removed, as checkin_v3 handles this.
+    # A serial number is required.
+    if not serial:
+        raise Http404
+
+    # Are we using Sal for some sort of inventory (like, I don't know, Puppet?)
+    if server.utils.get_django_setting('ADD_NEW_MACHINES', True):
+        try:
+            machine = Machine.objects.get(serial=serial)
+        except Machine.DoesNotExist:
+            machine = Machine(serial=serial)
+    else:
+        machine = get_object_or_404(Machine, serial=serial)
+    return machine
+
+
+def get_checkin_machine_group(key):
+    if key in (None, 'None'):
+        key = server.utils.get_django_setting('DEFAULT_MACHINE_GROUP_KEY')
+    return get_object_or_404(MachineGroup, key=key)
 
 
 def clean_related(machine):
@@ -331,43 +357,6 @@ def process_sal_submission(sal_submission, machine):
     machine.save()
 
 
-def process_facts(management_source, management_data, machine, object_queue):
-    now = django.utils.timezone.now()
-    for fact_name, fact_data in management_data.get('facts', {}).items():
-        # TODO: Figure out how we're doing this in the process facts code.
-        if any(fact_name.startswith(p) for p in IGNORE_PREFIXES):
-            continue
-
-        object_queue['facts'].append(
-            Fact(
-                machine=machine, fact_data=fact_data, fact_name=fact_name,
-                management_source=management_source))
-
-        if fact_name in HISTORICAL_FACTS:
-            object_queue['historical_facts'].append(
-                HistoricalFact(
-                    machine=machine, fact_data=fact_data, fact_name=fact_name,
-                    management_source=management_source, fact_recorded=now))
-
-    return object_queue
-
-
-def process_managed_items(management_source, management_data, machine, object_queue):
-    now = django.utils.timezone.now()
-    for name, managed_item in management_data.get('managed_items', {}).items():
-        submitted_date = managed_item.get('date_managed')
-        date_managed = dateutil.parser.parse(submitted_date) if submitted_date else now
-        status = managed_item.get('status', 'UNKNOWN')
-        data = managed_item.get('data')
-        dumped_data = json.dumps(data) if data else None
-        object_queue['managed_items'].append(
-            ManagedItem(
-                name=name, machine=machine, management_source=management_source,
-                date_managed=date_managed, status=status, data=dumped_data))
-
-    return object_queue
-
-
 def process_munki_extra_keys(management_data, machine):
     machine.munki_version = management_data.get('munki_version')
     machine.manifest = management_data.get('manifest')
@@ -416,6 +405,47 @@ def process_update_history(update_histories, machine):
                 item.save()
 
 
+def needs_history_item_creation(items_set, status, recorded):
+    return items_set.last().status != status and items_set.last().recorded < recorded
+
+
+def process_facts(management_source, management_data, machine, object_queue):
+    now = django.utils.timezone.now()
+    for fact_name, fact_data in management_data.get('facts', {}).items():
+        # TODO: Figure out how we're doing this in the process facts code.
+        if any(fact_name.startswith(p) for p in IGNORE_PREFIXES):
+            continue
+
+        object_queue['facts'].append(
+            Fact(
+                machine=machine, fact_data=fact_data, fact_name=fact_name,
+                management_source=management_source))
+
+        if fact_name in HISTORICAL_FACTS:
+            object_queue['historical_facts'].append(
+                HistoricalFact(
+                    machine=machine, fact_data=fact_data, fact_name=fact_name,
+                    management_source=management_source, fact_recorded=now))
+
+    return object_queue
+
+
+def process_managed_items(management_source, management_data, machine, object_queue):
+    now = django.utils.timezone.now()
+    for name, managed_item in management_data.get('managed_items', {}).items():
+        submitted_date = managed_item.get('date_managed')
+        date_managed = dateutil.parser.parse(submitted_date) if submitted_date else now
+        status = managed_item.get('status', 'UNKNOWN')
+        data = managed_item.get('data')
+        dumped_data = json.dumps(data) if data else None
+        object_queue['managed_items'].append(
+            ManagedItem(
+                name=name, machine=machine, management_source=management_source,
+                date_managed=date_managed, status=status, data=dumped_data))
+
+    return object_queue
+
+
 def create_objects(object_queue):
     """Bulk create Fact, HistoricalFact, and ManagedItem objects."""
     models = {'facts': Fact, 'historical_facts': HistoricalFact, 'managed_items': ManagedItem}
@@ -430,34 +460,3 @@ def _bulk_create_or_iterate_save(objects, model):
     else:
         for item in objects:
             item.save()
-
-
-def process_checkin_serial(serial):
-    # Take out some of the weird junk VMware puts in. Keep an eye out in case
-    # Apple actually uses these:
-    serial = serial.upper().translate(SERIAL_TRANSLATE)
-
-    # TODO: Remove this check once checkin_v2 is removed, as checkin_v3 handles this.
-    # A serial number is required.
-    if not serial:
-        raise Http404
-
-    # Are we using Sal for some sort of inventory (like, I don't know, Puppet?)
-    if server.utils.get_django_setting('ADD_NEW_MACHINES', True):
-        try:
-            machine = Machine.objects.get(serial=serial)
-        except Machine.DoesNotExist:
-            machine = Machine(serial=serial)
-    else:
-        machine = get_object_or_404(Machine, serial=serial)
-    return machine
-
-
-def get_checkin_machine_group(key):
-    if key in (None, 'None'):
-        key = server.utils.get_django_setting('DEFAULT_MACHINE_GROUP_KEY')
-    return get_object_or_404(MachineGroup, key=key)
-
-
-def needs_history_item_creation(items_set, status, recorded):
-    return items_set.last().status != status and items_set.last().recorded < recorded

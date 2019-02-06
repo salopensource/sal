@@ -17,8 +17,6 @@ urlpatterns = [
     url(r'^machine_detail/(?P<machine_id>.+)/', machine_detail, name='machine_detail'),
 
     # Checkin routes.
-    url(r'^checkin_v3/', checkin_v3, name='checkin_v3'),
-    # Deprecated and will be removed in Sal version 4.
     url(r'^checkin/', checkin, name='checkin'),
     # Deprecated and will be removed in Sal version 4.
     url(r'^preflight/$', preflight, name='preflight'),

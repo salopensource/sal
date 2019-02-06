@@ -1,10 +1,7 @@
-import hashlib
 import itertools
 import json
 import logging
-import plistlib
 from collections import defaultdict
-from datetime import datetime, timedelta
 
 import dateutil.parser
 import pytz
@@ -14,7 +11,7 @@ from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.db.models import Q
 from django.http import (
-    HttpResponse, JsonResponse, HttpResponseServerError, Http404, HttpResponseBadRequest)
+    HttpResponse, JsonResponse, Http404, HttpResponseBadRequest)
 from django.shortcuts import get_object_or_404
 from django.urls import reverse
 from django.views.decorators.csrf import csrf_exempt
@@ -25,11 +22,10 @@ import utils.csv
 from sal.decorators import key_auth_required
 from sal.plugin import (Widget, ReportPlugin, OldPluginAdapter, PluginManager,
                         DEPRECATED_PLUGIN_TYPES)
-from server.models import (Machine, Condition, Fact, HistoricalFact, MachineGroup, UpdateHistory,
-                           UpdateHistoryItem, InstalledUpdate, PendingAppleUpdate,
-                           PluginScriptSubmission, Plugin, Report, MachineDetailPlugin,
-                           ManagementSource, ManagedItem)
-from utils import text_utils
+from server.models import (Machine, Fact, HistoricalFact, MachineGroup, UpdateHistory,
+                           UpdateHistoryItem, PendingAppleUpdate, Plugin, Report,
+                           MachineDetailPlugin, ManagementSource, ManagedItem)
+
 
 if settings.DEBUG:
     logging.basicConfig(level=logging.INFO)
@@ -38,14 +34,7 @@ if settings.DEBUG:
 # The database probably isn't going to change while this is loaded.
 IS_POSTGRES = server.utils.is_postgres()
 HISTORICAL_FACTS = server.utils.get_django_setting('HISTORICAL_FACTS', [])
-IGNORED_CSV_FIELDS = ('id', 'machine_group', 'report', 'os_family')
 IGNORE_PREFIXES = server.utils.get_django_setting('IGNORE_FACTS', [])
-MACHINE_KEYS = {
-    'machine_model': {'old': 'MachineModel', 'new': 'machine_model'},
-    'cpu_type': {'old': 'CPUType', 'new': 'cpu_type'},
-    'cpu_speed': {'old': 'CurrentProcessorSpeed', 'new': 'current_processor_speed'},
-    'memory': {'old': 'PhysicalMemory', 'new': 'physical_memory'}}
-MEMORY_EXPONENTS = {'KB': 0, 'MB': 1, 'GB': 2, 'TB': 3}
 # Build a translation table for serial numbers, to remove garbage
 # VMware puts in.
 SERIAL_TRANSLATE = {ord(c): None for c in '+/'}
@@ -231,8 +220,10 @@ def checkin(request):
 
     machine = process_checkin_serial(submission['machine']['serial'])
     machine.hostname = machine_submission.get('hostname', '<NO NAME>')
-    # TODO: Do we need to ignore "_mbsetupuser" still?
-    machine.console_user = machine_submission.get('console_user')
+    # Drop the setup assistant user if encountered.
+    console_user = machine_submission.get('console_user')
+    console_user = console_user if console_user != '_mbsetupuser' else None
+    machine.console_user = console_user
     machine.os_family = machine_submission.get('os_family', 'Darwin')
     machine.operating_system = machine_submission.get('operating_system')
     machine.hd_space = machine_submission.get('hd_space')
@@ -335,8 +326,9 @@ def process_facts(management_source, management_data, machine, object_queue):
             continue
 
         object_queue['facts'].append(
-            Fact(machine=machine, fact_data=fact_data, fact_name=fact_name,
-                    management_source=management_source))
+            Fact(
+                machine=machine, fact_data=fact_data, fact_name=fact_name,
+                management_source=management_source))
 
         if fact_name in HISTORICAL_FACTS:
             object_queue['historical_facts'].append(

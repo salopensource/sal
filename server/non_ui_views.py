@@ -172,17 +172,6 @@ def export_csv(request, plugin_name, data, group_type='all', group_id=None):
 
 @csrf_exempt
 @key_auth_required
-def preflight(request):
-    """osquery plugins aren't a thing anymore.
-
-    This is just to stop old clients from barfing.
-    """
-    output = {'queries': {}}
-    return HttpResponse(json.dumps(output))
-
-
-@csrf_exempt
-@key_auth_required
 def preflight_v2(request):
     """Find plugins that have embedded preflight scripts."""
     # Load in the default plugins if needed

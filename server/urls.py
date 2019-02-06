@@ -18,8 +18,6 @@ urlpatterns = [
 
     # Checkin routes.
     url(r'^checkin/', checkin, name='checkin'),
-    # Deprecated and will be removed in Sal version 4.
-    url(r'^preflight/$', preflight, name='preflight'),
     url(r'^preflight-v2/get-script/(?P<plugin_name>.+)/(?P<script_name>.+)/$',
         preflight_v2_get_script, name='preflight_v2_get_script'),
     url(r'^preflight-v2/$', preflight_v2, name='preflight_v2'),

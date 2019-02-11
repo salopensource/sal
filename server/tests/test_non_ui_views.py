@@ -125,18 +125,6 @@ class CheckinDataTest(TestCase):
         machine.refresh_from_db()
         self.assertRaises(Machine.DoesNotExist, Machine.objects.get, serial=test_serial)
 
-    def test_broken_client_checkin(self):
-        """Test that a machine's broken bool is updated on checkin."""
-        machine = Machine.objects.get(serial='C0DEADBEEF')
-        data = json.dumps({
-            'machine': {'serial': machine.serial},
-            'sal': {'key': machine.machine_group.key, 'broken_client': True}})
-        response = self.client.post(self.url, data=data, content_type=self.content_type)
-        machine.refresh_from_db()
-        self.assertTrue(machine.broken_client)
-        self.assertEqual(
-            response.content, b'Broken Client report submmitted for %s' % machine.serial.encode())
-
     def test_minimal_data(self):
         """Test checkin can complete with bare minimum data."""
         machine = Machine.objects.get(serial='C0DEADBEEF')
@@ -155,6 +143,31 @@ class CheckinDataTest(TestCase):
             'munki': {}})
         self.client.post(self.url, data, content_type=self.content_type)
         self.assertTrue(ManagementSource.objects.filter(name='munki').exists())
+
+
+class BrokenClientTest(TestCase):
+    """Functional tests for broken client checkins."""
+
+    fixtures = ['machine_group_fixture.json', 'business_unit_fixture.json', 'machine_fixture.json']
+
+    def setUp(self):
+        settings.BASIC_AUTH = False
+        self.client = Client()
+        self.url = '/report_broken_client/'
+
+
+    def test_broken_client_checkin(self):
+        """Test that a machine's broken bool is updated on checkin."""
+        machine = Machine.objects.get(serial='C0DEADBEEF')
+        data = {
+            'serial': machine.serial,
+            'key': machine.machine_group.key,
+            'broken_client': True}
+        response = self.client.post(self.url, data=data)
+        machine.refresh_from_db()
+        self.assertTrue(machine.broken_client)
+        self.assertEqual(
+            response.content, b'Broken Client report submmitted for %s' % machine.serial.encode())
 
 
 class CheckinFactTest(TestCase):

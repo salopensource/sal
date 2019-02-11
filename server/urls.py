@@ -18,6 +18,7 @@ urlpatterns = [
 
     # Checkin routes.
     url(r'^checkin/', checkin, name='checkin'),
+    url(r'^report_broken_client/', report_broken_client, name='report_broken_client'),
     url(r'^preflight-v2/get-script/(?P<plugin_name>.+)/(?P<script_name>.+)/$',
         preflight_v2_get_script, name='preflight_v2_get_script'),
     url(r'^preflight-v2/$', preflight_v2, name='preflight_v2'),

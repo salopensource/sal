@@ -201,6 +201,28 @@ def preflight_v2_get_script(request, plugin_name, script_name):
 @csrf_exempt
 @require_POST
 @key_auth_required
+def report_broken_client(request):
+    data = request.POST
+
+    # Take out some of the weird junk VMware puts in. Keep an eye out in case
+    # Apple actually uses these:
+    serial = data.get('serial', '').upper().translate(SERIAL_TRANSLATE)
+    # Are we using Sal for some sort of inventory (like, I don't know, Puppet?)
+    machine = get_object_or_404(Machine, serial=serial)
+
+    machine_group_key = data.get('key')
+    machine.machine_group = get_object_or_404(MachineGroup, key=machine_group_key)
+
+    if bool(data.get('broken_client', False)):
+        machine.broken_client = True
+        machine.save()
+        return HttpResponse("Broken Client report submmitted for %s" % data.get('serial'))
+    return HttpResponseBadRequest()
+
+
+@csrf_exempt
+@require_POST
+@key_auth_required
 def checkin(request):
     if request.content_type != 'application/json':
         return HttpResponseBadRequest('Checkin must be content-type "application/json"!')
@@ -248,10 +270,7 @@ def checkin(request):
         # If setting is None, it hasn't been configured yet; assume True
         server.utils.send_report()
 
-    if machine.broken_client:
-        msg = f"Broken Client report submmitted for {machine.serial}"
-    else:
-        msg = f"Sal report submmitted for {machine.serial}"
+    msg = f"Sal report submmitted for {machine.serial}"
     logging.debug(msg)
     return HttpResponse(msg)
 
@@ -349,10 +368,6 @@ def process_sal_submission(sal_submission, machine):
 
     if server.utils.get_django_setting('DEPLOYED_ON_CHECKIN', True):
         machine.deployed = True
-
-    # Cast to bool just in case.
-    if bool(sal_submission.get('broken_client', False)):
-        machine.broken_client = True
 
     machine.save()
 

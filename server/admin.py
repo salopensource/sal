@@ -101,6 +101,16 @@ class ConditionAdmin(admin.ModelAdmin):
     search_fields = ('condition_name', 'condition_data', 'machine__hostname')
 
 
+class ManagementSourceAdmin(admin.ModelAdmin):
+    list_display = ('name', )
+
+
+class ManagedItemAdmin(admin.ModelAdmin):
+    list_display = ('name', 'management_source', 'machine', 'date_managed', 'status')
+    list_filter = ('management_source', BusinessUnitFilter, MachineGroupFilter, 'date_managed', 'status')
+    search_fields = ('name', 'data', 'machine')
+
+
 class FactAdmin(admin.ModelAdmin):
     list_display = ('fact_name', 'fact_data', 'machine')
     list_filter = (BusinessUnitFilter, MachineGroupFilter, 'fact_name')
@@ -262,3 +272,5 @@ admin.site.register(UpdateHistoryItem, UpdateHistoryItemAdmin)
 admin.site.unregister(User)
 admin.site.register(User, CustomUserAdmin)
 admin.site.register(FriendlyNameCache, FriendlyNameCacheAdmin)
+admin.site.register(ManagementSource, ManagementSourceAdmin)
+admin.site.register(ManagedItem, ManagedItemAdmin)

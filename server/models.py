@@ -412,6 +412,9 @@ class ManagementSource(models.Model):
     id = models.UUIDField(default=generate_ulid_as_uuid, primary_key=True)
     name = models.CharField(max_length=255, unique=True)
 
+    def __str__(self):
+        return self.name
+
 
 class ManagedItem(models.Model):
     id = models.UUIDField(default=generate_ulid_as_uuid, primary_key=True)

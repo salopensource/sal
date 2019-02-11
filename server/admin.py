@@ -112,14 +112,14 @@ class ManagedItemAdmin(admin.ModelAdmin):
 
 
 class FactAdmin(admin.ModelAdmin):
-    list_display = ('fact_name', 'fact_data', 'machine')
-    list_filter = (BusinessUnitFilter, MachineGroupFilter, 'fact_name')
+    list_display = ('fact_name', 'fact_data', 'machine', 'management_source')
+    list_filter = ('management_source', BusinessUnitFilter, MachineGroupFilter, 'fact_name')
     search_fields = ('fact_name', 'fact_data', 'machine__hostname')
 
 
 class HistoricalFactAdmin(admin.ModelAdmin):
-    list_display = ('fact_name', 'fact_data', 'machine', 'fact_recorded')
-    list_filter = (BusinessUnitFilter, MachineGroupFilter, 'fact_name')
+    list_display = ('fact_name', 'fact_data', 'machine', 'management_source', 'fact_recorded')
+    list_filter = ('management_source', BusinessUnitFilter, MachineGroupFilter, 'fact_name')
     search_fields = ('fact_name', 'fact_data', 'machine__hostname')
     date_hierarchy = 'fact_recorded'
 

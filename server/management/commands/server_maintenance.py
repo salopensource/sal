@@ -11,7 +11,7 @@ from django.db.models import Q
 import django.utils.timezone
 
 import server.utils
-from server.models import PluginScriptSubmission, UpdateHistory, UpdateHistoryItem
+from server.models import PluginScriptSubmission, UpdateHistory, UpdateHistoryItem, HistoricalFact
 
 
 class Command(BaseCommand):
@@ -44,5 +44,7 @@ class Command(BaseCommand):
 
             if latest < datelimit:
                 history.delete()
+
+        HistoricalFact.objects.filter(fact_recorded__lt=datelimit).delete()
 
         gc.collect()

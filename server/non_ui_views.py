@@ -250,6 +250,9 @@ def checkin(request):
         'historical_facts': [],
         'managed_items': []}
 
+    # Pop off the plugin_results, because they are a list instead of
+    # a dict.
+    plugin_results = submission.pop('plugin_results', {})
     core_modules = ('machine', 'sal')
     for management_source_name, management_data in submission.items():
         if management_source_name not in core_modules:
@@ -263,7 +266,7 @@ def checkin(request):
 
     create_objects(object_queue)
 
-    server.utils.process_plugin_script(submission.get('plugin_results', []), machine)
+    server.utils.process_plugin_script(plugin_results, machine)
     server.utils.run_plugin_processing(machine, submission)
 
     if server.utils.get_setting('send_data') in (None, True):

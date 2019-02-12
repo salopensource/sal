@@ -1,3 +1,4 @@
+import datetime
 import itertools
 import json
 import logging
@@ -403,7 +404,7 @@ def process_update_history(update_histories, machine):
         # if the last one is not the same status.
         items_set = update_history.updatehistoryitem_set.order_by('recorded')
         status = update['status']
-        recorded = update['date']
+        recorded = dateutil.parser.parse(update['date'])
         if not items_set.exists() or needs_history_item_creation(items_set, status, recorded):
             items_to_create[UpdateHistoryItem].append(
                 UpdateHistoryItem(update_history=update_history, status=status, recorded=recorded))

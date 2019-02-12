@@ -1,4 +1,3 @@
-import datetime
 import itertools
 import json
 import logging
@@ -284,11 +283,6 @@ def process_checkin_serial(serial):
     # Apple actually uses these:
     serial = serial.upper().translate(SERIAL_TRANSLATE)
 
-    # TODO: Remove this check once checkin_v2 is removed, as checkin_v3 handles this.
-    # A serial number is required.
-    if not serial:
-        raise Http404
-
     # Are we using Sal for some sort of inventory (like, I don't know, Puppet?)
     if server.utils.get_django_setting('ADD_NEW_MACHINES', True):
         try:
@@ -431,7 +425,6 @@ def needs_history_item_creation(items_set, status, recorded):
 def process_facts(management_source, management_data, machine, object_queue):
     now = django.utils.timezone.now()
     for fact_name, fact_data in management_data.get('facts', {}).items():
-        # TODO: Figure out how we're doing this in the process facts code.
         if any(fact_name.startswith(p) for p in IGNORE_PREFIXES):
             continue
 

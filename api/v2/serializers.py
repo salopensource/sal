@@ -108,6 +108,13 @@ class UpdateHistorySerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
+class ManagementSourceSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = ManagementSource
+        fields = '__all__'
+
+
 class MachineSerializer(QueryFieldsMixin, serializers.ModelSerializer):
 
     """

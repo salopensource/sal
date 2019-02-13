@@ -163,6 +163,11 @@ class UpdateHistoryViewSet(viewsets.ReadOnlyModelViewSet):
     search_fields = ('name', 'version')
 
 
+class ManagementSourceViewSet(viewsets.ReadOnlyModelViewSet):
+    serializer_class = ManagementSourceSerializer
+    queryset = ManagementSource.objects.all()
+
+
 class PluginScriptRowViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = PluginScriptRow.objects.all()
     serializer_class = PluginScriptRowSerializer

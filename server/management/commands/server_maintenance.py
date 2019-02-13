@@ -7,11 +7,11 @@ from time import sleep
 
 from django.core.management.base import BaseCommand
 from django.conf import settings
-from django.db.models import Q
 import django.utils.timezone
 
 import server.utils
-from server.models import PluginScriptSubmission, UpdateHistory, UpdateHistoryItem, HistoricalFact
+from server.models import (
+    PluginScriptSubmission, UpdateHistory, UpdateHistoryItem, HistoricalFact, Machine)
 
 
 class Command(BaseCommand):
@@ -46,5 +46,16 @@ class Command(BaseCommand):
                 history.delete()
 
         HistoricalFact.objects.filter(fact_recorded__lt=datelimit).delete()
+
+        try:
+            inactive_undeploy = int(settings.INACTIVE_UNDEPLOYED)
+
+            if inactive_undeploy > 0:
+                now = django.utils.timezone.now()
+                inactive_days = now - datetime.timedelta(days=inactive_undeploy)
+                Machine.deployed_objects.filter(
+                    last_checkin__lte=inactive_days).update(deployed=False)
+        except Exception:
+            pass
 
         gc.collect()

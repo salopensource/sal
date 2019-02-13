@@ -1,14 +1,11 @@
-'''
-Cleans up old searches and rebuilds search fields cache
-'''
-import operator
+'''Cleans up old searches and rebuilds search fields cache'''
+
 from time import sleep
 import gc
 
-from django.core.management.base import BaseCommand, CommandError
+from django.core.management.base import BaseCommand
 from django.conf import settings
 from django.db.models import Q
-import django.utils.timezone
 
 from inventory.models import *
 from server.models import *
@@ -119,18 +116,6 @@ class Command(BaseCommand):
         if server.utils.is_postgres() is True:
             old_cache.delete()
             SearchFieldCache.objects.bulk_create(search_fields)
-
-        # make sure this in an int:
-        try:
-            inactive_undeploy = int(settings.INACTIVE_UNDEPLOYED)
-
-            if inactive_undeploy > 0:
-                now = django.utils.timezone.now()
-                inactive_days = now - datetime.timedelta(days=inactive_undeploy)
-                Machine.deployed_objects.filter(
-                    last_checkin__lte=inactive_days).update(deployed=False)
-        except Exception:
-            pass
 
         # Build the fact and condition cache
         items_to_be_inserted = []

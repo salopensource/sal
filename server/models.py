@@ -10,6 +10,7 @@ from ulid2 import generate_ulid_as_uuid
 
 from django.contrib.auth.models import User
 from django.db import models
+from django.utils import timezone
 
 from utils import text_utils
 
@@ -421,7 +422,7 @@ class ManagedItem(models.Model):
     name = models.CharField(max_length=255, unique=True)
     machine = models.ForeignKey(Machine, on_delete=models.CASCADE)
     management_source = models.ForeignKey(ManagementSource, on_delete=models.CASCADE)
-    date_managed = models.DateTimeField()
+    date_managed = models.DateTimeField(default=timezone.now)
 
     STATUS_CHOICES = (
         ('PRESENT', 'Present'),

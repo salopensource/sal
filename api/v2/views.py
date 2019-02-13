@@ -168,6 +168,15 @@ class ManagementSourceViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = ManagementSource.objects.all()
 
 
+class ManagedItemViewSet(viewsets.ReadOnlyModelViewSet):
+    serializer_class = ManagedItemSerializer
+    queryset = ManagedItem.objects.all()
+    filter_fields = (
+        'machine__serial', 'machine__hostname', 'machine__id',
+        'management_source__name', 'management_source__id', 'status')
+    search_fields = ('name', )
+
+
 class PluginScriptRowViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = PluginScriptRow.objects.all()
     serializer_class = PluginScriptRowSerializer

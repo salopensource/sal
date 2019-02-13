@@ -436,6 +436,7 @@ class ManagedItem(models.Model):
 
     class Meta:
         unique_together = (("machine", "name", "management_source"),)
+        ordering = ['id']
 
 
 class Fact(models.Model):

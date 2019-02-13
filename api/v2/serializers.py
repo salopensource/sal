@@ -115,6 +115,13 @@ class ManagementSourceSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
+class ManagedItemSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = ManagedItem
+        fields = '__all__'
+
+
 class MachineSerializer(QueryFieldsMixin, serializers.ModelSerializer):
 
     """

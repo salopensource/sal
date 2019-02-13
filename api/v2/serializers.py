@@ -91,6 +91,23 @@ class PendingUpdateSerializer(serializers.ModelSerializer):
         exclude = ('machine',)
 
 
+class UpdateHistoryItemSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = UpdateHistoryItem
+        fields = '__all__'
+
+
+class UpdateHistorySerializer(serializers.ModelSerializer):
+
+    update_history_items = UpdateHistoryItemSerializer(
+        source='updatehistoryitem_set', many=True, read_only=True)
+
+    class Meta:
+        model = UpdateHistory
+        fields = '__all__'
+
+
 class MachineSerializer(QueryFieldsMixin, serializers.ModelSerializer):
 
     """

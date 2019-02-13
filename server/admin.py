@@ -107,8 +107,9 @@ class ManagementSourceAdmin(admin.ModelAdmin):
 
 class ManagedItemAdmin(admin.ModelAdmin):
     list_display = ('name', 'management_source', 'machine', 'date_managed', 'status')
-    list_filter = ('management_source', BusinessUnitFilter, MachineGroupFilter, 'date_managed', 'status')
-    search_fields = ('name', 'data', 'machine')
+    list_filter = (
+        'management_source', BusinessUnitFilter, MachineGroupFilter, 'date_managed', 'status')
+    search_fields = ('name', 'data', 'machine__hostname', 'machine__serial')
 
 
 class FactAdmin(admin.ModelAdmin):

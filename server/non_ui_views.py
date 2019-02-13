@@ -253,13 +253,9 @@ def checkin(request):
     # Pop off the plugin_results, because they are a list instead of
     # a dict.
     plugin_results = submission.pop('plugin_results', {})
-    core_modules = ('machine', 'sal')
     for management_source_name, management_data in submission.items():
-        if management_source_name not in core_modules:
-            management_source, _ = ManagementSource.objects.get_or_create(
-                name=management_source_name)
-        else:
-            management_source = management_source_name
+        management_source, _ = ManagementSource.objects.get_or_create(
+            name=management_source_name)
 
         object_queue = process_management_submission(
             management_source, management_data, machine, object_queue)
@@ -329,8 +325,7 @@ def process_management_submission(source, management_data, machine, object_queue
         'sal': process_sal_submission,
         'munki': process_munki_extra_keys}
 
-    key = source.name if isinstance(source, ManagementSource) else source
-    processing_func = processing_funcs.get(key)
+    processing_func = processing_funcs.get(source.name)
     if processing_func:
         processing_func(management_data, machine)
 

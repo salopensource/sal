@@ -95,23 +95,6 @@ class PendingAppleUpdates(generics.ListAPIView):
         return PendingAppleUpdate.objects.filter(machine=machine)
 
 
-class PendingUpdates(generics.ListAPIView):
-    """
-    Retrieve pending third party updates for a machine
-    """
-    authentication_classes = (ApiKeyAuthentication,)
-    permission_classes = (HasRWPermission,)
-    serializer_class = PendingUpdateSerializer
-
-    def get_queryset(self):
-        """
-        Get all of the update items for the machine
-        """
-        serial = self.kwargs['serial']
-        machine = Machine.objects.get(serial=serial)
-        return PendingUpdate.objects.filter(machine=machine)
-
-
 class FactsMachine(generics.ListAPIView):
     """
     Retrieve facts for a machine

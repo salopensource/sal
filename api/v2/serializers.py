@@ -84,13 +84,6 @@ class PendingAppleUpdateSerializer(serializers.ModelSerializer):
         exclude = ('machine',)
 
 
-class PendingUpdateSerializer(serializers.ModelSerializer):
-
-    class Meta:
-        model = PendingUpdate
-        exclude = ('machine',)
-
-
 class UpdateHistoryItemSerializer(serializers.ModelSerializer):
 
     class Meta:

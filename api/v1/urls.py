@@ -14,7 +14,6 @@ urlpatterns = [
     url(r'^conditions/(?P<serial>.+)/$', views.ConditionsMachine.as_view()),
     url(r'^conditions/$', views.Conditions.as_view()),
     url(r'^pending_apple_updates/(?P<serial>.+)/$', views.PendingAppleUpdates.as_view()),
-    url(r'^pending_updates/(?P<serial>.+)/$', views.PendingUpdates.as_view()),
     url(r'^business_units/(?P<pk>.+)/$', views.BusinessUnitView.as_view()),
     url(r'^business_units/$', views.BusinessUnitList.as_view()),
     url(r'^machine_groups/(?P<pk>.+)/$', views.MachineGroupView.as_view()),

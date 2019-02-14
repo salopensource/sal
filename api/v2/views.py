@@ -131,29 +131,13 @@ class PendingAppleUpdatesViewSet(viewsets.ReadOnlyModelViewSet):
     search_fields = ('display_name', 'update')
 
 
-class PendingUpdatesViewSet(viewsets.ReadOnlyModelViewSet):
-    """
-    list:
-    You may also use the `search` querystring to perform text searches
-    across the `display_name` and `update` fields.
-
-    Example `/api/pending_updates/?search=NetHack`
-    """
-    serializer_class = PendingUpdateSerializer
-    queryset = PendingUpdate.objects.all()
-    filter_fields = (
-        'machine__serial', 'machine__hostname', 'machine__id',
-        'update', 'update_version', 'display_name')
-    search_fields = ('display_name', 'update')
-
-
 class UpdateHistoryViewSet(viewsets.ReadOnlyModelViewSet):
     """
     list:
     You may also use the `search` querystring to perform text searches
     across the `name` and `version` fields.
 
-    Example `/api/pending_updates/?search=NetHack`
+    Example `/api/update_history/?search=NetHack`
     """
     serializer_class = UpdateHistorySerializer
     queryset = UpdateHistory.objects.all()

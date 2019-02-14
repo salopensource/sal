@@ -64,7 +64,6 @@ class ConditionSerializer(serializers.ModelSerializer):
 
 
 class ConditionWithSerialSerializer(serializers.ModelSerializer):
-    # serial = serializers.CharField()
     machine = SerialSerializer()
 
     class Meta:
@@ -77,12 +76,6 @@ class PendingAppleUpdateSerializer(serializers.ModelSerializer):
         exclude = ('machine',)
 
 
-class PendingUpdateSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = PendingUpdate
-        exclude = ('machine',)
-
-
 class FullMachineSerializer(serializers.ModelSerializer):
     class Meta:
         model = Machine
@@ -90,10 +83,6 @@ class FullMachineSerializer(serializers.ModelSerializer):
 
 
 class MachineSerializer(serializers.ModelSerializer):
-    # facts = FactSerializer(many=True, required=False)
-    # conditions = ConditionSerializer(many=True, required=False)
-    # pending_apple_updates = PendingAppleUpdateSerializer(many=True, required=False)
-    # pending_updates = PendingUpdateSerializer(many=True, required=False)
 
     class Meta:
         model = Machine

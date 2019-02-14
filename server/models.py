@@ -297,20 +297,6 @@ class PluginScriptRow(models.Model):
         ordering = ['pluginscript_name']
 
 
-class PendingUpdate(models.Model):
-    id = models.BigAutoField(primary_key=True)
-    machine = models.ForeignKey(Machine, related_name='pending_updates', on_delete=models.CASCADE)
-    update = models.CharField(db_index=True, max_length=255, null=True, blank=True)
-    update_version = models.CharField(max_length=255, null=True, blank=True)
-    display_name = models.CharField(max_length=255, null=True, blank=True)
-
-    def __str__(self):
-        return self.update
-
-    class Meta:
-        ordering = ['display_name']
-
-
 class InstalledUpdate(models.Model):
     id = models.BigAutoField(primary_key=True)
     machine = models.ForeignKey(Machine, related_name='installed_updates', on_delete=models.CASCADE)

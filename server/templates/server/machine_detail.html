@@ -166,7 +166,7 @@ $( document ).ready(function() {
           {% if report.AvailableDiskSpace %}
           {% if machine.hd_percent != '0' %}
           <dt>Free disk space:</dt>
-          <dd>{{ report.AvailableDiskSpace|humanreadablesize }} ({{ machine.hd_percent }}% used)</dd>
+          <dd>{{ report.AvailableDiskSpace|human_readable_size:False }} / {{ machine.hd_total|human_readable_size:False }} ({{ machine.hd_percent }}% used)</dd>
           {% endif %}
           {% endif %}
           {% if uptime %}

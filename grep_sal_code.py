@@ -32,7 +32,7 @@ def main():
         results = ''
     print results.strip()
 
-    if args.edit:
+    if args.edit and results:
         subprocess.check_call([os.getenv('EDITOR')] + [l.strip() for l in results.splitlines()])
 
 

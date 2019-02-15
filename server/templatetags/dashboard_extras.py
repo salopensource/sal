@@ -31,9 +31,9 @@ def human_readable_size(size_in_bytes, base2=True):
     # Build an iterable of suffixes to work through.
     for x in ['B'] + list(map(lambda x: x + suffix, list('kMGTP'))):
         if -base < size_in_bytes < base:
-            return f"{size_in_bytes:3.1f} {x}"
+            return f"{size_in_bytes:.2f} {x}"
         size_in_bytes /= base
-        return f"{size_in_bytes:3.1f} {x}"
+    return f"{size_in_bytes:.2f} {x}"
 
 
 human_readable_size.is_safe = True

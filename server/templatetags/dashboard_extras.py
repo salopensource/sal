@@ -15,22 +15,28 @@ register = template.Library()
 
 
 @register.filter
-def humanreadablesize(kbytes):
-    """Returns sizes in human-readable units. Input is kbytes"""
-    try:
-        kbytes = float(kbytes)
-    except (TypeError, ValueError, UnicodeDecodeError):
-        return "unknown"
+def human_readable_size(size_in_bytes, base2=True):
+    """Returns sizes in human-readable units.
 
-    units = [(" KB", 2**10), (" MB", 2**20), (" GB", 2**30), (" TB", 2**40)]
-    for suffix, limit in units:
-        if kbytes > limit:
-            continue
-        else:
-            return str(round(kbytes / float(limit / 2**10), 1)) + suffix
+    Args:
+        size_in_bytes (int, float): Size to convert.
+        base2 (bool): Use base2 sizes (kibibytes, etc).
+
+    Returns:
+        str rounded to 1 precision and converted to desired sizing
+        units.
+    """
+    size_in_bytes = float(size_in_bytes)
+    base, suffix = (1024.0, 'iB') if base2 else (1000.0, 'B')
+    # Build an iterable of suffixes to work through.
+    for x in ['B'] + list(map(lambda x: x + suffix, list('kMGTP'))):
+        if -base < size_in_bytes < base:
+            return f"{size_in_bytes:3.1f} {x}"
+        size_in_bytes /= base
+        return f"{size_in_bytes:3.1f} {x}"
 
 
-humanreadablesize.is_safe = True
+human_readable_size.is_safe = True
 
 
 @register.filter

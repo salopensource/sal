@@ -163,11 +163,19 @@ $( document ).ready(function() {
             {% endif %}
           </dd>
           {% endif %}
-          {% if report.AvailableDiskSpace %}
           {% if machine.hd_percent != '0' %}
           <dt>Free disk space:</dt>
-          <dd>{{ report.AvailableDiskSpace|human_readable_size:False }} / {{ machine.hd_total|human_readable_size:False }} ({{ machine.hd_percent }}% used)</dd>
+          <dd>
+          {% if machine.os_family == 'Darwin' %}
+            {{ machine.hd_space|human_readable_size:False }}
+          {% else %}
+            {{ machine.hd_space|human_readable_size }}
+          {% endif %} ({{ machine.hd_percent }}% used)
+          </dd>
           {% endif %}
+          {% if machine.hd_total %}
+          <dt>Total disk space:</dt>
+          <dd>{{ machine.hd_total|human_readable_size:False }}</dd>
           {% endif %}
           {% if uptime %}
           <dt>Uptime:</dt>

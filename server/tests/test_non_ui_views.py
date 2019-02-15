@@ -25,7 +25,7 @@ from server.models import (
 class CheckinDataTest(TestCase):
     """Functional tests for client checkins."""
 
-    fixtures = ['machine_group_fixture.json', 'business_unit_fixture.json', 'machine_fixture.json']
+    fixtures = ['machine_group_fixture.json', 'business_unit_fixture.json', 'machine_fixtures.json']
 
     def setUp(self):
         settings.BASIC_AUTH = False
@@ -148,7 +148,7 @@ class CheckinDataTest(TestCase):
 class BrokenClientTest(TestCase):
     """Functional tests for broken client checkins."""
 
-    fixtures = ['machine_group_fixture.json', 'business_unit_fixture.json', 'machine_fixture.json']
+    fixtures = ['machine_group_fixture.json', 'business_unit_fixture.json', 'machine_fixtures.json']
 
     def setUp(self):
         settings.BASIC_AUTH = False
@@ -173,7 +173,7 @@ class BrokenClientTest(TestCase):
 class CheckinFactTest(TestCase):
     """Functional tests for client checkins for Fact/HistoricalFact."""
 
-    fixtures = ['machine_group_fixture.json', 'business_unit_fixture.json', 'machine_fixture.json']
+    fixtures = ['machine_group_fixture.json', 'business_unit_fixture.json', 'machine_fixtures.json']
 
     def setUp(self):
         settings.BASIC_AUTH = False
@@ -244,7 +244,7 @@ class CheckinFactTest(TestCase):
 class CheckinManagedItemTest(TestCase):
     """Functional tests for client checkins for ManagedItem."""
 
-    fixtures = ['machine_group_fixture.json', 'business_unit_fixture.json', 'machine_fixture.json']
+    fixtures = ['machine_group_fixture.json', 'business_unit_fixture.json', 'machine_fixtures.json']
 
     def setUp(self):
         settings.BASIC_AUTH = False
@@ -327,7 +327,7 @@ class CheckinManagedItemTest(TestCase):
 class CheckinMunkiItemTest(TestCase):
     """Functional tests for client checkins for Munki."""
 
-    fixtures = ['machine_group_fixture.json', 'business_unit_fixture.json', 'machine_fixture.json']
+    fixtures = ['machine_group_fixture.json', 'business_unit_fixture.json', 'machine_fixtures.json']
 
     def setUp(self):
         settings.BASIC_AUTH = False
@@ -434,7 +434,7 @@ class CheckinMunkiItemTest(TestCase):
 class CheckinHelperTest(TestCase):
     """Tests for helper functions that support the checkin view."""
 
-    fixtures = ['machine_group_fixture.json', 'business_unit_fixture.json', 'machine_fixture.json']
+    fixtures = ['machine_group_fixture.json', 'business_unit_fixture.json', 'machine_fixtures.json']
 
     def setUp(self):
         self.report = {'test': 'I heard you were dead'}

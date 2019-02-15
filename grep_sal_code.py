@@ -2,6 +2,7 @@
 
 
 import argparse
+import os
 import subprocess
 import sys
 
@@ -16,8 +17,11 @@ def main():
     # so we'll build up a string.
     cmd = 'grep -R --colour=always '
     cmd += " ".join("--exclude='{}'".format(i) for i in EXCLUSIONS)
-    for option in args.options or []:
+    options = args.options if args.options else []
+    for option in options:
         cmd += ' -{}'.format(option)
+    if args.edit and 'l' not in options:
+        cmd += ' -l'
     cmd += " '{}'".format(r'\|'.join(args.search_terms))
     cmd += ' *'
 
@@ -28,11 +32,16 @@ def main():
         results = ''
     print results.strip()
 
+    if args.edit:
+        subprocess.check_call([os.getenv('EDITOR')] + [l.strip() for l in results.splitlines()])
+
 
 def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument('search_terms', nargs='*')
     parser.add_argument('--options', nargs='*')
+    msg = 'Open files with matches in {}.'.format(os.getenv('EDITOR') or '<No EDITOR set>')
+    parser.add_argument('--edit', action='store_true', help=msg)
     return parser.parse_args()
 
 

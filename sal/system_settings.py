@@ -1,4 +1,6 @@
 import os
+
+
 DEBUG = False
 APPEND_SLASH = True
 PROJECT_DIR = os.path.abspath(

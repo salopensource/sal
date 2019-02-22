@@ -26,7 +26,10 @@ def human_readable_size(size_in_bytes, base2=True):
         str rounded to 1 precision and converted to desired sizing
         units.
     """
-    size_in_bytes = float(size_in_bytes)
+    try:
+        size_in_bytes = float(size_in_bytes)
+    except ValueError:
+        size_in_bytes = 0
     base, suffix = (1024.0, 'iB') if base2 else (1000.0, 'B')
     # Build an iterable of suffixes to work through.
     for x in ['B'] + list(map(lambda x: x + suffix, list('kMGTP'))):

@@ -251,91 +251,26 @@ $( document ).ready(function() {
     <div id="accordion" class="panel-group">
       <div class="panel panel-default">
         <div class="panel-body">
+
           <!-- Nav tabs -->
           <ul class ="nav nav-pills">
-            {% if report.ManagedInstalls|length %}
-            <li class="active" role="presentation"><a aria-expanded="true" data-toggle="tab" href="#tab2-1">Managed Installs</a></li>
-            {% endif %}
-            <!-- Dropdown Menu -->
-            <li class="dropdown" role="presentation">
-              <a class="dropdown-toggle" data-toggle="dropdown" href="#" role="button" aria-haspopup="true">Pending Installs <span class="caret"></span></a>
-              <ul class="dropdown-menu" role="menu">
-                {% if report.AppleUpdates|length %}
-                <li><a data-toggle="tab" href="#dd1"><i class="fa fa-info-circle color-yellow"></i>   Apple Updates</a></li>
-                {% else %}
-                <li class="disabled"><a href="#"><i class="fa fa-check-circle color-green"></i>   No Apple Updates</a></li>
-                {% endif %}
-                {% if report.ItemsToInstall|length %}
-                <li><a data-toggle="tab" href="#dd2"><i class="fa fa-info-circle color-yellow"></i>   Active Installs</a></li>
-                {% else %}
-                <li class="disabled"><a href="#"><i class="fa fa-check-circle color-green"></i>   No Active Installs</a></li>
-                {% endif %}
-                {% if report.ItemsToRemove|length %}
-                <li><a data-toggle="tab" href="#dd3"><i class="fa fa-info-circle color-yellow"></i>   Active Removals</a></li>
-                {% else %}
-                <li class="disabled"><a href="#"><i class="fa fa-check-circle color-green"></i>   No Active Removals</a></li>
-                {% endif %}
-                {% if report.ProblemInstalls|length %}
-                <li><a data-toggle="tab" href="#dd4"><i class="fa fa-info-circle color-yellow"></i>   Problem Installs</a></li>
-                {% else %}
-                <li class="disabled"><a href="#"><i class="fa fa-check-circle color-green"></i>   No Problem Installs</a></li>
-                {% endif %}
-              </ul>
+            {% for management_source, items in managed_items.items %}
+            <li {% if management_source == first_management_source %}class="active" {% else %}""{% endif %}role="presentation">
+              <a aria-expanded="true" data-toggle="tab" href="#{{ management_source }}">{{ management_source|title }}</a>
             </li>
-            <!-- /.dropdown -->
-            {% if report.managed_uninstalls_list|length %}
-            <li role="presentation"><a data-toggle="tab" href="#tab2-2">Managed Uninstalls</a></li>
-            {% endif %}
+            {% endfor %}
           </ul>
+
           <!-- Tab panes -->
           <div class="tab-content">
-            <div class="tab-pane fade" id="dd1">
-            {% with title='Apple Updates' pkglist=report.AppleUpdates type='apple' %}
-              {% include 'server/pkgtable.html' %}
-            {% endwith %}
-            </div>
-            <div class="tab-pane fade" id="dd2">
-              {% with title='Active Installs' pkglist=report.ItemsToInstall type='active_installs' %}
-                {% include 'server/pkgtable.html' %}
+            {% for management_source, items in managed_items.items %}
+            <!-- not sure about this active test -->
+            <div class="tab-pane {% if first_management_source == management_source %}in active{% endif %} fade" id="{{ management_source }}">
+              {% with title=management_source pkglist=items type='managed_items' %}
+                {% include 'server/managed_item_table.html' %}
               {% endwith %}
             </div>
-            <div class="tab-pane fade" id="dd3">
-              {% with title='Active Removals' pkglist=report.ItemsToRemove type='active_removals' %}
-                {% include 'server/pkgtable.html' %}
-              {% endwith %}
-            </div>
-            <div class="tab-pane fade" id="dd4">
-              {% with title='Problem Installs' pkglist=report.ProblemInstalls type='problem_installs' %}
-                {% include 'server/pkgtable.html' %}
-              {% endwith %}
-            </div>
-            <div class="tab-pane fade active in" id="tab2-1">
-              {% with title='Managed Installs' pkglist=report.ManagedInstalls type='managed_installs' %}
-                {% include 'server/pkgtable.html' %}
-              {% endwith %}
-            </div>
-            <div class="tab-pane fade" id="tab2-2">
-              <table class="client_info table table-striped table-condensed">
-                <thead>
-                  <tr>
-                    <th>Name</th>
-                    <th>Status</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {% for item in report.managed_uninstalls_list %}
-                  <tr>
-                    <td>{{ item }}</td>
-                    {% if item in report.RemovedItems %}
-                    <td>not installed</td>
-                    {% else %}
-                    <td class='error'>installed</td>
-                    {% endif %}
-                  </tr>
-                  {% endfor %}
-                </tbody>
-              </table>
-            </div>
+            {% endfor %}
           </div>
         </div>
         <!-- /.panel-body -->
@@ -344,7 +279,8 @@ $( document ).ready(function() {
     </div>
   </div>
 </div>
-  {% endblock %}
+{% endblock %}
+
   {% block modal %}
   {% for item in report.ManagedInstalls %}
   <!-- {{item.name}}-{{item.version|cut:"."}} ManagedInstalls Modal -->

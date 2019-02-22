@@ -1,0 +1,24 @@
+{% load dashboard_extras %}
+
+{% if items|length %}
+<table class="client_info table table-striped table-condensed">
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Status</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for item in items|dictsort:"name" %}
+    <tr>
+      <td>{{ item.name }}</td>
+      <td>
+        {% if item.status == 'PRESENT' %}
+        {% endif %}
+        <a href="" class="btn {{ statuses|dict_lookup:item.status }}" data-toggle="modal" data-backdrop="true">{{ item.status|title }}</a>
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endif %}

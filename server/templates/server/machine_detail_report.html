@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% load dashboard_extras %}
+
+{% block title %}Sal - {{ machine.hostname }}{% endblock %}
+
+{% block nav %}
+{% include 'server/machine_detail_nav.html' %}
+{% endblock %}
+
+{% block content %}
+
+<div class="panel panel-default">
+{% if title %}
+  <div class="panel-heading">
+    {{ title }}
+  </div>
+{% endif %}
+
+<div class="panel-body">
+  <pre>
+  {{ report }}
+  </pre>
+</div>
+{% endblock %}

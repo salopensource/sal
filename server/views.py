@@ -11,7 +11,8 @@ from sal.decorators import required_level, ProfileLevel, access_required, is_glo
 from server.forms import (BusinessUnitForm, EditUserBusinessUnitForm, EditBusinessUnitForm,
                           MachineGroupForm, EditMachineGroupForm, NewMachineForm)
 from server.models import (BusinessUnit, MachineGroup, Machine, UserProfile, Report, Condition,
-                           UpdateHistory, Plugin, PluginScriptSubmission, PluginScriptRow)
+                           UpdateHistory, Plugin, PluginScriptSubmission, PluginScriptRow,
+                           ManagedItem)
 from server.non_ui_views import process_plugin
 from server import utils
 
@@ -22,6 +23,14 @@ if settings.DEBUG:
 
 # The database probably isn't going to change while this is loaded.
 IS_POSTGRES = utils.is_postgres()
+
+# Bootstrap button classes for managed item statuses.
+STATUSES = {
+    'PRESENT': 'btn-info',
+    'ABSENT': 'btn-danger',
+    'PENDING': 'btn-warning',
+    'ERROR': 'btn-danger',
+    'UNKNOWN': 'btn-default',}
 
 
 @login_required
@@ -409,11 +418,24 @@ def machine_detail(request, **kwargs):
 
     output = utils.get_machine_detail_placeholder_markup(machine)
 
+    # TODO: Move to an appropriate place
+    from collections import defaultdict
+    managed_items_queryset = ManagedItem.objects.filter(machine=machine)
+    managed_items = defaultdict(list)
+    for item in managed_items_queryset:
+        managed_items[item.management_source.name].append(item)
+
+    sources = sorted([s for s in managed_items])
+    first_management_source = sources[0] if sources else ''
+
     context = {
         'user': request.user,
         'machine_group': machine_group,
         'business_unit': business_unit,
         'report': report,
+        'managed_items': dict(managed_items),
+        'first_management_source': first_management_source,
+        'statuses': STATUSES,
         'machine': machine,
         'ip_address': ip_address,
         'uptime': uptime,

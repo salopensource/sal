@@ -62,6 +62,7 @@ $( document ).ready(function() {
         <b>Report</b> :: {{ machine.last_checkin|date:"Y-m-d H:i" }}
       </span>
     </p>
+
     <div class="panel panel-default">
       <div class="panel-body">
         <dl class="dl-horizontal" >
@@ -110,6 +111,7 @@ $( document ).ready(function() {
           </dl>
       </div>
     </div>
+
     <div class="panel panel-default">
       <div class="panel-body">
         <dl class="dl-horizontal">
@@ -246,6 +248,7 @@ $( document ).ready(function() {
 
   </div>
 
+  <!-- Managed Items -->
   <div class="col-md-7">
     <div class="row">&nbsp;</div>
     <div id="accordion" class="panel-group">
@@ -254,34 +257,47 @@ $( document ).ready(function() {
 
           <!-- Nav tabs -->
           <ul class ="nav nav-pills">
-            {% for management_source, items in managed_items.items %}
+          {% for management_source, items in managed_items.items %}
+            {% if items|length == 1 %}
             <li {% if management_source == first_management_source %}class="active" {% else %}""{% endif %}role="presentation">
-              <a aria-expanded="true" data-toggle="tab" href="#{{ management_source }}">{{ management_source|title }}</a>
-            </li>
+            {% for item_type in items %}
+            <a aria-expanded="true" data-toggle="tab" href="#{{ item_type|slugify }}">{{ management_source|title }}</a>
             {% endfor %}
+            </li>
+            {% else %}
+            <li class="dropdown{% if management_source == first_management_source %} active{% endif %}" role="presentation">
+              <a class="dropdown-toggle" role="button" aria-haspopup="true" data-toggle="dropdown" href="#">{{ management_source|title }} <span class="caret"></span></a>
+              <ul class="dropdown-menu" role="menu">
+              {% for item_type in items %}
+                <li><a data-toggle="tab" href="#{{ item_type|slugify }}"><i class="fa fa-info-circle color-green"></i>   {{ item_type|title }}</a></li>
+              {% endfor %}
+              </ul>
+            </li>
+            {% endif %}
+          {% endfor %}
           </ul>
 
           <!-- Tab panes -->
           <div class="tab-content">
-            {% for management_source, items in managed_items.items %}
-            <!-- not sure about this active test -->
-            <div class="tab-pane {% if first_management_source == management_source %}in active{% endif %} fade" id="{{ management_source }}">
-              {% with title=management_source pkglist=items type='managed_items' %}
-                {% include 'server/managed_item_table.html' %}
-              {% endwith %}
-            </div>
+          {% for management_source, items in managed_items.items %}
+            {% for key, values in items.items %}
+              <div class="tab-pane {% if first_management_source == management_source %}in active{% endif %} fade" id="{{ key|slugify }}">
+                {% with title=management_source items=values type=key %}
+                  {% include 'server/managed_item_table.html' %}
+                {% endwith %}
+              </div><!-- /.tab-pane -->
             {% endfor %}
-          </div>
-        </div>
-        <!-- /.panel-body -->
-      </div>
-      <!-- /.panel -->
-    </div>
-  </div>
-</div>
+          {% endfor %}
+          </div><!-- /.tab-content -->
+
+        </div><!-- /.panel-body -->
+      </div><!-- /.panel -->
+    </div> <!-- /.pane-group -->
+  </div> <!-- /.row -->
+</div> <!-- /.col -->
 {% endblock %}
 
-  {% block modal %}
+{% block modal %}
   {% for item in report.ManagedInstalls %}
   <!-- {{item.name}}-{{item.version|cut:"."}} ManagedInstalls Modal -->
   <div class="modal fade in" id="ManagedInstallsModal{{item.name}}{{item.version|cut:"."}}" tabindex="-1" role="dialog" aria-labelledby="labelManagedInstallsModal{{item.name}}{{item.version|cut:"."}}" aria-hidden="true">

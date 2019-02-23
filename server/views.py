@@ -1,4 +1,6 @@
+import json
 import re
+from collections import defaultdict
 
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
@@ -26,9 +28,9 @@ IS_POSTGRES = utils.is_postgres()
 
 # Bootstrap button classes for managed item statuses.
 STATUSES = {
-    'PRESENT': 'btn-info',
+    'PRESENT': 'btn-success',
     'ABSENT': 'btn-danger',
-    'PENDING': 'btn-warning',
+    'PENDING': 'btn-info',
     'ERROR': 'btn-danger',
     'UNKNOWN': 'btn-default',}
 
@@ -418,15 +420,30 @@ def machine_detail(request, **kwargs):
 
     output = utils.get_machine_detail_placeholder_markup(machine)
 
-    # TODO: Move to an appropriate place
-    from collections import defaultdict
+    # Process machine's managed items for display in the template.
     managed_items_queryset = ManagedItem.objects.filter(machine=machine)
-    managed_items = defaultdict(list)
+    managed_items = defaultdict(dict)
     for item in managed_items_queryset:
-        managed_items[item.management_source.name].append(item)
+        if item.data:
+            try:
+                data = json.loads(item.data)
+            except json.decoder.JSONDecodeError:
+                data = {}
 
+        # Structure is a dict with keys for each source; each source
+        # will then have as many sub types as ManagedItem.data "types".
+        # The final structure is a list of ManagedItems.
+        data_type = data.get('type')
+        if data_type not in managed_items[item.management_source.name]:
+            managed_items[item.management_source.name][data.get('type')] = []
+        managed_items[item.management_source.name][data.get('type')].append(item)
+
+    # Determine which tab to display first.
     sources = sorted([s for s in managed_items])
-    first_management_source = sources[0] if sources else ''
+    if 'munki' in sources:
+        first_management_source = 'munki'
+    else:
+        first_management_source = sources[0] if sources else ''
 
     context = {
         'user': request.user,

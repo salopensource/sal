@@ -439,11 +439,14 @@ def machine_detail(request, **kwargs):
         managed_items[item.management_source.name][data.get('type')].append(item)
 
     # Determine which tab to display first.
-    sources = sorted([s for s in managed_items])
-    if 'munki' in sources:
-        first_management_source = 'munki'
+    # TODO: Do we just use the first, or configure for each OS / source?
+    if machine.os_family == 'Darwin':
+        initial_source = 'munki'
+        active_table = 'ManagedInstalls'
     else:
-        first_management_source = sources[0] if sources else ''
+        sources = sorted([s for s in managed_items])
+        initial_source = sources[0] if sources else ''
+        active_table = list(managed_items[initial_source].keys())[0] if initial_source else ''
 
     context = {
         'user': request.user,
@@ -451,7 +454,8 @@ def machine_detail(request, **kwargs):
         'business_unit': business_unit,
         'report': report,
         'managed_items': dict(managed_items),
-        'first_management_source': first_management_source,
+        'initial_source': initial_source,
+        'active_table': active_table,
         'statuses': STATUSES,
         'machine': machine,
         'ip_address': ip_address,

@@ -259,17 +259,17 @@ $( document ).ready(function() {
           <ul class ="nav nav-pills">
           {% for management_source, items in managed_items.items %}
             {% if items|length == 1 %}
-            <li {% if management_source == first_management_source %}class="active" {% else %}""{% endif %}role="presentation">
+            <li {% if management_source == initial_source %}class="active" {% endif %}role="presentation">
             {% for item_type in items %}
-            <a aria-expanded="true" data-toggle="tab" href="#{{ item_type|slugify }}">{{ management_source|title }}</a>
+            <a aria-expanded="true" data-toggle="tab" href="#{{ item_type|slugify }}">{{ management_source }}</a>
             {% endfor %}
             </li>
             {% else %}
-            <li class="dropdown{% if management_source == first_management_source %} active{% endif %}" role="presentation">
-              <a class="dropdown-toggle" role="button" aria-haspopup="true" data-toggle="dropdown" href="#">{{ management_source|title }} <span class="caret"></span></a>
+            <li class="dropdown{% if management_source == initial_source %} active{% endif %}" role="presentation">
+              <a class="dropdown-toggle" role="button" aria-haspopup="true" data-toggle="dropdown" href="#">{{ management_source }} <span class="caret"></span></a>
               <ul class="dropdown-menu" role="menu">
               {% for item_type in items %}
-                <li><a data-toggle="tab" href="#{{ item_type|slugify }}"><i class="fa fa-info-circle color-green"></i>   {{ item_type|title }}</a></li>
+                <li><a data-toggle="tab" href="#{{ item_type|slugify }}"><i class="fa fa-info-circle color-green"></i>   {{ item_type }}</a></li>
               {% endfor %}
               </ul>
             </li>
@@ -281,7 +281,7 @@ $( document ).ready(function() {
           <div class="tab-content">
           {% for management_source, items in managed_items.items %}
             {% for key, values in items.items %}
-              <div class="tab-pane {% if first_management_source == management_source %}in active{% endif %} fade" id="{{ key|slugify }}">
+              <div class="tab-pane {% if active_table == key %}in active{% endif %} fade" id="{{ key|slugify }}">
                 {% with title=management_source items=values type=key %}
                   {% include 'server/managed_item_table.html' %}
                 {% endwith %}

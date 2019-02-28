@@ -298,6 +298,47 @@ $( document ).ready(function() {
 {% endblock %}
 
 {% block modal %}
+  <!-- ManagedItem Modals -->
+  {% for management_source, subtypes in managed_items.items %}
+    {% for subtype, values in subtypes.items %}
+      {% for item in values %}
+        <!-- {{ management_source.name }}{{ subtype }}-{{ item.name }} Modal -->
+        <div class="modal fade in" id="ManagedItemsModal-{{ management_source|slugify }}-{{ subtype|slugify }}-{{ item.name|slugify }}" tabindex="-1" role="dialog" aria-labelledby="labelManagedItemsModal-{{ management_source|slugify }}-{{ subtype|slugify }}-{{ item.name|slugify }}" aria-hidden="true">
+          <div class="modal-dialog" style="width: 60%">
+          <!-- modal-content -->
+            <div class="modal-content">
+              <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                <h4 class="modal-title" id="labelManagedItemsModal-{{ management_source|slugify }}-{{ subtype|slugify }}-{{ item.name|slugify }}">Details for {{ item.name }}</h4>
+              </div>
+            <div class="modal-body">
+            {% if item.data %}
+                <dl class="dl-horizontal">
+                  <dt>Date managed</dt>
+                  <dd>{{ item.date_managed }}</dd>
+                  <dt>Status</dt>
+                  <dd>{{ item.status }}</dd>
+                  {% for key, value in item.data|json_items %}
+                  <dt>{{ key }}</dt>
+                  <dd>{{ value }}</dd>
+                  {% endfor %}
+                </dl>
+            {% else %}
+              <p>No additional data available.</p>
+            {% endif %}
+              <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+            </div>
+          </div>
+          <!-- /.modal-content -->
+        </div>
+        <!-- /.modal-dialog -->
+      </div>
+      <!-- /.modal -->
+      {% endfor %}
+    {% endfor %}
+  {% endfor %}
+
+  <!-- ManagedInstall history modals -->
   {% for item in report.ManagedInstalls %}
   <!-- {{item.name}}-{{item.version|cut:"."}} ManagedInstalls Modal -->
   <div class="modal fade in" id="ManagedInstallsModal{{item.name}}{{item.version|cut:"."}}" tabindex="-1" role="dialog" aria-labelledby="labelManagedInstallsModal{{item.name}}{{item.version|cut:"."}}" aria-hidden="true">
@@ -333,6 +374,8 @@ $( document ).ready(function() {
   </div>
   <!-- /.modal -->
   {% endfor %}
+
+  <!-- Delete machine Modal -->
   {% if user.userprofile.level == 'GA' or user.userprofile.level == 'RW' %}
   <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
     <div class="modal-dialog">
@@ -374,6 +417,7 @@ $( document ).ready(function() {
     <!-- /.modal-dialog -->
   </div>
   <!-- /.modal -->
+  
   <!-- Warning Modal -->
   <div class="modal fade in" id="WarningModal" tabindex="-1" role="dialog" aria-labelledby="theWarningModal" aria-hidden="true">
     <div class="modal-dialog" style="width: 60%">

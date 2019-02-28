@@ -1,3 +1,4 @@
+import json
 import time
 from distutils.version import LooseVersion
 
@@ -116,3 +117,8 @@ def next(value, arg):
         return value[int(arg) + 1]
     except Exception:
         return None
+
+
+@register.filter
+def json_items(s):
+    return json.loads(s).items()

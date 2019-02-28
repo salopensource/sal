@@ -84,13 +84,6 @@ if getenv('DOCKER_SAL_DISPLAY_NAME'):
 else:
     DISPLAY_NAME = 'Sal'
 
-# Set the default machine group key from the $DOCKER_SAL_DEFAULT_MACHINE_GROUP_KEY env var, or
-# use the default (unassigned)
-if getenv('DOCKER_SAL_DEFAULT_MACHINE_GROUP_KEY'):
-    DEFAULT_MACHINE_GROUP_KEY = getenv('DOCKER_SAL_DEFAULT_MACHINE_GROUP_KEY')
-else:
-    DEFAULT_MACHINE_GROUP_KEY = None
-
 try:
     if getenv('DOCKER_SAL_ADD_TO_ALL_BUSINESS_UNITS').lower() == 'true':
         ADD_TO_ALL_BUSINESS_UNITS = True

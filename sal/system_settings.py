@@ -76,10 +76,6 @@ HIDE_PLUGIN_FROM_MACHINE_GROUP = {
     # 'DiskSpace':['1']
 }
 
-# If you want to have a default machine group, define this to the key of
-# that group.
-# DEFAULT_MACHINE_GROUP_KEY = ''
-
 # Facts which will have historical data kept in addition to the most
 # recent instanct of that fact.
 HISTORICAL_FACTS = [

@@ -240,7 +240,8 @@ def checkin(request):
         return HttpResponseBadRequest('Checkin JSON is missing required "Machine" key "serial"!')
 
     machine = process_checkin_serial(serial)
-    machine.machine_group = get_checkin_machine_group(submission['Sal'].get('key'))
+    machine_group = get_object_or_404(MachineGroup, key=submission['Sal'].get('key'))
+    machine.machine_group = machine_group
     machine.save()
 
     clean_related(machine)
@@ -288,12 +289,6 @@ def process_checkin_serial(serial):
     else:
         machine = get_object_or_404(Machine, serial=serial)
     return machine
-
-
-def get_checkin_machine_group(key):
-    if key in (None, 'None'):
-        key = server.utils.get_django_setting('DEFAULT_MACHINE_GROUP_KEY')
-    return get_object_or_404(MachineGroup, key=key)
 
 
 def clean_related(machine):

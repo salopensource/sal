@@ -61,6 +61,15 @@ class CheckinDataTest(TestCase):
         self.assertEqual(
             response.content, b'Checkin JSON is missing required "Machine" key "serial"!')
 
+    def test_checkin_data_missing_required_machine_group_key(self):
+        """Ensure that checkins with no machine_gruop key get a 400 response."""
+        machine = Machine.objects.get(serial='C0DEADBEEF')
+        data = json.dumps({
+            'Machine': {'serial': machine.serial},
+            'Sal': {'key': 'Not a key'}})
+        response = self.client.post(self.url, data=data, content_type=self.content_type)
+        self.assertEqual(response.status_code, 404)
+
     def test_checkin_incorrect_content_type(self):
         """Ensure checkin only accepts JSON encoded data."""
         # Send a form-encoded request.
@@ -464,18 +473,3 @@ class CheckinHelperTest(TestCase):
     def test_no_add_new_machine(self):
         """Ensure 404 is raised when no ADD_NEW_MACHINES."""
         self.assertRaises(Http404, non_ui_views.process_checkin_serial, 'NotInDB')
-
-    def test_get_checkin_machine_group(self):
-        """Test basic function."""
-        group = MachineGroup.objects.get(pk=1)
-        self.assertEqual(non_ui_views.get_checkin_machine_group(group.key), group)
-
-    def test_get_checkin_machine_group_bad_key(self):
-        """Test basic function."""
-        self.assertRaises(Http404, non_ui_views.get_checkin_machine_group, 'NotInDB')
-
-    def test_get_checkin_machine_group_default(self):
-        """Test basic function."""
-        group = MachineGroup.objects.get(pk=1)
-        settings.DEFAULT_MACHINE_GROUP_KEY = group.key
-        self.assertEqual(non_ui_views.get_checkin_machine_group(None), group)

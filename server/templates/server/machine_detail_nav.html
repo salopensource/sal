@@ -3,6 +3,4 @@
 {% for management_source in fact_sources %}
   <li><a href="{% url 'machine_detail_facts' machine.id management_source %}"><i class="fa fa-bookmark fa-fw"></i> {{ management_source }} Facts</a></li>
 {% endfor %}
-<li><a href="{% url 'machine_detail_facter' machine.id %}"><i class="fa fa-bookmark fa-fw"></i> Facter</a></li>
-<li><a href="{% url 'machine_detail_conditions' machine.id %}"><i class="fa fa-bookmark-o fa-fw"></i> Conditions</a></li>
 <li><a href="{% url 'application_list' group_type='machine' group_id=machine.id %}"><i class="fa fa-list-alt fa-fw"></i> Application Inventory</a></li>

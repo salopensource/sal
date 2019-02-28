@@ -12,10 +12,6 @@ urlpatterns = [
     url(r'^machinegroup/(?P<group_id>.+)/', group_dashboard, name='group_dashboard'),
     url(r'^machine_detail/facts/(?P<machine_id>.+)/(?P<management_source>.+)/',
         machine_detail_facts, name='machine_detail_facts'),
-    url(r'^machine_detail/facter/(?P<machine_id>.+)/', machine_detail_facter,
-        name='machine_detail_facter'),
-    url(r'^machine_detail/conditions/(?P<machine_id>.+)/',
-        machine_detail_conditions, name='machine_detail_conditions'),
     url(r'^machine_detail/(?P<machine_id>.+)/', machine_detail, name='machine_detail'),
 
     # Checkin routes.

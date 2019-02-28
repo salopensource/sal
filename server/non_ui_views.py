@@ -240,7 +240,7 @@ def checkin(request):
         return HttpResponseBadRequest('Checkin JSON is missing required "machine" key "serial"!')
 
     machine = process_checkin_serial(serial)
-    machine.machine_group = get_checkin_machine_group(submission['sal'].get('key'))
+    machine.machine_group = get_checkin_machine_group(submission['Sal'].get('key'))
     machine.save()
 
     clean_related(machine)
@@ -321,9 +321,9 @@ def process_management_submission(source, management_data, machine, object_queue
     # The key should be the same name used in the submission for ManagementSource.
     # The func's signature must be f(management_data: dict, machine: Machine)
     processing_funcs = {
-        'machine': process_machine_submission,
-        'sal': process_sal_submission,
-        'munki': process_munki_extra_keys}
+        'Machine': process_machine_submission,
+        'Sal': process_sal_submission,
+        'Munki': process_munki_extra_keys}
 
     processing_func = processing_funcs.get(source.name)
     if processing_func:

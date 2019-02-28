@@ -231,13 +231,13 @@ def checkin(request):
         submission = json.loads(request.body.decode())
     except json.JSONDecodeError:
         return HttpResponseBadRequest('Checkin has invalid JSON!')
-    if not isinstance(submission, dict) or 'machine' not in submission:
-        return HttpResponseBadRequest('Checkin JSON is missing required key "machine"!')
+    if not isinstance(submission, dict) or 'Machine' not in submission:
+        return HttpResponseBadRequest('Checkin JSON is missing required key "Machine"!')
 
     # Process machine submission information.
-    serial = submission['machine'].get('serial')
+    serial = submission['Machine'].get('serial')
     if not serial:
-        return HttpResponseBadRequest('Checkin JSON is missing required "machine" key "serial"!')
+        return HttpResponseBadRequest('Checkin JSON is missing required "Machine" key "serial"!')
 
     machine = process_checkin_serial(serial)
     machine.machine_group = get_checkin_machine_group(submission['Sal'].get('key'))

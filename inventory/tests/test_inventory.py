@@ -8,7 +8,8 @@ from server.models import BusinessUnit, MachineGroup, Machine, User, UserProfile
 
 class AccessTestCase(TestCase):
     """Ensure access decorators are limiting access correctly"""
-    fixtures = ['machine_fixtures.json', 'business_unit_fixture.json', 'machine_group_fixture.json']
+    fixtures = [
+        'machine_fixtures.json', 'business_unit_fixtures.json', 'machine_group_fixtures.json']
 
     def setUp(self):
         self.test_user = User.objects.create(username='test')
@@ -62,7 +63,7 @@ class AccessTestCase(TestCase):
 class ApplicationDetailTestCase(TestCase):
     """Exercise the application detail view"""
     fixtures = ['application_fixture.json', 'machine_fixtures.json',
-                'business_unit_fixture.json', 'machine_group_fixture.json']
+                'business_unit_fixtures.json', 'machine_group_fixtures.json']
 
     def setUp(self):
         self.test_user = User.objects.create(username='test')

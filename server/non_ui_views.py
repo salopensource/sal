@@ -269,7 +269,7 @@ def checkin(request):
         # If setting is None, it hasn't been configured yet; assume True
         server.utils.send_report()
 
-    msg = f"Sal report submmitted for {machine.serial}"
+    msg = f"Sal report submitted for {machine.serial}"
     logging.debug(msg)
     return HttpResponse(msg)
 

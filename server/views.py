@@ -454,6 +454,7 @@ def machine_detail(request, **kwargs):
         'business_unit': business_unit,
         'report': report,
         'managed_items': dict(managed_items),
+        'fact_sources': get_fact_sources(machine),
         'initial_source': initial_source,
         'active_table': active_table,
         'statuses': STATUSES,
@@ -462,6 +463,54 @@ def machine_detail(request, **kwargs):
         'uptime': uptime,
         'output': output}
     return render(request, 'server/machine_detail.html', context)
+
+
+def get_fact_sources(machine):
+    return (
+        machine
+        .facts
+        .order_by('management_source__name')
+        .values_list('management_source__name', flat=True)
+        .distinct())
+
+
+@login_required
+@access_required(Machine)
+def machine_detail_facts(request, machine_id, management_source, **kwargs):
+    machine = kwargs['instance']
+    table_data = []
+    if machine.facts.count() != 0:
+        facts = machine.facts.filter(management_source__name=management_source)
+        if settings.EXCLUDED_FACTS:
+            facts = facts.exclude(fact_name__in=settings.EXCLUDED_FACTS)
+    else:
+        facts = None
+
+    if facts:
+        for fact in facts:
+            item = {}
+            item['key'] = fact.fact_name
+            item['value'] = fact.fact_data
+            table_data.append(item)
+
+    # table_data = list of dict(key, value)
+
+    key_header = 'Fact'
+    value_header = 'Data'
+    title = f'{ management_source } Facts for { machine.hostname }'
+    page_length = utils.get_setting('datatable_page_length')
+    c = {
+        'user': request.user,
+        'machine': machine,
+        'management_source': management_source,
+        'fact_sources': get_fact_sources(machine),
+        'table_data': table_data,
+        'title': title,
+        'key_header': key_header,
+        'value_header': value_header,
+        'page_length': page_length
+    }
+    return render(request, 'server/machine_detail_facts.html', c)
 
 
 @login_required

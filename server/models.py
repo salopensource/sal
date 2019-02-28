@@ -448,7 +448,7 @@ class Message(models.Model):
     machine = models.ForeignKey(Machine, related_name='messages', on_delete=models.CASCADE)
     management_source = models.ForeignKey(
         ManagementSource, related_name='messages', on_delete=models.CASCADE, null=True)
-    text = models.TextField()
+    text = models.TextField(blank=True, null=True)
     date = models.DateTimeField(default=timezone.now)
     MESSAGE_TYPES = (
         ('WARNING', 'Warning'),

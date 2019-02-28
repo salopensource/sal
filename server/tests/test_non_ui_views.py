@@ -19,7 +19,7 @@ import server.utils
 from server import non_ui_views
 from server.models import (
     MachineGroup, Machine, ManagementSource, ManagedItem, Fact, HistoricalFact, PendingAppleUpdate,
-    UpdateHistory, UpdateHistoryItem)
+    UpdateHistory, UpdateHistoryItem, Message)
 
 
 class CheckinDataTest(TestCase):
@@ -184,7 +184,8 @@ class CheckinFactTest(TestCase):
     """Functional tests for client checkins for Fact/HistoricalFact."""
 
     fixtures = [
-        'machine_group_fixtures.json', 'business_unit_fixtures.json', 'machine_fixtures.json']
+        'machine_group_fixtures.json', 'business_unit_fixtures.json', 'machine_fixtures.json',
+        'fact_fixtures.json']
 
     def setUp(self):
         settings.BASIC_AUTH = False
@@ -250,6 +251,47 @@ class CheckinFactTest(TestCase):
         self.client.post(self.url, data, content_type=self.content_type)
         machine.refresh_from_db()
         self.assertRaises(Fact.DoesNotExist, machine.facts.get, fact_name='ignore_this')
+
+
+class CheckinMessageTest(TestCase):
+    """Functional tests for client checkins for Message."""
+
+    fixtures = [
+        'machine_group_fixtures.json', 'business_unit_fixtures.json', 'machine_fixtures.json',
+        'message_fixtures.json']
+
+    def setUp(self):
+        settings.BASIC_AUTH = False
+        self.client = Client()
+        self.content_type = 'application/json'
+        self.url = '/checkin/'
+        # Avoid sending analytics to the project while testing!
+        server.utils.set_setting('send_data', False)
+
+    def test_messages_cleanup(self):
+        """Test that all of a machine's messages get dropped."""
+        # TODO: There are none at this point, so this test is kind of lame
+        machine = Machine.objects.get(serial='C0DEADBEEF')
+        data = json.dumps({
+            'Machine': {'serial': machine.serial},
+            'Sal': {'key': machine.machine_group.key}})
+        self.client.post(self.url, data, content_type=self.content_type)
+        self.assertEqual(Message.objects.count(), 0)
+
+    def test_messages_created(self):
+        """Test that messages get created."""
+        machine = Machine.objects.get(serial='C0DEADBEEF')
+        text = 'I heard you were dead...'
+        data = json.dumps({
+            'Machine': {'serial': machine.serial},
+            'Sal': {'key': machine.machine_group.key},
+            'Munki': {'messages': [{'text': text, 'message_type': 'WARNING'}]}
+        })
+        self.client.post(self.url, data, content_type=self.content_type)
+        machine.refresh_from_db()
+        message = machine.messages.get(text=text)
+        self.assertEqual(message.text, text)
+        self.assertEqual(message.message_type, 'WARNING')
 
 
 class CheckinManagedItemTest(TestCase):

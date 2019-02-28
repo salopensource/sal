@@ -305,7 +305,7 @@ def clean_related(machine):
         managed_items._raw_delete(managed_items.db)
 
     # Clear out existing Messages and start from scratch.
-    messages = machine.messages_set.all()
+    messages = machine.messages.all()
     if messages.exists():
         messages._raw_delete(messages.db)
 
@@ -458,9 +458,13 @@ def process_managed_items(management_source, management_data, machine, object_qu
 
 def process_messages(management_source, management_data, machine, object_queue):
     now = django.utils.timezone.now()
-    for message_text in management_data.get('messages', []):
+    for message_item in management_data.get('messages', []):
         object_queue['messages'].append(
-            Message(machine=machine, text=message_text, management_source=management_source))
+            Message(
+                machine=machine,
+                management_source=management_source,
+                text=message_item.get('text'),
+                message_type=message_item.get('message_type')))
 
     return object_queue
 

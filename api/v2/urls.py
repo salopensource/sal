@@ -8,7 +8,6 @@ from . import views
 
 router = DefaultRouter()
 router.register(r'business_units', views.BusinessUnitViewSet)
-router.register(r'conditions', views.ConditionViewSet)
 router.register(r'facts', views.FactViewSet)
 router.register(r'inventory', views.InventoryViewSet)
 router.register(r'machine_groups', views.MachineGroupViewSet)

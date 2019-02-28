@@ -156,17 +156,6 @@ def search_machines(search_id, machines, full=False):
                 else:
                     q_object = ~Q(**querystring)
 
-            elif search_row.search_models == 'Condition':
-                model = Condition
-                querystring = {
-                    'conditions__condition_name': search_row.search_field,
-                    'conditions__condition_data%s' % (operator): search_row.search_term
-                }
-                if operator != '':
-                    q_object = Q(**querystring)
-                else:
-                    q_object = ~Q(**querystring)
-
             elif search_row.search_models == 'Application Inventory':
                 model = Application
                 if search_row.search_field == 'Name':
@@ -469,9 +458,6 @@ def edit_search_row(request, search_row_id):
         if search_row.search_models.lower() == 'facter':
             rows = SearchFieldCache.objects.filter(search_model='Facter').distinct()
 
-        elif search_row.search_models.lower() == 'condition':
-            rows = SearchFieldCache.objects.filter(search_model='Condition').distinct()
-
         elif search_row.search_models.lower() == 'external script':
             rows = SearchFieldCache.objects.filter(search_model='External Script').distinct()
 
@@ -527,11 +513,6 @@ def get_fields(request, model):
 
     elif model.lower() == 'facter':
         cache_items = SearchFieldCache.objects.filter(search_model='Facter')
-        for cache_item in cache_items:
-            search_fields.append(cache_item.search_field)
-
-    elif model.lower() == 'condition':
-        cache_items = SearchFieldCache.objects.filter(search_model='Condition')
         for cache_item in cache_items:
             search_fields.append(cache_item.search_field)
 

@@ -12,13 +12,6 @@ class BusinessUnitTest(SalAPITestCase, metaclass=TestGeneratorMeta):
     tests = ['businessunit']
 
 
-class ConditionTest(SalAPITestCase, metaclass=TestGeneratorMeta):
-    fixtures = [
-        'business_unit_fixtures.json', 'machine_group_fixtures.json',
-        'machine_fixtures.json', 'conditions_fixture.json']
-    tests = ['condition']
-
-
 class FactTest(SalAPITestCase, metaclass=TestGeneratorMeta):
     fixtures = [
         'business_unit_fixtures.json', 'machine_group_fixtures.json',

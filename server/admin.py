@@ -95,12 +95,6 @@ class BusinessUnitAdmin(admin.ModelAdmin):
     readonly_fields = (number_of_users, number_of_machine_groups, number_of_machines)
 
 
-class ConditionAdmin(admin.ModelAdmin):
-    list_filter = (BusinessUnitFilter, MachineGroupFilter, 'condition_name')
-    list_display = ('condition_name', 'condition_data', 'machine')
-    search_fields = ('condition_name', 'condition_data', 'machine__hostname')
-
-
 class ManagementSourceAdmin(admin.ModelAdmin):
     list_display = ('name', )
 
@@ -254,7 +248,6 @@ class CustomUserAdmin(admin.ModelAdmin):
 
 admin.site.register(ApiKey, ApiKeyAdmin)
 admin.site.register(BusinessUnit, BusinessUnitAdmin)
-admin.site.register(Condition, ConditionAdmin)
 admin.site.register(Fact, FactAdmin)
 admin.site.register(HistoricalFact, HistoricalFactAdmin)
 admin.site.register(InstalledUpdate, InstalledUpdateAdmin)

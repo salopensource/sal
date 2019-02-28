@@ -30,7 +30,7 @@ def stringify(data):
     """Sanitize collection data into a string format for db storage.
 
     Args:
-        data (str, bool, numeric, dict, list): Condition values to
+        data (str, bool, numeric, dict, list): Values to
             squash into strings.
 
     Returns:

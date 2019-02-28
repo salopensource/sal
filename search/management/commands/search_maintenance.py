@@ -50,7 +50,6 @@ class Command(BaseCommand):
         ]
 
         facts = Fact.objects.values('fact_name').distinct()
-        conditions = Condition.objects.values('condition_name').distinct()
         plugin_sript_rows = PluginScriptRow.objects.values(
             'pluginscript_name', 'submission__plugin').distinct()
         app_versions = Application.objects.values('name', 'bundleid').distinct()
@@ -67,13 +66,6 @@ class Command(BaseCommand):
 
         for fact in facts.iterator():
             cached_item = SearchFieldCache(search_model='Facter', search_field=fact['fact_name'])
-            search_fields.append(cached_item)
-            if server.utils.is_postgres() is False:
-                cached_item.save()
-
-        for condition in conditions.iterator():
-            cached_item = SearchFieldCache(search_model='Condition',
-                                           search_field=condition['condition_name'])
             search_fields.append(cached_item)
             if server.utils.is_postgres() is False:
                 cached_item.save()
@@ -117,7 +109,7 @@ class Command(BaseCommand):
             old_cache.delete()
             SearchFieldCache.objects.bulk_create(search_fields)
 
-        # Build the fact and condition cache
+        # Build the fact cache
         items_to_be_inserted = []
         SearchCache.objects.all().delete()
         if settings.SEARCH_FACTS != []:
@@ -131,23 +123,6 @@ class Command(BaseCommand):
             facts = Fact.objects.filter(qs)
             for fact in facts.iterator():
                 cached_item = SearchCache(machine=fact.machine, search_item=fact.fact_data)
-                items_to_be_inserted.append(cached_item)
-                if not server.utils.is_postgres():
-                    cached_item.save()
-
-        if settings.SEARCH_CONDITIONS != []:
-            queries = []
-            for f in settings.SEARCH_CONDITIONS:
-                queries.append(Q(condition_name=f))
-
-            qs = Q()
-            for query in queries:
-                qs = qs | query
-
-            conditions = Condition.objects.filter(qs)
-            for condition in conditions.iterator():
-                cached_item = SearchCache(machine=condition.machine,
-                                          search_item=condition.condition_data)
                 items_to_be_inserted.append(cached_item)
                 if not server.utils.is_postgres():
                     cached_item.save()

@@ -15,10 +15,10 @@ class RemoteConnection(sal.plugin.DetailPlugin):
         context = self.super_get_context(queryset, **kwargs)
 
         ip_address = ""
-        if queryset.conditions.count() > 0:
+        if queryset.facts.count() > 0:
             try:
-                ip_addresses = queryset.conditions.get(
-                    condition_name="ipv4_address").condition_data
+                ip_addresses = queryset.facts.get(
+                    fact_name="ipv4_address").fact_data
                 # Machines may have multiple IPs. Just use the first.
                 ip_address = ip_addresses.split(",")[0]
             except Machine.DoesNotExist:

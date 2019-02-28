@@ -128,39 +128,6 @@ class Facts(generics.ListAPIView):
         return Fact.objects.filter(fact_name=fact_to_find)
 
 
-class ConditionsMachine(generics.ListAPIView):
-    """
-    Retrieve conditions for a machine
-    """
-    authentication_classes = (ApiKeyAuthentication,)
-    permission_classes = (HasRWPermission,)
-    serializer_class = ConditionSerializer
-
-    def get_queryset(self):
-        """
-        Get all of the conditions for the machine
-        """
-        serial = self.kwargs['serial']
-        machine = Machine.objects.get(serial=serial)
-        return Condition.objects.filter(machine=machine)
-
-
-class Conditions(generics.ListAPIView):
-    """
-    Retrieve a specific condition for all machines
-    """
-    authentication_classes = (ApiKeyAuthentication,)
-    permission_classes = (HasRWPermission,)
-    serializer_class = ConditionWithSerialSerializer
-
-    def get_queryset(self):
-        condition_to_find = self.request.query_params.get('condition', None)
-        if condition_to_find is not None:
-            condition_to_find = condition_to_find.strip()
-
-        return Condition.objects.filter(condition_name=condition_to_find)
-
-
 class MachineGroupView(generics.RetrieveUpdateDestroyAPIView):
     """
     Retrieve details, update or remove a machine group

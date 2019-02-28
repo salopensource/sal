@@ -12,9 +12,8 @@ import sal.plugin
 from sal.decorators import required_level, ProfileLevel, access_required, is_global_admin
 from server.forms import (BusinessUnitForm, EditUserBusinessUnitForm, EditBusinessUnitForm,
                           MachineGroupForm, EditMachineGroupForm, NewMachineForm)
-from server.models import (BusinessUnit, MachineGroup, Machine, UserProfile, Report, Condition,
-                           UpdateHistory, Plugin, PluginScriptSubmission, PluginScriptRow,
-                           ManagedItem)
+from server.models import (BusinessUnit, MachineGroup, Machine, UserProfile, Report, UpdateHistory,
+                           Plugin, PluginScriptSubmission, PluginScriptRow, ManagedItem)
 from server.non_ui_views import process_plugin
 from server import utils
 
@@ -322,9 +321,9 @@ def machine_detail(request, **kwargs):
     report = machine.get_report()
 
     try:
-        ip_address_condition = machine.conditions.get(condition_name='ipv4_address')
-        ip_address = ip_address_condition.condition_data
-    except (Condition.MultipleObjectsReturned, Condition.DoesNotExist):
+        ip_address_fact = machine.facts.get(fact_name='ipv4_address')
+        ip_address = ip_address_fact.fact_data
+    except (Fact.MultipleObjectsReturned, Fact.DoesNotExist):
         ip_address = None
 
     install_results = {}

@@ -223,19 +223,6 @@ class UpdateHistoryItem(models.Model):
         unique_together = (("update_history", "recorded", "status"),)
 
 
-class Condition(models.Model):
-    id = models.BigAutoField(primary_key=True)
-    machine = models.ForeignKey(Machine, related_name='conditions', on_delete=models.CASCADE)
-    condition_name = models.CharField(max_length=255)
-    condition_data = models.TextField()
-
-    def __str__(self):
-        return self.condition_name
-
-    class Meta:
-        ordering = ['condition_name']
-
-
 class PluginScriptSubmission(models.Model):
     id = models.BigAutoField(primary_key=True)
     machine = models.ForeignKey(Machine, on_delete=models.CASCADE)

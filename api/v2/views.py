@@ -21,14 +21,6 @@ class BusinessUnitViewSet(viewsets.ModelViewSet):
     filter_fields = ('name',)
 
 
-class ConditionViewSet(viewsets.ReadOnlyModelViewSet):
-    queryset = Condition.objects.all()
-    serializer_class = ConditionSerializer
-    filter_fields = (
-        'machine__serial', 'machine__hostname', 'machine__id',
-        'condition_name', 'condition_data')
-
-
 class FactViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Fact.objects.all()
     serializer_class = FactSerializer

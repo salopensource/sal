@@ -57,19 +57,6 @@ class FactWithSerialSerializer(serializers.ModelSerializer):
         model = Fact
 
 
-class ConditionSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Condition
-        exclude = ('machine',)
-
-
-class ConditionWithSerialSerializer(serializers.ModelSerializer):
-    machine = SerialSerializer()
-
-    class Meta:
-        model = Condition
-
-
 class PendingAppleUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = PendingAppleUpdate

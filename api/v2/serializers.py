@@ -71,12 +71,6 @@ class SerialSerializer(serializers.ModelSerializer):
         fields = ('id', 'serial',)
 
 
-class ConditionSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Condition
-        fields = '__all__'
-
-
 class PendingAppleUpdateSerializer(serializers.ModelSerializer):
 
     class Meta:

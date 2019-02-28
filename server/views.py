@@ -478,7 +478,6 @@ def get_fact_sources(machine):
 @access_required(Machine)
 def machine_detail_facts(request, machine_id, management_source, **kwargs):
     machine = kwargs['instance']
-    table_data = []
     if machine.facts.count() != 0:
         facts = machine.facts.filter(management_source__name=management_source)
         if settings.EXCLUDED_FACTS:
@@ -486,31 +485,16 @@ def machine_detail_facts(request, machine_id, management_source, **kwargs):
     else:
         facts = None
 
-    if facts:
-        for fact in facts:
-            item = {}
-            item['key'] = fact.fact_name
-            item['value'] = fact.fact_data
-            table_data.append(item)
-
-    # table_data = list of dict(key, value)
-
-    key_header = 'Fact'
-    value_header = 'Data'
-    title = f'{ management_source } Facts for { machine.hostname }'
-    page_length = utils.get_setting('datatable_page_length')
-    c = {
+    title = f'{management_source} Facts for {machine.hostname}'
+    context = {
         'user': request.user,
         'machine': machine,
-        'management_source': management_source,
         'fact_sources': get_fact_sources(machine),
-        'table_data': table_data,
+        'table_data': facts,
         'title': title,
-        'key_header': key_header,
-        'value_header': value_header,
-        'page_length': page_length
+        'page_length': utils.get_setting('datatable_page_length')
     }
-    return render(request, 'server/machine_detail_facts.html', c)
+    return render(request, 'server/machine_detail_facts.html', context)
 
 
 @login_required

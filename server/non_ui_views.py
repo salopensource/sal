@@ -22,9 +22,9 @@ import utils.csv
 from sal.decorators import key_auth_required
 from sal.plugin import (Widget, ReportPlugin, OldPluginAdapter, PluginManager,
                         DEPRECATED_PLUGIN_TYPES)
-from server.models import (Machine, Fact, HistoricalFact, MachineGroup, UpdateHistory,
-                           UpdateHistoryItem, PendingAppleUpdate, Plugin, Report,
-                           MachineDetailPlugin, ManagementSource, ManagedItem)
+from server.models import (Machine, Fact, HistoricalFact, MachineGroup, UpdateHistory, Message,
+                           UpdateHistoryItem, PendingAppleUpdate, Plugin, Report, ManagedItem,
+                           MachineDetailPlugin, ManagementSource)
 
 
 if settings.DEBUG:
@@ -249,7 +249,9 @@ def checkin(request):
     object_queue = {
         'facts': [],
         'historical_facts': [],
-        'managed_items': []}
+        'managed_items': [],
+        'messages': []
+    }
 
     # Pop off the plugin_results, because they are a list instead of
     # a dict.
@@ -302,6 +304,11 @@ def clean_related(machine):
     if managed_items.exists():
         managed_items._raw_delete(managed_items.db)
 
+    # Clear out existing Messages and start from scratch.
+    messages = machine.messages_set.all()
+    if messages.exists():
+        messages._raw_delete(messages.db)
+
 
 def process_management_submission(source, management_data, machine, object_queue):
     """Process a single management source's data
@@ -326,6 +333,7 @@ def process_management_submission(source, management_data, machine, object_queue
 
     object_queue = process_facts(source, management_data, machine, object_queue)
     object_queue = process_managed_items(source, management_data, machine, object_queue)
+    object_queue = process_messages(source, management_data, machine, object_queue)
 
     return object_queue
 
@@ -448,9 +456,19 @@ def process_managed_items(management_source, management_data, machine, object_qu
     return object_queue
 
 
+def process_messages(management_source, management_data, machine, object_queue):
+    now = django.utils.timezone.now()
+    for message_text in management_data.get('messages', []):
+        object_queue['messages'].append(
+            Message(machine=machine, text=message_text, management_source=management_source))
+
+    return object_queue
+
+
 def create_objects(object_queue):
-    """Bulk create Fact, HistoricalFact, and ManagedItem objects."""
-    models = {'facts': Fact, 'historical_facts': HistoricalFact, 'managed_items': ManagedItem}
+    """Bulk create Fact, HistoricalFact, Message, and ManagedItem objects."""
+    models = {'facts': Fact, 'historical_facts': HistoricalFact, 'managed_items': ManagedItem,
+              'messages': Message}
 
     for name, objects in object_queue.items():
         _bulk_create_or_iterate_save(objects, models[name])

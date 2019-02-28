@@ -441,3 +441,19 @@ class HistoricalFact(models.Model):
 
     class Meta:
         ordering = ['fact_name', 'fact_recorded']
+
+
+class Message(models.Model):
+    id = models.BigAutoField(primary_key=True)
+    machine = models.ForeignKey(Machine, related_name='messages', on_delete=models.CASCADE)
+    management_source = models.ForeignKey(
+        ManagementSource, related_name='messages', on_delete=models.CASCADE, null=True)
+    text = models.TextField()
+    date = models.DateTimeField(default=timezone.now)
+    MESSAGE_TYPES = (
+        ('WARNING', 'Warning'),
+        ('ERROR', 'Error'),
+        ('DEBUG', 'Debug'),
+        ('OTHER', 'Other'),
+    )
+    message_type = models.CharField(max_length=7, choices=MESSAGE_TYPES, default='OTHER')

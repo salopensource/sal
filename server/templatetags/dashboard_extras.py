@@ -44,6 +44,14 @@ human_readable_size.is_safe = True
 
 
 @register.filter
+def kibibytes_to_bytes(size_in_kibibytes):
+    try:
+        return float(size_in_kibibytes) * 1024
+    except ValueError:
+        return 0
+
+
+@register.filter
 def cat(arg1, arg2):
     """Concatenate arg1 & arg2."""
     return "{}{}".format(arg1, arg2)

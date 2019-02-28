@@ -311,8 +311,8 @@ $( document ).ready(function() {
                 <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
                 <h4 class="modal-title" id="labelManagedItemsModal-{{ management_source|slugify }}-{{ subtype|slugify }}-{{ item.name|slugify }}">Details for {{ item.name }}</h4>
               </div>
-            <div class="modal-body">
-            {% if item.data %}
+              <div class="modal-body">
+              {% if item.data %}
                 <dl class="dl-horizontal">
                   <dt>Date managed</dt>
                   <dd>{{ item.date_managed }}</dd>
@@ -320,10 +320,23 @@ $( document ).ready(function() {
                   <dd>{{ item.status }}</dd>
                   {% for key, value in item.data|json_items %}
                   <dt>{{ key }}</dt>
-                  <dd>{{ value }}</dd>
+                  <!-- Add other keys to identify as "sizes" to this pipe-delimited string. -->
+                  {% with sizes='installed_size|' %}
+                  <dd>
+                  {% if key in sizes %}
+                    {% if machine.os_family == 'Darwin' %}
+                      {{ value|kibibytes_to_bytes|human_readable_size:False }}
+                    {% else %}
+                      {{ value|kibibytes_to_bytes|human_readable_size:True }}
+                    {% endif %}
+                  {% else %}
+                    {{ value }}
+                  {% endif %}
+                  </dd>
+                  {% endwith %}
                   {% endfor %}
                 </dl>
-            {% else %}
+              {% else %}
               <p>No additional data available.</p>
             {% endif %}
               <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>

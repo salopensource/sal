@@ -71,25 +71,25 @@ $( document ).ready(function() {
             <div class="col-md-4">
               <p style="text-align: center;">
                 <!-- Error Modal Trigger -->
-                {% if report.Errors|length %}
+                {% if messages.ERRORS|length %}
                 <a class="fa fa-exclamation-triangle fa-3x color-red" href="#ErrorModal" data-toggle="modal" data-backdrop="true"></a>
                 {% else %}
                 <i class="fa fa-check-circle fa-3x color-green" style="cursor: default;"></i>
                 {% endif %}
                 <br>
-                {{ report.Errors|length }} Errors
+                {{ messages.ERRORS|length }} Errors
               </p>
             </div>
             <div class="col-md-4">
               <p style="text-align: center;">
                 <!-- Warning Modal Trigger -->
-                {% if report.Warnings|length %}
+                {% if messages.WARNINGS|length %}
                 <a class="fa fa-bell fa-3x color-yellow" href="#WarningModal" data-toggle="modal" data-backdrop="true"></a>
                 {% else %}
                 <i class="fa fa-check-circle fa-3x color-green" style="cursor: default;"></i>
                 {% endif %}
                 <br>
-                {{ report.Warnings|length }} Warnings
+                {{ messages.WARNINGS|length }} Warnings
               </p>
             </div>
             <div class="col-md-4">
@@ -419,7 +419,7 @@ $( document ).ready(function() {
           <h4 class="modal-title" id="theErrorModal">Errors</h4>
         </div>
         <div class="modal-body">
-          <pre class="text-error pre-scrollable">{{ report.Errors|join:'<br>' }}</pre>
+          <pre class="text-error pre-scrollable">{{ messages.ERRORS|join:'<br>' }}</pre>
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
@@ -441,7 +441,7 @@ $( document ).ready(function() {
           <h4 class="modal-title" id="theWarningModal">Warnings</h4>
         </div>
         <div class="modal-body">
-          <pre class="text-warning pre-scrollable">{{ report.Warnings|join:'<br>' }}</pre>
+          <pre class="text-warning pre-scrollable">{{ messages.WARNINGS|join:'<br>' }}</pre>
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>

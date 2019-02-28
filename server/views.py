@@ -447,11 +447,16 @@ def machine_detail(request, **kwargs):
         initial_source = sources[0] if sources else ''
         active_table = list(managed_items[initial_source].keys())[0] if initial_source else ''
 
+    messages = defaultdict(list)
+    for message in machine.messages.all():
+        messages[message.message_type].append(message.text)
+
     context = {
         'user': request.user,
         'machine_group': machine_group,
         'business_unit': business_unit,
         'report': report,
+        'messages': messages,
         'managed_items': dict(managed_items),
         'fact_sources': get_fact_sources(machine),
         'initial_source': initial_source,

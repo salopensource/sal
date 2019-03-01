@@ -390,26 +390,45 @@ class ManagementSource(models.Model):
         return self.name
 
 
+STATUS_CHOICES = (
+    ('PRESENT', 'Present'),
+    ('ABSENT', 'Absent'),
+    ('PENDING', 'Pending'),
+    ('ERROR', 'Error'),
+    ('UNKNOWN', 'Unknown'),
+)
+
+
 class ManagedItem(models.Model):
     id = models.UUIDField(default=generate_ulid_as_uuid, primary_key=True)
     name = models.CharField(max_length=255, unique=True)
     machine = models.ForeignKey(Machine, on_delete=models.CASCADE)
     management_source = models.ForeignKey(ManagementSource, on_delete=models.CASCADE)
     date_managed = models.DateTimeField(default=timezone.now)
-
-    STATUS_CHOICES = (
-        ('PRESENT', 'Present'),
-        ('ABSENT', 'Absent'),
-        ('PENDING', 'Pending'),
-        ('ERROR', 'Error'),
-        ('UNKNOWN', 'Unknown'),
-    )
     status = models.CharField(max_length=7, choices=STATUS_CHOICES, default='UNKNOWN')
     data = models.TextField(editable=True, null=True)
 
     class Meta:
         unique_together = (("machine", "name", "management_source"),)
         ordering = ['id']
+
+
+class ManagedItemHistory(models.Model):
+    id = models.UUIDField(default=generate_ulid_as_uuid, primary_key=True)
+    recorded = models.DateTimeField()
+    name = models.CharField(max_length=255)
+    machine = models.ForeignKey(Machine, on_delete=models.CASCADE)
+    management_source = models.ForeignKey(ManagementSource, on_delete=models.CASCADE)
+    status = models.CharField(max_length=7, choices=STATUS_CHOICES, default='UNKNOWN')
+
+    class Meta:
+        unique_together = (("machine", "name", "management_source", "recorded"),)
+        ordering = ['-recorded']
+
+    def __str__(self):
+        return (
+            f"{self.machine}: {self.management_source.name} {self.name} {self.status} "
+            f"{self.recorded}")
 
 
 class Fact(models.Model):

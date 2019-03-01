@@ -419,7 +419,24 @@ $( document ).ready(function() {
           <h4 class="modal-title" id="theErrorModal">Errors</h4>
         </div>
         <div class="modal-body">
-          <pre class="text-error pre-scrollable">{{ messages.ERRORS|join:'<br>' }}</pre>
+          <table class="client_info table table-striped table-condensed">
+            <thead>
+              <tr>
+                <th>Source</th>
+                <th>Date</th>
+                <th>Text</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for item in messages.ERRORS|dictsort:'date' %}
+              <tr>
+                <td>{{ item.management_source.name }}</td>
+                <td>{{ item.date }}</td>
+                <td>{{ item.text }}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
@@ -441,7 +458,24 @@ $( document ).ready(function() {
           <h4 class="modal-title" id="theWarningModal">Warnings</h4>
         </div>
         <div class="modal-body">
-          <pre class="text-warning pre-scrollable">{{ messages.WARNINGS|join:'<br>' }}</pre>
+          <table class="client_info table table-striped table-condensed">
+            <thead>
+              <tr>
+                <th>Source</th>
+                <th>Date</th>
+                <th>Text</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for item in messages.WARNINGS|dictsortreversed:'date' %}
+              <tr>
+                <td>{{ item.management_source.name }}</td>
+                <td>{{ item.date }}</td>
+                <td>{{ item.text }}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>

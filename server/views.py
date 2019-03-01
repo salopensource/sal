@@ -447,9 +447,9 @@ def machine_detail(request, **kwargs):
         initial_source = sources[0] if sources else ''
         active_table = list(managed_items[initial_source].keys())[0] if initial_source else ''
 
-    messages = defaultdict(list)
+    messages = {}
     for message in machine.messages.all():
-        messages[message.message_type].append(message.text)
+        messages.setdefault(message.message_type, []).append(message)
 
     context = {
         'user': request.user,

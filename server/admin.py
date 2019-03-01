@@ -106,6 +106,14 @@ class ManagedItemAdmin(admin.ModelAdmin):
     search_fields = ('name', 'data', 'machine__hostname', 'machine__serial')
 
 
+class ManagedItemHistoryAdmin(admin.ModelAdmin):
+    search_fields = ('name', 'machine__hostname', 'machine__serial')
+    list_display = ('name', 'machine', 'management_source', 'recorded', 'status')
+    list_filter = (
+        'management_source', BusinessUnitFilter, MachineGroupFilter, 'recorded', 'status')
+    date_hierarchy = 'recorded'
+
+
 class FactAdmin(admin.ModelAdmin):
     list_display = ('fact_name', 'fact_data', 'machine', 'management_source')
     list_filter = ('management_source', BusinessUnitFilter, MachineGroupFilter, 'fact_name')
@@ -267,3 +275,4 @@ admin.site.register(User, CustomUserAdmin)
 admin.site.register(FriendlyNameCache, FriendlyNameCacheAdmin)
 admin.site.register(ManagementSource, ManagementSourceAdmin)
 admin.site.register(ManagedItem, ManagedItemAdmin)
+admin.site.register(ManagedItemHistory, ManagedItemHistoryAdmin)

@@ -71,7 +71,7 @@ $( document ).ready(function() {
             <div class="col-md-4">
               <p style="text-align: center;">
                 <!-- Error Modal Trigger -->
-                {% if messages.ERRORS|length %}
+                {% if messages.ERRORS %}
                 <a class="fa fa-exclamation-triangle fa-3x color-red" href="#ErrorModal" data-toggle="modal" data-backdrop="true"></a>
                 {% else %}
                 <i class="fa fa-check-circle fa-3x color-green" style="cursor: default;"></i>
@@ -83,7 +83,7 @@ $( document ).ready(function() {
             <div class="col-md-4">
               <p style="text-align: center;">
                 <!-- Warning Modal Trigger -->
-                {% if messages.WARNINGS|length %}
+                {% if messages.WARNINGS %}
                 <a class="fa fa-bell fa-3x color-yellow" href="#WarningModal" data-toggle="modal" data-backdrop="true"></a>
                 {% else %}
                 <i class="fa fa-check-circle fa-3x color-green" style="cursor: default;"></i>
@@ -94,17 +94,14 @@ $( document ).ready(function() {
             </div>
             <div class="col-md-4">
               <p style="text-align: center;">
-                {% if report.AppleUpdates|length or report.ItemsToInstall|length %}
-                <i class="fa fa-info-circle fa-3x color-blue" style="cursor: default;"></i>
+                <!-- Pending items Modal trigger -->
+                {% if pending %}
+                <a class="fa fa-3x color-blue fa-info-circle" href="#PendingModal" data-toggle="modal" data-backdrop="true"></a>
                 {% else %}
-                <i class="fa fa-check-circle fa-3x color-green" style="cursor: default;"></i>
+                <i class="fa fa-3x color-green fa-check-circle" style="cursor: default;"></i>
                 {% endif %}
                 <br>
-                {% with PendingAppleUpdates=report.AppleUpdates|length %}
-                  {% with PendingInstalls=report.ItemsToInstall|length %}
-                    {{ PendingAppleUpdates|add:PendingInstalls }} Pending Installs
-                  {% endwith %}
-                {% endwith %}
+                {{pending|length }} Pending Items
               </p>
             </div>
           </div>
@@ -472,6 +469,45 @@ $( document ).ready(function() {
                 <td>{{ item.management_source.name }}</td>
                 <td>{{ item.date }}</td>
                 <td>{{ item.text }}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+        </div>
+      </div>
+      <!-- /.modal-content -->
+    </div>
+    <!-- /.modal-dialog -->
+  </div>
+  <!-- /.modal -->
+
+  <!-- Pending Modal -->
+  <div class="modal fade in" id="PendingModal" tabindex="-1" role="dialog" aria-labelledby="thePendingModal" aria-hidden="true">
+    <div class="modal-dialog" style="width: 60%">
+      <!-- modal-content -->
+      <div class="modal-content">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+          <h4 class="modal-title" id="thePendingModal">Pending Items</h4>
+        </div>
+        <div class="modal-body">
+          <table class="client_info table table-striped table-condensed">
+            <thead>
+              <tr>
+                <th>Source</th>
+                <th>Date</th>
+                <th>Name</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for item in pending|dictsort:'name' %}
+              <tr>
+                <td>{{ item.management_source.name }}</td>
+                <td>{{ item.date_managed }}</td>
+                <td>{{ item.name }}</td>
               </tr>
               {% endfor %}
             </tbody>

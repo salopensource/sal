@@ -437,6 +437,9 @@ def machine_detail(request, **kwargs):
             managed_items[item.management_source.name][data.get('type')] = []
         managed_items[item.management_source.name][data.get('type')].append(item)
 
+    # Determine pending updates
+    pending = managed_items_queryset.filter(status="PENDING")
+
     # Determine which tab to display first.
     # TODO: Do we just use the first, or configure for each OS / source?
     if machine.os_family == 'Darwin':
@@ -458,6 +461,7 @@ def machine_detail(request, **kwargs):
         'report': report,
         'messages': messages,
         'managed_items': dict(managed_items),
+        'pending': pending,
         'fact_sources': get_fact_sources(machine),
         'initial_source': initial_source,
         'active_table': active_table,

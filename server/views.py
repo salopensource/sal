@@ -318,87 +318,11 @@ def machine_detail(request, **kwargs):
     machine_group = machine.machine_group
     business_unit = machine_group.business_unit
 
-    report = machine.get_report()
-
     try:
         ip_address_fact = machine.facts.get(fact_name='ipv4_address')
         ip_address = ip_address_fact.fact_data
     except (Fact.MultipleObjectsReturned, Fact.DoesNotExist):
         ip_address = None
-
-    install_results = {}
-    for result in report.get('InstallResults', []):
-        nameAndVers = result['name'] + '-' + result['version']
-        if result['status'] == 0:
-            install_results[nameAndVers] = "installed"
-        else:
-            install_results[nameAndVers] = 'error'
-
-    # if install_results:
-    for item in report.get('ItemsToInstall', []):
-        name = item.get('display_name', item['name'])
-        nameAndVers = ('%s-%s'
-                       % (name, item['version_to_install']))
-        item['install_result'] = install_results.get(
-            nameAndVers, 'pending')
-
-        # Get the update history
-        try:
-            item['update_history'] = UpdateHistory.objects.get(
-                machine=machine, version=item['version_to_install'], name=item['name'],
-                update_type='third_party').updatehistoryitem_set.all()
-        except (IndexError, UpdateHistory.DoesNotExist):
-            pass
-
-    for item in report.get('ManagedInstalls', []):
-        if 'version_to_install' in item:
-            name = item.get('display_name', item['name'])
-            nameAndVers = ('%s-%s'
-                           % (name, item['version_to_install']))
-            if install_results.get(nameAndVers) == 'installed':
-                item['installed'] = True
-
-        if 'version_to_install' in item or 'installed_version' in item:
-            if 'version_to_install' in item:
-                version = item['version_to_install']
-            else:
-                version = item['installed_version']
-            item['version'] = version
-            # Get the update history
-            try:
-                item['update_history'] = UpdateHistory.objects.get(
-                    machine=machine, version=version, name=item['name'],
-                    update_type='third_party').updatehistoryitem_set.all()
-            except Exception:
-                pass
-
-    # handle items that were removed during the most recent run
-    # this is crappy. We should fix it in Munki.
-    removal_results = {}
-    for result in report.get('RemovalResults', []):
-        try:
-            m = re.search('^Removal of (.+): (.+)$', result)
-        except Exception:
-            m = None
-        if m:
-            try:
-                if m.group(2) == 'SUCCESSFUL':
-                    removal_results[m.group(1)] = 'removed'
-                else:
-                    removal_results[m.group(1)] = m.group(2)
-            except IndexError:
-                pass
-
-    if removal_results:
-        for item in report.get('ItemsToRemove', []):
-            name = item.get('display_name', item['name'])
-            item['install_result'] = removal_results.get(
-                name, 'pending')
-            if item['install_result'] == 'removed':
-                if 'RemovedItems' not in report:
-                    report['RemovedItems'] = [item['name']]
-                elif name not in report['RemovedItems']:
-                    report['RemovedItems'].append(item['name'])
 
     if Plugin.objects.filter(name='Uptime'):
         try:
@@ -414,8 +338,8 @@ def machine_detail(request, **kwargs):
     else:
         uptime = None
 
-    if 'managed_uninstalls_list' in report:
-        report['managed_uninstalls_list'].sort()
+    # if 'managed_uninstalls_list' in report:
+    #     report['managed_uninstalls_list'].sort()
 
     output = utils.get_machine_detail_placeholder_markup(machine)
 
@@ -458,7 +382,6 @@ def machine_detail(request, **kwargs):
         'user': request.user,
         'machine_group': machine_group,
         'business_unit': business_unit,
-        'report': report,
         'messages': messages,
         'managed_items': dict(managed_items),
         'management_tools': _get_management_tools(managed_items.keys(), machine),

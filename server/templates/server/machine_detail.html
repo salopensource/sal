@@ -292,9 +292,26 @@ $( document ).ready(function() {
                   {% endwith %}
                   {% endfor %}
                 </dl>
+                {% with history_key=item.management_source.name|cat:'||'|cat:item.name %}
+                {% with history=histories|dict_lookup:history_key %}
+                {% if history %}
+                <table class="table table-striped">
+                    <th>Status</th>
+                    <th>Date</th>
+                    {% for history_item in history %}
+                    <tr>
+                        <td>{{ history_item.status }}</td>
+                        <td>{{ history_item.recorded }}</td>
+                    </tr>
+                    {% endfor %}
+                </table>
+                {% endif %}
+                {% endwith %}
+                {% endwith %}
+
               {% else %}
               <p>No additional data available.</p>
-            {% endif %}
+              {% endif %}
               <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
             </div>
           </div>

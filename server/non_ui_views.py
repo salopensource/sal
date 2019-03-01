@@ -24,7 +24,7 @@ from sal.plugin import (Widget, ReportPlugin, OldPluginAdapter, PluginManager,
                         DEPRECATED_PLUGIN_TYPES)
 from server.models import (Machine, Fact, HistoricalFact, MachineGroup, UpdateHistory, Message,
                            UpdateHistoryItem, PendingAppleUpdate, Plugin, Report, ManagedItem,
-                           MachineDetailPlugin, ManagementSource)
+                           MachineDetailPlugin, ManagementSource, ManagedItemHistory)
 
 
 if settings.DEBUG:
@@ -250,6 +250,7 @@ def checkin(request):
         'facts': [],
         'historical_facts': [],
         'managed_items': [],
+        'managed_item_histories': [],
         'messages': []
     }
 
@@ -262,6 +263,8 @@ def checkin(request):
 
         object_queue = process_management_submission(
             management_source, management_data, machine, object_queue)
+
+    object_queue = process_managed_item_histories(object_queue, machine)
 
     create_objects(object_queue)
 
@@ -372,52 +375,55 @@ def process_munki_extra_keys(management_data, machine):
     machine.munki_version = management_data.get('munki_version')
     machine.manifest = management_data.get('manifest')
     machine.save()
-    process_update_history(management_data.get('update_history', []), machine)
+    # TODO: Remove after changing UHI
+    # process_update_history(management_data.get('update_history', []), machine)
 
 
-def process_update_history(update_histories, machine):
-    """Process Munki updates and removals."""
-    # Delete all of these every run, as its faster than comparing
-    # between the client/server and removing the difference.
-    to_delete = machine.pending_apple_updates.all()
-    if to_delete.exists():
-        to_delete._raw_delete(to_delete.db)
+# TODO: Remove after changing UHI
+# def process_update_history(update_histories, machine):
+#     """Process Munki updates and removals."""
+#     # Delete all of these every run, as its faster than comparing
+#     # between the client/server and removing the difference.
+#     to_delete = machine.pending_apple_updates.all()
+#     if to_delete.exists():
+#         to_delete._raw_delete(to_delete.db)
 
-    # Accumulate items to create, so we can do `bulk_create` on
-    # supported databases.
-    items_to_create = defaultdict(list)
+#     # Accumulate items to create, so we can do `bulk_create` on
+#     # supported databases.
+#     items_to_create = defaultdict(list)
 
-    for update in update_histories:
-        update_history, _ = UpdateHistory.objects.get_or_create(
-            machine=machine, update_type=update['update_type'], name=update['name'],
-            version=update['version'])
+#     for update in update_histories:
+#         update_history, _ = UpdateHistory.objects.get_or_create(
+#             machine=machine, update_type=update['update_type'], name=update['name'],
+#             version=update['version'])
 
-        # Only create a history item if there are none or
-        # if the last one is not the same status.
-        items_set = update_history.updatehistoryitem_set.order_by('recorded')
-        status = update['status']
-        recorded = dateutil.parser.parse(update['date'])
-        if not items_set.exists() or needs_history_item_creation(items_set, status, recorded):
-            items_to_create[UpdateHistoryItem].append(
-                UpdateHistoryItem(update_history=update_history, status=status, recorded=recorded))
+#         # Only create a history item if there are none or
+#         # if the last one is not the same status.
+#         items_set = update_history.updatehistoryitem_set.order_by('recorded')
+#         status = update['status']
+#         recorded = dateutil.parser.parse(update['date'])
+#         if not items_set.exists() or needs_history_item_creation(items_set, status, recorded):
+#             items_to_create[UpdateHistoryItem].append(
+#                 UpdateHistoryItem(update_history=update_history, status=status, recorded=recorded))
 
-        if status == 'pending' and update['update_type'] == 'apple':
-            pending_apple_item = PendingAppleUpdate(
-                machine=machine, update=update['name'], update_version=update['version'],
-                display_name=update.get('display_name'))
-            items_to_create[PendingAppleUpdate].append(pending_apple_item)
+#         if status == 'pending' and update['update_type'] == 'apple':
+#             pending_apple_item = PendingAppleUpdate(
+#                 machine=machine, update=update['name'], update_version=update['version'],
+#                 display_name=update.get('display_name'))
+#             items_to_create[PendingAppleUpdate].append(pending_apple_item)
 
-    # Bulk create all of the objects we've built up.
-    for model, updates_to_save in items_to_create.items():
-        if IS_POSTGRES:
-            model.objects.bulk_create(updates_to_save)
-        else:
-            for item in updates_to_save:
-                item.save()
+#     # Bulk create all of the objects we've built up.
+#     for model, updates_to_save in items_to_create.items():
+#         if IS_POSTGRES:
+#             model.objects.bulk_create(updates_to_save)
+#         else:
+#             for item in updates_to_save:
+#                 item.save()
 
 
-def needs_history_item_creation(items_set, status, recorded):
-    return items_set.last().status != status and items_set.last().recorded < recorded
+# TODO: Remove after changing UHI
+# def needs_history_item_creation(items_set, status, recorded):
+#     return items_set.last().status != status and items_set.last().recorded < recorded
 
 
 def process_facts(management_source, management_data, machine, object_queue):
@@ -456,6 +462,30 @@ def process_managed_items(management_source, management_data, machine, object_qu
     return object_queue
 
 
+def process_managed_item_histories(object_queue, machine):
+    histories = machine.manageditemhistory_set.all()
+    for managed_item in object_queue['managed_items']:
+        item_histories = histories.filter(
+            name=managed_item.name, management_source=managed_item.management_source)
+        if _history_creation_needed(managed_item, item_histories.first()):
+            object_queue['managed_item_histories'].append(
+                ManagedItemHistory(
+                    name=managed_item.name,
+                    status=managed_item.status,
+                    management_source=managed_item.management_source,
+                    machine=machine,
+                    recorded=managed_item.date_managed))
+
+    return object_queue
+
+
+def _history_creation_needed(managed_item, last_history):
+    if not last_history or last_history.status != managed_item.status:
+        return True
+    else:
+        return False
+
+
 def process_messages(management_source, management_data, machine, object_queue):
     now = django.utils.timezone.now()
     for message_item in management_data.get('messages', []):
@@ -472,7 +502,7 @@ def process_messages(management_source, management_data, machine, object_queue):
 def create_objects(object_queue):
     """Bulk create Fact, HistoricalFact, Message, and ManagedItem objects."""
     models = {'facts': Fact, 'historical_facts': HistoricalFact, 'managed_items': ManagedItem,
-              'messages': Message}
+              'messages': Message, 'managed_item_histories': ManagedItemHistory}
 
     for name, objects in object_queue.items():
         _bulk_create_or_iterate_save(objects, models[name])

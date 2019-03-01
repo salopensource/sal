@@ -361,6 +361,12 @@ def machine_detail(request, **kwargs):
             managed_items[item.management_source.name][data.get('type')] = []
         managed_items[item.management_source.name][data.get('type')].append(item)
 
+    # Process histories for use in item modals.
+    history_queryset = machine.manageditemhistory_set.all()
+    histories = {}
+    for item in history_queryset:
+        histories.setdefault(f'{item.management_source.name}||{item.name}', []).append(item)
+
     # Determine pending updates
     pending = managed_items_queryset.filter(status="PENDING")
 
@@ -384,6 +390,7 @@ def machine_detail(request, **kwargs):
         'business_unit': business_unit,
         'messages': messages,
         'managed_items': dict(managed_items),
+        'histories': histories,
         'management_tools': _get_management_tools(managed_items.keys(), machine),
         'pending': pending,
         'fact_sources': get_fact_sources(machine),

@@ -2,54 +2,45 @@
 {% load i18n %}
 {% load dashboard_extras %}
 {% load static from staticfiles %}
+
 {% block title %}Sal - {{ machine.hostname }}{% endblock %}
+
 {% block script %}
 <script>
-
 $( document ).ready(function() {
-
-
-
-   {% for widget in output %}
-
-   $.ajaxWithRetries(
-    {
-        url: "{% url 'load_plugin' widget.name 'machine' machine.id %}",
-        error: function(){
-            console.log('{{ widget.name }} Failed');
-        },
-        success: function( data ) {
-                $('#plugin-{{ widget.name }}').html(data);
+    {% for widget in output %}
+    $.ajaxWithRetries(
+        {
+            url: "{% url 'load_plugin' widget.name 'machine' machine.id %}",
+            error: function(){
+                console.log('{{ widget.name }} Failed');
             },
-    },
-    {
-        retries: 20,
-        backoff: false
-    }
-);
-
-
-   {% endfor %}
-
-
+            success: function( data ) {
+                    $('#plugin-{{ widget.name }}').html(data);
+            },
+        },
+        {
+            retries: 20,
+            backoff: false
+        }
+    );
+    {% endfor %}
 });
-
 </script>
-
 {% endblock %}
 
 {% block nav %}
-  {% include 'server/machine_detail_nav.html' %}
-  {% if user.userprofile.level == 'GA' or user.userprofile.level == 'RW' %}
-    <li><a href="#myModal" data-toggle="modal"><i class="fa fa-times fa-fw"></i> Computer</a></i>
-  {% endif %}
+{% include 'server/machine_detail_nav.html' %}
+{% if user.userprofile.level == 'GA' or user.userprofile.level == 'RW' %}
+<li><a href="#myModal" data-toggle="modal"><i class="fa fa-times fa-fw"></i> Computer</a></i>
+{% endif %}
 {% endblock %}
 
 {% block content %}
 <div class="row">
   <div class="col-md-5">
     <p style="text-align: center;">
-        {% if machine.os_family == 'Darwin' %}
+      {% if machine.os_family == 'Darwin' %}
       <img src='https://km.support.apple.com/kb/securedImage.jsp?configcode={{machine.serial|slice:"8:" }}&size=120x120'>
       {% elif machine.os_family == 'ChromeOS' %}
       <img src="{% static 'img/Chrome.png' %}" height="120" width="120" alt="Chrome OS"/>
@@ -115,29 +106,20 @@ $( document ).ready(function() {
           <legend><h5 class"text-uppercase">Machine Details</h5></legend>
           {% if machine.broken_client %}
           <dt>Broken Python:</dt>
-          <dd class="bg-danger">
-           Client has broken Python / MSC 
-          </dd>
+          <dd class="bg-danger">Client has broken Python / MSC</dd>
           {% endif %}
           {% if machine.machine_model %}
           <dt>Model:</dt>
           <dd>
-            {% if machine.os_family == 'Darwin' %}
-              {% if machine.machine_model_friendly %}
-              {{ machine.machine_model_friendly }}
-              {% else %}
-              {{ machine.machine_model }}
-              {% endif %}
+            {% if machine.os_family == 'Darwin' and machine.machine_model_friendly %}
+            {{ machine.machine_model_friendly }}
             {% else %}
-               {{ machine.machine_model }}
-              {% endif %}
+            {{ machine.machine_model }}
+            {% endif %}
           </dd>
           {% endif %}
           <dt>Processor:</dt>
-          <dd>
-            {{ machine.cpu_type }}
-            {{ machine.cpu_speed }}
-          </dd>
+          <dd>{{ machine.cpu_type }} {{ machine.cpu_speed }}</dd>
           <dt>RAM:</dt>
           <dd>{{ machine.memory }}</dd>
           <dt>Serial:</dt>
@@ -146,35 +128,33 @@ $( document ).ready(function() {
           <dt>LAN IP Address:</dt>
           <dd>{{ ip_address }}</dd>
           {% endif %}
-          {% if 'MachineInfo' in report %}
-          {% if report.MachineInfo.hostname %}
           <dt>Hostname:</dt>
-          <dd>{{ report.MachineInfo.hostname }}</dd>
-          {% endif %}
+          <dd>{{ machine.hostname }}</dd>
           <dt>OS version:</dt>
           <dd>
-            {% if machine.os_family == 'Darwin' %}
-            {{ report.MachineInfo.os_vers|macos }}
-            {{ report.MachineInfo.os_vers }}
-            {{ report.MachineInfo.arch }}
-            {% else %}
-            {{ machine.operating_system }}
-            {% endif %}
+          {% if machine.os_family == 'Darwin' %}macOS{% else %}{{ machine.os_family }}{% endif %}
+          {{ machine.operating_system }}
           </dd>
-          {% endif %}
           {% if machine.hd_percent != '0' %}
           <dt>Free disk space:</dt>
           <dd>
           {% if machine.os_family == 'Darwin' %}
-            {{ machine.hd_space|human_readable_size:False }}
+          <!-- Display Mac sizes in base 10 -->
+          {{ machine.hd_space|human_readable_size:False }}
           {% else %}
-            {{ machine.hd_space|human_readable_size }}
+          {{ machine.hd_space|human_readable_size }}
           {% endif %} ({{ machine.hd_percent }}% used)
           </dd>
           {% endif %}
           {% if machine.hd_total %}
           <dt>Total disk space:</dt>
-          <dd>{{ machine.hd_total|human_readable_size:False }}</dd>
+          <dd>
+          {% if machine.os_family == 'Darwin' %}
+          {{ machine.hd_total|human_readable_size:False }}
+          {% else %}
+          {{ machine.hd_total|human_readable_size }}
+          {% endif %}
+          </dd>
           {% endif %}
           {% if uptime %}
           <dt>Uptime:</dt>
@@ -186,11 +166,11 @@ $( document ).ready(function() {
           {% endif %}
           <dt>Deploy Status:</dt>
           <dd>
-            {% if machine.deployed %}
-            Deployed
-            {% else %}
-            Undeployed
-            {% endif %}
+          {% if machine.deployed %}
+          Deployed
+          {% else %}
+          Undeployed
+          {% endif %}
           </dd>
           <dt>First checkin:</dt>
           <dd>{{ machine.first_checkin }}</dd>
@@ -209,39 +189,44 @@ $( document ).ready(function() {
           <dt>Sal Version:</dt>
           <dd>{{ machine.sal_version }}</dd>
           {% endif %}
-          {% if machine.puppet_version %}
-          <dt>Puppet Version:</dt>
-          <dd>{{ machine.puppet_version }}</dd>
-          {% endif %}
-          {% if report.ManagedInstallVersion %}
-          <dt>Munki Version:</dt>
-          <dd>{{ report.ManagedInstallVersion }}</dd>
-          {% endif %}
-          {% if 'ManifestName' in report %}
-          <dt>Munki Manifest:</dt>
-          <dd>
-            {{ report.ManifestName }}
-          </dd>
-          {% endif %}
-          {% if report.ManagedInstallVersion %}
-          <dt>Munki Run Type:</dt>
-          <dd>{{ report.RunType }}</dd>
-          <dt>Munki Start:</dt>
-          <dd>{{ report.StartTime|convert_datetime|date:"Y-m-d H:i" }}</dd>
-          <dt>Munki End:</dt>
-          <dd>{{ report.EndTime|convert_datetime|date:"Y-m-d H:i" }}</dd>
-          {% endif %}
-          {% if machine.last_puppet_run %}
-          <dt>Puppet Run:</dt>
-          <dd>{{ machine.last_puppet_run|date:"Y-m-d H:i" }}</dd>
-          {% endif %}
+          {% for name, value in management_tools %}
+          <dt>{{ name }}</dt>
+          <dd>{{ value }}</dd>
+          {% endfor %}
+          <!-- {% if machine.puppet_version %} -->
+          <!-- <dt>Puppet Version:</dt> -->
+          <!-- <dd>{{ machine.puppet_version }}</dd> -->
+          <!-- {% endif %} -->
+          <!-- {% if report.ManagedInstallVersion %} -->
+          <!-- <dt>Munki Version:</dt> -->
+          <!-- <dd>{{ report.ManagedInstallVersion }}</dd> -->
+          <!-- {% endif %} -->
+          <!-- {% if 'ManifestName' in report %} -->
+          <!-- <dt>Munki Manifest:</dt> -->
+          <!-- <dd> -->
+          <!--   {{ report.ManifestName }} -->
+          <!-- </dd> -->
+          <!-- {% endif %} -->
+          <!-- {% if report.ManagedInstallVersion %} -->
+          <!-- <dt>Munki Run Type:</dt> -->
+          <!-- <dd>{{ report.RunType }}</dd> -->
+          <!-- <dt>Munki Start:</dt> -->
+          <!-- <dd>{{ report.StartTime|convert_datetime|date:"Y-m-d H:i" }}</dd> -->
+          <!-- <dt>Munki End:</dt> -->
+          <!-- <dd>{{ report.EndTime|convert_datetime|date:"Y-m-d H:i" }}</dd> -->
+          <!-- {% endif %} -->
+          <!-- {% if machine.last_puppet_run %} -->
+          <!-- <dt>Puppet Run:</dt> -->
+          <!-- <dd>{{ machine.last_puppet_run|date:"Y-m-d H:i" }}</dd> -->
+          <!-- {% endif %} -->
         </dl>
       </div>
     </div>
 
-              {% for widget in output %}
-              {{ widget.html|safe }}
-              {% endfor %}
+  <!-- Machine Detail Plugin output -->
+  {% for widget in output %}
+  {{ widget.html|safe }}
+  {% endfor %}
 
   </div>
 

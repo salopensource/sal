@@ -13,7 +13,7 @@ from sal.decorators import required_level, ProfileLevel, access_required, is_glo
 from server.forms import (BusinessUnitForm, EditUserBusinessUnitForm, EditBusinessUnitForm,
                           MachineGroupForm, EditMachineGroupForm, NewMachineForm)
 from server.models import (BusinessUnit, MachineGroup, Machine, UserProfile, Report, UpdateHistory,
-                           Plugin, PluginScriptSubmission, PluginScriptRow, ManagedItem)
+                           Plugin, PluginScriptSubmission, PluginScriptRow, ManagedItem, Fact)
 from server.non_ui_views import process_plugin
 from server import utils
 
@@ -461,6 +461,7 @@ def machine_detail(request, **kwargs):
         'report': report,
         'messages': messages,
         'managed_items': dict(managed_items),
+        'management_tools': _get_management_tools(managed_items.keys(), machine),
         'pending': pending,
         'fact_sources': get_fact_sources(machine),
         'initial_source': initial_source,
@@ -480,6 +481,62 @@ def get_fact_sources(machine):
         .order_by('management_source__name')
         .values_list('management_source__name', flat=True)
         .distinct())
+
+
+def _get_management_tools(source_names, machine):
+    row_funcs = {
+        'Munki': _munki_facts,
+        'Apple Software Update': _sus_facts,
+        # Want to show data about a management source? Implement a func and
+        # change here...
+        'Puppet': _not_implemented_facts,
+        'Salt': _salt_facts,
+        'Chef': _not_implemented_facts,
+    }
+    management_tool_info = []
+    for source_name in source_names:
+        management_tool_info.extend(row_funcs[source_name](machine))
+
+    return sorted(management_tool_info)
+
+
+def _get_management_facts(machine, source_name, fact_names, prefix=None):
+    result = []
+    if prefix is None:
+        prefix = source_name
+    for fact_name in fact_names:
+        try:
+            fact = machine.facts.get(management_source__name=source_name, fact_name=fact_name)
+            result.append((f'{prefix} {fact_name}', fact.fact_data))
+        except Fact.DoesNotExist:
+            pass
+
+    return result
+
+
+def _munki_facts(machine):
+    info_names = ('StartTime', 'EndTime', 'RunType')
+    rows = _get_management_facts(machine, 'Munki', info_names)
+    rows.append(('Munki Manifest', machine.manifest))
+    rows.append(('Munki Version', machine.munki_version))
+
+    return rows
+
+
+def _sus_facts(machine):
+    info_names = ('catalog', 'last_check')
+    rows = _get_management_facts(machine, 'Apple Software Update', info_names, prefix='SUS')
+    return rows
+
+
+def _salt_facts(machine):
+    info_names = ('saltversion', 'pythonversion', 'Last Highstate')
+    rows = _get_management_facts(machine, 'Salt', info_names)
+    return rows
+
+
+def _not_implemented_facts(machine):
+    return []
 
 
 @login_required

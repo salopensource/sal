@@ -127,12 +127,6 @@ class HistoricalFactAdmin(admin.ModelAdmin):
     date_hierarchy = 'fact_recorded'
 
 
-class InstalledUpdateAdmin(admin.ModelAdmin):
-    list_display = ('update', 'display_name', 'machine', 'update_version', 'installed')
-    list_filter = (BusinessUnitFilter, MachineGroupFilter, 'update')
-    search_fields = ('machine__hostname', 'display_name', 'update')
-
-
 class MachineAdmin(admin.ModelAdmin):
     list_display = ('hostname', 'serial', 'machine_model', 'operating_system', 'deployed')
     list_filter = (BusinessUnitFilter, MachineGroupFilter, 'operating_system', 'os_family',
@@ -258,7 +252,6 @@ admin.site.register(ApiKey, ApiKeyAdmin)
 admin.site.register(BusinessUnit, BusinessUnitAdmin)
 admin.site.register(Fact, FactAdmin)
 admin.site.register(HistoricalFact, HistoricalFactAdmin)
-admin.site.register(InstalledUpdate, InstalledUpdateAdmin)
 admin.site.register(Machine, MachineAdmin)
 admin.site.register(MachineDetailPlugin, MachineDetailPluginAdmin)
 admin.site.register(MachineGroup, MachineGroupAdmin)

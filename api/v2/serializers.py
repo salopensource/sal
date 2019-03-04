@@ -71,13 +71,6 @@ class SerialSerializer(serializers.ModelSerializer):
         fields = ('id', 'serial',)
 
 
-class PendingAppleUpdateSerializer(serializers.ModelSerializer):
-
-    class Meta:
-        model = PendingAppleUpdate
-        exclude = ('machine',)
-
-
 class UpdateHistoryItemSerializer(serializers.ModelSerializer):
 
     class Meta:

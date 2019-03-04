@@ -284,21 +284,6 @@ class PluginScriptRow(models.Model):
         ordering = ['pluginscript_name']
 
 
-class PendingAppleUpdate(models.Model):
-    id = models.BigAutoField(primary_key=True)
-    machine = models.ForeignKey(
-        Machine, related_name='pending_apple_updates', on_delete=models.CASCADE)
-    update = models.CharField(db_index=True, max_length=254, null=True, blank=True)
-    update_version = models.CharField(max_length=256, null=True, blank=True)
-    display_name = models.CharField(max_length=256, null=True, blank=True)
-
-    def __str__(self):
-        return self.update or ''
-
-    class Meta:
-        ordering = ['display_name']
-
-
 class Plugin(models.Model):
     name = models.CharField(max_length=255, unique=True)
     order = models.IntegerField()

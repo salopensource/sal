@@ -23,8 +23,8 @@ from sal.decorators import key_auth_required
 from sal.plugin import (Widget, ReportPlugin, OldPluginAdapter, PluginManager,
                         DEPRECATED_PLUGIN_TYPES)
 from server.models import (Machine, Fact, HistoricalFact, MachineGroup, UpdateHistory, Message,
-                           UpdateHistoryItem, PendingAppleUpdate, Plugin, Report, ManagedItem,
-                           MachineDetailPlugin, ManagementSource, ManagedItemHistory)
+                           UpdateHistoryItem, Plugin, Report, ManagedItem, MachineDetailPlugin,
+                           ManagementSource, ManagedItemHistory)
 
 
 if settings.DEBUG:

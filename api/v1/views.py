@@ -78,23 +78,6 @@ class AllInventory(generics.ListAPIView):
     queryset = InventoryItem.objects.all()
 
 
-class PendingAppleUpdates(generics.ListAPIView):
-    """
-    Retrieve pending apple updates for a machine.
-    """
-    authentication_classes = (ApiKeyAuthentication,)
-    permission_classes = (HasRWPermission,)
-    serializer_class = PendingAppleUpdateSerializer
-
-    def get_queryset(self):
-        """
-        Get all of the update items for the machine
-        """
-        serial = self.kwargs['serial']
-        machine = Machine.objects.get(serial=serial)
-        return PendingAppleUpdate.objects.filter(machine=machine)
-
-
 class FactsMachine(generics.ListAPIView):
     """
     Retrieve facts for a machine

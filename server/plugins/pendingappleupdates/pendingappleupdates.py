@@ -6,7 +6,7 @@ from server.models import ManagedItem
 
 class PendingAppleUpdates(sal.plugin.Widget):
 
-    description = 'List of pending third party updates'
+    description = 'List of pending Apple updates'
     template = 'plugins/pendingupdates.html'
     supported_os_families = [sal.plugin.OSFamilies.darwin]
 

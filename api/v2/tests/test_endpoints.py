@@ -31,13 +31,6 @@ class MachineGroupTest(SalAPITestCase, metaclass=TestGeneratorMeta):
     tests = ['machinegroup']
 
 
-class PendingAppleUpdateTest(SalAPITestCase, metaclass=TestGeneratorMeta):
-    fixtures = [
-        'business_unit_fixtures.json', 'machine_group_fixtures.json',
-        'machine_fixtures.json', 'pending_apple_update_fixtures.json']
-    tests = ['pendingappleupdate']
-
-
 class PluginScriptTest(SalAPITestCase, metaclass=TestGeneratorMeta):
     fixtures = [
         'business_unit_fixtures.json', 'machine_group_fixtures.json',

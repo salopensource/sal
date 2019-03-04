@@ -384,6 +384,7 @@ def process_munki_extra_keys(management_data, machine, object_queue):
     extra_data = management_data.get('extra_data', {})
     apple_items = extra_data.get('apple_results', {})
     if apple_items:
+        now = django.utils.timezone.now()
         try:
             management_source = ManagementSource.objects.get(name='Apple Software Update')
         except ManagementSource.DoesNotExist:
@@ -391,7 +392,7 @@ def process_munki_extra_keys(management_data, machine, object_queue):
 
         for name, item in apple_items.items():
             object_queue['managed_items'].append(
-                _process_managed_item(name, item, machine, management_source))
+                _process_managed_item(name, item, machine, management_source, now))
 
     return object_queue
 
@@ -420,12 +421,12 @@ def process_managed_items(management_source, management_data, machine, object_qu
     now = django.utils.timezone.now()
     for name, managed_item in management_data.get('managed_items', {}).items():
         object_queue['managed_items'].append(
-            _process_managed_item(name, managed_item, machine, management_source))
+            _process_managed_item(name, managed_item, machine, management_source, now))
 
     return object_queue
 
 
-def _process_managed_item(name, managed_item, machine, management_source):
+def _process_managed_item(name, managed_item, machine, management_source, now):
     submitted_date = managed_item.get('date_managed')
     date_managed = dateutil.parser.parse(submitted_date) if submitted_date else now
     status = managed_item.get('status', 'UNKNOWN')

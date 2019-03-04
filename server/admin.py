@@ -109,6 +109,13 @@ class ManagedItemHistoryAdmin(admin.ModelAdmin):
     date_hierarchy = 'recorded'
 
 
+class MessageAdmin(admin.ModelAdmin):
+    list_display = ('text', 'get_message_type_display', 'management_source', 'machine', 'date')
+    list_filter = (
+        'management_source', BusinessUnitFilter, MachineGroupFilter, 'date', 'message_type')
+    search_fields = ('text', 'machine__hostname', 'machine__serial')
+
+
 class FactAdmin(admin.ModelAdmin):
     list_display = ('fact_name', 'fact_data', 'machine', 'management_source')
     list_filter = ('management_source', BusinessUnitFilter, MachineGroupFilter, 'fact_name')
@@ -233,10 +240,15 @@ class CustomUserAdmin(admin.ModelAdmin):
 admin.site.register(ApiKey, ApiKeyAdmin)
 admin.site.register(BusinessUnit, BusinessUnitAdmin)
 admin.site.register(Fact, FactAdmin)
+admin.site.register(FriendlyNameCache, FriendlyNameCacheAdmin)
 admin.site.register(HistoricalFact, HistoricalFactAdmin)
 admin.site.register(Machine, MachineAdmin)
 admin.site.register(MachineDetailPlugin, MachineDetailPluginAdmin)
 admin.site.register(MachineGroup, MachineGroupAdmin)
+admin.site.register(ManagedItem, ManagedItemAdmin)
+admin.site.register(ManagedItemHistory, ManagedItemHistoryAdmin)
+admin.site.register(ManagementSource, ManagementSourceAdmin)
+admin.site.register(Message, MessageAdmin)
 admin.site.register(Plugin, PluginAdmin)
 admin.site.register(PluginScriptRow, PluginScriptRowAdmin)
 admin.site.register(PluginScriptSubmission, PluginScriptSubmissionAdmin)
@@ -244,7 +256,3 @@ admin.site.register(Report, ReportAdmin)
 admin.site.register(SalSetting, SalSettingAdmin)
 admin.site.unregister(User)
 admin.site.register(User, CustomUserAdmin)
-admin.site.register(FriendlyNameCache, FriendlyNameCacheAdmin)
-admin.site.register(ManagementSource, ManagementSourceAdmin)
-admin.site.register(ManagedItem, ManagedItemAdmin)
-admin.site.register(ManagedItemHistory, ManagedItemHistoryAdmin)

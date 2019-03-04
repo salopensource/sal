@@ -85,6 +85,20 @@ class ManagedItemSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
+class ManagedItemHistorySerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = ManagedItemHistory
+        fields = '__all__'
+
+
+class MessageSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Message
+        fields = '__all__'
+
+
 class MachineSerializer(QueryFieldsMixin, serializers.ModelSerializer):
 
     """

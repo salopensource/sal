@@ -121,6 +121,20 @@ class ManagedItemViewSet(viewsets.ReadOnlyModelViewSet):
     search_fields = ('name', )
 
 
+class ManagedItemHistoryViewSet(viewsets.ReadOnlyModelViewSet):
+    serializer_class = ManagedItemHistorySerializer
+    queryset = ManagedItemHistory.objects.all()
+    filter_fields = (
+        'machine__serial', 'machine__hostname', 'machine__id',
+        'management_source__name', 'management_source__id', 'status')
+    search_fields = ('name', )
+
+
+class MessageViewSet(viewsets.ReadOnlyModelViewSet):
+    serializer_class = MessageSerializer
+    queryset = Message.objects.all()
+
+
 class PluginScriptRowViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = PluginScriptRow.objects.all()
     serializer_class = PluginScriptRowSerializer

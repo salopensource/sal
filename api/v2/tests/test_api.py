@@ -12,7 +12,8 @@ class APITest(SalAPITestCase):
     """Test the API itself."""
     api_endpoints = {
         'business_units', 'facts', 'inventory', 'machine_groups', 'machines', 'management_sources',
-        'managed_items', 'plugin_script_rows', 'profiles', 'saved_searches'}
+        'managed_items', 'managed_item_histories', 'messages', 'plugin_script_rows', 'profiles',
+        'saved_searches'}
 
     def test_access(self):
         """Test that unauthenticated requests are rejected"""

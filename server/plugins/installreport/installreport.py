@@ -1,26 +1,17 @@
+import json
 import plistlib
 import re
-
-from django.shortcuts import get_object_or_404
+import urllib.parse
 
 import sal.plugin
 from catalog.models import Catalog
-from server.models import BusinessUnit, InstalledUpdate
+from server.models import BusinessUnit, ManagedItem, ManagementSource
 
 
 class InstallReport(sal.plugin.ReportPlugin):
 
     description = 'Information on installation status.'
-
     supported_os_families = [sal.plugin.OSFamilies.darwin]
-
-    def replace_dots(self, item):
-        # item['name'] = item['pkginfo']['name']
-        item['dotVersion'] = item['version'].replace('.', 'DOT')
-        item['dotVersion'] = re.sub(r'\W+', '', item['dotVersion'])
-        item['dotName'] = item['name'].replace('.', 'DOT')
-        item['dotName'] = re.sub(r'\W+', '', item['dotName'])
-        return item
 
     def get_context(self, machines, group_type='all', group_id=None):
         context = self.super_get_context(machines, group_type=group_type, group_id=group_id)
@@ -39,60 +30,92 @@ class InstallReport(sal.plugin.ReportPlugin):
                     'description', '')
 
         output = []
-        # Get the install reports for the machines we're looking for
-        installed_updates = InstalledUpdate.objects.filter(machine__in=machines).values(
-            'update', 'display_name', 'update_version').order_by().distinct()
+        try:
+            munki = ManagementSource.objects.get(name='Munki')
+        except ManagementSource.DoesNotExist:
+            munki = None
+
+        installed_updates = (
+            ManagedItem.objects
+            .filter(machine__in=machines, management_source=munki)
+            .values('name')
+            .order_by()
+            .distinct())
 
         for installed_update in installed_updates:
-            item = {}
-            item['version'] = installed_update['update_version']
-            item['name'] = installed_update['update']
-            item['description'] = description_dict.get((item['name'], item['version']), '')
+            item = {'name': installed_update['name']}
 
-            update_queryset = InstalledUpdate.objects.filter(
-                machine__in=machines,
-                update=installed_update['update'],
-                update_version=installed_update['update_version'])
-            item['install_count'] = update_queryset.filter(installed=True).count()
-            item['pending_count'] = update_queryset.filter(installed=False).count()
+            update_queryset = (
+                ManagedItem.objects
+                .filter(
+                    machine__in=machines,
+                    name=installed_update['name'],
+                    management_source=munki))
 
-            item['installed_url'] = 'Installed?VERSION=%s&&NAME=%s' % (
-                item['version'], item['name'])
-            item['pending_url'] = 'Pending?VERSION=%s&&NAME=%s' % (
-                item['version'], item['name'])
+            item['install_count'] = update_queryset.filter(status='PRESENT').count()
+            item['pending_count'] = update_queryset.filter(status='PENDING').count()
 
-            item = self.replace_dots(item)
+            first = update_queryset.first()
+            item = self._get_metadata(item, first)
+            item = self._css_clean(item)
+            link_name = urllib.parse.urlencode({'NAME': item['name']})
+            item['installed_url'] = f'PRESENT?{link_name}'
+            item['pending_url'] = f'PENDING?{link_name}'
 
             output.append(item)
 
-        context['output'] = sorted(output, key=lambda k: (k['name'], k['version']))
-        context['thename'] = 'Install Report'
+        context['output'] = sorted(output, key=lambda k: k['name'])
+        context['title'] = 'Install Report'
         return context
 
     def filter(self, machines, data):
-        if data.startswith('Installed?'):
-            pattern_prefix = 'Installed'
-            verb = 'installed'
-
-        elif data.startswith('Pending?'):
-            pattern_prefix = 'Pending'
-            verb = 'pending'
-
-        else:
-            # Return early for improperly formatted requests.
+        try:
+            url_tuple = urllib.parse.urlparse(data)
+        except ValueError:
             return None, None
 
-        name_re = re.search('&&NAME=(.*)', data)
-        version_re = re.search(r'{}\?VERSION\=(.*)&&NAME'.format(pattern_prefix), data)
+        status = url_tuple.path
+        if not status:
+            return None, None
 
-        version = version_re.group(1)
-        name = name_re.group(1)
+        queries = urllib.parse.parse_qs(url_tuple.query)
+        try:
+            name = queries.get('NAME', [''])[0]
+        except IndexError:
+            return None, None
 
-        title = 'Machines with %s %s %s' % (name, version, verb)
+        if not name:
+            return None, None
+
+        try:
+            munki = ManagementSource.objects.get(name='Munki')
+        except ManagementSource.DoesNotExist:
+            return None, None
+
+        title = f'Machines with {name} {status}'
 
         machines = machines.filter(
-            installed_updates__update=name,
-            installed_updates__update_version=version,
-            installed_updates__installed=True if verb == 'installed' else False)
+            manageditem__name=name,
+            manageditem__status=status,
+            manageditem__management_source=munki)
 
         return machines, title
+
+    def _css_clean(self, item):
+        item['css_name'] = item['name'].replace('.', 'DOT')
+        item['css_name'] = re.sub(r'\W+', '', item['css_name'])
+        return item
+
+
+    def _get_metadata(self, report_item, managed_item):
+        try:
+            data = json.loads(managed_item.data)
+        except Exception:
+            data = {}
+
+        report_item['description'] = data.get('description', '')
+        report_item['version'] = data.get('installed_version') or data.get('version_to_install', '')
+
+        return report_item
+
+

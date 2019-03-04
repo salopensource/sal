@@ -107,22 +107,6 @@ class MachineViewSet(QueryFieldsMixin, viewsets.ModelViewSet):
         'machine_model', 'machine_model_friendly', 'manifest', 'memory')
 
 
-class UpdateHistoryViewSet(viewsets.ReadOnlyModelViewSet):
-    """
-    list:
-    You may also use the `search` querystring to perform text searches
-    across the `name` and `version` fields.
-
-    Example `/api/update_history/?search=NetHack`
-    """
-    serializer_class = UpdateHistorySerializer
-    queryset = UpdateHistory.objects.all()
-    filter_fields = (
-        'machine__serial', 'machine__hostname', 'machine__id',
-        'update_type', 'name', 'version')
-    search_fields = ('name', 'version')
-
-
 class ManagementSourceViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = ManagementSourceSerializer
     queryset = ManagementSource.objects.all()

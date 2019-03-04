@@ -9,5 +9,4 @@ class ServerAdminTest(AdminTestCase):
     admin_endpoints = {
         'apikey', 'businessunit', 'fact', 'historicalfact',
         'machinedetailplugin', 'machinegroup', 'machine', 'manageditem', 'managementsource',
-        'pluginscriptrow', 'pluginscriptsubmission', 'plugin', 'report', 'salsetting',
-        'updatehistoryitem', 'updatehistory'}
+        'pluginscriptrow', 'pluginscriptsubmission', 'plugin', 'report', 'salsetting'}

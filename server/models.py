@@ -177,52 +177,6 @@ GROUP_NAMES = {
     'machine': Machine}
 
 
-class UpdateHistory(models.Model):
-    id = models.BigAutoField(primary_key=True)
-    UPDATE_TYPE = (
-        ('third_party', '3rd Party'),
-        ('apple', 'Apple'),
-    )
-    machine = models.ForeignKey(Machine, on_delete=models.CASCADE)
-    update_type = models.CharField(max_length=254, choices=UPDATE_TYPE, verbose_name="Update Type")
-    name = models.CharField(max_length=255, db_index=True)
-    version = models.CharField(max_length=254, db_index=True)
-
-    def __str__(self):
-        return "%s: %s %s" % (self.machine, self.name, self.version)
-
-    class Meta:
-        ordering = ['name']
-        unique_together = (("machine", "name", "version", "update_type"),)
-
-
-class UpdateHistoryItem(models.Model):
-    id = models.BigAutoField(primary_key=True)
-    UPDATE_STATUS = (
-        ('pending', 'Pending'),
-        ('error', 'Error'),
-        ('install', 'Install'),
-        ('removal', 'Removal')
-    )
-    update_history = models.ForeignKey(UpdateHistory, on_delete=models.CASCADE)
-    recorded = models.DateTimeField()
-    uuid = models.CharField(null=True, blank=True, max_length=100)
-    status = models.CharField(max_length=254, choices=UPDATE_STATUS, verbose_name="Status")
-    extra = models.TextField(blank=True, null=True)
-
-    def __str__(self):
-        return "%s: %s %s %s %s" % (
-            self.update_history.machine,
-            self.update_history.name,
-            self.update_history.version,
-            self.status, self.recorded
-        )
-
-    class Meta:
-        ordering = ['-recorded']
-        unique_together = (("update_history", "recorded", "status"),)
-
-
 class PluginScriptSubmission(models.Model):
     id = models.BigAutoField(primary_key=True)
     machine = models.ForeignKey(Machine, on_delete=models.CASCADE)

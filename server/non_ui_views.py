@@ -22,9 +22,8 @@ import utils.csv
 from sal.decorators import key_auth_required
 from sal.plugin import (Widget, ReportPlugin, OldPluginAdapter, PluginManager,
                         DEPRECATED_PLUGIN_TYPES)
-from server.models import (Machine, Fact, HistoricalFact, MachineGroup, UpdateHistory, Message,
-                           UpdateHistoryItem, Plugin, Report, ManagedItem, MachineDetailPlugin,
-                           ManagementSource, ManagedItemHistory)
+from server.models import (Machine, Fact, HistoricalFact, MachineGroup, Message, Plugin, Report,
+                           ManagedItem, MachineDetailPlugin, ManagementSource, ManagedItemHistory)
 
 
 if settings.DEBUG:
@@ -375,55 +374,6 @@ def process_munki_extra_keys(management_data, machine):
     machine.munki_version = management_data.get('munki_version')
     machine.manifest = management_data.get('manifest')
     machine.save()
-    # TODO: Remove after changing UHI
-    # process_update_history(management_data.get('update_history', []), machine)
-
-
-# TODO: Remove after changing UHI
-# def process_update_history(update_histories, machine):
-#     """Process Munki updates and removals."""
-#     # Delete all of these every run, as its faster than comparing
-#     # between the client/server and removing the difference.
-#     to_delete = machine.pending_apple_updates.all()
-#     if to_delete.exists():
-#         to_delete._raw_delete(to_delete.db)
-
-#     # Accumulate items to create, so we can do `bulk_create` on
-#     # supported databases.
-#     items_to_create = defaultdict(list)
-
-#     for update in update_histories:
-#         update_history, _ = UpdateHistory.objects.get_or_create(
-#             machine=machine, update_type=update['update_type'], name=update['name'],
-#             version=update['version'])
-
-#         # Only create a history item if there are none or
-#         # if the last one is not the same status.
-#         items_set = update_history.updatehistoryitem_set.order_by('recorded')
-#         status = update['status']
-#         recorded = dateutil.parser.parse(update['date'])
-#         if not items_set.exists() or needs_history_item_creation(items_set, status, recorded):
-#             items_to_create[UpdateHistoryItem].append(
-#                 UpdateHistoryItem(update_history=update_history, status=status, recorded=recorded))
-
-#         if status == 'pending' and update['update_type'] == 'apple':
-#             pending_apple_item = PendingAppleUpdate(
-#                 machine=machine, update=update['name'], update_version=update['version'],
-#                 display_name=update.get('display_name'))
-#             items_to_create[PendingAppleUpdate].append(pending_apple_item)
-
-#     # Bulk create all of the objects we've built up.
-#     for model, updates_to_save in items_to_create.items():
-#         if IS_POSTGRES:
-#             model.objects.bulk_create(updates_to_save)
-#         else:
-#             for item in updates_to_save:
-#                 item.save()
-
-
-# TODO: Remove after changing UHI
-# def needs_history_item_creation(items_set, status, recorded):
-#     return items_set.last().status != status and items_set.last().recorded < recorded
 
 
 def process_facts(management_source, management_data, machine, object_queue):

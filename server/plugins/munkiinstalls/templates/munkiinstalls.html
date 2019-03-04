@@ -18,7 +18,7 @@ $(function() {
             {% for item in data %}
             {
                 date: "{{ item.date }}",
-                installs: {{ item.install }},
+                installs: {{ item.present }},
                 errors: {{ item.error }},
                 pending: {{ item.pending }}
             },

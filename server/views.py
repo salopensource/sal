@@ -12,8 +12,8 @@ import sal.plugin
 from sal.decorators import required_level, ProfileLevel, access_required, is_global_admin
 from server.forms import (BusinessUnitForm, EditUserBusinessUnitForm, EditBusinessUnitForm,
                           MachineGroupForm, EditMachineGroupForm, NewMachineForm)
-from server.models import (BusinessUnit, MachineGroup, Machine, UserProfile, Report, UpdateHistory,
-                           Plugin, PluginScriptSubmission, PluginScriptRow, ManagedItem, Fact)
+from server.models import (BusinessUnit, MachineGroup, Machine, UserProfile, Report, Plugin,
+                           PluginScriptSubmission, PluginScriptRow, ManagedItem, Fact)
 from server.non_ui_views import process_plugin
 from server import utils
 

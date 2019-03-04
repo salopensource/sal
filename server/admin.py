@@ -42,11 +42,6 @@ class PluginScriptRowInline(admin.StackedInline):
     extra = 0
 
 
-class UpdateHistoryItemInline(admin.TabularInline):
-    model = UpdateHistoryItem
-    extra = 0
-
-
 class UserProfileInline(admin.StackedInline):
     model = UserProfile
 
@@ -220,19 +215,6 @@ class FriendlyNameCacheAdmin(admin.ModelAdmin):
     list_display = ('serial_stub', 'friendly_name')
 
 
-class UpdateHistoryAdmin(admin.ModelAdmin):
-    inlines = [UpdateHistoryItemInline, ]
-    list_display = ('name', 'machine', 'update_type', 'version')
-    list_filter = ('update_type', BusinessUnitFilter, MachineGroupFilter)
-    search_fields = ('name', 'machine__hostname', 'version')
-
-
-class UpdateHistoryItemAdmin(admin.ModelAdmin):
-    search_fields = ('update_history__name', 'update_history__machine__hostname')
-    list_display = ('update_history', 'recorded', 'status')
-    date_hierarchy = 'recorded'
-
-
 class CustomUserAdmin(admin.ModelAdmin):
     inlines = (UserProfileInline,)
     list_display = ('username', 'profile_level', 'last_login')
@@ -260,8 +242,6 @@ admin.site.register(PluginScriptRow, PluginScriptRowAdmin)
 admin.site.register(PluginScriptSubmission, PluginScriptSubmissionAdmin)
 admin.site.register(Report, ReportAdmin)
 admin.site.register(SalSetting, SalSettingAdmin)
-admin.site.register(UpdateHistory, UpdateHistoryAdmin)
-admin.site.register(UpdateHistoryItem, UpdateHistoryItemAdmin)
 admin.site.unregister(User)
 admin.site.register(User, CustomUserAdmin)
 admin.site.register(FriendlyNameCache, FriendlyNameCacheAdmin)

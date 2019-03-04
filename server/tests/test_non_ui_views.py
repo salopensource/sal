@@ -18,8 +18,7 @@ from django.utils.timezone import now
 import server.utils
 from server import non_ui_views
 from server.models import (
-    MachineGroup, Machine, ManagementSource, ManagedItem, Fact, HistoricalFact,
-    UpdateHistory, UpdateHistoryItem, Message)
+    MachineGroup, Machine, ManagementSource, ManagedItem, Fact, HistoricalFact, Message)
 
 
 class CheckinDataTest(TestCase):

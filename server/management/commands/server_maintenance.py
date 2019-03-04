@@ -10,8 +10,7 @@ from django.conf import settings
 import django.utils.timezone
 
 import server.utils
-from server.models import (
-    PluginScriptSubmission, UpdateHistory, UpdateHistoryItem, HistoricalFact, Machine)
+from server.models import PluginScriptSubmission, HistoricalFact, Machine, ManagedItemHistory
 
 
 class Command(BaseCommand):
@@ -32,18 +31,8 @@ class Command(BaseCommand):
         # Clear out too-old plugin script submissions.
         PluginScriptSubmission.objects.filter(recorded__lt=datelimit).delete()
 
-        # Clean up UpdateHistory and items which are over our retention
-        # limit and are no longer managed, or which have no history items.
-
-        for history in UpdateHistory.objects.all():
-            try:
-                latest = history.updatehistoryitem_set.latest('recorded').recorded
-            except UpdateHistoryItem.DoesNotExist:
-                history.delete()
-                continue
-
-            if latest < datelimit:
-                history.delete()
+        # Clear out-of-date ManagedItemHistories
+        ManagedItemHistory.objects.filter(recorded__lt=retention_date).delete())
 
         HistoricalFact.objects.filter(fact_recorded__lt=datelimit).delete()
 

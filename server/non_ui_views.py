@@ -331,7 +331,7 @@ def process_management_submission(source, management_data, machine, object_queue
 
     processing_func = processing_funcs.get(source.name)
     if processing_func:
-        processing_func(management_data, machine)
+        object_queue = processing_func(management_data, machine, object_queue)
 
     object_queue = process_facts(source, management_data, machine, object_queue)
     object_queue = process_managed_items(source, management_data, machine, object_queue)
@@ -340,7 +340,7 @@ def process_management_submission(source, management_data, machine, object_queue
     return object_queue
 
 
-def process_machine_submission(machine_submission, machine):
+def process_machine_submission(machine_submission, machine, object_queue):
     machine.hostname = machine_submission.get('hostname', '<NO NAME>')
     # Drop the setup assistant user if encountered.
     console_user = machine_submission.get('console_user')
@@ -359,8 +359,10 @@ def process_machine_submission(machine_submission, machine):
     machine.memory_kb = machine_submission.get('memory_kb', 0)
     machine.save()
 
+    return object_queue
 
-def process_sal_submission(sal_submission, machine):
+
+def process_sal_submission(sal_submission, machine, object_queue):
     machine.sal_version = sal_submission.get('sal_version')
     machine.last_checkin = django.utils.timezone.now()
 
@@ -368,12 +370,30 @@ def process_sal_submission(sal_submission, machine):
         machine.deployed = True
 
     machine.save()
+    return object_queue
 
 
-def process_munki_extra_keys(management_data, machine):
+def process_munki_extra_keys(management_data, machine, object_queue):
     machine.munki_version = management_data.get('munki_version')
     machine.manifest = management_data.get('manifest')
     machine.save()
+
+    # We do something a little wild here: Munki may submit items for
+    # Apple Software Update (install results that have errored). So
+    # we process those into ManagedItems with an ERROR status.
+    extra_data = management_data.get('extra_data', {})
+    apple_items = extra_data.get('apple_results', {})
+    if apple_items:
+        try:
+            management_source = ManagementSource.objects.get(name='Apple Software Update')
+        except ManagementSource.DoesNotExist:
+            return object_queue
+
+        for name, item in apple_items.items():
+            object_queue['managed_items'].append(
+                _process_managed_item(name, item, machine, management_source))
+
+    return object_queue
 
 
 def process_facts(management_source, management_data, machine, object_queue):
@@ -399,17 +419,21 @@ def process_facts(management_source, management_data, machine, object_queue):
 def process_managed_items(management_source, management_data, machine, object_queue):
     now = django.utils.timezone.now()
     for name, managed_item in management_data.get('managed_items', {}).items():
-        submitted_date = managed_item.get('date_managed')
-        date_managed = dateutil.parser.parse(submitted_date) if submitted_date else now
-        status = managed_item.get('status', 'UNKNOWN')
-        data = managed_item.get('data')
-        dumped_data = json.dumps(data) if data else None
         object_queue['managed_items'].append(
-            ManagedItem(
-                name=name, machine=machine, management_source=management_source,
-                date_managed=date_managed, status=status, data=dumped_data))
+            _process_managed_item(name, managed_item, machine, management_source))
 
     return object_queue
+
+
+def _process_managed_item(name, managed_item, machine, management_source):
+    submitted_date = managed_item.get('date_managed')
+    date_managed = dateutil.parser.parse(submitted_date) if submitted_date else now
+    status = managed_item.get('status', 'UNKNOWN')
+    data = managed_item.get('data')
+    dumped_data = json.dumps(data) if data else None
+    return ManagedItem(
+        name=name, machine=machine, management_source=management_source,
+        date_managed=date_managed, status=status, data=dumped_data)
 
 
 def process_managed_item_histories(object_queue, machine):

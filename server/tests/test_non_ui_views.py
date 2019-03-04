@@ -64,8 +64,8 @@ class CheckinDataTest(TestCase):
         """Ensure that checkins with no machine_gruop key get a 400 response."""
         machine = Machine.objects.get(serial='C0DEADBEEF')
         data = json.dumps({
-            'Machine': {'serial': machine.serial},
-            'Sal': {'key': 'Not a key'}})
+            'Machine': {'extra_data': {'serial': machine.serial}},
+            'Sal': {'extra_data': {'key': 'Not a key'}}})
         response = self.client.post(self.url, data=data, content_type=self.content_type)
         self.assertEqual(response.status_code, 404)
 
@@ -91,8 +91,8 @@ class CheckinDataTest(TestCase):
         machine.save()
         settings.DEPLOYED_ON_CHECKIN = True
         data = json.dumps({
-            'Machine': {'serial': machine.serial},
-            'Sal': {'key': machine.machine_group.key}})
+            'Machine': {'extra_data': {'serial': machine.serial}},
+            'Sal': {'extra_data': {'key': machine.machine_group.key}}})
         self.client.post(self.url, data=data, content_type=self.content_type)
         machine.refresh_from_db()
         self.assertTrue(machine.deployed)
@@ -104,8 +104,8 @@ class CheckinDataTest(TestCase):
         settings.DEPLOYED_ON_CHECKIN = False
         machine.save()
         data = json.dumps({
-            'Machine': {'serial': machine.serial},
-            'Sal': {'key': machine.machine_group.key}})
+            'Machine': {'extra_data': {'serial': machine.serial}},
+            'Sal': {'extra_data': {'key': machine.machine_group.key}}})
         self.client.post(self.url, data=data, content_type=self.content_type)
         machine.refresh_from_db()
         self.assertFalse(machine.deployed)
@@ -116,8 +116,8 @@ class CheckinDataTest(TestCase):
         test_serial = 'New machine'.upper()
         settings.ADD_NEW_MACHINES = True
         data = json.dumps({
-            'Machine': {'serial': test_serial},
-            'Sal': {'key': machine.machine_group.key}})
+            'Machine': {'extra_data': {'serial': test_serial}},
+            'Sal': {'extra_data': {'key': machine.machine_group.key}}})
         self.client.post(self.url, data=data, content_type=self.content_type)
         self.assertTrue(Machine.objects.get(serial=test_serial))
 
@@ -127,8 +127,8 @@ class CheckinDataTest(TestCase):
         test_serial = 'New machine'.upper()
         settings.ADD_NEW_MACHINES = False
         data = json.dumps({
-            'Machine': {'serial': test_serial},
-            'Sal': {'key': machine.machine_group.key}})
+            'Machine': {'extra_data': {'serial': test_serial}},
+            'Sal': {'extra_data': {'key': machine.machine_group.key}}})
         self.client.post(self.url, data=data, content_type=self.content_type)
         machine.refresh_from_db()
         self.assertRaises(Machine.DoesNotExist, Machine.objects.get, serial=test_serial)
@@ -137,8 +137,8 @@ class CheckinDataTest(TestCase):
         """Test checkin can complete with bare minimum data."""
         machine = Machine.objects.get(serial='C0DEADBEEF')
         data = json.dumps({
-            'Machine': {'serial': machine.serial},
-            'Sal': {'key': machine.machine_group.key}})
+            'Machine': {'extra_data': {'serial': machine.serial}},
+            'Sal': {'extra_data': {'key': machine.machine_group.key}}})
         response = self.client.post(self.url, data, content_type=self.content_type)
         self.assertEqual(response.status_code, 200)
 
@@ -146,8 +146,8 @@ class CheckinDataTest(TestCase):
         """Test checkin creates management sources."""
         machine = Machine.objects.get(serial='C0DEADBEEF')
         data = json.dumps({
-            'Machine': {'serial': machine.serial},
-            'Sal': {'key': machine.machine_group.key},
+            'Machine': {'extra_data': {'serial': machine.serial}},
+            'Sal': {'extra_data': {'key': machine.machine_group.key}},
             'Munki': {}})
         self.client.post(self.url, data, content_type=self.content_type)
         self.assertTrue(ManagementSource.objects.filter(name='Munki').exists())
@@ -198,8 +198,8 @@ class CheckinFactTest(TestCase):
         """Test that all of a machine's facts get dropped."""
         machine = Machine.objects.get(serial='C0DEADBEEF')
         data = json.dumps({
-            'Machine': {'serial': machine.serial},
-            'Sal': {'key': machine.machine_group.key}})
+            'Machine': {'extra_data': {'serial': machine.serial}},
+            'Sal': {'extra_data': {'key': machine.machine_group.key}}})
         self.client.post(self.url, data, content_type=self.content_type)
         self.assertEqual(Fact.objects.count(), 0)
 
@@ -207,8 +207,8 @@ class CheckinFactTest(TestCase):
         """Test that facts get created."""
         machine = Machine.objects.get(serial='C0DEADBEEF')
         data = json.dumps({
-            'Machine': {'serial': machine.serial},
-            'Sal': {'key': machine.machine_group.key},
+            'Machine': {'extra_data': {'serial': machine.serial}},
+            'Sal': {'extra_data': {'key': machine.machine_group.key}},
             'Munki': {'facts': {'test_user': 'Snake Plisskin'}}
         })
         self.client.post(self.url, data, content_type=self.content_type)
@@ -223,8 +223,8 @@ class CheckinFactTest(TestCase):
         """Test historical facts get created."""
         machine = Machine.objects.get(serial='C0DEADBEEF')
         data = json.dumps({
-            'Machine': {'serial': machine.serial},
-            'Sal': {'key': machine.machine_group.key},
+            'Machine': {'extra_data': {'serial': machine.serial}},
+            'Sal': {'extra_data': {'key': machine.machine_group.key}},
             'Munki': {'facts': {'test_user': 'Snake Plisskin'}}
         })
         self.client.post(self.url, data, content_type=self.content_type)
@@ -243,8 +243,8 @@ class CheckinFactTest(TestCase):
         """Test the ignore prefixes setting for facts works."""
         machine = Machine.objects.get(serial='C0DEADBEEF')
         data = json.dumps({
-            'Machine': {'serial': machine.serial},
-            'Sal': {'key': machine.machine_group.key},
+            'Machine': {'extra_data': {'serial': machine.serial}},
+            'Sal': {'extra_data': {'key': machine.machine_group.key}},
             'Munki': {'facts': {'test_user': 'Snake Plisskin', 'ignore_this': 'Yep'}}
         })
         self.client.post(self.url, data, content_type=self.content_type)
@@ -272,8 +272,8 @@ class CheckinMessageTest(TestCase):
         # TODO: There are none at this point, so this test is kind of lame
         machine = Machine.objects.get(serial='C0DEADBEEF')
         data = json.dumps({
-            'Machine': {'serial': machine.serial},
-            'Sal': {'key': machine.machine_group.key}})
+            'Machine': {'extra_data': {'serial': machine.serial}},
+            'Sal': {'extra_data': {'key': machine.machine_group.key}}})
         self.client.post(self.url, data, content_type=self.content_type)
         self.assertEqual(Message.objects.count(), 0)
 
@@ -282,8 +282,8 @@ class CheckinMessageTest(TestCase):
         machine = Machine.objects.get(serial='C0DEADBEEF')
         text = 'I heard you were dead...'
         data = json.dumps({
-            'Machine': {'serial': machine.serial},
-            'Sal': {'key': machine.machine_group.key},
+            'Machine': {'extra_data': {'serial': machine.serial}},
+            'Sal': {'extra_data': {'key': machine.machine_group.key}},
             'Munki': {'messages': [{'text': text, 'message_type': 'WARNING'}]}
         })
         self.client.post(self.url, data, content_type=self.content_type)
@@ -311,8 +311,8 @@ class CheckinManagedItemTest(TestCase):
         """Test that all of a machine's managed items get dropped."""
         machine = Machine.objects.get(serial='C0DEADBEEF')
         data = json.dumps({
-            'Machine': {'serial': machine.serial},
-            'Sal': {'key': machine.machine_group.key}})
+            'Machine': {'extra_data': {'serial': machine.serial}},
+            'Sal': {'extra_data': {'key': machine.machine_group.key}}})
         self.client.post(self.url, data, content_type=self.content_type)
         self.assertEqual(ManagedItem.objects.count(), 0)
 
@@ -320,8 +320,8 @@ class CheckinManagedItemTest(TestCase):
         """Test that managed items get created."""
         machine = Machine.objects.get(serial='C0DEADBEEF')
         data = json.dumps({
-            'Machine': {'serial': machine.serial},
-            'Sal': {'key': machine.machine_group.key},
+            'Machine': {'extra_data': {'serial': machine.serial}},
+            'Sal': {'extra_data': {'key': machine.machine_group.key}},
             'Munki': {'managed_items': {
                 'Dwarf Fortress': {}}}})
         self.client.post(self.url, data, content_type=self.content_type)
@@ -336,8 +336,8 @@ class CheckinManagedItemTest(TestCase):
         machine = Machine.objects.get(serial='C0DEADBEEF')
         mock_now.return_value = now()
         data = json.dumps({
-            'Machine': {'serial': machine.serial},
-            'Sal': {'key': machine.machine_group.key},
+            'Machine': {'extra_data': {'serial': machine.serial}},
+            'Sal': {'extra_data': {'key': machine.machine_group.key}},
             'Munki': {'managed_items': {
                 'Dwarf Fortress': {}}}})
         self.client.post(self.url, data, content_type=self.content_type)
@@ -352,8 +352,8 @@ class CheckinManagedItemTest(TestCase):
         """Test that managed items get created."""
         machine = Machine.objects.get(serial='C0DEADBEEF')
         data = json.dumps({
-            'Machine': {'serial': machine.serial},
-            'Sal': {'key': machine.machine_group.key},
+            'Machine': {'extra_data': {'serial': machine.serial}},
+            'Sal': {'extra_data': {'key': machine.machine_group.key}},
             'Munki': {'managed_items': {
                 'Dwarf Fortress': {
                     'date_managed': '2020-02-29T13:00:00Z',
@@ -397,9 +397,9 @@ class CheckinMunkiItemTest(TestCase):
         manifest = 'the_firm'
         munki_version = '1000.0.0'
         data = json.dumps({
-            'Machine': {'serial': machine.serial},
-            'Sal': {'key': machine.machine_group.key},
-            'Munki': {'manifest': manifest, 'munki_version': munki_version}})
+            'Machine': {'extra_data': {'serial': machine.serial}},
+            'Sal': {'extra_data': {'key': machine.machine_group.key}},
+            'Munki': {'extra_data': {'manifest': manifest, 'munki_version': munki_version}}})
         self.client.post(self.url, data, content_type=self.content_type)
         machine.refresh_from_db()
         self.assertEqual(machine.manifest, manifest)

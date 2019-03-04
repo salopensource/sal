@@ -234,12 +234,15 @@ def checkin(request):
         return HttpResponseBadRequest('Checkin JSON is missing required key "Machine"!')
 
     # Process machine submission information.
-    serial = submission['Machine'].get('serial')
+    try:
+        serial = submission['Machine']['extra_data'].get('serial')
+    except KeyError:
+        return HttpResponseBadRequest('Checkin JSON is missing required "Machine" key "serial"!')
     if not serial:
         return HttpResponseBadRequest('Checkin JSON is missing required "Machine" key "serial"!')
 
     machine = process_checkin_serial(serial)
-    machine_group = get_object_or_404(MachineGroup, key=submission['Sal'].get('key'))
+    machine_group = get_object_or_404(MachineGroup, key=submission['Sal']['extra_data'].get('key'))
     machine.machine_group = machine_group
     machine.save()
 
@@ -323,7 +326,8 @@ def process_management_submission(source, management_data, machine, object_queue
     """
     # Add custom processor funcs to this dictionary.
     # The key should be the same name used in the submission for ManagementSource.
-    # The func's signature must be f(management_data: dict, machine: Machine)
+    # The func's signature must be
+    # f(management_data: dict, machine: Machine, object_queue: dict)
     processing_funcs = {
         'Machine': process_machine_submission,
         'Sal': process_sal_submission,
@@ -341,29 +345,31 @@ def process_management_submission(source, management_data, machine, object_queue
 
 
 def process_machine_submission(machine_submission, machine, object_queue):
-    machine.hostname = machine_submission.get('hostname', '<NO NAME>')
+    extra_data = machine_submission.get('extra_data', {})
+    machine.hostname = extra_data.get('hostname', '<NO NAME>')
     # Drop the setup assistant user if encountered.
-    console_user = machine_submission.get('console_user')
+    console_user = extra_data.get('console_user')
     console_user = console_user if console_user != '_mbsetupuser' else None
     machine.console_user = console_user
-    machine.os_family = machine_submission.get('os_family', 'Darwin')
-    machine.operating_system = machine_submission.get('operating_system')
-    machine.hd_space = machine_submission.get('hd_space')
-    machine.hd_total = machine_submission.get('hd_total')
-    machine.hd_percent = machine_submission.get('hd_percent')
-    machine.machine_model = machine_submission.get('machine_model')
-    machine.machine_model_friendly = machine_submission.get('machine_model_friendly')
-    machine.cpu_type = machine_submission.get('cpu_type')
-    machine.cpu_speed = machine_submission.get('cpu_speed')
-    machine.memory = machine_submission.get('memory')
-    machine.memory_kb = machine_submission.get('memory_kb', 0)
+    machine.os_family = extra_data.get('os_family', 'Darwin')
+    machine.operating_system = extra_data.get('operating_system')
+    machine.hd_space = extra_data.get('hd_space')
+    machine.hd_total = extra_data.get('hd_total')
+    machine.hd_percent = extra_data.get('hd_percent')
+    machine.machine_model = extra_data.get('machine_model')
+    machine.machine_model_friendly = extra_data.get('machine_model_friendly')
+    machine.cpu_type = extra_data.get('cpu_type')
+    machine.cpu_speed = extra_data.get('cpu_speed')
+    machine.memory = extra_data.get('memory')
+    machine.memory_kb = extra_data.get('memory_kb', 0)
     machine.save()
 
     return object_queue
 
 
 def process_sal_submission(sal_submission, machine, object_queue):
-    machine.sal_version = sal_submission.get('sal_version')
+    extras = sal_submission.get('extra_data', {})
+    machine.sal_version = extras.get('sal_version')
     machine.last_checkin = django.utils.timezone.now()
 
     if server.utils.get_django_setting('DEPLOYED_ON_CHECKIN', True):
@@ -374,14 +380,14 @@ def process_sal_submission(sal_submission, machine, object_queue):
 
 
 def process_munki_extra_keys(management_data, machine, object_queue):
-    machine.munki_version = management_data.get('munki_version')
-    machine.manifest = management_data.get('manifest')
+    extra_data = management_data.get('extra_data', {})
+    machine.munki_version = extra_data.get('munki_version')
+    machine.manifest = extra_data.get('manifest')
     machine.save()
 
     # We do something a little wild here: Munki may submit items for
     # Apple Software Update (install results that have errored). So
     # we process those into ManagedItems with an ERROR status.
-    extra_data = management_data.get('extra_data', {})
     apple_items = extra_data.get('apple_results', {})
     if apple_items:
         now = django.utils.timezone.now()

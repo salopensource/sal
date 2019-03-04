@@ -10,7 +10,8 @@ from django.conf import settings
 import django.utils.timezone
 
 import server.utils
-from server.models import PluginScriptSubmission, HistoricalFact, Machine, ManagedItemHistory
+from server.models import (PluginScriptSubmission, HistoricalFact, Machine, ManagedItemHistory,
+                           ManagementSource)
 
 
 class Command(BaseCommand):
@@ -32,7 +33,15 @@ class Command(BaseCommand):
         PluginScriptSubmission.objects.filter(recorded__lt=datelimit).delete()
 
         # Clear out-of-date ManagedItemHistories
-        ManagedItemHistory.objects.filter(recorded__lt=retention_date).delete())
+        ManagedItemHistory.objects.filter(recorded__lt=datelimit).delete()
+
+        for source in ManagementSource.objects.exclude(name__in=('Machine', 'Sal')):
+            if (not source.manageditem_set.count() and
+                not source.manageditemhistory_set.count() and
+                not source.facts.count() and
+                not source.historical_facts.count() and
+                not source.messages.count()):
+                source.delete()
 
         HistoricalFact.objects.filter(fact_recorded__lt=datelimit).delete()
 

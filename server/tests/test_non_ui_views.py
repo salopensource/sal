@@ -505,9 +505,6 @@ class CheckinHelperTest(TestCase):
     fixtures = [
         'machine_group_fixtures.json', 'business_unit_fixtures.json', 'machine_fixtures.json']
 
-    def setUp(self):
-        self.report = {'test': 'I heard you were dead'}
-
     def test_vmware_serial(self):
         """Ensure serial translation for crazy VMWare serials works."""
         machine = non_ui_views.process_checkin_serial('+/c0deadbEEF')

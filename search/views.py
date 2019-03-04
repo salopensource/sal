@@ -49,7 +49,6 @@ def quick_search(machines, query_string):
     skip_fields = [
         'id',
         'machine_group',
-        'report',
         'activity',
         'errors',
         'warnings',
@@ -548,7 +547,7 @@ def get_fields(request, model):
 
 @login_required
 def export_csv(request, search_id):
-    machines = Machine.objects.all().defer('report')
+    machines = Machine.objects.all()
     machines = search_machines(search_id, machines, full=True)
     title = get_object_or_404(SavedSearch, pk=search_id).name
     return utils.csv.get_csv_response(machines, utils.csv.machine_fields(), title)

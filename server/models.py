@@ -117,13 +117,17 @@ class DeployedManager(models.Manager):
 class Machine(models.Model):
     id = models.BigAutoField(primary_key=True)
     machine_group = models.ForeignKey(MachineGroup, on_delete=models.CASCADE)
+    sal_version = models.CharField(db_index=True, null=True, blank=True, max_length=255)
+    deployed = models.BooleanField(default=True)
+    broken_client = models.BooleanField(default=False)
+    last_checkin = models.DateTimeField(db_index=True, blank=True, null=True)
+    first_checkin = models.DateTimeField(db_index=True, blank=True, null=True, auto_now_add=True)
+
     serial = models.CharField(db_index=True, max_length=100, unique=True)
     hostname = models.CharField(max_length=256, null=True, blank=True)
     operating_system = models.CharField(db_index=True, max_length=256, null=True, blank=True)
     memory = models.CharField(db_index=True, max_length=256, null=True, blank=True)
     memory_kb = models.IntegerField(db_index=True, default=0)
-    munki_version = models.CharField(db_index=True, max_length=256, null=True, blank=True)
-    manifest = models.CharField(db_index=True, max_length=256, null=True, blank=True)
     hd_space = models.IntegerField(db_index=True, null=True, blank=True)
     hd_total = models.IntegerField(db_index=True, null=True, blank=True)
     hd_percent = models.CharField(max_length=256, null=True, blank=True)
@@ -134,27 +138,22 @@ class Machine(models.Model):
     cpu_speed = models.CharField(max_length=256, null=True, blank=True)
     os_family = models.CharField(db_index=True, max_length=256,
                                  choices=OS_CHOICES, verbose_name="OS Family", default="Darwin")
-    last_checkin = models.DateTimeField(db_index=True, blank=True, null=True)
-    first_checkin = models.DateTimeField(db_index=True, blank=True, null=True, auto_now_add=True)
-    report = models.TextField(editable=True, null=True)
+
+    munki_version = models.CharField(db_index=True, max_length=256, null=True, blank=True)
+    manifest = models.CharField(db_index=True, max_length=256, null=True, blank=True)
     errors = models.IntegerField(default=0)
     warnings = models.IntegerField(default=0)
     activity = models.BooleanField(editable=True, default=False)
+
     puppet_version = models.CharField(db_index=True, null=True, blank=True, max_length=256)
-    sal_version = models.CharField(db_index=True, null=True, blank=True, max_length=255)
     last_puppet_run = models.DateTimeField(db_index=True, blank=True, null=True)
     puppet_errors = models.IntegerField(db_index=True, default=0)
-    deployed = models.BooleanField(default=True)
-    broken_client = models.BooleanField(default=False)
 
     objects = models.Manager()  # The default manager.
     deployed_objects = DeployedManager()
 
     def get_fields(self):
         return [(field.name, field.value_to_string(self)) for field in Machine._meta.fields]
-
-    def get_report(self):
-        return text_utils.submission_plist_loads(self.report)
 
     def __str__(self):
         if self.hostname:

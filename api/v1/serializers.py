@@ -67,4 +67,3 @@ class MachineSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Machine
-        exclude = ('report', )

@@ -67,9 +67,9 @@ class MachineViewSet(QueryFieldsMixin, viewsets.ModelViewSet):
     - `fields` allows you to specify a list of fields to include or exclude in
       the response.
         - Include Example: `/api/machines/?fields=console_user,hostname`
-        - Exclude Example: `/api/machines/?fields!=report`
+        - Exclude Example: `/api/machines/?fields!=manifest`
 
-    The abbreviated form excludes the `report` field.
+    The abbreviated form excludes no fields.
 
     You may also use the `search` querystring to perform text searches
     across the `console_user`, `cpu_speed`, `cpu_type`,
@@ -88,9 +88,9 @@ class MachineViewSet(QueryFieldsMixin, viewsets.ModelViewSet):
     - `fields` allows you to specify a list of fields to include or exclude in
       the response.
         - Include Example: `/api/machines/C0DEADBEEF/?fields=console_user,hostname`
-        - Exclude Example: `/api/machines/C0DEADBEEF/?fields!=report`
+        - Exclude Example: `/api/machines/C0DEADBEEF/?fields!=manifest`
 
-    The abbreviated form excludes the `report` field.
+    The abbreviated form excludes no fields.
     """
     queryset = Machine.objects.all()
     serializer_class = MachineSerializer

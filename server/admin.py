@@ -132,7 +132,7 @@ class HistoricalFactAdmin(admin.ModelAdmin):
 class MachineAdmin(admin.ModelAdmin):
     list_display = ('hostname', 'serial', 'machine_model', 'operating_system', 'deployed')
     list_filter = (BusinessUnitFilter, MachineGroupFilter, 'operating_system', 'os_family',
-                   'machine_model', 'last_checkin', 'errors', 'warnings', 'puppet_errors',
+                   'machine_model', 'last_checkin', 'errors', 'warnings',
                    'deployed')
     fields = (
         (business_unit, 'machine_group'),
@@ -142,11 +142,10 @@ class MachineAdmin(admin.ModelAdmin):
         ('operating_system', 'os_family'),
         ('munki_version', 'manifest', 'errors', 'warnings'),
         ('last_checkin', 'first_checkin'),
-        ('puppet_version', 'last_puppet_run', 'puppet_errors'),
         ('sal_version', 'deployed', 'broken_client', 'activity'),
         'report'
     )
-    readonly_fields = (business_unit, 'first_checkin', 'last_checkin', 'last_puppet_run')
+    readonly_fields = (business_unit, 'first_checkin', 'last_checkin')
     search_fields = ('hostname', 'console_user')
 
 

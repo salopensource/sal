@@ -52,7 +52,6 @@ def quick_search(machines, query_string):
         'activity',
         'errors',
         'warnings',
-        'puppet_errors',
         'deployed',
         'broken_client',
         'hd_percent',

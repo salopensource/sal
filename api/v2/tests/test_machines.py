@@ -10,10 +10,10 @@ from api.v2.tests.tools import SalAPITestCase
 
 ALL_MACHINE_COLUMNS = {
     'console_user', 'munki_version', 'hd_space', 'machine_model', 'cpu_speed', 'serial', 'id',
-    'last_puppet_run', 'errors', 'puppet_version', 'hostname', 'puppet_errors',
-    'machine_model_friendly', 'memory', 'memory_kb', 'warnings', 'first_checkin', 'last_checkin',
-    'broken_client', 'hd_total', 'os_family', 'deployed', 'operating_system', 'machine_group',
-    'sal_version', 'manifest', 'hd_percent', 'cpu_type', 'activity'}
+    'errors', 'hostname', 'machine_model_friendly', 'memory', 'memory_kb', 'warnings',
+    'first_checkin', 'last_checkin', 'broken_client', 'hd_total', 'os_family', 'deployed',
+    'operating_system', 'machine_group', 'sal_version', 'manifest', 'hd_percent', 'cpu_type',
+    'activity'}
 REMOVED_MACHINE_COLUMNS = set()
 
 

@@ -39,7 +39,6 @@ class Command(BaseCommand):
             'activity',
             'errors',
             'warnings',
-            'puppet_errors'
         ]
 
         inventory_fields = [

@@ -338,9 +338,6 @@ def machine_detail(request, **kwargs):
     else:
         uptime = None
 
-    # if 'managed_uninstalls_list' in report:
-    #     report['managed_uninstalls_list'].sort()
-
     output = utils.get_machine_detail_placeholder_markup(machine)
 
     # Process machine's managed items for display in the template.
@@ -463,6 +460,11 @@ def _salt_facts(machine):
     info_names = ('saltversion', 'pythonversion', 'Last Highstate')
     rows = _get_management_facts(machine, 'Salt', info_names)
     return rows
+
+
+def _puppet_facts(machine):
+    info_names = ('puppet_version', 'puppet_errors', 'last_puppet_run')
+    rows = _get_management_facts(machine, 'Puppet', info_names)
 
 
 def _not_implemented_facts(machine):

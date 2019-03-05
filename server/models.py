@@ -145,10 +145,6 @@ class Machine(models.Model):
     warnings = models.IntegerField(default=0)
     activity = models.BooleanField(editable=True, default=False)
 
-    puppet_version = models.CharField(db_index=True, null=True, blank=True, max_length=256)
-    last_puppet_run = models.DateTimeField(db_index=True, blank=True, null=True)
-    puppet_errors = models.IntegerField(db_index=True, default=0)
-
     objects = models.Manager()  # The default manager.
     deployed_objects = DeployedManager()
 

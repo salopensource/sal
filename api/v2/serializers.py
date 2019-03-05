@@ -99,7 +99,8 @@ class MessageSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
-class MachineSerializer(QueryFieldsMixin, serializers.ModelSerializer):
+# class MachineSerializer(QueryFieldsMixin, serializers.ModelSerializer):
+class MachineSerializer(serializers.ModelSerializer):
 
     """
     Only used by saved_search and profiles
@@ -107,18 +108,12 @@ class MachineSerializer(QueryFieldsMixin, serializers.ModelSerializer):
     simple fields without using 'saved_search' kwarg
     """
 
-    simple_fields = (
-        'console_user', 'munki_version', 'hd_space', 'machine_model', 'cpu_speed', 'serial', 'id',
-        'hostname', 'machine_model_friendly', 'memory', 'memory_kb', 'first_checkin',
-        'last_checkin', 'hd_total', 'os_family', 'deployed', 'operating_system', 'machine_group',
-        'sal_version', 'manifest', 'hd_percent', 'cpu_type', 'broken_client')
-
     class Meta:
         model = Machine
         fields = '__all__'
 
     def __init__(self, *args, **kwargs):
-        """Modify the serializer's fields if the full argument is true.
+        """Modify the serializer's fields for saved_search.
 
         This is taken from the DRF Serializers: Dynamically Modifying
         Fields example to allow us to handle one case: during our

@@ -55,43 +55,7 @@ class MachineGroupViewSet(viewsets.ModelViewSet):
     filter_fields = ('name', 'business_unit__name', 'business_unit__id')
 
 
-class MachineViewSet(QueryFieldsMixin, viewsets.ModelViewSet):
-    """
-    list:
-    Returns a paginated list of all machines. Records are by default in
-    abbreviated form, but this endpoint accepts querystring arguments for
-    limiting or including fields as per below.
-
-    - `full` uses the full machine record instead of the abbreviated form.
-        - Example: `/api/machines/?full`
-    - `fields` allows you to specify a list of fields to include or exclude in
-      the response.
-        - Include Example: `/api/machines/?fields=console_user,hostname`
-        - Exclude Example: `/api/machines/?fields!=manifest`
-
-    The abbreviated form excludes no fields.
-
-    You may also use the `search` querystring to perform text searches
-    across the `console_user`, `cpu_speed`, `cpu_type`,
-    `hostname`, `machine_model`, `machine_model_friendly`, `manifest`,
-    and `memory` fields.
-
-    Example `/api/machines/?search=MacPro`
-
-    read:
-    Returns a machine record. The returned record is by default in abbreviated
-    form, but this endpoint accepts querystring arguments for limiting or
-    including fields as per below.
-
-    - `full` uses the full machine record instead of the abbreviated form.
-        - Example: `/api/machines/42/?full`
-    - `fields` allows you to specify a list of fields to include or exclude in
-      the response.
-        - Include Example: `/api/machines/C0DEADBEEF/?fields=console_user,hostname`
-        - Exclude Example: `/api/machines/C0DEADBEEF/?fields!=manifest`
-
-    The abbreviated form excludes no fields.
-    """
+class MachineViewSet(viewsets.ModelViewSet):
     queryset = Machine.objects.all()
     serializer_class = MachineSerializer
     lookup_field = 'serial'
@@ -178,6 +142,5 @@ class SavedSearchViewSet(viewsets.ReadOnlyModelViewSet):
         queryset = search_machines(pk, machines, full=full)
         # Pass the "full" parameter to the serializer so it knows
         # how to handle potentially missing fields.
-        response_data = MachineSerializer(
-            queryset, many=True, full=full, saved_search=True)
+        response_data = MachineSerializer(queryset, many=True, full=full, saved_search=True)
         return Response(response_data.data)

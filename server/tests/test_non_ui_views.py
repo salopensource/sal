@@ -18,7 +18,8 @@ from django.utils.timezone import now
 import server.utils
 from server import non_ui_views
 from server.models import (
-    MachineGroup, Machine, ManagementSource, ManagedItem, Fact, HistoricalFact, Message)
+    MachineGroup, Machine, ManagementSource, ManagedItem, ManagedItemHistory, Fact, HistoricalFact,
+    Message)
 
 
 class CheckinDataTest(TestCase):
@@ -420,83 +421,55 @@ class CheckinManagedItemHistoryTest(TestCase):
         # Avoid sending analytics to the project while testing!
         server.utils.set_setting('send_data', False)
 
-    # TODO: Write!
-    # def test_pending_managed_item_created(self):
-    #     """Test that pending managed updates get created."""
-    #     machine = Machine.objects.get(serial='C0DEADBEEF')
-    #     data = json.dumps({
-    #         'Machine': {'serial': machine.serial},
-    #         'Sal': {'key': machine.machine_group.key},
-    #         'Munki': {
-    #             'managed_items': {
-    #                 'macOS 10.99.1 Heavy Metal Update': {
-    #                     'date_managed': '2050-01-30T13:00:00Z', 'status': 'PENDING'}
-    #             }}})
-    #     self.client.post(self.url, data, content_type=self.content_type)
-    #     machine.refresh_from_db()
-    #     self.assertTrue(.objects.exists())
+    def test_pending_managed_item_history_created(self):
+        """Test that pending managed updates get created."""
+        machine = Machine.objects.get(serial='C0DEADBEEF')
+        data = json.dumps({
+            'Machine': {'extra_data': {'serial': machine.serial}},
+            'Sal': {'extra_data': {'key': machine.machine_group.key}},
+            'Munki': {
+                'managed_items': {
+                    'macOS 10.99.1 Heavy Metal Update': {
+                        'date_managed': '2050-01-30T13:00:00Z', 'status': 'PENDING'}
+                }}})
+        self.client.post(self.url, data, content_type=self.content_type)
+        machine.refresh_from_db()
+        self.assertTrue(ManagedItemHistory.objects.exists())
 
-    # def test_update_history_creation(self):
-    #     """Test that update histories get created."""
-    #     machine = Machine.objects.get(serial='C0DEADBEEF')
-    #     data = json.dumps({
-    #         'Machine': {'serial': machine.serial},
-    #         'Sal': {'key': machine.machine_group.key},
-    #         'Munki': {
-    #             'update_history': [
-    #                 {'update_type': 'apple',
-    #                  'name': 'macOS 10.99.1 Heavy Metal Update',
-    #                  'version': '1.0.0',
-    #                  'date': '2050-01-30T13:00:00Z',
-    #                  'status': 'pending'}]}})
-    #     self.client.post(self.url, data, content_type=self.content_type)
-    #     machine.refresh_from_db()
-    #     self.assertTrue(UpdateHistory.objects.exists())
+    def test_update_history_item_skipped(self):
+        """Test that update history items are skipped when duplicate."""
+        machine = Machine.objects.get(serial='C0DEADBEEF')
+        name = 'Dwarf Fortress'
+        status = 'PENDING'
+        recorded = '2050-01-30T13:00:00Z'
+        recorded_after = '2050-02-01T13:00:00Z'
 
-    # def test_update_history_item_creation(self):
-    #     """Test that update history items get created."""
-    #     machine = Machine.objects.get(serial='C0DEADBEEF')
-    #     data = json.dumps({
-    #         'Machine': {'serial': machine.serial},
-    #         'Sal': {'key': machine.machine_group.key},
-    #         'Munki': {
-    #             'update_history': [
-    #                 {'update_type': 'apple',
-    #                  'name': 'macOS 10.99.1 Heavy Metal Update',
-    #                  'version': '1.0.0',
-    #                  'date': '2050-01-30T13:00:00Z',
-    #                  'status': 'pending'}]}})
-    #     self.client.post(self.url, data, content_type=self.content_type)
-    #     machine.refresh_from_db()
-    #     self.assertTrue(UpdateHistoryItem.objects.exists())
+        munki = ManagementSource.objects.create(name='Munki')
 
-    # def test_update_history_item_skipped(self):
-    #     """Test that update history items are skipped when duplicate."""
-    #     machine = Machine.objects.get(serial='C0DEADBEEF')
-    #     update_type = 'third_party'
-    #     name = 'Dwarf Fortress'
-    #     version = '1.5'
-    #     status = 'pending'
-    #     recorded = '2050-01-30T13:00:00Z'
+        managed_item_history = ManagedItemHistory.objects.create(
+            machine=machine, name=name, recorded=recorded, management_source=munki, status=status)
 
-    #     update_history = UpdateHistory.objects.create(
-    #         machine=machine, update_type=update_type, name=name, version=version)
-    #     UpdateHistoryItem.objects.create(
-    #         update_history=update_history, status=status, recorded=recorded)
+        data = json.dumps({
+            'Machine': {'extra_data': {'serial': machine.serial}},
+            'Sal': {'extra_data': {'key': machine.machine_group.key}},
+            'Munki': {
+                'managed_items': {
+                    name: {'date_managed': recorded, 'status': 'PENDING'}}}})
 
-    #     data = json.dumps({
-    #         'Machine': {'serial': machine.serial},
-    #         'Sal': {'key': machine.machine_group.key},
-    #         'Munki': {
-    #             'update_history': [
-    #                 {'update_type': update_type,
-    #                  'name': name,
-    #                  'version': version,
-    #                  'date': recorded,
-    #                  'status': status}]}})
-    #     self.client.post(self.url, data, content_type=self.content_type)
-    #     machine.refresh_from_db()
-    #     self.assertTrue(UpdateHistoryItem.objects.count() == 1)
+        self.client.post(self.url, data, content_type=self.content_type)
+        machine.refresh_from_db()
+        self.assertTrue(ManagedItemHistory.objects.count() == 1)
+
+        data = json.dumps({
+            'Machine': {'extra_data': {'serial': machine.serial}},
+            'Sal': {'extra_data': {'key': machine.machine_group.key}},
+            'Munki': {
+                'managed_items': {
+                    name: {'date_managed': recorded_after, 'status': 'PENDING'}}}})
+
+        self.client.post(self.url, data, content_type=self.content_type)
+        machine.refresh_from_db()
+        self.assertTrue(ManagedItemHistory.objects.count() == 1)
 
 
 class CheckinHelperTest(TestCase):

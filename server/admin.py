@@ -132,15 +132,14 @@ class HistoricalFactAdmin(admin.ModelAdmin):
 class MachineAdmin(admin.ModelAdmin):
     list_display = ('hostname', 'serial', 'machine_model', 'operating_system', 'deployed')
     list_filter = (BusinessUnitFilter, MachineGroupFilter, 'operating_system', 'os_family',
-                   'machine_model', 'last_checkin', 'errors', 'warnings',
-                   'deployed')
+                   'machine_model', 'last_checkin', 'deployed')
     fields = (
         (business_unit, 'machine_group'),
         ('hostname', 'serial', 'console_user'),
         ('machine_model', 'machine_model_friendly'),
         ('cpu_type', 'cpu_speed'), ('memory', 'memory_kb'), ('hd_space', 'hd_total', 'hd_percent'),
         ('operating_system', 'os_family'),
-        ('munki_version', 'manifest', 'errors', 'warnings'),
+        ('munki_version', 'manifest'),
         ('last_checkin', 'first_checkin'),
         ('sal_version', 'deployed', 'broken_client'),
         'report'

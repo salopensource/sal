@@ -22,8 +22,6 @@
         "os_family": "Darwin",
         "last_checkin": "2016-10-06T19:29:38.376Z",
         "first_checkin": "2016-10-06T15:51:21.145Z",
-        "errors": 4,
-        "warnings": 7,
         "sal_version": "1.0.6",
         "deployed": true,
         "broken_client": false
@@ -52,8 +50,6 @@
         "os_family": "Darwin",
         "last_checkin": "2017-05-16T19:04:51.336Z",
         "first_checkin": "2017-05-16T19:04:51.728Z",
-        "errors": 0,
-        "warnings": 3,
         "sal_version": "2.0.3",
         "deployed": true,
         "broken_client": false

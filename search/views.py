@@ -49,8 +49,6 @@ def quick_search(machines, query_string):
     skip_fields = [
         'id',
         'machine_group',
-        'errors',
-        'warnings',
         'deployed',
         'broken_client',
         'hd_percent',

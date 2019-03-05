@@ -141,8 +141,6 @@ class Machine(models.Model):
 
     munki_version = models.CharField(db_index=True, max_length=256, null=True, blank=True)
     manifest = models.CharField(db_index=True, max_length=256, null=True, blank=True)
-    errors = models.IntegerField(default=0)
-    warnings = models.IntegerField(default=0)
 
     objects = models.Manager()  # The default manager.
     deployed_objects = DeployedManager()

@@ -35,9 +35,6 @@ class Command(BaseCommand):
 
         skip_fields = [
             'id',
-            'report',
-            'errors',
-            'warnings',
         ]
 
         inventory_fields = [

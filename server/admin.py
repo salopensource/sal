@@ -142,7 +142,7 @@ class MachineAdmin(admin.ModelAdmin):
         ('operating_system', 'os_family'),
         ('munki_version', 'manifest', 'errors', 'warnings'),
         ('last_checkin', 'first_checkin'),
-        ('sal_version', 'deployed', 'broken_client', 'activity'),
+        ('sal_version', 'deployed', 'broken_client'),
         'report'
     )
     readonly_fields = (business_unit, 'first_checkin', 'last_checkin')

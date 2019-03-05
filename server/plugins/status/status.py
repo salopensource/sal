@@ -15,19 +15,16 @@ WEEK_AGO = TODAY - timedelta(days=7)
 MONTH_AGO = TODAY - timedelta(days=30)
 THREE_MONTHS_AGO = TODAY - timedelta(days=90)
 
-# TODO: This can be cleaned up post-py3k since I believe dicts are
-# ordered by default.
-STATUSES = OrderedDict()
-STATUSES['broken_clients'] = ('Machines with broken Python', Q(broken_client=True))
-STATUSES['errors'] = ('Machines with MSU errors', Q(errors__gt=0))
-STATUSES['warnings'] = ('Machines with MSU warnings', Q(warnings__gt=0))
-STATUSES['activity'] = ('Machines with MSU activity', Q(activity=True))
-STATUSES['sevendayactive'] = ('7 day active machines', Q(last_checkin__gte=WEEK_AGO))
-STATUSES['thirtydayactive'] = ('30 day active machines', Q(last_checkin__gte=MONTH_AGO))
-STATUSES['ninetydayactive'] = ('90 day active machines', Q(last_checkin__gte=THREE_MONTHS_AGO))
-STATUSES['all_machines'] = ('All machines', None)
-STATUSES['deployed_machines'] = ('Deployed Machines', None)
-STATUSES['undeployed_machines'] = ('Undeployed Machines', Q(deployed=False))
+STATUSES = {
+    'broken_clients': ('Machines with broken Python', Q(broken_client=True)),
+    'errors': ('Machines with errors', Q(messages__message_type='ERROR')),
+    'warnings': ('Machines with warnings', Q(messages__message_type='WARNING')),
+    'sevendayactive': ('7 day active machines', Q(last_checkin__gte=WEEK_AGO)),
+    'thirtydayactive': ('30 day active machines', Q(last_checkin__gte=MONTH_AGO)),
+    'ninetydayactive': ('90 day active machines', Q(last_checkin__gte=THREE_MONTHS_AGO)),
+    'all_machines': ('All machines', None),
+    'deployed_machines': ('Deployed Machines', None),
+    'undeployed_machines': ('Undeployed Machines', Q(deployed=False)),}
 
 
 class Status(sal.plugin.Widget):
@@ -38,7 +35,7 @@ class Status(sal.plugin.Widget):
     def get_context(self, queryset, **kwargs):
         context = self.super_get_context(queryset, **kwargs)
 
-        context['data'] = OrderedDict()
+        context['data'] = {}
         for key, item in STATUSES.items():
             context['data'][key] = (item[0], self._filter(queryset, key).count())
 

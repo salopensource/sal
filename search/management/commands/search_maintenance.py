@@ -36,7 +36,6 @@ class Command(BaseCommand):
         skip_fields = [
             'id',
             'report',
-            'activity',
             'errors',
             'warnings',
         ]

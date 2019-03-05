@@ -143,7 +143,6 @@ class Machine(models.Model):
     manifest = models.CharField(db_index=True, max_length=256, null=True, blank=True)
     errors = models.IntegerField(default=0)
     warnings = models.IntegerField(default=0)
-    activity = models.BooleanField(editable=True, default=False)
 
     objects = models.Manager()  # The default manager.
     deployed_objects = DeployedManager()

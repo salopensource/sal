@@ -96,7 +96,7 @@ class MachineViewSet(QueryFieldsMixin, viewsets.ModelViewSet):
     serializer_class = MachineSerializer
     lookup_field = 'serial'
     filter_fields = (
-        'id', 'activity', 'console_user', 'cpu_speed', 'cpu_type', 'deployed', 'errors',
+        'id', 'console_user', 'cpu_speed', 'cpu_type', 'deployed', 'errors',
         'first_checkin', 'hd_percent', 'hd_space', 'hd_total', 'hostname', 'last_checkin',
         'machine_model', 'machine_model_friendly', 'manifest', 'memory', 'memory_kb',
         'munki_version', 'operating_system', 'os_family', 'sal_version', 'warnings')

@@ -12,8 +12,7 @@ ALL_MACHINE_COLUMNS = {
     'console_user', 'munki_version', 'hd_space', 'machine_model', 'cpu_speed', 'serial', 'id',
     'errors', 'hostname', 'machine_model_friendly', 'memory', 'memory_kb', 'warnings',
     'first_checkin', 'last_checkin', 'broken_client', 'hd_total', 'os_family', 'deployed',
-    'operating_system', 'machine_group', 'sal_version', 'manifest', 'hd_percent', 'cpu_type',
-    'activity'}
+    'operating_system', 'machine_group', 'sal_version', 'manifest', 'hd_percent', 'cpu_type'}
 REMOVED_MACHINE_COLUMNS = set()
 
 

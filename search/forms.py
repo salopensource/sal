@@ -19,7 +19,6 @@ class SearchRowForm(forms.ModelForm):
 
     skip_fields = [
         'id',
-        'activity',
         'errors',
         'warnings',
     ]

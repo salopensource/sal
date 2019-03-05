@@ -111,8 +111,7 @@ class MachineSerializer(QueryFieldsMixin, serializers.ModelSerializer):
         'console_user', 'munki_version', 'hd_space', 'machine_model', 'cpu_speed', 'serial', 'id',
         'errors', 'hostname', 'machine_model_friendly', 'memory', 'memory_kb', 'warnings',
         'first_checkin', 'last_checkin', 'hd_total', 'os_family', 'deployed', 'operating_system',
-        'machine_group', 'sal_version', 'manifest', 'hd_percent', 'cpu_type', 'broken_client',
-        'activity')
+        'machine_group', 'sal_version', 'manifest', 'hd_percent', 'cpu_type', 'broken_client')
 
     class Meta:
         model = Machine

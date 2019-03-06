@@ -56,7 +56,7 @@ urlpatterns = [
     path('edit-machine-group/<int:group_id>/', edit_machine_group, name='edit_machine_group'),
 
     # Machine routes.
-path('machine/delete/<int:machine_id>/', delete_machine, name='delete_machine'),
+    path('machine/delete/<int:machine_id>/', delete_machine, name='delete_machine'),
     path('machine/new/<int:group_id>/', new_machine, name='new_machine'),
 
     # Settings routes

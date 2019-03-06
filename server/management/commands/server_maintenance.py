@@ -36,11 +36,11 @@ class Command(BaseCommand):
         ManagedItemHistory.objects.filter(recorded__lt=datelimit).delete()
 
         for source in ManagementSource.objects.exclude(name__in=('Machine', 'Sal')):
-            if (not source.manageditem_set.count() and
-                not source.manageditemhistory_set.count() and
-                not source.facts.count() and
-                not source.historical_facts.count() and
-                not source.messages.count()):
+            if (not source.manageditem_set.count()
+                    and not source.manageditemhistory_set.count()  # noqa
+                    and not source.facts.count()  # noqa
+                    and not source.historical_facts.count()  # noqa
+                    and not source.messages.count()):  # noqa
                 source.delete()
 
         HistoricalFact.objects.filter(fact_recorded__lt=datelimit).delete()

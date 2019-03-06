@@ -24,7 +24,7 @@ STATUSES = {
     'ninetydayactive': ('90 day active machines', Q(last_checkin__gte=THREE_MONTHS_AGO)),
     'all_machines': ('All machines', None),
     'deployed_machines': ('Deployed Machines', None),
-    'undeployed_machines': ('Undeployed Machines', Q(deployed=False)),}
+    'undeployed_machines': ('Undeployed Machines', Q(deployed=False))}
 
 
 class Status(sal.plugin.Widget):

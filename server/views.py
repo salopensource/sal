@@ -31,7 +31,7 @@ STATUSES = {
     'ABSENT': 'btn-danger',
     'PENDING': 'btn-info',
     'ERROR': 'btn-danger',
-    'UNKNOWN': 'btn-default',}
+    'UNKNOWN': 'btn-default'}
 
 
 @login_required
@@ -465,6 +465,7 @@ def _salt_facts(machine):
 def _puppet_facts(machine):
     info_names = ('puppet_version', 'puppet_errors', 'last_puppet_run')
     rows = _get_management_facts(machine, 'Puppet', info_names)
+    return rows
 
 
 def _not_implemented_facts(machine):

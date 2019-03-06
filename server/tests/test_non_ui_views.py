@@ -165,7 +165,6 @@ class BrokenClientTest(TestCase):
         self.client = Client()
         self.url = '/report_broken_client/'
 
-
     def test_broken_client_checkin(self):
         """Test that a machine's broken bool is updated on checkin."""
         machine = Machine.objects.get(serial='C0DEADBEEF')
@@ -446,7 +445,7 @@ class CheckinManagedItemHistoryTest(TestCase):
 
         munki = ManagementSource.objects.create(name='Munki')
 
-        managed_item_history = ManagedItemHistory.objects.create(
+        ManagedItemHistory.objects.create(
             machine=machine, name=name, recorded=recorded, management_source=munki, status=status)
 
         data = json.dumps({

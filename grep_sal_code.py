@@ -30,7 +30,7 @@ def main():
     except subprocess.CalledProcessError:
         # Most common error is that there are no results!
         results = ''
-    print results.strip()
+    print(results.strip())
 
     if args.edit and results:
         subprocess.check_call([os.getenv('EDITOR')] + [l.strip() for l in results.splitlines()])

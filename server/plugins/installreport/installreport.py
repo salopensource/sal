@@ -3,6 +3,8 @@ import plistlib
 import re
 import urllib.parse
 
+from django.shortcuts import get_object_or_404
+
 import sal.plugin
 from catalog.models import Catalog
 from server.models import BusinessUnit, ManagedItem, ManagementSource
@@ -106,7 +108,6 @@ class InstallReport(sal.plugin.ReportPlugin):
         item['css_name'] = re.sub(r'\W+', '', item['css_name'])
         return item
 
-
     def _get_metadata(self, report_item, managed_item):
         try:
             data = json.loads(managed_item.data)
@@ -117,5 +118,3 @@ class InstallReport(sal.plugin.ReportPlugin):
         report_item['version'] = data.get('installed_version') or data.get('version_to_install', '')
 
         return report_item
-
-

@@ -72,8 +72,6 @@ def available(request, key, item_name=''):
     For use by Munki client to determine if a given item should be made
     available for optional install.'''
     output_style = request.GET.get('output_style', 'plist')
-    if key.endswith('/'):
-        key = key[:-1]
     machine_group = get_object_or_404(MachineGroup, key=key)
     business_unit = machine_group.business_unit
     item_names = []

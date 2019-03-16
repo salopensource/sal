@@ -62,25 +62,25 @@ $( document ).ready(function() {
             <div class="col-md-4">
               <p style="text-align: center;">
                 <!-- Error Modal Trigger -->
-                {% if messages.ERRORS %}
+                {% if messages.ERROR %}
                 <a class="fa fa-exclamation-triangle fa-3x color-red" href="#ErrorModal" data-toggle="modal" data-backdrop="true"></a>
                 {% else %}
                 <i class="fa fa-check-circle fa-3x color-green" style="cursor: default;"></i>
                 {% endif %}
                 <br>
-                {{ messages.ERRORS|length }} Errors
+                {{ messages.ERROR|length }} Errors
               </p>
             </div>
             <div class="col-md-4">
               <p style="text-align: center;">
                 <!-- Warning Modal Trigger -->
-                {% if messages.WARNINGS %}
+                {% if messages.WARNING %}
                 <a class="fa fa-bell fa-3x color-yellow" href="#WarningModal" data-toggle="modal" data-backdrop="true"></a>
                 {% else %}
                 <i class="fa fa-check-circle fa-3x color-green" style="cursor: default;"></i>
                 {% endif %}
                 <br>
-                {{ messages.WARNINGS|length }} Warnings
+                {{ messages.WARNING|length }} Warnings
               </p>
             </div>
             <div class="col-md-4">
@@ -364,7 +364,7 @@ $( document ).ready(function() {
               </tr>
             </thead>
             <tbody>
-              {% for item in messages.ERRORS|dictsort:'date' %}
+              {% for item in messages.ERROR|dictsort:'date' %}
               <tr>
                 <td>{{ item.management_source.name }}</td>
                 <td>{{ item.date }}</td>
@@ -403,7 +403,7 @@ $( document ).ready(function() {
               </tr>
             </thead>
             <tbody>
-              {% for item in messages.WARNINGS|dictsortreversed:'date' %}
+              {% for item in messages.WARNING|dictsortreversed:'date' %}
               <tr>
                 <td>{{ item.management_source.name }}</td>
                 <td>{{ item.date }}</td>

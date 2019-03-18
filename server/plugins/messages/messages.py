@@ -70,5 +70,3 @@ class Messages(sal.plugin.Widget):
             status_setting = message_values[0]
 
         return message_values[:message_values.index(status_setting) + 1]
-
-

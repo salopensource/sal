@@ -1,0 +1,25 @@
+{% load dashboard_extras %}
+
+<div class="panel panel-default">
+  <div class="panel-heading">
+    {{ plugin.title }}
+  </div>
+
+  <div class="panel-body" style="max-height: 10em;overflow-y: scroll;">
+    <table class="table table-striped table-condensed table-bordered">
+      {% for item in data %}
+      <tr>
+        <td>
+          {% with safe_name=item.text|urlencode:"" %}
+          <a href="{% url 'machine_list' plugin safe_name group_type group_id %}">
+            <span class="badge">{{ item.message_type }}</span>
+            {{ item.text|truncatechars:70 }}
+            <span class="badge pull-right">{{ item.count }}</span>
+          </a>
+          {% endwith %}
+        </td>
+      </tr>
+      {% endfor %}
+    </table>
+  </div>
+</div>

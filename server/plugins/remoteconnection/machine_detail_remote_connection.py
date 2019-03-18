@@ -2,7 +2,7 @@
 
 
 import sal.plugin
-from server.models import Machine, SalSetting
+from server.models import Machine
 from server.utils import get_setting
 
 

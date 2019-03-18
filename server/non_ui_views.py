@@ -244,6 +244,7 @@ def checkin(request):
     machine = process_checkin_serial(serial)
     machine_group = get_object_or_404(MachineGroup, key=submission['Sal']['extra_data'].get('key'))
     machine.machine_group = machine_group
+    machine.broken_client = False
     machine.save()
 
     clean_related(machine)

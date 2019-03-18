@@ -385,9 +385,9 @@ class Message(models.Model):
     text = models.TextField(blank=True, null=True)
     date = models.DateTimeField(default=timezone.now)
     MESSAGE_TYPES = (
-        ('WARNING', 'Warning'),
         ('ERROR', 'Error'),
-        ('DEBUG', 'Debug'),
+        ('WARNING', 'Warning'),
         ('OTHER', 'Other'),
+        ('DEBUG', 'Debug'),
     )
     message_type = models.CharField(max_length=7, choices=MESSAGE_TYPES, default='OTHER')

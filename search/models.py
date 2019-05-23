@@ -67,7 +67,7 @@ class SearchRow(models.Model):
     id = models.BigAutoField(primary_key=True)
     search_group = models.ForeignKey(SearchGroup)
     search_models = models.CharField(choices=SEARCH_MODEL_CHOICES,
-                                     default='AND', max_length=254, verbose_name='Search item')
+                                     default='AND', max_length=300, verbose_name='Search item')
     search_field = models.CharField(max_length=254)
     and_or = models.CharField(choices=AND_OR_CHOICES, default='AND',
                               max_length=3, verbose_name='AND / OR')
@@ -90,7 +90,7 @@ class SearchFieldCache(models.Model):
     )
     id = models.BigAutoField(primary_key=True)
     search_model = models.CharField(choices=SEARCH_MODEL_CHOICES,
-                                    default='AND', max_length=254, verbose_name='Search item')
+                                    default='AND', max_length=300, verbose_name='Search item')
     search_field = models.CharField(max_length=254)
 
     def __unicode__(self):

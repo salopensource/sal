@@ -410,6 +410,8 @@ def checkin(request):
     #     except Exception:
     #         machine.machine_model_friendly = machine.machine_model
 
+    # If we get here, the machine definitely doesn't have broken python
+    machine.broken_client = False
     machine.save()
 
     historical_days = utils.get_setting('historical_retention')

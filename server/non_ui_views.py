@@ -307,7 +307,7 @@ def checkin(request):
     machine.hostname = data.get('name', '<NO NAME>')
     machine.sal_version = data.get('sal_version')
 
-    if utils.get_django_setting('DEPLOYED_ON_CHECKIN', True):
+    if utils.get_django_setting('DEPLOYED_ON_CHECKIN', False):
         machine.deployed = True
 
     if bool(data.get('broken_client', False)):

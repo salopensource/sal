@@ -1,6 +1,6 @@
 #!/bin/bash
 
-current_version="3.3.15"
+current_version="3.3.16"
 pushd `dirname $0` > /dev/null
 SCRIPTPATH=`pwd`
 

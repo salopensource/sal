@@ -435,7 +435,11 @@ def process_managed_items(management_source, management_data, machine, object_qu
 
 def _process_managed_item(name, managed_item, machine, management_source, now):
     submitted_date = managed_item.get('date_managed')
-    date_managed = dateutil.parser.parse(submitted_date) if submitted_date else now
+    try:
+        # Make sure there isn't somerthing stupid in the date format
+        date_managed = dateutil.parser.parse(submitted_date) if submitted_date else now
+    except Exception:
+        date_managed = now
     status = managed_item.get('status', 'UNKNOWN')
     data = managed_item.get('data')
     dumped_data = json.dumps(data) if data else None

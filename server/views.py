@@ -349,7 +349,8 @@ def machine_detail(request, **kwargs):
                 data = json.loads(item.data)
             except json.decoder.JSONDecodeError:
                 data = {}
-
+        else:
+            data = {}
         # Structure is a dict with keys for each source; each source
         # will then have as many sub types as ManagedItem.data "types".
         # The final structure is a list of ManagedItems.

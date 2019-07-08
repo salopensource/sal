@@ -276,7 +276,11 @@ def checkin(request):
 
     if server.utils.get_setting('send_data') in (None, True):
         # If setting is None, it hasn't been configured yet; assume True
-        server.utils.send_report()
+        try:
+            # If the report server is down, don't halt all submissions
+            server.utils.send_report()
+        except Exception as e:
+            logging.debug(e)
 
     msg = f"Sal report submitted for {machine.serial}"
     logging.debug(msg)

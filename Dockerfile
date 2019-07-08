@@ -65,8 +65,10 @@ RUN chmod 755 /run.sh && \
     chown -R www-data:www-data $APP_DIR &&\
     chmod go+x $APP_DIR &&\
     touch $APP_DIR/sal.log &&\
-    chmod 777 $APP_DIR/sal.log && \
-    find . -name $APP_DIR/\*.pyc -delete
+    chmod 777 $APP_DIR/sal.log
+
+    #&& \
+    #find . -name $APP_DIR/\*.pyc -delete
 
 WORKDIR $APP_DIR
 EXPOSE 8000

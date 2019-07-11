@@ -212,6 +212,13 @@ def report_broken_client(request):
     machine_group_key = data.get('key')
     machine.machine_group = get_object_or_404(MachineGroup, key=machine_group_key)
 
+    machine.last_checkin = django.utils.timezone.now()
+    machine.hostname = data.get('name', '<NO NAME>')
+    machine.sal_version = data.get('sal_version')
+
+    if utils.get_django_setting('DEPLOYED_ON_CHECKIN', False):
+        machine.deployed = True
+
     if bool(data.get('broken_client', False)):
         machine.broken_client = True
         machine.save()
@@ -263,6 +270,9 @@ def checkin(request):
     for management_source_name, management_data in submission.items():
         management_source, _ = ManagementSource.objects.get_or_create(
             name=management_source_name)
+    # If we get here, the machine definitely doesn't have broken python
+    machine.broken_client = False
+    machine.save()
 
         object_queue = process_management_submission(
             management_source, management_data, machine, object_queue)

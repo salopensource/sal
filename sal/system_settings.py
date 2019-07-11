@@ -1,4 +1,6 @@
 import os
+
+
 DEBUG = False
 APPEND_SLASH = True
 PROJECT_DIR = os.path.abspath(
@@ -74,10 +76,6 @@ HIDE_PLUGIN_FROM_MACHINE_GROUP = {
     # 'DiskSpace':['1']
 }
 
-# If you want to have a default machine group, define this to the key of
-# that group.
-# DEFAULT_MACHINE_GROUP_KEY = ''
-
 # Facts which will have historical data kept in addition to the most
 # recent instanct of that fact.
 HISTORICAL_FACTS = [
@@ -94,9 +92,6 @@ EXCLUDED_FACTS = {
     'sshdsakey',
 }
 
-EXCLUDED_CONDITIONS = {
-    # 'some_condition',
-}
 # Hosts/domain names that are valid for this site; required if DEBUG is False
 # See https://docs.djangoproject.com/en/1.5/ref/settings/#allowed-hosts
 ALLOWED_HOSTS = ['*']

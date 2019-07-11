@@ -48,7 +48,6 @@ class SearchRow(models.Model):
     SEARCH_MODEL_CHOICES = (
         ('Machine', 'Machine'),
         ('Facter', 'Facter'),
-        ('Condition', 'Condition'),
         ('External Script', 'External Script'),
         ('Application Inventory', 'Application Inventory'),
         ('Application Version', 'Application Version'),
@@ -83,7 +82,6 @@ class SearchFieldCache(models.Model):
     SEARCH_MODEL_CHOICES = (
         ('Machine', 'Machine'),
         ('Facter', 'Facter'),
-        ('Condition', 'Condition'),
         ('External Script', 'External Script'),
         ('Application Inventory', 'Application Inventory'),
         ('Application Version', 'Application Version'),

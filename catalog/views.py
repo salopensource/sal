@@ -32,7 +32,8 @@ def submit_catalog(request):
                 except Catalog.DoesNotExist:
                     catalog = Catalog(name=name, machine_group=machine_group)
                 catalog.sha256hash = submission.get('sha256hash')
-                catalog.content = catalog_bytes
+                # Convert bytes to str for storage
+                catalog.content = catalog_bytes.decode()
                 catalog.save()
     return HttpResponse("Catalogs submitted.")
 

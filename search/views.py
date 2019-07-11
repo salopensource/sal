@@ -49,11 +49,6 @@ def quick_search(machines, query_string):
     skip_fields = [
         'id',
         'machine_group',
-        'report',
-        'activity',
-        'errors',
-        'warnings',
-        'puppet_errors',
         'deployed',
         'broken_client',
         'hd_percent',
@@ -150,17 +145,6 @@ def search_machines(search_id, machines, full=False):
                 querystring = {
                     'facts__fact_name': search_row.search_field,
                     'facts__fact_data%s' % (operator): search_row.search_term
-                }
-                if operator != '':
-                    q_object = Q(**querystring)
-                else:
-                    q_object = ~Q(**querystring)
-
-            elif search_row.search_models == 'Condition':
-                model = Condition
-                querystring = {
-                    'conditions__condition_name': search_row.search_field,
-                    'conditions__condition_data%s' % (operator): search_row.search_term
                 }
                 if operator != '':
                     q_object = Q(**querystring)
@@ -469,9 +453,6 @@ def edit_search_row(request, search_row_id):
         if search_row.search_models.lower() == 'facter':
             rows = SearchFieldCache.objects.filter(search_model='Facter').distinct()
 
-        elif search_row.search_models.lower() == 'condition':
-            rows = SearchFieldCache.objects.filter(search_model='Condition').distinct()
-
         elif search_row.search_models.lower() == 'external script':
             rows = SearchFieldCache.objects.filter(search_model='External Script').distinct()
 
@@ -530,11 +511,6 @@ def get_fields(request, model):
         for cache_item in cache_items:
             search_fields.append(cache_item.search_field)
 
-    elif model.lower() == 'condition':
-        cache_items = SearchFieldCache.objects.filter(search_model='Condition')
-        for cache_item in cache_items:
-            search_fields.append(cache_item.search_field)
-
     elif model.lower() == 'external script':
         cache_items = SearchFieldCache.objects.filter(search_model='External Script')
         for cache_item in cache_items:
@@ -567,7 +543,7 @@ def get_fields(request, model):
 
 @login_required
 def export_csv(request, search_id):
-    machines = Machine.objects.all().defer('report')
+    machines = Machine.objects.all()
     machines = search_machines(search_id, machines, full=True)
     title = get_object_or_404(SavedSearch, pk=search_id).name
     return utils.csv.get_csv_response(machines, utils.csv.machine_fields(), title)

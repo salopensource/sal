@@ -6,8 +6,7 @@ from rest_framework import status
 from api.v2.tests.tools import SalAPITestCase, no_stdout
 from api.v2.tests.test_machines import ALL_MACHINE_COLUMNS
 
-SEARCH_RESULT_MACHINE_COLUMNS = {
-    'id', 'serial', 'hostname', 'console_user', 'last_checkin'}
+SEARCH_RESULT_MACHINE_COLUMNS = {'id', 'serial', 'hostname', 'console_user', 'last_checkin'}
 
 
 class SavedSearchTest(SalAPITestCase):

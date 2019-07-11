@@ -1,30 +1,30 @@
 import django.contrib.auth.views as auth_views
 from django.conf import settings
-from django.conf.urls import include, url
 from django.conf.urls.static import static
 from django.contrib import admin
 from django.contrib.staticfiles import views
+from django.urls import path, include
 
 admin.autodiscover()
 
 urlpatterns = [
-    url(r'^login/*$', auth_views.LoginView.as_view(), name='login'),
-    url(r'^logout/$', auth_views.logout_then_login, name='logout_then_login'),
-    url(r'^changepassword/$', auth_views.PasswordChangeView.as_view(), name='password_change'),
-    url(r'^changepassword/done/$', auth_views.PasswordChangeDoneView.as_view(),
-        name='password_change_done'),
-    url(r'^', include('server.urls')),
-    url(r'^admin/doc/', include('django.contrib.admindocs.urls')),
-    url(r'^admin/', admin.site.urls),
-    url(r'^api/', include('api.v1.urls')),
-    url(r'^api/v1/', include('api.v1.urls')),
-    url(r'^api/v2/', include('api.v2.urls')),
-    url(r'^inventory/', include('inventory.urls')),
-    url(r'^search/', include('search.urls')),
-    url(r'^licenses/', include('licenses.urls')),
-    url(r'^catalog/', include('catalog.urls')),
-    url(r'^profiles/', include('profiles.urls')),
+    path('login/', auth_views.LoginView.as_view(), name='login'),
+    path('logout/', auth_views.logout_then_login, name='logout_then_login'),
+    path('changepassword/', auth_views.PasswordChangeView.as_view(), name='password_change'),
+    path('changepassword/done/', auth_views.PasswordChangeDoneView.as_view(),
+         name='password_change_done'),
+    path('', include('server.urls')),
+    path('admin/doc/', include('django.contrib.admindocs.urls')),
+    path('admin/', admin.site.urls),
+    path('api/', include('api.v1.urls')),
+    path('api/v1/', include('api.v1.urls')),
+    path('api/v2/', include('api.v2.urls')),
+    path('inventory/', include('inventory.urls')),
+    path('search/', include('search.urls')),
+    path('licenses/', include('licenses.urls')),
+    path('catalog/', include('catalog.urls')),
+    path('profiles/', include('profiles.urls')),
 ]
 
 if settings.DEBUG:
-    urlpatterns.append(url(r'^static/(?P<path>.*)$', views.serve))
+    urlpatterns.append(path('static/<path>', views.serve))

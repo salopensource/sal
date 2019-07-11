@@ -1,0 +1,7 @@
+[Core]
+Name = Messages
+Module = messages
+
+[Documentation]
+Author = Shea Craig
+Version = 0.1

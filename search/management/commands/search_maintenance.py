@@ -1,14 +1,11 @@
-'''
-Cleans up old searches and rebuilds search fields cache
-'''
-import operator
+'''Cleans up old searches and rebuilds search fields cache'''
+
 from time import sleep
 import gc
 
-from django.core.management.base import BaseCommand, CommandError
+from django.core.management.base import BaseCommand
 from django.conf import settings
 from django.db.models import Q
-import django.utils.timezone
 
 from inventory.models import *
 from server.models import *
@@ -38,11 +35,6 @@ class Command(BaseCommand):
 
         skip_fields = [
             'id',
-            'report',
-            'activity',
-            'errors',
-            'warnings',
-            'puppet_errors'
         ]
 
         inventory_fields = [
@@ -53,7 +45,6 @@ class Command(BaseCommand):
         ]
 
         facts = Fact.objects.values('fact_name').distinct()
-        conditions = Condition.objects.values('condition_name').distinct()
         plugin_sript_rows = PluginScriptRow.objects.values(
             'pluginscript_name', 'submission__plugin').distinct()
         app_versions = Application.objects.values('name', 'bundleid').distinct()
@@ -70,13 +61,6 @@ class Command(BaseCommand):
 
         for fact in facts.iterator():
             cached_item = SearchFieldCache(search_model='Facter', search_field=fact['fact_name'])
-            search_fields.append(cached_item)
-            if server.utils.is_postgres() is False:
-                cached_item.save()
-
-        for condition in conditions.iterator():
-            cached_item = SearchFieldCache(search_model='Condition',
-                                           search_field=condition['condition_name'])
             search_fields.append(cached_item)
             if server.utils.is_postgres() is False:
                 cached_item.save()
@@ -120,19 +104,7 @@ class Command(BaseCommand):
             old_cache.delete()
             SearchFieldCache.objects.bulk_create(search_fields)
 
-        # make sure this in an int:
-        try:
-            inactive_undeploy = int(settings.INACTIVE_UNDEPLOYED)
-
-            if inactive_undeploy > 0:
-                now = django.utils.timezone.now()
-                inactive_days = now - datetime.timedelta(days=inactive_undeploy)
-                Machine.deployed_objects.filter(
-                    last_checkin__lte=inactive_days).update(deployed=False)
-        except Exception:
-            pass
-
-        # Build the fact and condition cache
+        # Build the fact cache
         items_to_be_inserted = []
         SearchCache.objects.all().delete()
         if settings.SEARCH_FACTS != []:
@@ -150,27 +122,7 @@ class Command(BaseCommand):
                 if not server.utils.is_postgres():
                     cached_item.save()
 
-        if settings.SEARCH_CONDITIONS != []:
-            queries = []
-            for f in settings.SEARCH_CONDITIONS:
-                queries.append(Q(condition_name=f))
-
-            qs = Q()
-            for query in queries:
-                qs = qs | query
-
-            conditions = Condition.objects.filter(qs)
-            for condition in conditions.iterator():
-                cached_item = SearchCache(machine=condition.machine,
-                                          search_item=condition.condition_data)
-                items_to_be_inserted.append(cached_item)
-                if not server.utils.is_postgres():
-                    cached_item.save()
-
         if server.utils.is_postgres() and items_to_be_inserted != []:
             SearchCache.objects.bulk_create(items_to_be_inserted)
-
-        # Clean up orhpaned Application objects.
-        Application.objects.filter(inventoryitem=None).delete()
 
         gc.collect()

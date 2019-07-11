@@ -129,7 +129,7 @@ def send_report():
         output['version'] = get_server_version()
         # plist encode output
         post_data = plistlib.dumps(output)
-        response = requests.post('https://version.salopensource.com', data={"data": post_data})
+        response = requests.post('https://version.salopensource.com', data={"data": post_data}, timeout=0.5)
         set_setting('last_sent_data', int(current_time))
         print(response.status_code)
         if response.status_code == 200:

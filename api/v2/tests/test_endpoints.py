@@ -12,13 +12,6 @@ class BusinessUnitTest(SalAPITestCase, metaclass=TestGeneratorMeta):
     tests = ['businessunit']
 
 
-class ConditionTest(SalAPITestCase, metaclass=TestGeneratorMeta):
-    fixtures = [
-        'business_unit_fixtures.json', 'machine_group_fixtures.json',
-        'machine_fixtures.json', 'conditions_fixture.json']
-    tests = ['condition']
-
-
 class FactTest(SalAPITestCase, metaclass=TestGeneratorMeta):
     fixtures = [
         'business_unit_fixtures.json', 'machine_group_fixtures.json',
@@ -36,20 +29,6 @@ class InventoryTest(SalAPITestCase, metaclass=TestGeneratorMeta):
 class MachineGroupTest(SalAPITestCase, metaclass=TestGeneratorMeta):
     setup_data = ['create_machine_data']
     tests = ['machinegroup']
-
-
-class PendingAppleUpdateTest(SalAPITestCase, metaclass=TestGeneratorMeta):
-    fixtures = [
-        'business_unit_fixtures.json', 'machine_group_fixtures.json',
-        'machine_fixtures.json', 'pending_apple_update_fixtures.json']
-    tests = ['pendingappleupdate']
-
-
-class PendingUpdateTest(SalAPITestCase, metaclass=TestGeneratorMeta):
-    fixtures = [
-        'business_unit_fixtures.json', 'machine_group_fixtures.json',
-        'machine_fixtures.json', 'pending_update_fixtures.json']
-    tests = ['pendingupdate']
 
 
 class PluginScriptTest(SalAPITestCase, metaclass=TestGeneratorMeta):

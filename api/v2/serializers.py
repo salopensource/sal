@@ -71,27 +71,36 @@ class SerialSerializer(serializers.ModelSerializer):
         fields = ('id', 'serial',)
 
 
-class ConditionSerializer(serializers.ModelSerializer):
+class ManagementSourceSerializer(serializers.ModelSerializer):
+
     class Meta:
-        model = Condition
+        model = ManagementSource
         fields = '__all__'
 
 
-class PendingAppleUpdateSerializer(serializers.ModelSerializer):
+class ManagedItemSerializer(serializers.ModelSerializer):
 
     class Meta:
-        model = PendingAppleUpdate
-        exclude = ('machine',)
+        model = ManagedItem
+        fields = '__all__'
 
 
-class PendingUpdateSerializer(serializers.ModelSerializer):
+class ManagedItemHistorySerializer(serializers.ModelSerializer):
 
     class Meta:
-        model = PendingUpdate
-        exclude = ('machine',)
+        model = ManagedItemHistory
+        fields = '__all__'
 
 
-class MachineSerializer(QueryFieldsMixin, serializers.ModelSerializer):
+class MessageSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Message
+        fields = '__all__'
+
+
+# class MachineSerializer(QueryFieldsMixin, serializers.ModelSerializer):
+class MachineSerializer(serializers.ModelSerializer):
 
     """
     Only used by saved_search and profiles
@@ -99,21 +108,12 @@ class MachineSerializer(QueryFieldsMixin, serializers.ModelSerializer):
     simple fields without using 'saved_search' kwarg
     """
 
-    simple_fields = (
-        'console_user', 'munki_version', 'hd_space', 'machine_model',
-        'cpu_speed', 'serial', 'id', 'last_puppet_run', 'errors',
-        'puppet_version', 'hostname', 'puppet_errors',
-        'machine_model_friendly', 'memory', 'memory_kb', 'warnings',
-        'first_checkin', 'last_checkin', 'hd_total', 'os_family', 'deployed',
-        'operating_system', 'machine_group', 'sal_version', 'manifest',
-        'hd_percent', 'cpu_type', 'broken_client', 'activity')
-
     class Meta:
         model = Machine
         fields = '__all__'
 
     def __init__(self, *args, **kwargs):
-        """Modify the serializer's fields if the full argument is true.
+        """Modify the serializer's fields for saved_search.
 
         This is taken from the DRF Serializers: Dynamically Modifying
         Fields example to allow us to handle one case: during our

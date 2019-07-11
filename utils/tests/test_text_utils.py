@@ -16,7 +16,7 @@ class TextUtilsTest(TestCase):
         self.assertTrue(text_utils.safe_text(original.encode() == ''))
 
     def test_listify_basic(self):
-        """Ensure non-collection condition data is only str converted."""
+        """Ensure non-collection data is only str converted."""
         catalogs = 'testing'
         result = text_utils.stringify(catalogs)
         self.assertEqual(result, catalogs)
@@ -28,13 +28,13 @@ class TextUtilsTest(TestCase):
             self.assertEqual(text_utils.stringify(test), str(test))
 
     def test_listify_list(self):
-        """Ensure condition list data can be converted to strings."""
+        """Ensure list data can be converted to strings."""
         catalogs = ['testing', 'phase', 'production']
         result = text_utils.stringify(catalogs)
         self.assertEqual(result, ', '.join(catalogs))
 
     def test_listify_dict(self):
-        """Ensure dict condition data can be converted to strings."""
+        """Ensure dict data can be converted to strings."""
         catalogs = ['testing', 'phase', {'key': 'value'}]
         result = text_utils.stringify(catalogs)
         self.assertEqual(result, "testing, phase, {'key': 'value'}")

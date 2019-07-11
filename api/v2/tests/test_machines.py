@@ -10,12 +10,10 @@ from api.v2.tests.tools import SalAPITestCase
 
 ALL_MACHINE_COLUMNS = {
     'console_user', 'munki_version', 'hd_space', 'machine_model', 'cpu_speed', 'serial', 'id',
-    'last_puppet_run', 'errors', 'puppet_version', 'hostname', 'puppet_errors',
-    'machine_model_friendly', 'memory', 'memory_kb', 'warnings', 'first_checkin', 'last_checkin',
-    'broken_client', 'hd_total', 'os_family', 'report', 'deployed', 'operating_system',
-    'machine_group', 'sal_version', 'manifest', 'hd_percent', 'cpu_type',
-    'activity'}
-REMOVED_MACHINE_COLUMNS = {'report'}
+    'hostname', 'machine_model_friendly', 'memory', 'memory_kb', 'first_checkin', 'last_checkin',
+    'broken_client', 'hd_total', 'os_family', 'deployed', 'operating_system', 'machine_group',
+    'sal_version', 'manifest', 'hd_percent', 'cpu_type'}
+REMOVED_MACHINE_COLUMNS = set()
 
 
 class MachinesTest(SalAPITestCase):
@@ -49,55 +47,3 @@ class MachinesTest(SalAPITestCase):
         """Test that machines cannot requested by ID/PK"""
         response = self.authed_get('machine-detail', args=(1,))
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
-
-    def test_list_with_full(self):
-        """Test machine list endpoint with `full` param returns more"""
-        response = self.authed_get('machine-list')
-        full_response = self.authed_get(
-            'machine-list', params={'full': None})
-
-        self.assertNotEqual(response.data, full_response.data)
-        # Make sure "regular" machine response has removed the expected
-        # keys.
-        self.assertFalse(any(
-            k in response.data['results'][0] for k in REMOVED_MACHINE_COLUMNS))
-        self.assertTrue(all(
-            k in response.data['results'][0] for
-            k in ALL_MACHINE_COLUMNS - REMOVED_MACHINE_COLUMNS))
-        # ...and that a "full" machine response includes them.
-        self.assertTrue(all(
-            k in full_response.data['results'][0] for
-            k in ALL_MACHINE_COLUMNS))
-
-    def test_detail_with_full(self):
-        """Test machine detail endpoint with `full` param returns more"""
-        response = self.authed_get('machine-detail', args=('C0DEADBEEF',))
-        full_response = self.authed_get(
-            'machine-detail', args=('C0DEADBEEF',), params={'full': None})
-
-        self.assertNotEqual(response.data, full_response.data)
-        # Make sure "regular" machine response has removed the expected
-        # keys.
-        self.assertFalse(any(
-            k in response.data for k in REMOVED_MACHINE_COLUMNS))
-        self.assertTrue(all(
-            k in response.data for
-            k in ALL_MACHINE_COLUMNS - REMOVED_MACHINE_COLUMNS))
-        # ...and that a "full" machine response includes them.
-        self.assertTrue(all(
-            k in full_response.data for k in ALL_MACHINE_COLUMNS))
-
-    def test_detail_include_fields(self):
-        """Test the field inclusion/exclusion params for detail."""
-        response = self.authed_get(
-            'machine-detail', args=('C0DEADBEEF',),
-            params={'fields!': 'hostname'})
-        self.assertNotIn('hostname', response.data)
-
-    def test_list_include_fields(self):
-        """Test the field inclusion/exclusion params for list."""
-        response = self.authed_get(
-            'machine-list',
-            params={'fields!': 'hostname'})
-        record = response.data['results'][0]
-        self.assertNotIn('hostname', record)

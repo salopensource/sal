@@ -1,3 +1,4 @@
+import json
 import time
 from distutils.version import LooseVersion
 
@@ -15,22 +16,39 @@ register = template.Library()
 
 
 @register.filter
-def humanreadablesize(kbytes):
-    """Returns sizes in human-readable units. Input is kbytes"""
+def human_readable_size(size_in_bytes, base2=True):
+    """Returns sizes in human-readable units.
+
+    Args:
+        size_in_bytes (int, float): Size to convert.
+        base2 (bool): Use base2 sizes (kibibytes, etc).
+
+    Returns:
+        str rounded to 1 precision and converted to desired sizing
+        units.
+    """
     try:
-        kbytes = float(kbytes)
-    except (TypeError, ValueError, UnicodeDecodeError):
-        return "unknown"
+        size_in_bytes = float(size_in_bytes)
+    except ValueError:
+        size_in_bytes = 0
+    base, suffix = (1024.0, 'iB') if base2 else (1000.0, 'B')
+    # Build an iterable of suffixes to work through.
+    for x in ['B'] + list(map(lambda x: x + suffix, list('kMGTP'))):
+        if -base < size_in_bytes < base:
+            return f"{size_in_bytes:.2f} {x}"
+        size_in_bytes /= base
+    return f"{size_in_bytes:.2f} {x}"
 
-    units = [(" KB", 2**10), (" MB", 2**20), (" GB", 2**30), (" TB", 2**40)]
-    for suffix, limit in units:
-        if kbytes > limit:
-            continue
-        else:
-            return str(round(kbytes / float(limit / 2**10), 1)) + suffix
+
+human_readable_size.is_safe = True
 
 
-humanreadablesize.is_safe = True
+@register.filter
+def kibibytes_to_bytes(size_in_kibibytes):
+    try:
+        return float(size_in_kibibytes) * 1024
+    except ValueError:
+        return 0
 
 
 @register.filter
@@ -107,3 +125,8 @@ def next(value, arg):
         return value[int(arg) + 1]
     except Exception:
         return None
+
+
+@register.filter
+def json_items(s):
+    return json.loads(s).items()

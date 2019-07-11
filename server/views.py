@@ -1,4 +1,6 @@
+import json
 import re
+from collections import defaultdict
 
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
@@ -10,8 +12,8 @@ import sal.plugin
 from sal.decorators import required_level, ProfileLevel, access_required, is_global_admin
 from server.forms import (BusinessUnitForm, EditUserBusinessUnitForm, EditBusinessUnitForm,
                           MachineGroupForm, EditMachineGroupForm, NewMachineForm)
-from server.models import (BusinessUnit, MachineGroup, Machine, UserProfile, Report, Condition,
-                           UpdateHistory, Plugin, PluginScriptSubmission, PluginScriptRow)
+from server.models import (BusinessUnit, MachineGroup, Machine, UserProfile, Report, Plugin,
+                           PluginScriptSubmission, PluginScriptRow, ManagedItem, Fact)
 from server.non_ui_views import process_plugin
 from server import utils
 
@@ -22,6 +24,14 @@ if settings.DEBUG:
 
 # The database probably isn't going to change while this is loaded.
 IS_POSTGRES = utils.is_postgres()
+
+# Bootstrap button classes for managed item statuses.
+STATUSES = {
+    'PRESENT': 'btn-success',
+    'ABSENT': 'btn-danger',
+    'PENDING': 'btn-info',
+    'ERROR': 'btn-danger',
+    'UNKNOWN': 'btn-default'}
 
 
 @login_required
@@ -308,87 +318,11 @@ def machine_detail(request, **kwargs):
     machine_group = machine.machine_group
     business_unit = machine_group.business_unit
 
-    report = machine.get_report()
-
     try:
-        ip_address_condition = machine.conditions.get(condition_name='ipv4_address')
-        ip_address = ip_address_condition.condition_data
-    except (Condition.MultipleObjectsReturned, Condition.DoesNotExist):
+        ip_address_fact = machine.facts.get(fact_name='ipv4_address')
+        ip_address = ip_address_fact.fact_data
+    except (Fact.MultipleObjectsReturned, Fact.DoesNotExist):
         ip_address = None
-
-    install_results = {}
-    for result in report.get('InstallResults', []):
-        nameAndVers = result['name'] + '-' + result['version']
-        if result['status'] == 0:
-            install_results[nameAndVers] = "installed"
-        else:
-            install_results[nameAndVers] = 'error'
-
-    # if install_results:
-    for item in report.get('ItemsToInstall', []):
-        name = item.get('display_name', item['name'])
-        nameAndVers = ('%s-%s'
-                       % (name, item['version_to_install']))
-        item['install_result'] = install_results.get(
-            nameAndVers, 'pending')
-
-        # Get the update history
-        try:
-            item['update_history'] = UpdateHistory.objects.get(
-                machine=machine, version=item['version_to_install'], name=item['name'],
-                update_type='third_party').updatehistoryitem_set.all()
-        except (IndexError, UpdateHistory.DoesNotExist):
-            pass
-
-    for item in report.get('ManagedInstalls', []):
-        if 'version_to_install' in item:
-            name = item.get('display_name', item['name'])
-            nameAndVers = ('%s-%s'
-                           % (name, item['version_to_install']))
-            if install_results.get(nameAndVers) == 'installed':
-                item['installed'] = True
-
-        if 'version_to_install' in item or 'installed_version' in item:
-            if 'version_to_install' in item:
-                version = item['version_to_install']
-            else:
-                version = item['installed_version']
-            item['version'] = version
-            # Get the update history
-            try:
-                item['update_history'] = UpdateHistory.objects.get(
-                    machine=machine, version=version, name=item['name'],
-                    update_type='third_party').updatehistoryitem_set.all()
-            except Exception:
-                pass
-
-    # handle items that were removed during the most recent run
-    # this is crappy. We should fix it in Munki.
-    removal_results = {}
-    for result in report.get('RemovalResults', []):
-        try:
-            m = re.search('^Removal of (.+): (.+)$', result)
-        except Exception:
-            m = None
-        if m:
-            try:
-                if m.group(2) == 'SUCCESSFUL':
-                    removal_results[m.group(1)] = 'removed'
-                else:
-                    removal_results[m.group(1)] = m.group(2)
-            except IndexError:
-                pass
-
-    if removal_results:
-        for item in report.get('ItemsToRemove', []):
-            name = item.get('display_name', item['name'])
-            item['install_result'] = removal_results.get(
-                name, 'pending')
-            if item['install_result'] == 'removed':
-                if 'RemovedItems' not in report:
-                    report['RemovedItems'] = [item['name']]
-                elif name not in report['RemovedItems']:
-                    report['RemovedItems'].append(item['name'])
 
     if Plugin.objects.filter(name='Uptime'):
         try:
@@ -404,18 +338,63 @@ def machine_detail(request, **kwargs):
     else:
         uptime = None
 
-    if 'managed_uninstalls_list' in report:
-        report['managed_uninstalls_list'].sort()
-
     output = utils.get_machine_detail_placeholder_markup(machine)
+
+    # Process machine's managed items for display in the template.
+    managed_items_queryset = ManagedItem.objects.filter(machine=machine)
+    managed_items = defaultdict(dict)
+    for item in managed_items_queryset:
+        if item.data:
+            try:
+                data = json.loads(item.data)
+            except json.decoder.JSONDecodeError:
+                data = {}
+        else:
+            data = {}
+        # Structure is a dict with keys for each source; each source
+        # will then have as many sub types as ManagedItem.data "types".
+        # The final structure is a list of ManagedItems.
+        data_type = data.get('type')
+        if data_type not in managed_items[item.management_source.name]:
+            managed_items[item.management_source.name][data.get('type')] = []
+        managed_items[item.management_source.name][data.get('type')].append(item)
+
+    # Process histories for use in item modals.
+    history_queryset = machine.manageditemhistory_set.all()
+    histories = {}
+    for item in history_queryset:
+        histories.setdefault(f'{item.management_source.name}||{item.name}', []).append(item)
+
+    # Determine pending updates
+    pending = managed_items_queryset.filter(status="PENDING")
+
+    # Determine which tab to display first.
+    # TODO: Do we just use the first, or configure for each OS / source?
+    if machine.os_family == 'Darwin':
+        initial_source = 'munki'
+        active_table = 'ManagedInstalls'
+    else:
+        sources = sorted([s for s in managed_items])
+        initial_source = sources[0] if sources else ''
+        active_table = list(managed_items[initial_source].keys())[0] if initial_source else ''
+
+    messages = {}
+    for message in machine.messages.all():
+        messages.setdefault(message.message_type, []).append(message)
 
     context = {
         'user': request.user,
         'machine_group': machine_group,
         'business_unit': business_unit,
-        'report': report,
-        'install_results': install_results,
-        'removal_results': removal_results,
+        'messages': messages,
+        'managed_items': dict(managed_items),
+        'histories': histories,
+        'management_tools': _get_management_tools(managed_items.keys(), machine),
+        'pending': pending,
+        'fact_sources': get_fact_sources(machine),
+        'initial_source': initial_source,
+        'active_table': active_table,
+        'statuses': STATUSES,
         'machine': machine,
         'ip_address': ip_address,
         'uptime': uptime,
@@ -423,74 +402,98 @@ def machine_detail(request, **kwargs):
     return render(request, 'server/machine_detail.html', context)
 
 
+def get_fact_sources(machine):
+    return (
+        machine
+        .facts
+        .order_by('management_source__name')
+        .values_list('management_source__name', flat=True)
+        .distinct())
+
+
+def _get_management_tools(source_names, machine):
+    row_funcs = {
+        'Munki': _munki_facts,
+        'Apple Software Update': _sus_facts,
+        # Want to show data about a management source? Implement a func and
+        # change here...
+        'Puppet': _not_implemented_facts,
+        'Salt': _salt_facts,
+        'Chef': _not_implemented_facts,
+    }
+    management_tool_info = []
+    for source_name in source_names:
+        management_tool_info.extend(row_funcs[source_name](machine))
+
+    return sorted(management_tool_info)
+
+
+def _get_management_facts(machine, source_name, fact_names, prefix=None):
+    result = []
+    if prefix is None:
+        prefix = source_name
+    for fact_name in fact_names:
+        try:
+            fact = machine.facts.get(management_source__name=source_name, fact_name=fact_name)
+            result.append((f'{prefix} {fact_name}', fact.fact_data))
+        except Fact.DoesNotExist:
+            pass
+
+    return result
+
+
+def _munki_facts(machine):
+    info_names = ('StartTime', 'EndTime', 'RunType')
+    rows = _get_management_facts(machine, 'Munki', info_names)
+    rows.append(('Munki Manifest', machine.manifest))
+    rows.append(('Munki Version', machine.munki_version))
+
+    return rows
+
+
+def _sus_facts(machine):
+    info_names = ('catalog', 'last_check')
+    rows = _get_management_facts(machine, 'Apple Software Update', info_names, prefix='SUS')
+    return rows
+
+
+def _salt_facts(machine):
+    info_names = ('saltversion', 'pythonversion', 'Last Highstate')
+    rows = _get_management_facts(machine, 'Salt', info_names)
+    return rows
+
+
+def _puppet_facts(machine):
+    info_names = ('puppet_version', 'puppet_errors', 'last_puppet_run')
+    rows = _get_management_facts(machine, 'Puppet', info_names)
+    return rows
+
+
+def _not_implemented_facts(machine):
+    return []
+
+
 @login_required
 @access_required(Machine)
-def machine_detail_facter(request, machine_id, **kwargs):
+def machine_detail_facts(request, machine_id, management_source, **kwargs):
     machine = kwargs['instance']
-    table_data = []
     if machine.facts.count() != 0:
-        facts = machine.facts.all()
+        facts = machine.facts.filter(management_source__name=management_source)
         if settings.EXCLUDED_FACTS:
-            for excluded in settings.EXCLUDED_FACTS:
-                facts = facts.exclude(fact_name=excluded)
+            facts = facts.exclude(fact_name__in=settings.EXCLUDED_FACTS)
     else:
         facts = None
 
-    if facts:
-        for fact in facts:
-            item = {}
-            item['key'] = fact.fact_name
-            item['value'] = fact.fact_data
-            table_data.append(item)
-    key_header = 'Fact'
-    value_header = 'Data'
-    title = 'Facter data for %s' % machine.hostname
-    page_length = utils.get_setting('datatable_page_length')
-    c = {
+    title = f'{management_source} Facts for {machine.hostname}'
+    context = {
         'user': request.user,
         'machine': machine,
-        'table_data': table_data,
+        'fact_sources': get_fact_sources(machine),
+        'table_data': facts,
         'title': title,
-        'key_header': key_header,
-        'value_header': value_header,
-        'page_length': page_length
+        'page_length': utils.get_setting('datatable_page_length')
     }
-    return render(request, 'server/machine_detail_table.html', c)
-
-
-@login_required
-@access_required(Machine)
-def machine_detail_conditions(request, machine_id, **kwargs):
-    machine = kwargs['instance']
-    table_data = []
-    if machine.conditions.count() != 0:
-        conditions = machine.conditions.all()
-        if settings.EXCLUDED_CONDITIONS:
-            for excluded in settings.EXCLUDED_CONDITIONS:
-                conditions = conditions.exclude(condition_name=excluded)
-    else:
-        conditions = None
-
-    if conditions:
-        for condition in conditions:
-            item = {}
-            item['key'] = condition.condition_name
-            item['value'] = condition.condition_data
-            table_data.append(item)
-    key_header = 'Condition'
-    value_header = 'Data'
-    title = 'Munki conditions data for %s' % machine.hostname
-    page_length = utils.get_setting('datatable_page_length')
-    c = {
-        'user': request.user,
-        'machine': machine,
-        'table_data': table_data,
-        'title': title,
-        'key_header': key_header,
-        'value_header': value_header,
-        'page_length': page_length
-    }
-    return render(request, 'server/machine_detail_table.html', c)
+    return render(request, 'server/machine_detail_facts.html', context)
 
 
 @login_required

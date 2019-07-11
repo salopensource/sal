@@ -21,14 +21,6 @@ class BusinessUnitViewSet(viewsets.ModelViewSet):
     filter_fields = ('name',)
 
 
-class ConditionViewSet(viewsets.ReadOnlyModelViewSet):
-    queryset = Condition.objects.all()
-    serializer_class = ConditionSerializer
-    filter_fields = (
-        'machine__serial', 'machine__hostname', 'machine__id',
-        'condition_name', 'condition_data')
-
-
 class FactViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Fact.objects.all()
     serializer_class = FactSerializer
@@ -63,88 +55,46 @@ class MachineGroupViewSet(viewsets.ModelViewSet):
     filter_fields = ('name', 'business_unit__name', 'business_unit__id')
 
 
-class MachineViewSet(QueryFieldsMixin, viewsets.ModelViewSet):
-    """
-    list:
-    Returns a paginated list of all machines. Records are by default in
-    abbreviated form, but this endpoint accepts querystring arguments for
-    limiting or including fields as per below.
-
-    - `full` uses the full machine record instead of the abbreviated form.
-        - Example: `/api/machines/?full`
-    - `fields` allows you to specify a list of fields to include or exclude in
-      the response.
-        - Include Example: `/api/machines/?fields=console_user,hostname`
-        - Exclude Example: `/api/machines/?fields!=report`
-
-    The abbreviated form excludes the `report` field.
-
-    You may also use the `search` querystring to perform text searches
-    across the `console_user`, `cpu_speed`, `cpu_type`,
-    `hostname`, `machine_model`, `machine_model_friendly`, `manifest`,
-    and `memory` fields.
-
-    Example `/api/machines/?search=MacPro`
-
-    read:
-    Returns a machine record. The returned record is by default in abbreviated
-    form, but this endpoint accepts querystring arguments for limiting or
-    including fields as per below.
-
-    - `full` uses the full machine record instead of the abbreviated form.
-        - Example: `/api/machines/42/?full`
-    - `fields` allows you to specify a list of fields to include or exclude in
-      the response.
-        - Include Example: `/api/machines/C0DEADBEEF/?fields=console_user,hostname`
-        - Exclude Example: `/api/machines/C0DEADBEEF/?fields!=report`
-
-    The abbreviated form excludes the `report` field.
-    """
+class MachineViewSet(viewsets.ModelViewSet):
     queryset = Machine.objects.all()
     serializer_class = MachineSerializer
     lookup_field = 'serial'
     filter_fields = (
-        'id', 'activity', 'console_user', 'cpu_speed', 'cpu_type', 'deployed',
-        'errors', 'first_checkin', 'hd_percent', 'hd_space', 'hd_total',
-        'hostname', 'last_checkin', 'last_puppet_run', 'machine_model',
-        'machine_model_friendly', 'manifest', 'memory', 'memory_kb',
-        'munki_version', 'operating_system', 'os_family', 'puppet_errors',
-        'puppet_version', 'sal_version', 'warnings')
+        'id', 'console_user', 'cpu_speed', 'cpu_type', 'deployed', 'first_checkin', 'hd_percent',
+        'hd_space', 'hd_total', 'hostname', 'last_checkin', 'machine_model',
+        'machine_model_friendly', 'manifest', 'memory', 'memory_kb', 'munki_version',
+        'operating_system', 'os_family', 'sal_version')
     search_fields = (
-        'console_user', 'cpu_speed', 'cpu_type', 'hostname',
-        'machine_model', 'machine_model_friendly', 'manifest', 'memory')
+        'console_user', 'cpu_speed', 'cpu_type', 'hostname', 'machine_model',
+        'machine_model_friendly', 'manifest', 'memory')
 
 
-class PendingAppleUpdatesViewSet(viewsets.ReadOnlyModelViewSet):
-    """
-    list:
-    You may also use the `search` querystring to perform text searches
-    across the `display_name` and `update` fields.
+class ManagementSourceViewSet(viewsets.ReadOnlyModelViewSet):
+    serializer_class = ManagementSourceSerializer
+    queryset = ManagementSource.objects.all()
 
-    Example `/api/pending_apple_updates/?search=Safari`
-    """
-    serializer_class = PendingAppleUpdateSerializer
-    queryset = PendingAppleUpdate.objects.all()
+
+class ManagedItemViewSet(viewsets.ReadOnlyModelViewSet):
+    serializer_class = ManagedItemSerializer
+    queryset = ManagedItem.objects.all()
     filter_fields = (
         'machine__serial', 'machine__hostname', 'machine__id',
-        'update', 'update_version', 'display_name')
-    search_fields = ('display_name', 'update')
+        'management_source__name', 'management_source__id', 'status')
+    search_fields = ('name', )
 
 
-class PendingUpdatesViewSet(viewsets.ReadOnlyModelViewSet):
-    """
-    list:
-    You may also use the `search` querystring to perform text searches
-    across the `display_name` and `update` fields.
-
-    Example `/api/pending_updates/?search=NetHack`
-    """
-    serializer_class = PendingUpdateSerializer
-    queryset = PendingUpdate.objects.all()
+class ManagedItemHistoryViewSet(viewsets.ReadOnlyModelViewSet):
+    serializer_class = ManagedItemHistorySerializer
+    queryset = ManagedItemHistory.objects.all()
     filter_fields = (
         'machine__serial', 'machine__hostname', 'machine__id',
-        'update', 'update_version', 'display_name')
-    search_fields = ('display_name', 'update')
+        'management_source__name', 'management_source__id', 'status')
+    search_fields = ('name', )
+
+
+class MessageViewSet(viewsets.ReadOnlyModelViewSet):
+    serializer_class = MessageSerializer
+    queryset = Message.objects.all()
 
 
 class PluginScriptRowViewSet(viewsets.ReadOnlyModelViewSet):
@@ -192,6 +142,5 @@ class SavedSearchViewSet(viewsets.ReadOnlyModelViewSet):
         queryset = search_machines(pk, machines, full=full)
         # Pass the "full" parameter to the serializer so it knows
         # how to handle potentially missing fields.
-        response_data = MachineSerializer(
-            queryset, many=True, full=full, saved_search=True)
+        response_data = MachineSerializer(queryset, many=True, full=full, saved_search=True)
         return Response(response_data.data)

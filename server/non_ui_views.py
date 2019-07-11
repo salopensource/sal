@@ -274,8 +274,8 @@ def checkin(request):
     machine.broken_client = False
     machine.save()
 
-        object_queue = process_management_submission(
-            management_source, management_data, machine, object_queue)
+    object_queue = process_management_submission(
+        management_source, management_data, machine, object_queue)
 
     object_queue = process_managed_item_histories(object_queue, machine)
 

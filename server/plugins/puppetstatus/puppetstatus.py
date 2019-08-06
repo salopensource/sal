@@ -18,7 +18,8 @@ TITLES = {
 class PuppetStatus(sal.plugin.Widget):
 
     description = 'Current status of Puppet'
-    supported_os_families = [sal.plugin.OSFamilies.darwin, sal.plugin.OSFamilies.windows]
+    supported_os_families = [sal.plugin.OSFamilies.darwin,
+                             sal.plugin.OSFamilies.linux, sal.plugin.OSFamilies.windows]
 
     def get_context(self, queryset, **kwargs):
         context = self.super_get_context(queryset, **kwargs)

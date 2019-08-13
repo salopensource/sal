@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: sal-config
+  namespace: default
+data:
+  metadata.xml: |
+    # This is where you can put your metadata.xml if you want to use SAL-SAML.
+  settings.py: |
+    # This is where you can put a copy of settings.py from SAL with your changes if needed.

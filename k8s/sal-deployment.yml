@@ -1,0 +1,65 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: "sal"
+  namespace: "default"
+  labels:
+    k8s-app: "sal"
+spec:
+  revisionHistoryLimit: 2
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        k8s-app: "sal"
+        component: "sal"
+      annotations:
+        poddns/name: "sal"
+        poddns/port: "443"
+    spec:
+      containers:
+      - name: sal
+        image: macadmins/sal-saml:3.3.16
+        imagePullPolicy: Always
+        command:
+        - "/run.sh"
+        ports:
+        - containerPort: 8080
+          name: sal-server
+          protocol: TCP
+        env:
+        - name: DB_NAME
+          value: ""
+        - name: DB_USER
+          value: ""
+        - name: DB_HOST
+          value: ""
+        - name: DB_PASS
+          value: ""
+        - name: DB_PORT
+          value: "5432"
+        - name: MEMCACHED_PORT_11211_TCP_ADDR
+          value: "memcached"
+        volumeMounts:
+      # - mountPath: /home/docker/sal/sal/settings.py
+      #   name: cfgmap
+      #   subPath: settings.py
+      # - mountPath: /home/docker/sal/sal/metadata.xml
+      #    name: cfgmap
+      #    subPath: metadata.xml
+        - mountPath: /home/docker/sal/plugins
+          name: sal-plugins
+      - name: memcached
+        image: memcached:1.4.37
+        ports:
+        - containerPort: 11211
+          name: memcached
+          protocol: TCP
+      volumes:
+        - name: cfgmap
+          configMap:
+            name: sal"-config
+        - name: sal-plugins
+          gcePersistentDisk:
+            pdName: fooBarDiskName
+            fsType: ext4

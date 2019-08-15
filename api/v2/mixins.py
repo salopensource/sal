@@ -14,7 +14,7 @@ fields to include when serving simple requests.
 from server.models import *
 
 
-class QueryFieldsMixin(object):
+class QueryFieldsMixin():
 
     # If using Django filters in the API, these labels mustn't conflict with
     # any model field names.

@@ -2,54 +2,45 @@
 {% load i18n %}
 {% load dashboard_extras %}
 {% load static from staticfiles %}
+
 {% block title %}Sal - {{ machine.hostname }}{% endblock %}
+
 {% block script %}
 <script>
-
 $( document ).ready(function() {
-
-
-
-   {% for widget in output %}
-
-   $.ajaxWithRetries(
-    {
-        url: "{% url 'load_plugin' widget.name 'machine' machine.id %}",
-        error: function(){
-            console.log('{{ widget.name }} Failed');
-        },
-        success: function( data ) {
-                $('#plugin-{{ widget.name }}').html(data);
+    {% for widget in output %}
+    $.ajaxWithRetries(
+        {
+            url: "{% url 'load_plugin' widget.name 'machine' machine.id %}",
+            error: function(){
+                console.log('{{ widget.name }} Failed');
             },
-    },
-    {
-        retries: 20,
-        backoff: false
-    }
-);
-
-
-   {% endfor %}
-
-
+            success: function( data ) {
+                    $('#plugin-{{ widget.name }}').html(data);
+            },
+        },
+        {
+            retries: 20,
+            backoff: false
+        }
+    );
+    {% endfor %}
 });
-
 </script>
-
 {% endblock %}
 
 {% block nav %}
-  {% include 'server/machine_detail_nav.html' %}
-  {% if user.userprofile.level == 'GA' or user.userprofile.level == 'RW' %}
-    <li><a href="#myModal" data-toggle="modal"><i class="fa fa-times fa-fw"></i> Computer</a></i>
-  {% endif %}
+{% include 'server/machine_detail_nav.html' %}
+{% if user.userprofile.level == 'GA' or user.userprofile.level == 'RW' %}
+<li><a href="#myModal" data-toggle="modal"><i class="fa fa-times fa-fw"></i> Computer</a></i>
+{% endif %}
 {% endblock %}
 
 {% block content %}
 <div class="row">
   <div class="col-md-5">
     <p style="text-align: center;">
-        {% if machine.os_family == 'Darwin' %}
+      {% if machine.os_family == 'Darwin' %}
       <img src='https://km.support.apple.com/kb/securedImage.jsp?configcode={{machine.serial|slice:"8:" }}&size=120x120'>
       {% elif machine.os_family == 'ChromeOS' %}
       <img src="{% static 'img/Chrome.png' %}" height="120" width="120" alt="Chrome OS"/>
@@ -59,9 +50,10 @@ $( document ).ready(function() {
       <br>
       <h2 style="text-align:center">{{ machine.hostname }}</h2>
       <span style="display: block; margin: 0px auto; text-align: center;" title="Last report date">
-        <b>Report</b> :: {{ machine.last_checkin|date:"Y-m-d H:i" }}
+        <b>Last Checkin</b> :: {{ machine.last_checkin|date:"Y-m-d H:i" }}
       </span>
     </p>
+
     <div class="panel panel-default">
       <div class="panel-body">
         <dl class="dl-horizontal" >
@@ -70,75 +62,64 @@ $( document ).ready(function() {
             <div class="col-md-4">
               <p style="text-align: center;">
                 <!-- Error Modal Trigger -->
-                {% if report.Errors|length %}
+                {% if messages.ERROR %}
                 <a class="fa fa-exclamation-triangle fa-3x color-red" href="#ErrorModal" data-toggle="modal" data-backdrop="true"></a>
                 {% else %}
                 <i class="fa fa-check-circle fa-3x color-green" style="cursor: default;"></i>
                 {% endif %}
                 <br>
-                {{ report.Errors|length }} Errors
+                {{ messages.ERROR|length }} Errors
               </p>
             </div>
             <div class="col-md-4">
               <p style="text-align: center;">
                 <!-- Warning Modal Trigger -->
-                {% if report.Warnings|length %}
+                {% if messages.WARNING %}
                 <a class="fa fa-bell fa-3x color-yellow" href="#WarningModal" data-toggle="modal" data-backdrop="true"></a>
                 {% else %}
                 <i class="fa fa-check-circle fa-3x color-green" style="cursor: default;"></i>
                 {% endif %}
                 <br>
-                {{ report.Warnings|length }} Warnings
+                {{ messages.WARNING|length }} Warnings
               </p>
             </div>
             <div class="col-md-4">
               <p style="text-align: center;">
-                {% if report.AppleUpdates|length or report.ItemsToInstall|length %}
-                <i class="fa fa-info-circle fa-3x color-blue" style="cursor: default;"></i>
+                <!-- Pending items Modal trigger -->
+                {% if pending %}
+                <a class="fa fa-3x color-blue fa-info-circle" href="#PendingModal" data-toggle="modal" data-backdrop="true"></a>
                 {% else %}
-                <i class="fa fa-check-circle fa-3x color-green" style="cursor: default;"></i>
+                <i class="fa fa-3x color-green fa-check-circle" style="cursor: default;"></i>
                 {% endif %}
                 <br>
-                {% with PendingAppleUpdates=report.AppleUpdates|length %}
-                  {% with PendingInstalls=report.ItemsToInstall|length %}
-                    {{ PendingAppleUpdates|add:PendingInstalls }} Pending Installs
-                  {% endwith %}
-                {% endwith %}
+                {{pending|length }} Pending Items
               </p>
             </div>
           </div>
           </dl>
       </div>
     </div>
+
     <div class="panel panel-default">
       <div class="panel-body">
         <dl class="dl-horizontal">
           <legend><h5 class"text-uppercase">Machine Details</h5></legend>
           {% if machine.broken_client %}
           <dt>Broken Python:</dt>
-          <dd class="bg-danger">
-           Client has broken Python / MSC 
-          </dd>
+          <dd class="bg-danger">Client has broken Python / MSC</dd>
           {% endif %}
           {% if machine.machine_model %}
           <dt>Model:</dt>
           <dd>
-            {% if machine.os_family == 'Darwin' %}
-              {% if machine.machine_model_friendly %}
-              {{ machine.machine_model_friendly }}
-              {% else %}
-              {{ machine.machine_model }}
-              {% endif %}
+            {% if machine.os_family == 'Darwin' and machine.machine_model_friendly %}
+            {{ machine.machine_model_friendly }}
             {% else %}
-               {{ machine.machine_model }}
-              {% endif %}
+            {{ machine.machine_model }}
+            {% endif %}
           </dd>
           {% endif %}
           <dt>Processor:</dt>
-          <dd>
-            {{ machine.cpu_type }}
-            {{ machine.cpu_speed }}
-          </dd>
+          <dd>{{ machine.cpu_type }} {{ machine.cpu_speed }}</dd>
           <dt>RAM:</dt>
           <dd>{{ machine.memory }}</dd>
           <dt>Serial:</dt>
@@ -147,27 +128,33 @@ $( document ).ready(function() {
           <dt>LAN IP Address:</dt>
           <dd>{{ ip_address }}</dd>
           {% endif %}
-          {% if 'MachineInfo' in report %}
-          {% if report.MachineInfo.hostname %}
           <dt>Hostname:</dt>
-          <dd>{{ report.MachineInfo.hostname }}</dd>
-          {% endif %}
+          <dd>{{ machine.hostname }}</dd>
           <dt>OS version:</dt>
           <dd>
-            {% if machine.os_family == 'Darwin' %}
-            {{ report.MachineInfo.os_vers|macos }}
-            {{ report.MachineInfo.os_vers }}
-            {{ report.MachineInfo.arch }}
-            {% else %}
-            {{ machine.operating_system }}
-            {% endif %}
+          {% if machine.os_family == 'Darwin' %}macOS{% else %}{{ machine.os_family }}{% endif %}
+          {{ machine.operating_system }}
           </dd>
-          {% endif %}
-          {% if report.AvailableDiskSpace %}
           {% if machine.hd_percent != '0' %}
           <dt>Free disk space:</dt>
-          <dd>{{ report.AvailableDiskSpace|humanreadablesize }} ({{ machine.hd_percent }}% used)</dd>
+          <dd>
+          {% if machine.os_family == 'Darwin' %}
+          <!-- Display Mac sizes in base 10 -->
+          {{ machine.hd_space|human_readable_size:False }}
+          {% else %}
+          {{ machine.hd_space|human_readable_size }}
+          {% endif %} ({{ machine.hd_percent }}% used)
+          </dd>
           {% endif %}
+          {% if machine.hd_total %}
+          <dt>Total disk space:</dt>
+          <dd>
+          {% if machine.os_family == 'Darwin' %}
+          {{ machine.hd_total|human_readable_size:False }}
+          {% else %}
+          {{ machine.hd_total|human_readable_size }}
+          {% endif %}
+          </dd>
           {% endif %}
           {% if uptime %}
           <dt>Uptime:</dt>
@@ -179,11 +166,11 @@ $( document ).ready(function() {
           {% endif %}
           <dt>Deploy Status:</dt>
           <dd>
-            {% if machine.deployed %}
-            Deployed
-            {% else %}
-            Undeployed
-            {% endif %}
+          {% if machine.deployed %}
+          Deployed
+          {% else %}
+          Undeployed
+          {% endif %}
           </dd>
           <dt>First checkin:</dt>
           <dd>{{ machine.first_checkin }}</dd>
@@ -202,177 +189,142 @@ $( document ).ready(function() {
           <dt>Sal Version:</dt>
           <dd>{{ machine.sal_version }}</dd>
           {% endif %}
-          {% if machine.puppet_version %}
-          <dt>Puppet Version:</dt>
-          <dd>{{ machine.puppet_version }}</dd>
-          {% endif %}
-          {% if report.ManagedInstallVersion %}
-          <dt>Munki Version:</dt>
-          <dd>{{ report.ManagedInstallVersion }}</dd>
-          {% endif %}
-          {% if 'ManifestName' in report %}
-          <dt>Munki Manifest:</dt>
-          <dd>
-            {{ report.ManifestName }}
-          </dd>
-          {% endif %}
-          {% if report.ManagedInstallVersion %}
-          <dt>Munki Run Type:</dt>
-          <dd>{{ report.RunType }}</dd>
-          <dt>Munki Start:</dt>
-          <dd>{{ report.StartTime|convert_datetime|date:"Y-m-d H:i" }}</dd>
-          <dt>Munki End:</dt>
-          <dd>{{ report.EndTime|convert_datetime|date:"Y-m-d H:i" }}</dd>
-          {% endif %}
-          {% if machine.last_puppet_run %}
-          <dt>Puppet Run:</dt>
-          <dd>{{ machine.last_puppet_run|date:"Y-m-d H:i" }}</dd>
-          {% endif %}
+          {% for name, value in management_tools %}
+          <dt>{{ name }}</dt>
+          <dd>{{ value }}</dd>
+          {% endfor %}
         </dl>
       </div>
     </div>
 
-              {% for widget in output %}
-              {{ widget.html|safe }}
-              {% endfor %}
+  <!-- Machine Detail Plugin output -->
+  {% for widget in output %}
+  {{ widget.html|safe }}
+  {% endfor %}
 
   </div>
 
+  <!-- Managed Items -->
   <div class="col-md-7">
     <div class="row">&nbsp;</div>
     <div id="accordion" class="panel-group">
       <div class="panel panel-default">
         <div class="panel-body">
+
           <!-- Nav tabs -->
           <ul class ="nav nav-pills">
-            {% if report.ManagedInstalls|length %}
-            <li class="active" role="presentation"><a aria-expanded="true" data-toggle="tab" href="#tab2-1">Managed Installs</a></li>
-            {% endif %}
-            <!-- Dropdown Menu -->
-            <li class="dropdown" role="presentation">
-              <a class="dropdown-toggle" data-toggle="dropdown" href="#" role="button" aria-haspopup="true">Pending Installs <span class="caret"></span></a>
+          {% for management_source, items in managed_items.items %}
+            {% if items|length == 1 %}
+            <li {% if management_source == initial_source %}class="active" {% endif %}role="presentation">
+            {% for item_type in items %}
+            <a aria-expanded="true" data-toggle="tab" href="#{{ item_type|slugify }}">{{ management_source }}</a>
+            {% endfor %}
+            </li>
+            {% else %}
+            <li class="dropdown{% if management_source == initial_source %} active{% endif %}" role="presentation">
+              <a class="dropdown-toggle" role="button" aria-haspopup="true" data-toggle="dropdown" href="#">{{ management_source }} <span class="caret"></span></a>
               <ul class="dropdown-menu" role="menu">
-                {% if report.AppleUpdates|length %}
-                <li><a data-toggle="tab" href="#dd1"><i class="fa fa-info-circle color-yellow"></i>   Apple Updates</a></li>
-                {% else %}
-                <li class="disabled"><a href="#"><i class="fa fa-check-circle color-green"></i>   No Apple Updates</a></li>
-                {% endif %}
-                {% if report.ItemsToInstall|length %}
-                <li><a data-toggle="tab" href="#dd2"><i class="fa fa-info-circle color-yellow"></i>   Active Installs</a></li>
-                {% else %}
-                <li class="disabled"><a href="#"><i class="fa fa-check-circle color-green"></i>   No Active Installs</a></li>
-                {% endif %}
-                {% if report.ItemsToRemove|length %}
-                <li><a data-toggle="tab" href="#dd3"><i class="fa fa-info-circle color-yellow"></i>   Active Removals</a></li>
-                {% else %}
-                <li class="disabled"><a href="#"><i class="fa fa-check-circle color-green"></i>   No Active Removals</a></li>
-                {% endif %}
-                {% if report.ProblemInstalls|length %}
-                <li><a data-toggle="tab" href="#dd4"><i class="fa fa-info-circle color-yellow"></i>   Problem Installs</a></li>
-                {% else %}
-                <li class="disabled"><a href="#"><i class="fa fa-check-circle color-green"></i>   No Problem Installs</a></li>
-                {% endif %}
+              {% for item_type in items %}
+                <li><a data-toggle="tab" href="#{{ item_type|slugify }}"><i class="fa fa-info-circle color-green"></i>   {{ item_type }}</a></li>
+              {% endfor %}
               </ul>
             </li>
-            <!-- /.dropdown -->
-            {% if report.managed_uninstalls_list|length %}
-            <li role="presentation"><a data-toggle="tab" href="#tab2-2">Managed Uninstalls</a></li>
             {% endif %}
+          {% endfor %}
           </ul>
+
           <!-- Tab panes -->
           <div class="tab-content">
-            <div class="tab-pane fade" id="dd1">
-            {% with title='Apple Updates' pkglist=report.AppleUpdates type='apple' %}
-              {% include 'server/pkgtable.html' %}
-            {% endwith %}
-            </div>
-            <div class="tab-pane fade" id="dd2">
-              {% with title='Active Installs' pkglist=report.ItemsToInstall type='active_installs' %}
-                {% include 'server/pkgtable.html' %}
-              {% endwith %}
-            </div>
-            <div class="tab-pane fade" id="dd3">
-              {% with title='Active Removals' pkglist=report.ItemsToRemove type='active_removals' %}
-                {% include 'server/pkgtable.html' %}
-              {% endwith %}
-            </div>
-            <div class="tab-pane fade" id="dd4">
-              {% with title='Problem Installs' pkglist=report.ProblemInstalls type='problem_installs' %}
-                {% include 'server/pkgtable.html' %}
-              {% endwith %}
-            </div>
-            <div class="tab-pane fade active in" id="tab2-1">
-              {% with title='Managed Installs' pkglist=report.ManagedInstalls type='managed_installs' %}
-                {% include 'server/pkgtable.html' %}
-              {% endwith %}
-            </div>
-            <div class="tab-pane fade" id="tab2-2">
-              <table class="client_info table table-striped table-condensed">
-                <thead>
-                  <tr>
-                    <th>Name</th>
-                    <th>Status</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {% for item in report.managed_uninstalls_list %}
-                  <tr>
-                    <td>{{ item }}</td>
-                    {% if item in report.RemovedItems %}
-                    <td>not installed</td>
+          {% for management_source, items in managed_items.items %}
+            {% for key, values in items.items %}
+              <div class="tab-pane {% if active_table == key %}in active{% endif %} fade" id="{{ key|slugify }}">
+                {% with title=management_source items=values type=key %}
+                  {% include 'server/managed_item_table.html' %}
+                {% endwith %}
+              </div><!-- /.tab-pane -->
+            {% endfor %}
+          {% endfor %}
+          </div><!-- /.tab-content -->
+
+        </div><!-- /.panel-body -->
+      </div><!-- /.panel -->
+    </div> <!-- /.pane-group -->
+  </div> <!-- /.row -->
+</div> <!-- /.col -->
+{% endblock %}
+
+{% block modal %}
+  <!-- ManagedItem Modals -->
+  {% for management_source, subtypes in managed_items.items %}
+    {% for subtype, values in subtypes.items %}
+      {% for item in values %}
+        <!-- {{ management_source.name }}{{ subtype }}-{{ item.name }} Modal -->
+        <div class="modal fade in" id="ManagedItemsModal-{{ management_source|slugify }}-{{ subtype|slugify }}-{{ item.name|slugify }}" tabindex="-1" role="dialog" aria-labelledby="labelManagedItemsModal-{{ management_source|slugify }}-{{ subtype|slugify }}-{{ item.name|slugify }}" aria-hidden="true">
+          <div class="modal-dialog" style="width: 60%">
+          <!-- modal-content -->
+            <div class="modal-content">
+              <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                <h4 class="modal-title" id="labelManagedItemsModal-{{ management_source|slugify }}-{{ subtype|slugify }}-{{ item.name|slugify }}">Details for {{ item.name }}</h4>
+              </div>
+              <div class="modal-body">
+              {% if item.data %}
+                <dl class="dl-horizontal">
+                  <dt>Date managed</dt>
+                  <dd>{{ item.date_managed }}</dd>
+                  <dt>Status</dt>
+                  <dd>{{ item.status }}</dd>
+                  {% for key, value in item.data|json_items %}
+                  <dt>{{ key }}</dt>
+                  <!-- Add other keys to identify as "sizes" to this pipe-delimited string. -->
+                  {% with sizes='installed_size|' %}
+                  <dd>
+                  {% if key in sizes %}
+                    {% if machine.os_family == 'Darwin' %}
+                      {{ value|kibibytes_to_bytes|human_readable_size:False }}
                     {% else %}
-                    <td class='error'>installed</td>
+                      {{ value|kibibytes_to_bytes|human_readable_size:True }}
                     {% endif %}
-                  </tr>
+                  {% else %}
+                    {{ value }}
+                  {% endif %}
+                  </dd>
+                  {% endwith %}
                   {% endfor %}
-                </tbody>
-              </table>
+                </dl>
+                {% with history_key=item.management_source.name|cat:'||'|cat:item.name %}
+                {% with history=histories|dict_lookup:history_key %}
+                {% if history %}
+                <table class="table table-striped">
+                    <th>Status</th>
+                    <th>Date</th>
+                    {% for history_item in history %}
+                    <tr>
+                        <td>{{ history_item.status }}</td>
+                        <td>{{ history_item.recorded }}</td>
+                    </tr>
+                    {% endfor %}
+                </table>
+                {% endif %}
+                {% endwith %}
+                {% endwith %}
+
+              {% else %}
+              <p>No additional data available.</p>
+              {% endif %}
+              <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
             </div>
           </div>
+          <!-- /.modal-content -->
         </div>
-        <!-- /.panel-body -->
+        <!-- /.modal-dialog -->
       </div>
-      <!-- /.panel -->
-    </div>
-  </div>
-</div>
-  {% endblock %}
-  {% block modal %}
-  {% for item in report.ManagedInstalls %}
-  <!-- {{item.name}}-{{item.version|cut:"."}} ManagedInstalls Modal -->
-  <div class="modal fade in" id="ManagedInstallsModal{{item.name}}{{item.version|cut:"."}}" tabindex="-1" role="dialog" aria-labelledby="labelManagedInstallsModal{{item.name}}{{item.version|cut:"."}}" aria-hidden="true">
-    <div class="modal-dialog" style="width: 60%">
-      <!-- modal-content -->
-      <div class="modal-content">
-        <div class="modal-header">
-          <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-          <h4 class="modal-title" id="labelManagedInstallsModal{{item.name}}{{item.version|cut:"."}}">Update History for {% if item.display_name %}{{item.display_name}}{% else %}{{ item.name }}{% endif %} {{item.version}}</h4>
-        </div>
-        <div class="modal-body">
-         {% if item.update_history %}
-            <table class="table table-striped">
-                <th>Status</th>
-                <th>Date</th>
-              {% for update_history_item in item.update_history %}
-              <tr>
-                  <td>{{update_history_item.get_status_display}}</td>
-                  <td>{{update_history_item.recorded}}</td>
-              </tr>
-              {% endfor %}
-          </table>
-            {% else %}
-            <p>No update history available.</p>
-            {% endif %}
-
-          <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-        </div>
-      </div>
-      <!-- /.modal-content -->
-    </div>
-    <!-- /.modal-dialog -->
-  </div>
-  <!-- /.modal -->
+      <!-- /.modal -->
+      {% endfor %}
+    {% endfor %}
   {% endfor %}
+
+  <!-- Delete machine Modal -->
   {% if user.userprofile.level == 'GA' or user.userprofile.level == 'RW' %}
   <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
     <div class="modal-dialog">
@@ -403,7 +355,24 @@ $( document ).ready(function() {
           <h4 class="modal-title" id="theErrorModal">Errors</h4>
         </div>
         <div class="modal-body">
-          <pre class="text-error pre-scrollable">{{ report.Errors|join:'<br>' }}</pre>
+          <table class="client_info table table-striped table-condensed">
+            <thead>
+              <tr>
+                <th>Source</th>
+                <th>Date</th>
+                <th>Text</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for item in messages.ERROR|dictsort:'date' %}
+              <tr>
+                <td>{{ item.management_source.name }}</td>
+                <td>{{ item.date }}</td>
+                <td>{{ item.text }}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
@@ -414,6 +383,7 @@ $( document ).ready(function() {
     <!-- /.modal-dialog -->
   </div>
   <!-- /.modal -->
+  
   <!-- Warning Modal -->
   <div class="modal fade in" id="WarningModal" tabindex="-1" role="dialog" aria-labelledby="theWarningModal" aria-hidden="true">
     <div class="modal-dialog" style="width: 60%">
@@ -424,7 +394,63 @@ $( document ).ready(function() {
           <h4 class="modal-title" id="theWarningModal">Warnings</h4>
         </div>
         <div class="modal-body">
-          <pre class="text-warning pre-scrollable">{{ report.Warnings|join:'<br>' }}</pre>
+          <table class="client_info table table-striped table-condensed">
+            <thead>
+              <tr>
+                <th>Source</th>
+                <th>Date</th>
+                <th>Text</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for item in messages.WARNING|dictsortreversed:'date' %}
+              <tr>
+                <td>{{ item.management_source.name }}</td>
+                <td>{{ item.date }}</td>
+                <td>{{ item.text }}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+        </div>
+      </div>
+      <!-- /.modal-content -->
+    </div>
+    <!-- /.modal-dialog -->
+  </div>
+  <!-- /.modal -->
+
+  <!-- Pending Modal -->
+  <div class="modal fade in" id="PendingModal" tabindex="-1" role="dialog" aria-labelledby="thePendingModal" aria-hidden="true">
+    <div class="modal-dialog" style="width: 60%">
+      <!-- modal-content -->
+      <div class="modal-content">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+          <h4 class="modal-title" id="thePendingModal">Pending Items</h4>
+        </div>
+        <div class="modal-body">
+          <table class="client_info table table-striped table-condensed">
+            <thead>
+              <tr>
+                <th>Source</th>
+                <th>Date</th>
+                <th>Name</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for item in pending|dictsort:'name' %}
+              <tr>
+                <td>{{ item.management_source.name }}</td>
+                <td>{{ item.date_managed }}</td>
+                <td>{{ item.name }}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>

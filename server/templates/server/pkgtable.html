@@ -22,7 +22,8 @@
           {{ item.installed_version }}
         </td>
         <td>
-          {{ item.installed_size|humanreadablesize }}
+          <!-- TODO: This is wrong, as packages are in kibibytes -->
+          {{ item.installed_size|human_readable_size }}
        </td>
         <td>
         {% if type == 'managed_installs' %}

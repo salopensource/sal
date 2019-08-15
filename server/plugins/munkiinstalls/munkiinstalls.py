@@ -3,11 +3,11 @@ from datetime import datetime, time, timedelta
 from django.utils import timezone
 
 import sal.plugin
-from server.models import UpdateHistoryItem
+from server.models import ManagedItemHistory
 
 
 NOW = timezone.now()
-STATUSES = ('install', 'pending', 'error')
+STATUSES = ('present', 'pending', 'error')
 
 
 class MunkiInstalls(sal.plugin.Widget):
@@ -20,7 +20,7 @@ class MunkiInstalls(sal.plugin.Widget):
         context = self.super_get_context(queryset, **kwargs)
 
         # Set up 14 days back of time ranges as a generator.
-        days = (NOW - timedelta(days=d) for d in xrange(0, 15))
+        days = (NOW - timedelta(days=d) for d in range(0, 15))
         time_ranges = ((
             timezone.make_aware(datetime.combine(d, time.min)),
             timezone.make_aware(datetime.combine(d, time.max))) for d in days)
@@ -36,10 +36,10 @@ class MunkiInstalls(sal.plugin.Widget):
 
     def _filter(self, queryset, data, time_range):
         return (
-            UpdateHistoryItem.objects
+            ManagedItemHistory.objects
             .filter(
                 status__iexact=data,
                 recorded__range=time_range,
-                update_history__machine__in=queryset,
-                update_history__update_type='third_party')
+                machine__in=queryset,
+                management_source__name='Munki')
             .count())

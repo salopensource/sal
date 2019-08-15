@@ -1,18 +1,16 @@
 # standard library
+import collections
 import copy
 import hashlib
-import plistlib
+import itertools
 from distutils.version import LooseVersion
-from urllib import quote
-
-# third-party
-import unicodecsv as csv
+from urllib.parse import quote
 
 # Django
-from django.core.urlresolvers import reverse
 from django.db.models import Q
 from django.http import HttpResponse, HttpResponseNotFound
 from django.shortcuts import get_object_or_404
+from django.urls import reverse
 from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
@@ -24,14 +22,23 @@ from datatableview.columns import DisplayColumn
 from datatableview.views import DatatableView
 
 # local Django
+import server.utils
+import utils.csv
 from inventory.models import Application, Inventory, InventoryItem
 from sal.decorators import (class_login_required, class_access_required, key_auth_required)
-from server import text_utils
-from server import utils
 from server.models import BusinessUnit, MachineGroup, Machine
+from utils import text_utils
 
 
-class GroupMixin(object):
+ApplicationTuple = collections.namedtuple(
+    'Application', ['name', 'bundleid', 'bundlename', 'install_count'])
+
+
+# Generate the fields dict needed for our CSV row generator.
+APPLICATION_FIELDS = dict(itertools.zip_longest(ApplicationTuple._fields, []))
+
+
+class GroupMixin():
     """Mixin to add get_business_unit method for access decorators.
 
     The view must have the URL configured so that kwargs for
@@ -141,7 +148,7 @@ class GroupMixin(object):
         return queryset
 
 
-class DatatableQuerystringMixin(object):
+class DatatableQuerystringMixin():
     """Mixin to allow querystrings to work with DatatableViews
 
     Must come in a higher precedence spot in the MRO. (i.e. <<<---)
@@ -158,7 +165,7 @@ class DatatableQuerystringMixin(object):
         return kwargs
 
 
-class CSVResponseMixin(object):
+class CSVResponseMixin():
     csv_filename = "sal_inventory"
     csv_ext = ".csv"
     components = []
@@ -168,22 +175,6 @@ class CSVResponseMixin(object):
         identifier = "_" + "_".join(self.components) if self.components else ""
         filename = "%s%s%s" % (self.csv_filename, identifier, self.csv_ext)
         return filename
-
-    def set_header(self, headers):
-        self.header = headers
-
-    def render_to_csv(self, data):
-        response = HttpResponse(content_type='text/csv')
-        cd = 'attachment; filename="{0}"'.format(self.get_csv_filename())
-        response['Content-Disposition'] = cd
-
-        writer = csv.writer(response)
-        if hasattr(self, "header") and self.header:
-            writer.writerow(self.header)
-        for row in data:
-            writer.writerow(row)
-
-        return response
 
 
 class InventoryList(Datatable):
@@ -203,12 +194,12 @@ class InventoryList(Datatable):
             'console_user': 'User'}
         processors = {'hostname': 'get_machine_link', 'last_checkin': 'format_date'}
         structure_template = 'datatableview/bootstrap_structure.html'
-        page_length = utils.get_setting('datatable_page_length')
+        page_length = server.utils.get_setting('datatable_page_length')
 
     def get_machine_link(self, instance, **kwargs):
         url = reverse("machine_detail", kwargs={"machine_id": instance.pk})
 
-        return '<a href="{}">{}</a>'.format(url, instance.hostname.encode("utf-8"))
+        return f'<a href="{url}">{instance.hostname}</a>'
 
     def get_install_count(self, instance, **kwargs):
         queryset = instance.inventoryitem_set.filter(application=kwargs['view'].application)
@@ -282,13 +273,13 @@ class ApplicationList(Datatable):
         labels = {'bundleid': 'Bundle ID', 'bundlename': 'Bundle Name'}
         processors = {'name': 'link_to_detail'}
         structure_template = 'datatableview/bootstrap_structure.html'
-        page_length = utils.get_setting('datatable_page_length')
+        page_length = server.utils.get_setting('datatable_page_length')
 
     def link_to_detail(self, instance, **kwargs):
         link_kwargs = copy.copy(kwargs['view'].kwargs)
         link_kwargs['pk'] = instance.pk
         url = reverse("application_detail", kwargs=link_kwargs)
-        return '<a href="{}">{}</a>'.format(url, instance.name.encode("utf-8"))
+        return f'<a href="{url}">{instance.name}</a>'
 
     def get_install_count(self, instance, **kwargs):
         """Get the number of app installs filtered by access group"""
@@ -325,7 +316,7 @@ class ApplicationListView(DatatableView, GroupMixin):
         # the python re module's syntax. You may delimit multiple
         # patterns with the '|' operator, e.g.:
         # 'com\.[aA]dobe.*|com\.apple\..*'
-        inventory_pattern = utils.get_setting('inventory_exclusion_pattern')
+        inventory_pattern = server.utils.get_setting('inventory_exclusion_pattern')
 
         if inventory_pattern:
             crufty_bundles.append(inventory_pattern)
@@ -334,7 +325,7 @@ class ApplicationListView(DatatableView, GroupMixin):
         # VMWare and Parallels VMs. If you would like to disable this,
         # set the SalSetting 'filter_proxied_virtualization_apps' to
         # 'no' or 'false' (it's a string).
-        if utils.get_setting('filter_proxied_virtualization_apps', True):
+        if server.utils.get_setting('filter_proxied_virtualization_apps', True):
             # Virtualization proxied apps
             crufty_bundles.extend([r"com\.vmware\.proxyApp\..*", r"com\.parallels\.winapp\..*"])
 
@@ -384,7 +375,7 @@ class ApplicationDetailView(DetailView, GroupMixin):
 
     def _get_unique_items(self, details):
         """Use optimized DB methods for getting unique items if possible."""
-        if utils.is_postgres():
+        if server.utils.is_postgres():
             versions = (details
                         .order_by("version")
                         .distinct("version")
@@ -446,27 +437,22 @@ class CSVExportView(CSVResponseMixin, GroupMixin, View):
 
         if application_id == "0":
             # All Applications.
-            self.set_header(["Name", "BundleID", "BundleName", "Install Count"])
             self.components = ['application', 'list', 'for', group_type]
             if group_type != "all":
                 self.components.append(group_id)
 
-            if utils.is_postgres():
-                apps = [
-                    self.get_application_entry(item, queryset) for item in
-                    queryset.select_related("application").order_by().distinct("application")]
-                data = apps
-            else:
-                # TODO: This is super slow. This probably shouldn't be
-                # used except in testing, but it could be improved.
-                apps = {self.get_application_entry(item, queryset)
-                        for item in queryset.select_related("application")}
+            fields = APPLICATION_FIELDS
+            # The data we're retuurning is Applications, so get a
+            # queryset of them to remove repetition of InventoryItems.
+            applications = Application.objects.filter(pk__in=queryset.values('application__pk'))
+            # Use the helper function to add attrs that wouldn't
+            # normally be on this model (i.e. install count).
+            data = (self.get_application_entry(item, queryset) for item in applications)
 
-                data = sorted(apps, key=lambda x: x[0])
         else:
             # Inventory List for one application.
-            self.set_header(["Hostname", "Serial Number", "Last Checkin", "Console User"])
-            self.components = ["application", application_id, "for", group_type]
+            application_name = get_object_or_404(Application, pk=application_id).name
+            self.components = ["application", application_name, "for", group_type]
             if group_type != "all":
                 self.components.append(group_id)
             if field_type != "all":
@@ -478,24 +464,17 @@ class CSVExportView(CSVResponseMixin, GroupMixin, View):
             elif field_type == "version":
                 queryset = queryset.filter(version=field_value)
 
-            data = [self.get_machine_entry(item, queryset)
-                    for item in queryset.select_related("machine")]
+            fields = utils.csv.machine_fields()
+            data = (i.machine for i in queryset)
 
-        return self.render_to_csv(data)
+        return utils.csv.get_csv_response(data, fields, self.get_csv_filename())
 
     def get_application_entry(self, item, queryset):
-        # We return tuples, as mutable types are not hashable.
-        return (item.application.name,
-                item.application.bundleid,
-                item.application.bundlename,
-                queryset.filter(application=item.application).count())
-
-    def get_machine_entry(self, item, queryset):
-        # We return tuples, as mutable types are not hashable.
-        return (item.machine.hostname,
-                item.machine.serial,
-                item.machine.last_checkin,
-                item.machine.console_user)
+        return ApplicationTuple(
+            item.name,
+            item.bundleid,
+            item.bundlename,
+            queryset.filter(application=item).count())
 
 
 @csrf_exempt
@@ -513,27 +492,27 @@ def inventory_submit(request):
         except Machine.DoesNotExist:
             return HttpResponseNotFound('Serial Number not found')
 
-        compression_type = 'base64bz2'
         if 'base64bz2inventory' in submission:
             compressed_inventory = submission.get('base64bz2inventory')
+            compression_type = 'base64bz2'
         elif 'base64inventory' in submission:
             compressed_inventory = submission.get('base64inventory')
             compression_type = 'base64'
+        else:
+            compressed_inventory = ''
+
         if compressed_inventory:
             compressed_inventory = compressed_inventory.replace(" ", "+")
-            inventory_str = text_utils.decode_to_string(compressed_inventory, compression_type)
-            try:
-                inventory_list = plistlib.readPlistFromString(inventory_str)
-            except Exception:
-                inventory_list = None
+            inventory_bytes = text_utils.decode_submission_data(
+                compressed_inventory, compression_type)
+            inventory_list = text_utils.submission_plist_loads(inventory_bytes)
+
             if inventory_list:
                 try:
                     inventory_meta = Inventory.objects.get(machine=machine)
                 except Inventory.DoesNotExist:
                     inventory_meta = Inventory(machine=machine)
-                inventory_meta.sha256hash = \
-                    hashlib.sha256(inventory_str).hexdigest()
-                inventory_meta.inventory_str = inventory_str
+                inventory_meta.sha256hash = hashlib.sha256(inventory_bytes).hexdigest()
                 # clear existing inventoryitems
                 machine.inventoryitem_set.all().delete()
                 # insert current inventory items
@@ -550,14 +529,14 @@ def inventory_submit(request):
                             version=item.get("version", ""),
                             path=item.get('path', ''),
                             machine=machine)
-                        if utils.is_postgres():
+                        if server.utils.is_postgres():
                             inventory_items_to_be_created.append(i_item)
                         else:
                             i_item.save()
                 machine.last_inventory_update = timezone.now()
                 inventory_meta.save()
 
-                if utils.is_postgres():
+                if server.utils.is_postgres():
                     InventoryItem.objects.bulk_create(inventory_items_to_be_created)
 
             return HttpResponse("Inventory submitted for %s.\n" % submission.get('serial'))

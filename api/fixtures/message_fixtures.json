@@ -1,0 +1,12 @@
+[
+    {
+        "model": "server.message",
+        "pk": 1,
+        "fields": {
+            "machine": 1,
+            "text": "Missing plist path or version!",
+            "date": "2019-02-28T21:00:46.441Z",
+            "message_type": "ERRORS"
+        }
+    }
+]

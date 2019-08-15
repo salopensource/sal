@@ -1,5 +1,4 @@
-# -*- coding: utf-8 -*-
-from __future__ import unicode_literals
+
 
 from django.db import migrations, models
 
@@ -39,7 +38,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='inventoryitem',
             name='application',
-            field=models.ForeignKey(default=1, to='inventory.Application'),
+            field=models.ForeignKey(default=1, to='inventory.Application', on_delete=models.CASCADE),
             preserve_default=False,
         ),
     ]

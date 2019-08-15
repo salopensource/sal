@@ -1,6 +1,8 @@
-from django.conf.urls import url
+from django.urls import path
+
 from . import views
 
+
 urlpatterns = [
-    url(r'^submit/$', views.submit_profiles),
+    path('submit/', views.submit_profiles),
 ]

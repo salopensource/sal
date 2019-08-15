@@ -1,29 +1,26 @@
 # Standard Library
 import dateutil.parser
 import plistlib
-
+import xml.parsers.expat
 
 # Django
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
-from django.core.urlresolvers import reverse
-from django.http import (
-    HttpResponse, HttpResponseNotFound, HttpResponseBadRequest)
-from django.shortcuts import get_object_or_404, render_to_response
+from django.http import HttpResponse, HttpResponseNotFound, HttpResponseBadRequest
+from django.shortcuts import get_object_or_404
+from django.urls import reverse
 from django.utils import dateparse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 
-
 # Local
-from models import Profile, Payload
-from server import text_utils
-from server import utils
+from profiles.models import Profile, Payload
 from sal.decorators import *
+from server import utils
 from server.models import BusinessUnit, MachineGroup, Machine  # noqa: F811
+from utils import text_utils
 
 
-# Create your views here.
 @csrf_exempt
 @require_POST
 @key_auth_required
@@ -46,16 +43,11 @@ def submit_profiles(request):
             compression_type = 'base64'
         if compressed_profiles:
             compressed_profiles = compressed_profiles.replace(" ", "+")
-            profiles_str = text_utils.decode_to_string(compressed_profiles, compression_type)
-            try:
-                profiles_list = plistlib.readPlistFromString(profiles_str)
-            except Exception:
-                profiles_list = None
+            profiles_list = text_utils.submission_plist_loads(compressed_profiles, compression_type)
 
             profiles_to_be_added = []
             machine.profile_set.all().delete()
-            if '_computerlevel' in profiles_list:
-                profiles_list = profiles_list['_computerlevel']
+            profiles_list = profiles_list.get('_computerlevel', [])
             for profile in profiles_list:
                 parsed_date = dateutil.parser.parse(profile.get('ProfileInstallDate'))
                 profile_item = Profile(

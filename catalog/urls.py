@@ -1,7 +1,9 @@
-from django.conf.urls import url
+from django.urls import path
+
 from . import views
 
+
 urlpatterns = [
-    url(r'^submit/$', views.submit_catalog),
-    url(r'^hash/$', views.catalog_hash),
+    path('submit/', views.submit_catalog),
+    path('hash/', views.catalog_hash),
 ]

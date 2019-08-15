@@ -1,18 +1,18 @@
-import base64
-import bz2
 import plistlib
-import pytz
 import random
 import string
 from datetime import datetime
 from xml.parsers.expat import ExpatError
 
-from dateutil.parser import *
+import pytz
+from dateutil.parser import parse
+from ulid2 import generate_ulid_as_uuid
 
 from django.contrib.auth.models import User
 from django.db import models
+from django.utils import timezone
 
-from server import text_utils
+from utils import text_utils
 
 
 OS_CHOICES = (
@@ -55,7 +55,7 @@ def GenerateAPIKey():
 
 
 class UserProfile(models.Model):
-    user = models.OneToOneField(User, unique=True)
+    user = models.OneToOneField(User, unique=True, on_delete=models.CASCADE)
 
     LEVEL_CHOICES = (
         ('SO', 'Stats Only'),
@@ -65,7 +65,7 @@ class UserProfile(models.Model):
     )
     level = models.CharField(max_length=2, choices=LEVEL_CHOICES, default='RO')
 
-    def __unicode__(self):
+    def __str__(self):
         return self.user.username
 
 
@@ -76,7 +76,7 @@ class BusinessUnit(models.Model):
     name = models.CharField(max_length=100)
     users = models.ManyToManyField(User, blank=True)
 
-    def __unicode__(self):
+    def __str__(self):
         return self.name
 
     @classmethod
@@ -88,7 +88,7 @@ class BusinessUnit(models.Model):
 
 
 class MachineGroup(models.Model):
-    business_unit = models.ForeignKey(BusinessUnit)
+    business_unit = models.ForeignKey(BusinessUnit, on_delete=models.CASCADE)
     name = models.CharField(max_length=100)
     key = models.CharField(db_index=True, max_length=255, unique=True,
                            blank=True, null=True, editable=False)
@@ -98,7 +98,7 @@ class MachineGroup(models.Model):
             self.key = GenerateKey()
         super(MachineGroup, self).save()
 
-    def __unicode__(self):
+    def __str__(self):
         return self.name
 
     @classmethod
@@ -116,16 +116,20 @@ class DeployedManager(models.Manager):
 
 class Machine(models.Model):
     id = models.BigAutoField(primary_key=True)
-    machine_group = models.ForeignKey(MachineGroup)
+    machine_group = models.ForeignKey(MachineGroup, on_delete=models.CASCADE)
+    sal_version = models.CharField(db_index=True, null=True, blank=True, max_length=255)
+    deployed = models.BooleanField(default=True)
+    broken_client = models.BooleanField(default=False)
+    last_checkin = models.DateTimeField(db_index=True, blank=True, null=True)
+    first_checkin = models.DateTimeField(db_index=True, blank=True, null=True, auto_now_add=True)
+
     serial = models.CharField(db_index=True, max_length=100, unique=True)
     hostname = models.CharField(max_length=256, null=True, blank=True)
     operating_system = models.CharField(db_index=True, max_length=256, null=True, blank=True)
     memory = models.CharField(db_index=True, max_length=256, null=True, blank=True)
     memory_kb = models.IntegerField(db_index=True, default=0)
-    munki_version = models.CharField(db_index=True, max_length=256, null=True, blank=True)
-    manifest = models.CharField(db_index=True, max_length=256, null=True, blank=True)
-    hd_space = models.CharField(db_index=True, max_length=256, null=True, blank=True)
-    hd_total = models.CharField(db_index=True, max_length=256, null=True, blank=True)
+    hd_space = models.IntegerField(db_index=True, null=True, blank=True)
+    hd_total = models.IntegerField(db_index=True, null=True, blank=True)
     hd_percent = models.CharField(max_length=256, null=True, blank=True)
     console_user = models.CharField(max_length=256, null=True, blank=True)
     machine_model = models.CharField(db_index=True, max_length=256, null=True, blank=True)
@@ -134,18 +138,9 @@ class Machine(models.Model):
     cpu_speed = models.CharField(max_length=256, null=True, blank=True)
     os_family = models.CharField(db_index=True, max_length=256,
                                  choices=OS_CHOICES, verbose_name="OS Family", default="Darwin")
-    last_checkin = models.DateTimeField(db_index=True, blank=True, null=True)
-    first_checkin = models.DateTimeField(db_index=True, blank=True, null=True, auto_now_add=True)
-    report = models.TextField(editable=True, null=True)
-    errors = models.IntegerField(default=0)
-    warnings = models.IntegerField(default=0)
-    activity = models.BooleanField(editable=True, default=False)
-    puppet_version = models.CharField(db_index=True, null=True, blank=True, max_length=256)
-    sal_version = models.CharField(db_index=True, null=True, blank=True, max_length=255)
-    last_puppet_run = models.DateTimeField(db_index=True, blank=True, null=True)
-    puppet_errors = models.IntegerField(db_index=True, default=0)
-    deployed = models.BooleanField(default=True)
-    broken_client = models.BooleanField(default=False)
+
+    munki_version = models.CharField(db_index=True, max_length=256, null=True, blank=True)
+    manifest = models.CharField(db_index=True, max_length=256, null=True, blank=True)
 
     objects = models.Manager()  # The default manager.
     deployed_objects = DeployedManager()
@@ -153,13 +148,7 @@ class Machine(models.Model):
     def get_fields(self):
         return [(field.name, field.value_to_string(self)) for field in Machine._meta.fields]
 
-    def get_report(self):
-        try:
-            return plistlib.readPlistFromString(self.report)
-        except TypeError:
-            return {}
-
-    def __unicode__(self):
+    def __str__(self):
         if self.hostname:
             return self.hostname
         else:
@@ -180,101 +169,15 @@ GROUP_NAMES = {
     'machine': Machine}
 
 
-class UpdateHistory(models.Model):
-    id = models.BigAutoField(primary_key=True)
-    UPDATE_TYPE = (
-        ('third_party', '3rd Party'),
-        ('apple', 'Apple'),
-    )
-    machine = models.ForeignKey(Machine)
-    update_type = models.CharField(max_length=254, choices=UPDATE_TYPE, verbose_name="Update Type")
-    name = models.CharField(max_length=255, db_index=True)
-    version = models.CharField(max_length=254, db_index=True)
-
-    def __unicode__(self):
-        return u"%s: %s %s" % (self.machine, self.name, self.version)
-
-    class Meta:
-        ordering = ['name']
-        unique_together = (("machine", "name", "version", "update_type"),)
-
-
-class UpdateHistoryItem(models.Model):
-    id = models.BigAutoField(primary_key=True)
-    UPDATE_STATUS = (
-        ('pending', 'Pending'),
-        ('error', 'Error'),
-        ('install', 'Install'),
-        ('removal', 'Removal')
-    )
-    update_history = models.ForeignKey(UpdateHistory)
-    recorded = models.DateTimeField()
-    uuid = models.CharField(null=True, blank=True, max_length=100)
-    status = models.CharField(max_length=254, choices=UPDATE_STATUS, verbose_name="Status")
-    extra = models.TextField(blank=True, null=True)
-
-    def __unicode__(self):
-        return u"%s: %s %s %s %s" % (
-            self.update_history.machine,
-            self.update_history.name,
-            self.update_history.version,
-            self.status, self.recorded
-        )
-
-    class Meta:
-        ordering = ['-recorded']
-        unique_together = (("update_history", "recorded", "status"),)
-
-
-class Fact(models.Model):
-    id = models.BigAutoField(primary_key=True)
-    machine = models.ForeignKey(Machine, related_name='facts')
-    fact_name = models.TextField()
-    fact_data = models.TextField()
-
-    def __unicode__(self):
-        return u'%s: %s' % (self.fact_name, self.fact_data)
-
-    class Meta:
-        ordering = ['fact_name']
-
-
-class HistoricalFact(models.Model):
-    id = models.BigAutoField(primary_key=True)
-    machine = models.ForeignKey(Machine, related_name='historical_facts')
-    fact_name = models.CharField(max_length=255)
-    fact_data = models.TextField()
-    fact_recorded = models.DateTimeField()
-
-    def __unicode__(self):
-        return self.fact_name
-
-    class Meta:
-        ordering = ['fact_name', 'fact_recorded']
-
-
-class Condition(models.Model):
-    id = models.BigAutoField(primary_key=True)
-    machine = models.ForeignKey(Machine, related_name='conditions')
-    condition_name = models.CharField(max_length=255)
-    condition_data = models.TextField()
-
-    def __unicode__(self):
-        return self.condition_name
-
-    class Meta:
-        ordering = ['condition_name']
-
-
 class PluginScriptSubmission(models.Model):
     id = models.BigAutoField(primary_key=True)
-    machine = models.ForeignKey(Machine)
+    machine = models.ForeignKey(Machine, on_delete=models.CASCADE)
     plugin = models.CharField(max_length=255)
     historical = models.BooleanField(default=False)
     recorded = models.DateTimeField(auto_now_add=True)
 
-    def __unicode__(self):
-        return u'%s: %s' % (self.machine, self.plugin)
+    def __str__(self):
+        return '%s: %s' % (self.machine, self.plugin)
 
     class Meta:
         ordering = ['recorded', 'plugin']
@@ -282,7 +185,7 @@ class PluginScriptSubmission(models.Model):
 
 class PluginScriptRow(models.Model):
     id = models.BigAutoField(primary_key=True)
-    submission = models.ForeignKey(PluginScriptSubmission)
+    submission = models.ForeignKey(PluginScriptSubmission, on_delete=models.CASCADE)
     pluginscript_name = models.TextField()
     pluginscript_data = models.TextField(blank=True, null=True)
     pluginscript_data_string = models.TextField(blank=True, null=True)
@@ -293,20 +196,17 @@ class PluginScriptRow(models.Model):
     def save(self):
         try:
             self.pluginscript_data_int = int(self.pluginscript_data)
-        except Exception:
+        except (ValueError, TypeError):
             self.pluginscript_data_int = 0
 
-        try:
-            self.pluginscript_data_string = str(self.pluginscript_data)
-        except Exception:
-            self.pluginscript_data_string = ""
+        self.pluginscript_data_string = str(self.pluginscript_data)
 
         try:
             date_data = parse(self.pluginscript_data)
             if not date_data.tzinfo:
                 date_data = date_data.replace(tzinfo=pytz.UTC)
             self.pluginscript_data_date = date_data
-        except Exception:
+        except ValueError:
             # Try converting it to an int if we're here
             try:
                 if int(self.pluginscript_data) != 0:
@@ -314,71 +214,27 @@ class PluginScriptRow(models.Model):
                     try:
                         self.pluginscript_data_date = datetime.fromtimestamp(
                             int(self.pluginscript_data), tz=pytz.UTC)
-                    except Exception:
+                    except (ValueError, TypeError):
                         self.pluginscript_data_date = None
                 else:
                     self.pluginscript_data_date = None
-            except Exception:
+            except (ValueError, TypeError):
                 self.pluginscript_data_date = None
 
         super(PluginScriptRow, self).save()
 
-    def __unicode__(self):
-        return u'%s: %s' % (self.pluginscript_name, self.pluginscript_data)
+    def __str__(self):
+        return '%s: %s' % (self.pluginscript_name, self.pluginscript_data)
 
     class Meta:
         ordering = ['pluginscript_name']
-
-
-class PendingUpdate(models.Model):
-    id = models.BigAutoField(primary_key=True)
-    machine = models.ForeignKey(Machine, related_name='pending_updates')
-    update = models.CharField(db_index=True, max_length=255, null=True, blank=True)
-    update_version = models.CharField(max_length=255, null=True, blank=True)
-    display_name = models.CharField(max_length=255, null=True, blank=True)
-
-    def __unicode__(self):
-        return self.update
-
-    class Meta:
-        ordering = ['display_name']
-
-
-class InstalledUpdate(models.Model):
-    id = models.BigAutoField(primary_key=True)
-    machine = models.ForeignKey(Machine, related_name='installed_updates')
-    update = models.CharField(db_index=True, max_length=255, null=True, blank=True)
-    update_version = models.CharField(max_length=255, null=True, blank=True)
-    display_name = models.CharField(max_length=255, null=True, blank=True)
-    installed = models.BooleanField()
-
-    def __unicode__(self):
-        return self.update
-
-    class Meta:
-        ordering = ['display_name']
-        unique_together = ("machine", "update", "update_version")
-
-
-class PendingAppleUpdate(models.Model):
-    id = models.BigAutoField(primary_key=True)
-    machine = models.ForeignKey(Machine, related_name='pending_apple_updates')
-    update = models.CharField(db_index=True, max_length=255, null=True, blank=True)
-    update_version = models.CharField(max_length=256, null=True, blank=True)
-    display_name = models.CharField(max_length=256, null=True, blank=True)
-
-    def __unicode__(self):
-        return unicode(self.update) or u''
-
-    class Meta:
-        ordering = ['display_name']
 
 
 class Plugin(models.Model):
     name = models.CharField(max_length=255, unique=True)
     order = models.IntegerField()
 
-    def __unicode__(self):
+    def __str__(self):
         return self.name
 
     class Meta:
@@ -389,7 +245,7 @@ class MachineDetailPlugin(models.Model):
     name = models.CharField(max_length=255, unique=True)
     order = models.IntegerField()
 
-    def __unicode__(self):
+    def __str_(self):
         return self.name
 
     class Meta:
@@ -399,7 +255,7 @@ class MachineDetailPlugin(models.Model):
 class Report(models.Model):
     name = models.CharField(max_length=255, unique=True)
 
-    def __unicode__(self):
+    def __str__(self):
         return self.name
 
     class Meta:
@@ -410,7 +266,7 @@ class SalSetting(models.Model):
     name = models.CharField(max_length=255, unique=True)
     value = models.TextField()
 
-    def __unicode__(self):
+    def __str__(self):
         return self.name
 
 
@@ -428,7 +284,7 @@ class ApiKey(models.Model):
                 string.ascii_lowercase + string.digits) for x in range(64))
         super(ApiKey, self).save(*args, **kwargs)
 
-    def __unicode__(self):
+    def __str__(self):
         return self.name
 
     class Meta:
@@ -439,3 +295,99 @@ class ApiKey(models.Model):
 class FriendlyNameCache(models.Model):
     serial_stub = models.CharField(max_length=5)
     friendly_name = models.CharField(max_length=255)
+
+
+class ManagementSource(models.Model):
+    id = models.UUIDField(default=generate_ulid_as_uuid, primary_key=True)
+    name = models.CharField(max_length=255, unique=True)
+
+    def __str__(self):
+        return self.name
+
+
+STATUS_CHOICES = (
+    ('PRESENT', 'Present'),
+    ('ABSENT', 'Absent'),
+    ('PENDING', 'Pending'),
+    ('ERROR', 'Error'),
+    ('UNKNOWN', 'Unknown'),
+)
+
+
+class ManagedItem(models.Model):
+    id = models.UUIDField(default=generate_ulid_as_uuid, primary_key=True)
+    name = models.CharField(max_length=255, unique=True)
+    machine = models.ForeignKey(Machine, on_delete=models.CASCADE)
+    management_source = models.ForeignKey(ManagementSource, on_delete=models.CASCADE)
+    date_managed = models.DateTimeField(default=timezone.now)
+    status = models.CharField(max_length=7, choices=STATUS_CHOICES, default='UNKNOWN')
+    data = models.TextField(editable=True, null=True)
+
+    class Meta:
+        unique_together = (("machine", "name", "management_source"),)
+        ordering = ['id']
+
+
+class ManagedItemHistory(models.Model):
+    id = models.UUIDField(default=generate_ulid_as_uuid, primary_key=True)
+    recorded = models.DateTimeField()
+    name = models.CharField(max_length=255)
+    machine = models.ForeignKey(Machine, on_delete=models.CASCADE)
+    management_source = models.ForeignKey(ManagementSource, on_delete=models.CASCADE)
+    status = models.CharField(max_length=7, choices=STATUS_CHOICES, default='UNKNOWN')
+
+    class Meta:
+        unique_together = (("machine", "name", "management_source", "recorded"),)
+        ordering = ['-recorded']
+
+    def __str__(self):
+        return (
+            f"{self.machine}: {self.management_source.name} {self.name} {self.status} "
+            f"{self.recorded}")
+
+
+class Fact(models.Model):
+    id = models.BigAutoField(primary_key=True)
+    machine = models.ForeignKey(Machine, related_name='facts', on_delete=models.CASCADE)
+    management_source = models.ForeignKey(
+        ManagementSource, related_name='facts', on_delete=models.CASCADE, null=True)
+    fact_name = models.TextField()
+    fact_data = models.TextField()
+
+    def __str__(self):
+        return '%s: %s' % (self.fact_name, self.fact_data)
+
+    class Meta:
+        ordering = ['fact_name']
+
+
+class HistoricalFact(models.Model):
+    id = models.BigAutoField(primary_key=True)
+    machine = models.ForeignKey(Machine, related_name='historical_facts', on_delete=models.CASCADE)
+    management_source = models.ForeignKey(
+        ManagementSource, related_name='historical_facts', on_delete=models.CASCADE, null=True)
+    fact_name = models.CharField(max_length=255)
+    fact_data = models.TextField()
+    fact_recorded = models.DateTimeField()
+
+    def __str__(self):
+        return self.fact_name
+
+    class Meta:
+        ordering = ['fact_name', 'fact_recorded']
+
+
+class Message(models.Model):
+    id = models.BigAutoField(primary_key=True)
+    machine = models.ForeignKey(Machine, related_name='messages', on_delete=models.CASCADE)
+    management_source = models.ForeignKey(
+        ManagementSource, related_name='messages', on_delete=models.CASCADE, null=True)
+    text = models.TextField(blank=True, null=True)
+    date = models.DateTimeField(default=timezone.now)
+    MESSAGE_TYPES = (
+        ('ERROR', 'Error'),
+        ('WARNING', 'Warning'),
+        ('OTHER', 'Other'),
+        ('DEBUG', 'Debug'),
+    )
+    message_type = models.CharField(max_length=7, choices=MESSAGE_TYPES, default='OTHER')

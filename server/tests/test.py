@@ -1,57 +1,13 @@
 """General functional tests for the server app."""
 
 
+import unittest.mock
+
 from django.test import TestCase
 
 import sal.plugin
-from server import text_utils
 from server import utils
-from server.models import *
-
-
-class UtilsTest(TestCase):
-    """Test the Utilities module."""
-
-    def test_listify_basic(self):
-        """Ensure non-collection condition data is only str converted."""
-        # Unicode
-        catalogs = u'testing'
-        result = text_utils.stringify(catalogs)
-        self.assertEqual(result, catalogs)
-        # TODO: Py3 will change this, as str = unicode in py2. Also, the
-        # only current clients of stringify encode unicode
-        # prior to ORM object creation. If we can't store unicode in the
-        # db, then we can encode here. But really we should be able to
-        # store unicode and let Django do the work of encoding it when
-        # needed for output.
-        self.assertTrue(isinstance(result, str))
-
-        # str
-        catalogs = 'testing'
-        self.assertEqual(text_utils.stringify(catalogs), catalogs)
-
-        # Bool, int, float, dict
-        tests = (False, 5, 5.0, {'a': 'test'})
-        for test in tests:
-            self.assertEqual(text_utils.stringify(test), str(test))
-
-    def test_listify_list(self):
-        """Ensure condition list data can be converted to strings."""
-        catalogs = ['testing', 'phase', 'production']
-        result = text_utils.stringify(catalogs)
-        self.assertEqual(result, ', '.join(catalogs))
-
-    def test_listify_dict(self):
-        """Ensure dict condition data can be converted to strings."""
-        catalogs = ['testing', 'phase', {'key': 'value'}]
-        result = text_utils.stringify(catalogs)
-        self.assertEqual(result, "testing, phase, {'key': 'value'}")
-
-    def test_listify_non_str_types(self):
-        """Ensure nested non-str types are converted."""
-        catalogs = [5, 5.0, {'a': 'test'}]
-        result = text_utils.stringify(catalogs)
-        self.assertEqual(result, "5, 5.0, {'a': 'test'}")
+from server.models import Plugin
 
 
 class PluginUtilsTest(TestCase):
@@ -68,3 +24,17 @@ class PluginUtilsTest(TestCase):
         self.assertEqual(Plugin.objects.count(), 0)
         utils.load_default_plugins()
         self.assertNotEqual(Plugin.objects.count(), 0)
+
+
+class ServerUtilsTest(TestCase):
+    """Test the server app utilities"""
+
+    @unittest.mock.patch('pathlib.Path.read_text')
+    @unittest.mock.patch('plistlib.loads')
+    def test_get_server_version(self, mock_loads, mock_read_text):
+        """Test that the server version getter works"""
+        version = '4.0.0'
+        mock_loads.return_value = {'version': version}
+        version_result = utils.get_server_version()
+
+        self.assertEqual(version_result, version)

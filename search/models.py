@@ -3,7 +3,7 @@ from __future__ import unicode_literals
 import django.utils.timezone
 from django.db import models
 from django.contrib.auth.models import User
-from current_user import get_current_user
+from search.current_user import get_current_user
 from server.models import *
 # Create your models here.
 
@@ -18,7 +18,7 @@ class SavedSearch(models.Model):
     name = models.CharField(max_length=100, blank=True, null=True)
     created = models.DateTimeField(auto_now_add=True)
     save_search = models.BooleanField(default=False)
-    created_by = models.ForeignKey(User, default=get_current_user)
+    created_by = models.ForeignKey(User, default=get_current_user, on_delete=models.CASCADE)
 
     def __getattribute__(self, name):
         attr = models.Model.__getattribute__(self, name)
@@ -27,7 +27,7 @@ class SavedSearch(models.Model):
             return 'Unsaved Search %s' % str(now)
         return attr
 
-    def __unicode__(self):
+    def __str__(self):
         return self.name
 
     class Meta:
@@ -36,7 +36,7 @@ class SavedSearch(models.Model):
 
 class SearchGroup(models.Model):
     id = models.BigAutoField(primary_key=True)
-    saved_search = models.ForeignKey(SavedSearch)
+    saved_search = models.ForeignKey(SavedSearch, on_delete=models.CASCADE)
     and_or = models.CharField(choices=AND_OR_CHOICES, default='AND', max_length=3)
     position = models.IntegerField(default=0)
 
@@ -48,7 +48,6 @@ class SearchRow(models.Model):
     SEARCH_MODEL_CHOICES = (
         ('Machine', 'Machine'),
         ('Facter', 'Facter'),
-        ('Condition', 'Condition'),
         ('External Script', 'External Script'),
         ('Application Inventory', 'Application Inventory'),
         ('Application Version', 'Application Version'),
@@ -65,7 +64,7 @@ class SearchRow(models.Model):
         ('>=', '>='),
     )
     id = models.BigAutoField(primary_key=True)
-    search_group = models.ForeignKey(SearchGroup)
+    search_group = models.ForeignKey(SearchGroup, on_delete=models.CASCADE)
     search_models = models.CharField(choices=SEARCH_MODEL_CHOICES,
                                      default='AND', max_length=254, verbose_name='Search item')
     search_field = models.CharField(max_length=254)
@@ -83,7 +82,6 @@ class SearchFieldCache(models.Model):
     SEARCH_MODEL_CHOICES = (
         ('Machine', 'Machine'),
         ('Facter', 'Facter'),
-        ('Condition', 'Condition'),
         ('External Script', 'External Script'),
         ('Application Inventory', 'Application Inventory'),
         ('Application Version', 'Application Version'),
@@ -93,11 +91,11 @@ class SearchFieldCache(models.Model):
                                     default='AND', max_length=254, verbose_name='Search item')
     search_field = models.CharField(max_length=254)
 
-    def __unicode__(self):
+    def __str__(self):
         return '%s: %s' % (self.search_model, self.search_field)
 
 
 class SearchCache(models.Model):
     id = models.BigAutoField(primary_key=True)
-    machine = models.ForeignKey(Machine)
+    machine = models.ForeignKey(Machine, on_delete=models.CASCADE)
     search_item = models.TextField()

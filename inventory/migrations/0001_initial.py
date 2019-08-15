@@ -1,5 +1,4 @@
-# -*- coding: utf-8 -*-
-from __future__ import unicode_literals
+
 
 from django.db import models, migrations
 
@@ -7,7 +6,7 @@ from django.db import models, migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('server', '0014_auto_20150817_1646'),
+        ('server', '0001_squashed_0023_auto_20151130_1036'),
     ]
 
     operations = [
@@ -18,7 +17,7 @@ class Migration(migrations.Migration):
                                         serialize=False, auto_created=True, primary_key=True)),
                 ('datestamp', models.DateTimeField(auto_now=True)),
                 ('sha256hash', models.CharField(max_length=64)),
-                ('machine', models.ForeignKey(to='server.Machine')),
+                ('machine', models.ForeignKey(to='server.Machine', on_delete=models.CASCADE)),
             ],
             options={
                 'ordering': ['datestamp'],
@@ -34,7 +33,7 @@ class Migration(migrations.Migration):
                 ('bundleid', models.CharField(max_length=255)),
                 ('bundlename', models.CharField(max_length=255)),
                 ('path', models.TextField()),
-                ('machine', models.ForeignKey(to='server.Machine')),
+                ('machine', models.ForeignKey(to='server.Machine', on_delete=models.CASCADE)),
             ],
             options={
                 'ordering': ['name', '-version'],

@@ -17,14 +17,7 @@ class SaveSearchForm(forms.ModelForm):
 
 class SearchRowForm(forms.ModelForm):
 
-    skip_fields = [
-        'id',
-        'report',
-        'activity',
-        'errors',
-        'warnings',
-        'puppet_errors'
-    ]
+    skip_fields = ['id', ]
     search_fields = []
     for f in Machine._meta.fields:
         if f.name not in skip_fields:

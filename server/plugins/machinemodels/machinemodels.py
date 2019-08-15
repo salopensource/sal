@@ -11,7 +11,7 @@ class MachineModels(sal.plugin.Widget):
     def get_context(self, machines, **kwargs):
         context = self.super_get_context(machines, **kwargs)
         machines = machines.filter(machine_model__isnull=False).\
-            exclude(machine_model=u'').\
+            exclude(machine_model='').\
             values('machine_model').\
             annotate(count=Count('machine_model')).\
             order_by('machine_model')

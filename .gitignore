@@ -42,6 +42,7 @@ sal/settings.py
 
 sal-small.db
 sal_env/
+plugins.old
 
 # node stuff
 node_modules/

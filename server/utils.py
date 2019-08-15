@@ -3,6 +3,7 @@ import itertools
 import json
 import logging
 import os
+import pathlib
 import plistlib
 import time
 import xml.etree.ElementTree as ET
@@ -21,8 +22,9 @@ from django.shortcuts import get_object_or_404
 from sal.decorators import is_global_admin
 from sal.plugin import (BasePlugin, Widget, OldPluginAdapter, PluginManager, DetailPlugin,
                         ReportPlugin, DEPRECATED_PLUGIN_TYPES)
+from sal.settings import PROJECT_DIR
 from server.models import *
-from server.text_utils import safe_unicode
+from utils.text_utils import safe_text
 
 
 PLUGIN_ORDER = [
@@ -35,6 +37,7 @@ TRUTHY = {'TRUE', 'YES'}
 FALSY = {'FALSE', 'NO'}
 STRINGY_BOOLS = TRUTHY.union(FALSY)
 TWENTY_FOUR_HOURS = 86400
+EXCLUDED_SCRIPT_TYPES = ('.pyc',)
 
 
 def db_table_exists(table_name):
@@ -68,9 +71,8 @@ def get_instance_and_groups(group_type, group_id):
 
 
 def get_server_version():
-    current_dir = os.path.dirname(os.path.realpath(__file__))
-    version = plistlib.readPlist(os.path.join(os.path.dirname(current_dir), 'sal', 'version.plist'))
-    return version['version']
+    data = (pathlib.Path(PROJECT_DIR) / 'sal/version.plist').read_bytes()
+    return plistlib.loads(data)['version']
 
 
 def get_current_release_version_number():
@@ -117,29 +119,19 @@ def send_report():
 
     if last_sent < (current_time - TWENTY_FOUR_HOURS):
         output = {}
-
-        # get total number of machines
         output['machines'] = Machine.objects.count()
-
-        # get list of plugins
         output['plugins'] = [p.name for p in chain(Plugin.objects.all(), Report.objects.all())]
-
-        # get install type
         output['install_type'] = get_install_type()
 
         # get database type
         output['database'] = settings.DATABASES['default']['ENGINE']
 
-        # version
-        current_dir = os.path.dirname(os.path.realpath(__file__))
-        version = plistlib.readPlist(
-            os.path.join(os.path.dirname(current_dir), 'sal', 'version.plist'))
-        output['version'] = version['version']
+        output['version'] = get_server_version()
         # plist encode output
-        post_data = plistlib.writePlistToString(output)
-        response = requests.post('https://version.salopensource.com', data={"data": post_data})
+        post_data = plistlib.dumps(output)
+        response = requests.post('https://version.salopensource.com', data={"data": post_data}, timeout=0.5)
         set_setting('last_sent_data', int(current_time))
-        print response.status_code
+        print(response.status_code)
         if response.status_code == 200:
             return response.text
         else:
@@ -205,15 +197,15 @@ def friendly_machine_model(machine):
         payload = {'cc': serial_snippet}
         try:
             friendly_cache_item = FriendlyNameCache.objects.get(serial_stub=serial_snippet)
-            print 'cache item is: {}'.format(friendly_cache_item.friendly_name)
+            print(f'cache item is: {friendly_cache_item.friendly_name}')
             output = friendly_cache_item.friendly_name
         except FriendlyNameCache.DoesNotExist:
             output = None
             try:
                 r = requests.get('http://support-sp.apple.com/sp/product', params=payload)
             except requests.exceptions.RequestException as e:
-                print machine.serial
-                print e
+                print(machine.serial)
+                print(e)
 
             try:
                 output = ET.fromstring(r.text).find('configCode').text
@@ -224,8 +216,8 @@ def friendly_machine_model(machine):
                 )
                 new_cache_item.save()
             except Exception as e:
-                print 'Did not receive a model name for %s, %s. Error: %s' % (
-                    machine.serial, machine.machine_model, e)
+                print(f'Did not receive a model name for {machine.serial}, '
+                      f'{machine.machine_model}. Error: {e}')
 
     return output
 
@@ -319,12 +311,9 @@ def add_default_sal_settings():
 def get_defaults():
     """Get the default settings from our defaults file."""
     # The file is stored in the project root /sal folder.
-    default_sal_settings_path = os.path.join(
-        os.path.dirname(os.path.abspath(__file__)), "../sal", 'default_sal_settings.json')
-    with open(default_sal_settings_path) as handle:
-        default_sal_settings = json.load(handle)
-
-    return default_sal_settings
+    defaults = (
+        pathlib.Path(PROJECT_DIR) / 'sal/default_sal_settings.json').resolve().read_text()
+    return json.loads(defaults)
 
 
 def set_setting(name, value):
@@ -379,21 +368,20 @@ def process_plugin_script(results, machine):
         historical = plugin.get('historical', False)
         if not historical:
             PluginScriptSubmission.objects.filter(
-                machine=machine, plugin=safe_unicode(plugin_name)).delete()
+                machine=machine, plugin=safe_text(plugin_name)).delete()
 
-        plugin_script = PluginScriptSubmission(
-            machine=machine, plugin=safe_unicode(plugin_name), historical=historical)
-        plugin_script.save()
+        submission = PluginScriptSubmission.objects.create(
+            machine=machine, plugin=safe_text(plugin_name), historical=historical)
         data = plugin.get('data')
         # Ill-formed plugin data will throw an exception here.
         if not isinstance(data, dict):
             return
         for key, value in data.items():
             plugin_row = PluginScriptRow(
-                submission=safe_unicode(plugin_script),
-                pluginscript_name=safe_unicode(key),
-                pluginscript_data=safe_unicode(value),
-                submission_and_script_name=(safe_unicode('{}: {}'.format(plugin_name, key))))
+                submission=submission,
+                pluginscript_name=safe_text(key),
+                pluginscript_data=safe_text(value),
+                submission_and_script_name=(safe_text('{}: {}'.format(plugin_name, key))))
             if is_postgres():
                 rows_to_create.append(plugin_row)
             else:
@@ -446,33 +434,30 @@ def get_plugin_scripts(plugin, hash_only=False, script_name=None):
             content (str): Content of script (NOT hash_only).
     """
     results = []
-    plugin_path = os.path.join(plugin.path, 'scripts')
-    server_path = os.path.abspath(os.path.join(plugin.path, '..', 'scripts'))
-    if os.path.exists(plugin_path):
+    plugin_path = pathlib.Path(plugin.path) / 'scripts'
+    server_path = (pathlib.Path(plugin.path).parent / 'scripts').absolute()
+    if plugin_path.exists():
         scripts_dir = plugin_path
-    elif os.path.exists(server_path):
+    elif server_path.exists():
         scripts_dir = server_path
     else:
         return results
 
     if script_name:
-        dir_contents = [script_name]
+        dir_contents = [scripts_dir / script_name]
     else:
-        dir_contents = os.listdir(scripts_dir)
+        dir_contents = (p for p in scripts_dir.iterdir() if p.suffix not in EXCLUDED_SCRIPT_TYPES)
 
     for script in dir_contents:
-        path = os.path.join(scripts_dir, script)
         try:
-            with open(path, "r") as script_handle:
-                script_content = script_handle.read()
-
+            script_content = script.read_text()
             if not script_content.startswith('#!'):
                 continue
         except IOError:
             continue
 
-        script_output = {'plugin': plugin.name, 'filename': script}
-        script_output['hash'] = hashlib.sha256(script_content).hexdigest()
+        script_output = {'plugin': plugin.name, 'filename': str(script.name)}
+        script_output['hash'] = hashlib.sha256(script_content.encode()).hexdigest()
         if not hash_only:
             script_output['content'] = script_content
 

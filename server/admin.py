@@ -42,11 +42,6 @@ class PluginScriptRowInline(admin.StackedInline):
     extra = 0
 
 
-class UpdateHistoryItemInline(admin.TabularInline):
-    model = UpdateHistoryItem
-    extra = 0
-
-
 class UserProfileInline(admin.StackedInline):
     model = UserProfile
 
@@ -95,49 +90,61 @@ class BusinessUnitAdmin(admin.ModelAdmin):
     readonly_fields = (number_of_users, number_of_machine_groups, number_of_machines)
 
 
-class ConditionAdmin(admin.ModelAdmin):
-    list_filter = (BusinessUnitFilter, MachineGroupFilter, 'condition_name')
-    list_display = ('condition_name', 'condition_data', 'machine')
-    search_fields = ('condition_name', 'condition_data', 'machine__hostname')
+class ManagementSourceAdmin(admin.ModelAdmin):
+    list_display = ('name', )
+
+
+class ManagedItemAdmin(admin.ModelAdmin):
+    list_display = ('name', 'management_source', 'machine', 'date_managed', 'status')
+    list_filter = (
+        'management_source', BusinessUnitFilter, MachineGroupFilter, 'date_managed', 'status')
+    search_fields = ('name', 'data', 'machine__hostname', 'machine__serial')
+
+
+class ManagedItemHistoryAdmin(admin.ModelAdmin):
+    search_fields = ('name', 'machine__hostname', 'machine__serial')
+    list_display = ('name', 'machine', 'management_source', 'recorded', 'status')
+    list_filter = (
+        'management_source', BusinessUnitFilter, MachineGroupFilter, 'recorded', 'status')
+    date_hierarchy = 'recorded'
+
+
+class MessageAdmin(admin.ModelAdmin):
+    list_display = ('text', 'get_message_type_display', 'management_source', 'machine', 'date')
+    list_filter = (
+        'management_source', BusinessUnitFilter, MachineGroupFilter, 'date', 'message_type')
+    search_fields = ('text', 'machine__hostname', 'machine__serial')
 
 
 class FactAdmin(admin.ModelAdmin):
-    list_display = ('fact_name', 'fact_data', 'machine')
-    list_filter = (BusinessUnitFilter, MachineGroupFilter, 'fact_name')
+    list_display = ('fact_name', 'fact_data', 'machine', 'management_source')
+    list_filter = ('management_source', BusinessUnitFilter, MachineGroupFilter, 'fact_name')
     search_fields = ('fact_name', 'fact_data', 'machine__hostname')
 
 
 class HistoricalFactAdmin(admin.ModelAdmin):
-    list_display = ('fact_name', 'fact_data', 'machine', 'fact_recorded')
-    list_filter = (BusinessUnitFilter, MachineGroupFilter, 'fact_name')
+    list_display = ('fact_name', 'fact_data', 'machine', 'management_source', 'fact_recorded')
+    list_filter = ('management_source', BusinessUnitFilter, MachineGroupFilter, 'fact_name')
     search_fields = ('fact_name', 'fact_data', 'machine__hostname')
     date_hierarchy = 'fact_recorded'
-
-
-class InstalledUpdateAdmin(admin.ModelAdmin):
-    list_display = ('update', 'display_name', 'machine', 'update_version', 'installed')
-    list_filter = (BusinessUnitFilter, MachineGroupFilter, 'update')
-    search_fields = ('machine__hostname', 'display_name', 'update')
 
 
 class MachineAdmin(admin.ModelAdmin):
     list_display = ('hostname', 'serial', 'machine_model', 'operating_system', 'deployed')
     list_filter = (BusinessUnitFilter, MachineGroupFilter, 'operating_system', 'os_family',
-                   'machine_model', 'last_checkin', 'errors', 'warnings', 'puppet_errors',
-                   'deployed')
+                   'machine_model', 'last_checkin', 'deployed')
     fields = (
         (business_unit, 'machine_group'),
         ('hostname', 'serial', 'console_user'),
         ('machine_model', 'machine_model_friendly'),
         ('cpu_type', 'cpu_speed'), ('memory', 'memory_kb'), ('hd_space', 'hd_total', 'hd_percent'),
         ('operating_system', 'os_family'),
-        ('munki_version', 'manifest', 'errors', 'warnings'),
+        ('munki_version', 'manifest'),
         ('last_checkin', 'first_checkin'),
-        ('puppet_version', 'last_puppet_run', 'puppet_errors'),
-        ('sal_version', 'deployed', 'broken_client', 'activity'),
+        ('sal_version', 'deployed', 'broken_client'),
         'report'
     )
-    readonly_fields = (business_unit, 'first_checkin', 'last_checkin', 'last_puppet_run')
+    readonly_fields = (business_unit, 'first_checkin', 'last_checkin')
     search_fields = ('hostname', 'console_user')
 
 
@@ -213,19 +220,6 @@ class FriendlyNameCacheAdmin(admin.ModelAdmin):
     list_display = ('serial_stub', 'friendly_name')
 
 
-class UpdateHistoryAdmin(admin.ModelAdmin):
-    inlines = [UpdateHistoryItemInline, ]
-    list_display = ('name', 'machine', 'update_type', 'version')
-    list_filter = ('update_type', BusinessUnitFilter, MachineGroupFilter)
-    search_fields = ('name', 'machine__hostname', 'version')
-
-
-class UpdateHistoryItemAdmin(admin.ModelAdmin):
-    search_fields = ('update_history__name', 'update_history__machine__hostname')
-    list_display = ('update_history', 'recorded', 'status')
-    date_hierarchy = 'recorded'
-
-
 class CustomUserAdmin(admin.ModelAdmin):
     inlines = (UserProfileInline,)
     list_display = ('username', 'profile_level', 'last_login')
@@ -243,22 +237,20 @@ class CustomUserAdmin(admin.ModelAdmin):
 
 admin.site.register(ApiKey, ApiKeyAdmin)
 admin.site.register(BusinessUnit, BusinessUnitAdmin)
-admin.site.register(Condition, ConditionAdmin)
 admin.site.register(Fact, FactAdmin)
+admin.site.register(FriendlyNameCache, FriendlyNameCacheAdmin)
 admin.site.register(HistoricalFact, HistoricalFactAdmin)
-admin.site.register(InstalledUpdate, InstalledUpdateAdmin)
 admin.site.register(Machine, MachineAdmin)
 admin.site.register(MachineDetailPlugin, MachineDetailPluginAdmin)
 admin.site.register(MachineGroup, MachineGroupAdmin)
-admin.site.register(PendingAppleUpdate, PendingUpdateAdmin)
-admin.site.register(PendingUpdate, PendingUpdateAdmin)
+admin.site.register(ManagedItem, ManagedItemAdmin)
+admin.site.register(ManagedItemHistory, ManagedItemHistoryAdmin)
+admin.site.register(ManagementSource, ManagementSourceAdmin)
+admin.site.register(Message, MessageAdmin)
 admin.site.register(Plugin, PluginAdmin)
 admin.site.register(PluginScriptRow, PluginScriptRowAdmin)
 admin.site.register(PluginScriptSubmission, PluginScriptSubmissionAdmin)
 admin.site.register(Report, ReportAdmin)
 admin.site.register(SalSetting, SalSettingAdmin)
-admin.site.register(UpdateHistory, UpdateHistoryAdmin)
-admin.site.register(UpdateHistoryItem, UpdateHistoryItemAdmin)
 admin.site.unregister(User)
 admin.site.register(User, CustomUserAdmin)
-admin.site.register(FriendlyNameCache, FriendlyNameCacheAdmin)

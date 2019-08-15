@@ -13,8 +13,8 @@
               </div>
               <div id="searchlist" class="list-group">
                 {% for item in output %}
-                <a class="list-group-item" id="{{ item.dotName }}-{{ item.dotVersion }}-link" href="#">
-                  <span>{{ item.name }} {{item.version}}</span>
+                <a class="list-group-item" id="{{ item.css_name }}-link" href="#">
+                  <span>{{ item.name }}</span>
                 </a>
                 {% endfor %}
               </div>
@@ -33,7 +33,7 @@
       <div class="panel-body" id="display-body">
 
         {% for item in output %}
-        <div class="hidden" id="{{ item.dotName }}-{{ item.dotVersion }}">
+        <div class="hidden" id="{{ item.css_name }}">
           <table class="col-md-12 table-striped table-condensed">
             <tr>
               <th>Name</th>
@@ -103,7 +103,7 @@
 <script type="text/javascript">
 $( document ).ready(function() {
     {% with output|first as first_output %}
-    $('#{{ first_output.dotName }}-{{ first_output.dotVersion }}').removeClass('hidden');
+    $('#{{ first_output.css_name }}').removeClass('hidden');
     {% endwith %}
 
     function displayDiv(name) {
@@ -112,9 +112,9 @@ $( document ).ready(function() {
     };
 
     {% for item in output %}
-    $("#{{ item.dotName }}-{{ item.dotVersion }}-link").click(function(e) {
+    $("#{{ item.css_name }}-link").click(function(e) {
         e.preventDefault();
-        displayDiv("#{{ item.dotName }}-{{ item.dotVersion }}");
+        displayDiv("#{{ item.css_name }}");
     });
     {% endfor %}
 

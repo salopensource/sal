@@ -1,5 +1,4 @@
-# -*- coding: utf-8 -*-
-from __future__ import unicode_literals
+
 
 from django.db import models, migrations
 from django.conf import settings
@@ -19,9 +18,6 @@ def add_initial_date(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
-    replaces = [(b'server', '0001_initial'), (b'server', '0002_plugin'), (b'server', '0003_auto_20150612_1123'), (b'server', '0004_auto_20150623_1623'), (b'server', '0005_auto_20150717_1827'), (b'server', '0006_auto_20150811_0811'), (b'server', '0007_auto_20150811_0813'), (b'server', '0008_auto_20150811_1001'), (b'server', '0009_auto_20150811_1734'), (b'server', '0010_auto_20150811_2209'), (b'server', '0011_auto_20150811_2243'), (b'server', '0012_auto_20150814_1913'),
-                (b'server', '0013_auto_20150816_1652'), (b'server', '0014_auto_20150817_1646'), (b'server', '0015_auto_20150819_1501'), (b'server', '0016_auto_20151026_0851'), (b'server', '0017_auto_20151103_1800'), (b'server', '0018_auto_20151124_1654'), (b'server', '0019_auto_20151124_1806'), (b'server', '0020_auto_20151125_0848'), (b'server', '0021_auto_20151125_1301'), (b'server', '0022_auto_20151125_1811'), (b'server', '0023_auto_20151130_1036')]
 
     dependencies = [
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
@@ -133,7 +129,7 @@ class Migration(migrations.Migration):
                                         serialize=False, auto_created=True, primary_key=True)),
                 ('name', models.CharField(max_length=100)),
                 ('key', models.CharField(max_length=255, unique=True, null=True, editable=False, blank=True)),
-                ('business_unit', models.ForeignKey(to='server.BusinessUnit')),
+                ('business_unit', models.ForeignKey(to='server.BusinessUnit', on_delete=models.CASCADE)),
             ],
             options={
                 'ordering': ['name'],
@@ -147,7 +143,7 @@ class Migration(migrations.Migration):
                 ('update', models.CharField(max_length=256, null=True, blank=True)),
                 ('update_version', models.CharField(max_length=256, null=True, blank=True)),
                 ('display_name', models.CharField(max_length=256, null=True, blank=True)),
-                ('machine', models.ForeignKey(to='server.Machine')),
+                ('machine', models.ForeignKey(to='server.Machine', on_delete=models.CASCADE)),
             ],
             options={
                 'ordering': ['display_name'],
@@ -161,7 +157,7 @@ class Migration(migrations.Migration):
                 ('update', models.CharField(max_length=256, null=True, blank=True)),
                 ('update_version', models.CharField(max_length=256, null=True, blank=True)),
                 ('display_name', models.CharField(max_length=256, null=True, blank=True)),
-                ('machine', models.ForeignKey(to='server.Machine')),
+                ('machine', models.ForeignKey(to='server.Machine', on_delete=models.CASCADE)),
             ],
             options={
                 'ordering': ['display_name'],
@@ -174,28 +170,28 @@ class Migration(migrations.Migration):
                                         serialize=False, auto_created=True, primary_key=True)),
                 ('level', models.CharField(default=b'SO', max_length=2, choices=[
                  (b'SO', b'Stats Only'), (b'RO', b'Read Only'), (b'RW', b'Read Write'), (b'GA', b'Global Admin')])),
-                ('user', models.OneToOneField(to=settings.AUTH_USER_MODEL)),
+                ('user', models.OneToOneField(to=settings.AUTH_USER_MODEL, on_delete=models.CASCADE)),
             ],
         ),
         migrations.AddField(
             model_name='machine',
             name='machine_group',
-            field=models.ForeignKey(to='server.MachineGroup'),
+            field=models.ForeignKey(to='server.MachineGroup', on_delete=models.CASCADE),
         ),
         migrations.AddField(
             model_name='historicalfact',
             name='machine',
-            field=models.ForeignKey(related_name='historical_facts', to='server.Machine'),
+            field=models.ForeignKey(related_name='historical_facts', to='server.Machine', on_delete=models.CASCADE),
         ),
         migrations.AddField(
             model_name='fact',
             name='machine',
-            field=models.ForeignKey(related_name='facts', to='server.Machine'),
+            field=models.ForeignKey(related_name='facts', to='server.Machine', on_delete=models.CASCADE),
         ),
         migrations.AddField(
             model_name='condition',
             name='machine',
-            field=models.ForeignKey(related_name='conditions', to='server.Machine'),
+            field=models.ForeignKey(related_name='conditions', to='server.Machine', on_delete=models.CASCADE),
         ),
         migrations.AlterUniqueTogether(
             name='apikey',
@@ -228,12 +224,12 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='pendingappleupdate',
             name='machine',
-            field=models.ForeignKey(related_name='pending_apple_updates', to='server.Machine'),
+            field=models.ForeignKey(related_name='pending_apple_updates', to='server.Machine', on_delete=models.CASCADE),
         ),
         migrations.AlterField(
             model_name='pendingupdate',
             name='machine',
-            field=models.ForeignKey(related_name='pending_updates', to='server.Machine'),
+            field=models.ForeignKey(related_name='pending_updates', to='server.Machine', on_delete=models.CASCADE),
         ),
         migrations.AlterField(
             model_name='machine',
@@ -306,7 +302,7 @@ class Migration(migrations.Migration):
                 ('hostidentifier', models.CharField(max_length=255, null=True, blank=True)),
                 ('unix_time', models.IntegerField(null=True, blank=True)),
                 ('action', models.CharField(max_length=255, null=True, blank=True)),
-                ('machine', models.ForeignKey(related_name='osquery_results', to='server.Machine')),
+                ('machine', models.ForeignKey(related_name='osquery_results', to='server.Machine', on_delete=models.CASCADE)),
             ],
             options={
                 'ordering': ['name'],
@@ -321,7 +317,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='osquerycolumn',
             name='osquery_result',
-            field=models.ForeignKey(related_name='osquery_columns', to='server.OSQueryResult'),
+            field=models.ForeignKey(related_name='osquery_columns', to='server.OSQueryResult', on_delete=models.CASCADE),
         ),
         migrations.AlterUniqueTogether(
             name='osqueryresult',
@@ -553,7 +549,7 @@ class Migration(migrations.Migration):
                 ('recorded', models.DateTimeField()),
                 ('status', models.CharField(max_length=255, verbose_name=b'Status', choices=[
                  (b'pending', b'Pending'), (b'error', b'Error'), (b'success', b'Success')])),
-                ('machine', models.ForeignKey(to='server.Machine')),
+                ('machine', models.ForeignKey(to='server.Machine', on_delete=models.CASCADE)),
             ],
             options={
                 'ordering': ['recorded'],
@@ -584,7 +580,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='updatehistoryitem',
             name='update_history',
-            field=models.ForeignKey(to='server.UpdateHistory'),
+            field=models.ForeignKey(to='server.UpdateHistory', on_delete=models.CASCADE),
         ),
         migrations.RemoveField(
             model_name='updatehistory',

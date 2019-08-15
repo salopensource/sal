@@ -8,16 +8,16 @@
   <div class="panel-body" style="max-height: 10em;overflow-y: scroll;">
     <table class="table table-striped table-condensed table-bordered">
       {% for item in data %}
-          <tr>
-            <td>
-              {% with item.update|cat:"--"|cat:item.update_version as data %}
-              <a href="{% url 'machine_list' plugin data group_type group_id %}">
-              {% endwith %}
-              {{ item.display_name }} {{ item.update_version }}
-                <span class="badge pull-right">{{ item.count }}</span>
-              </a>
-            </td>
-          </tr>
+      <tr>
+        <td>
+          {% with safe_name=item.name|safe %}
+          <a href="{% url 'machine_list' plugin safe_name group_type group_id %}">
+            {{ item.name }}
+            <span class="badge pull-right">{{ item.count }}</span>
+          </a>
+          {% endwith %}
+        </td>
+      </tr>
       {% endfor %}
     </table>
   </div>

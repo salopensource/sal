@@ -117,10 +117,12 @@ class Command(BaseCommand):
 
             facts = Fact.objects.filter(qs)
             for fact in facts.iterator():
-                cached_item = SearchCache(machine=fact.machine, search_item=fact.fact_data)
-                items_to_be_inserted.append(cached_item)
-                if not server.utils.is_postgres():
-                    cached_item.save()
+                # If someone ships a fact that is too long, we want to skip it
+                if len(fact.fact_data) <= 254:
+                    cached_item = SearchCache(machine=fact.machine, search_item=fact.fact_data)
+                    items_to_be_inserted.append(cached_item)
+                    if not server.utils.is_postgres():
+                        cached_item.save()
 
         if server.utils.is_postgres() and items_to_be_inserted != []:
             SearchCache.objects.bulk_create(items_to_be_inserted)

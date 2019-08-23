@@ -50,12 +50,12 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='machine',
             name='hd_space',
-            field=models.IntegerField(blank=True, db_index=True, null=True),
+            field=models.BigIntegerField(blank=True, db_index=True, null=True),
         ),
         migrations.AlterField(
             model_name='machine',
             name='hd_total',
-            field=models.IntegerField(blank=True, db_index=True, null=True),
+            field=models.BigIntegerField(blank=True, db_index=True, null=True),
         ),
         migrations.RunPython(convert_drives_to_int_bytes, convert_drives_to_str_kbytes),
         migrations.AlterField(

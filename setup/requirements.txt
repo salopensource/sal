@@ -23,5 +23,5 @@ pytz==2018.7
 requests==2.20.1
 six==1.10.0
 ulid2==0.2.0
-urllib3==1.24.1
+urllib3==1.24.2
 Yapsy==1.11.223

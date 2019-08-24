@@ -141,8 +141,7 @@ class MachineAdmin(admin.ModelAdmin):
         ('operating_system', 'os_family'),
         ('munki_version', 'manifest'),
         ('last_checkin', 'first_checkin'),
-        ('sal_version', 'deployed', 'broken_client'),
-        'report'
+        ('sal_version', 'deployed', 'broken_client')
     )
     readonly_fields = (business_unit, 'first_checkin', 'last_checkin')
     search_fields = ('hostname', 'console_user')

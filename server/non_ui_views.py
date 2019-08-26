@@ -277,7 +277,6 @@ def checkin(request):
 
     create_objects(object_queue)
 
-    machine.save()
     server.utils.process_plugin_script(plugin_results, machine)
     server.utils.run_plugin_processing(machine, submission)
 

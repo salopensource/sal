@@ -253,7 +253,6 @@ def checkin(request):
     machine.machine_group = machine_group
     machine.broken_client = False
     machine.save()
-
     clean_related(machine)
 
     object_queue = {
@@ -270,12 +269,9 @@ def checkin(request):
     for management_source_name, management_data in submission.items():
         management_source, _ = ManagementSource.objects.get_or_create(
             name=management_source_name)
-    # If we get here, the machine definitely doesn't have broken python
-    machine.broken_client = False
-    machine.save()
 
-    object_queue = process_management_submission(
-        management_source, management_data, machine, object_queue)
+        object_queue = process_management_submission(
+            management_source, management_data, machine, object_queue)
 
     object_queue = process_managed_item_histories(object_queue, machine)
 
@@ -378,7 +374,6 @@ def process_machine_submission(machine_submission, machine, object_queue):
     machine.memory = extra_data.get('memory')
     machine.memory_kb = extra_data.get('memory_kb', 0)
     machine.save()
-
     return object_queue
 
 

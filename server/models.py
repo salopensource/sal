@@ -316,7 +316,7 @@ STATUS_CHOICES = (
 
 class ManagedItem(models.Model):
     id = models.UUIDField(default=generate_ulid_as_uuid, primary_key=True)
-    name = models.CharField(max_length=255, unique=True)
+    name = models.CharField(max_length=255)
     machine = models.ForeignKey(Machine, on_delete=models.CASCADE)
     management_source = models.ForeignKey(ManagementSource, on_delete=models.CASCADE)
     date_managed = models.DateTimeField(default=timezone.now)

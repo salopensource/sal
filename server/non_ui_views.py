@@ -394,22 +394,6 @@ def process_munki_extra_keys(management_data, machine, object_queue):
     machine.munki_version = extra_data.get('munki_version')
     machine.manifest = extra_data.get('manifest')
     machine.save()
-
-    # We do something a little wild here: Munki may submit items for
-    # Apple Software Update (install results that have errored). So
-    # we process those into ManagedItems with an ERROR status.
-    apple_items = extra_data.get('apple_results', {})
-    if apple_items:
-        now = django.utils.timezone.now()
-        try:
-            management_source = ManagementSource.objects.get(name='Apple Software Update')
-        except ManagementSource.DoesNotExist:
-            return object_queue
-
-        for name, item in apple_items.items():
-            object_queue['managed_items'].append(
-                _process_managed_item(name, item, machine, management_source, now))
-
     return object_queue
 
 

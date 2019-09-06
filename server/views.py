@@ -486,7 +486,7 @@ def machine_detail_facts(request, machine_id, management_source, **kwargs):
     else:
         facts = None
 
-    source_name = management_source management_source else 'Legacy'
+    source_name = management_source if management_source else 'Legacy'
     title = f'{source_name} Facts for {machine.hostname}'
     context = {
         'user': request.user,

@@ -213,6 +213,7 @@ $( document ).ready(function() {
 
           <!-- Nav tabs -->
           <ul class ="nav nav-pills">
+          {% if managed_items %}
           {% for management_source, items in managed_items.items %}
             {% if items|length == 1 %}
             <li {% if management_source == initial_source %}class="active" {% endif %}role="presentation">
@@ -245,6 +246,9 @@ $( document ).ready(function() {
             {% endfor %}
           {% endfor %}
           </div><!-- /.tab-content -->
+          {% else %}
+          <p>No Managed Items have been submitted.</p>
+          {% endif %}
 
         </div><!-- /.panel-body -->
       </div><!-- /.panel -->

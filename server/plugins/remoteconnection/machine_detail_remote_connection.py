@@ -2,7 +2,7 @@
 
 
 import sal.plugin
-from server.models import Machine
+from server.models import Fact
 from server.utils import get_setting
 
 
@@ -21,7 +21,7 @@ class RemoteConnection(sal.plugin.DetailPlugin):
                     fact_name="ipv4_address").fact_data
                 # Machines may have multiple IPs. Just use the first.
                 ip_address = ip_addresses.split(",")[0]
-            except Machine.DoesNotExist:
+            except Fact.DoesNotExist:
                 pass
 
         account = get_setting(name='ssh_account', default='').strip()

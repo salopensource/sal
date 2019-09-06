@@ -477,6 +477,8 @@ def _not_implemented_facts(machine):
 @access_required(Machine)
 def machine_detail_facts(request, machine_id, management_source, **kwargs):
     machine = kwargs['instance']
+    if management_source == 'None':
+        management_source = None
     if machine.facts.count() != 0:
         facts = machine.facts.filter(management_source__name=management_source)
         if settings.EXCLUDED_FACTS:
@@ -484,7 +486,8 @@ def machine_detail_facts(request, machine_id, management_source, **kwargs):
     else:
         facts = None
 
-    title = f'{management_source} Facts for {machine.hostname}'
+    source_name = management_source management_source else 'Legacy'
+    title = f'{source_name} Facts for {machine.hostname}'
     context = {
         'user': request.user,
         'machine': machine,

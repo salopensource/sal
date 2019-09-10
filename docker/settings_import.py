@@ -1,7 +1,11 @@
 #!/usr/bin/python3
-from os import getenv
+
+
 import locale
+from os import getenv
+
 from sal.system_settings import *
+
 
 # Read the DEBUG setting from env var
 try:
@@ -11,6 +15,12 @@ try:
         DEBUG = False
 except Exception:
     DEBUG = False
+
+if DEBUG:
+    # Update the loging config let the Sal logger pass debug events.
+    logging_config = get_sal_logging_config()
+    logging_config['loggers']['sal']['level'] = 'DEBUG'
+    update_sal_logging_config(logging_config)
 
 
 # Read the BASIC_AUTH setting from env var

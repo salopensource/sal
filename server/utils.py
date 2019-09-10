@@ -1,7 +1,6 @@
 import hashlib
 import itertools
 import json
-import logging
 import os
 import pathlib
 import plistlib
@@ -496,9 +495,6 @@ def load_default_plugins():
 
 def reload_plugins_model():
     """Remove now-absent plugins from db, refresh defaults if needed."""
-    if settings.DEBUG:
-        logging.getLogger('yapsy').setLevel(logging.WARNING)
-
     load_default_plugins()
     found = {plugin.name for plugin in PluginManager().get_all_plugins()}
     for model in (Plugin, Report, MachineDetailPlugin):

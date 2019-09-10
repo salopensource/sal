@@ -47,6 +47,9 @@ DEPRECATED_PAGES = {
     'machine': 'machine_detail'}
 
 
+logger = logging.getLogger(__name__)
+
+
 class OSFamilies():
     chromeos = "ChromeOS"
     darwin = "Darwin"
@@ -540,7 +543,7 @@ class PluginManager():
         for plugin in plugins:
             if plugin.plugin_object:
                 if not isinstance(plugin.plugin_object, BasePlugin):
-                    logging.warning(
+                    logger.warning(
                         "Plugin '%s' needs to be updated to subclass a Sal Plugin!", plugin.name)
                     plugin.plugin_object = OldPluginAdapter(plugin.plugin_object)
 

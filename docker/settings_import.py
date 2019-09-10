@@ -20,6 +20,7 @@ if DEBUG:
     # Update the loging config let the Sal logger pass debug events.
     logging_config = get_sal_logging_config()
     logging_config['loggers']['sal']['level'] = 'DEBUG'
+    logging_config['loggers']['server']['level'] = 'DEBUG'
     update_sal_logging_config(logging_config)
 
 

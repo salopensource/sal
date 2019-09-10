@@ -253,6 +253,11 @@ _SAL_LOGGING_CONFIG = {
             'level': 'ERROR',
             'propagate': False,
         },
+        'server': {
+            'handlers': ['console'],
+            'level': 'ERROR',
+            'propagate': False,
+        },
     }
 }
 

@@ -16,10 +16,6 @@ from server import forms
 from server.models import ProfileLevel, Plugin, ApiKey, Report, MachineDetailPlugin, UserProfile
 from server.views import index as index_view
 
-if settings.DEBUG:
-    import logging
-    logging.basicConfig(level=logging.INFO)
-
 
 # The database probably isn't going to change while this is loaded.
 IS_POSTGRES = utils.is_postgres()

@@ -26,10 +26,6 @@ from server.models import (Machine, Fact, HistoricalFact, MachineGroup, Message,
                            ManagedItem, MachineDetailPlugin, ManagementSource, ManagedItemHistory)
 
 
-if settings.DEBUG:
-    logging.basicConfig(level=logging.INFO)
-
-
 # The database probably isn't going to change while this is loaded.
 IS_POSTGRES = server.utils.is_postgres()
 HISTORICAL_FACTS = server.utils.get_django_setting('HISTORICAL_FACTS', [])

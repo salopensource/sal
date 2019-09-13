@@ -17,7 +17,7 @@ except Exception:
     DEBUG = False
 
 if DEBUG:
-    # Update the loging config let the Sal logger pass debug events.
+    # Update the loging config to let the Sal logger pass debug events.
     logging_config = get_sal_logging_config()
     logging_config['loggers']['sal']['level'] = 'DEBUG'
     logging_config['loggers']['server']['level'] = 'DEBUG'

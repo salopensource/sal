@@ -232,7 +232,7 @@ _SAL_LOGGING_CONFIG = {
     'version': 1,
     'disable_existing_loggers': False,
     'formatters': {
-        'verbose': {
+        'sal_format': {
             'format': "[%(asctime)s] %(levelname)s [%(name)s:%(lineno)s] %(message)s",
             'datefmt': "%d/%b/%Y %H:%M:%S"
         },
@@ -240,7 +240,7 @@ _SAL_LOGGING_CONFIG = {
     'handlers': {
         'console': {
             'class': 'logging.StreamHandler',
-            'formatter': 'verbose'
+            'formatter': 'sal_format'
         },
     },
     'loggers': {
@@ -258,6 +258,7 @@ _SAL_LOGGING_CONFIG = {
             'level': 'ERROR',
             'propagate': False,
         },
+        # Configure additional Sal apps for logging here.
     }
 }
 

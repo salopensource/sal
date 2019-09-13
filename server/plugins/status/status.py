@@ -61,4 +61,4 @@ class Status(sal.plugin.Widget):
             machines = machines.filter(deployed=True)
 
         # Only filter if a filter from the STATUSES table is defined.
-        return machines.filter(machine_filter) if machine_filter else machines
+        return machines.filter(machine_filter).distinct() if machine_filter else machines

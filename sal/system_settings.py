@@ -1,3 +1,4 @@
+import logging.config
 import os
 
 
@@ -200,38 +201,72 @@ INSTALLED_APPS = (
     'django_filters'
 )
 
-LOGGING = {
+
+def update_sal_logging_config(config):
+    """Reset Sal logging to use config
+
+    In most cases, call `get_sal_logging` first to get the existing
+    config, update it, and then call this function.
+
+    args:
+        config (dict): Config to use, following the
+            logging.config.dictConfig format.
+    """
+    global _SAL_LOGGING_CONFIG
+    _SAL_LOGGING_CONFIG = config
+    logging.config.dictConfig(_SAL_LOGGING_CONFIG)
+
+
+def get_sal_logging_config():
+    """Return the current logging config for Sal
+
+    returns:
+        dict following the logging.config.dictConfig format.
+    """
+    return _SAL_LOGGING_CONFIG
+
+
+# Zero out all of Django's logging decisions. It's easier this way.
+LOGGING_CONFIG = None
+_SAL_LOGGING_CONFIG = {
     'version': 1,
     'disable_existing_loggers': False,
     'formatters': {
-        'verbose': {
+        'sal_format': {
             'format': "[%(asctime)s] %(levelname)s [%(name)s:%(lineno)s] %(message)s",
             'datefmt': "%d/%b/%Y %H:%M:%S"
         },
-        'simple': {
-            'format': '%(levelname)s %(message)s'
-        },
     },
     'handlers': {
-        'file': {
-            'level': 'ERROR',
-            'class': 'logging.FileHandler',
-            'filename': 'sal.log',
-            'formatter': 'verbose'
+        'console': {
+            'class': 'logging.StreamHandler',
+            'formatter': 'sal_format'
         },
     },
     'loggers': {
-        'django': {
-            'handlers': ['file'],
-            'propagate': True,
+        '': {
+            'handlers': ['console'],
             'level': 'ERROR',
         },
         'sal': {
-            'handlers': ['file'],
+            'handlers': ['console'],
             'level': 'ERROR',
+            'propagate': False,
         },
+        'server': {
+            'handlers': ['console'],
+            'level': 'ERROR',
+            'propagate': False,
+        },
+        # Configure additional Sal apps for logging here.
     }
 }
+
+
+# Do an initial configuration of logging
+update_sal_logging_config(_SAL_LOGGING_CONFIG)
+
+
 BOOTSTRAP3 = {
     'set_placeholder': False,
 }

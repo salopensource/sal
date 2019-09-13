@@ -19,6 +19,9 @@ from django.views.generic import View
 from server.models import BusinessUnit, Machine, MachineGroup, ProfileLevel
 
 
+logger = logging.getLogger(__name__)
+
+
 def class_login_required(cls):
     """Class decorator for View subclasses to restrict to logged in."""
     decorator = method_decorator(login_required)
@@ -254,6 +257,6 @@ def handle_access(request, group_type, group_id):
         _, business_unit = get_business_unit_by(models[group_type], group_id=group_id)
 
     if not has_access(request.user, business_unit):
-        logging.warning("%s attempted to access %s for which they have no permissions.",
-                        request.user, group_type)
+        logger.warning("%s attempted to access %s for which they have no permissions.",
+                       request.user, group_type)
         raise Http404

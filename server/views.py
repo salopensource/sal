@@ -1,4 +1,5 @@
 import json
+import logging
 import re
 from collections import defaultdict
 
@@ -17,10 +18,6 @@ from server.models import (BusinessUnit, MachineGroup, Machine, UserProfile, Rep
 from server.non_ui_views import process_plugin
 from server import utils
 
-if settings.DEBUG:
-    import logging
-    logging.basicConfig(level=logging.INFO)
-
 
 # The database probably isn't going to change while this is loaded.
 IS_POSTGRES = utils.is_postgres()
@@ -32,6 +29,9 @@ STATUSES = {
     'PENDING': 'btn-info',
     'ERROR': 'btn-danger',
     'UNKNOWN': 'btn-default'}
+
+
+logger = logging.getLogger(__name__)
 
 
 @login_required
@@ -348,6 +348,7 @@ def machine_detail(request, **kwargs):
             try:
                 data = json.loads(item.data)
             except json.decoder.JSONDecodeError:
+                logger.error('Managed item JSON is invalid: %s', item.data)
                 data = {}
         else:
             data = {}

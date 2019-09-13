@@ -26,10 +26,6 @@ from server.models import (Machine, Fact, HistoricalFact, MachineGroup, Message,
                            ManagedItem, MachineDetailPlugin, ManagementSource, ManagedItemHistory)
 
 
-if settings.DEBUG:
-    logging.basicConfig(level=logging.INFO)
-
-
 # The database probably isn't going to change while this is loaded.
 IS_POSTGRES = server.utils.is_postgres()
 HISTORICAL_FACTS = server.utils.get_django_setting('HISTORICAL_FACTS', [])
@@ -37,6 +33,8 @@ IGNORE_PREFIXES = server.utils.get_django_setting('IGNORE_FACTS', [])
 # Build a translation table for serial numbers, to remove garbage
 # VMware puts in.
 SERIAL_TRANSLATE = {ord(c): None for c in '+/'}
+
+logger = logging.getLogger(__name__)
 
 
 @login_required
@@ -286,10 +284,10 @@ def checkin(request):
             # If the report server is down, don't halt all submissions
             server.utils.send_report()
         except Exception as e:
-            logging.debug(e)
+            logger.debug(e)
 
     msg = f"Sal report submitted for {machine.serial}"
-    logging.debug(msg)
+    logger.debug(msg)
     return HttpResponse(msg)
 
 
@@ -304,6 +302,7 @@ def process_checkin_serial(serial):
             machine = Machine.objects.get(serial=serial)
         except Machine.DoesNotExist:
             machine = Machine(serial=serial)
+            logger.debug("Creating new machine for checkin: '%s'", serial)
     else:
         machine = get_object_or_404(Machine, serial=serial)
     return machine

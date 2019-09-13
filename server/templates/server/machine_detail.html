@@ -297,7 +297,7 @@ $( document ).ready(function() {
                   {% endfor %}
                 </dl>
                 {% with history_key=item.management_source.name|cat:'||'|cat:item.name %}
-                {% with history=histories|dict_lookup:history_key %}
+                {% with history=histories|dict_get:history_key %}
                 {% if history %}
                 <table class="table table-striped">
                     <th>Status</th>

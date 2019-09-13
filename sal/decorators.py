@@ -258,5 +258,5 @@ def handle_access(request, group_type, group_id):
 
     if not has_access(request.user, business_unit):
         logger.warning("%s attempted to access %s for which they have no permissions.",
-                        request.user, group_type)
+                       request.user, group_type)
         raise Http404

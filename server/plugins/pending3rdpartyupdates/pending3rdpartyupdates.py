@@ -24,6 +24,7 @@ class Pending3rdPartyUpdates(sal.plugin.Widget):
                     status='PENDING',
                     management_source__name__in=THIRD_PARTIES)
             .values('name')
+            .order_by('name')
             .annotate(count=Count('name')))
 
         context['data'] = sorted(updates, key=lambda x: x['name'])

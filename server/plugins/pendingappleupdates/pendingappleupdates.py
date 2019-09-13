@@ -19,6 +19,7 @@ class PendingAppleUpdates(sal.plugin.Widget):
                     status="PENDING",
                     management_source__name='Apple Software Update')
             .values('name')
+            .order_by('name')
             .annotate(count=Count('name')))
 
         context['data'] = sorted(updates, key=lambda x: x['name'])

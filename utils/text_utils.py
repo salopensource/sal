@@ -1,6 +1,7 @@
 import base64
 import binascii
 import bz2
+import logging
 import plistlib
 import re
 from typing import Any, Union, Dict
@@ -9,6 +10,9 @@ from xml.parsers.expat import ExpatError
 
 Plist = Dict[str, Any]
 Text = Union[str, bytes]
+
+
+logger = logging.getLogger(__name__)
 
 
 def class_to_title(text):
@@ -74,12 +78,14 @@ def decode_submission_data(data: Text, compression: str = '') -> bytes:
         try:
             data = base64.b64decode(data)
         except (TypeError, binascii.Error):
+            logger.warning("Submission data failed base 64 decoding: '%s'", data)
             data = b''
 
     if 'bz2' in compression:
         try:
             data = bz2.decompress(data)
         except IOError:
+            logger.warning("Submission data failed decompression: '%s'", data)
             data = b''
 
     # Make sure we're returning bytes, even if the compression
@@ -98,6 +104,7 @@ def submission_plist_loads(data: Text, compression: str = '') -> Plist:
     try:
         plist = plistlib.loads(data)
     except (plistlib.InvalidFileException, ExpatError):
+        logger.warning("Submission data failed plist deserialization: '%s'", data)
         plist = {}
     return plist
 

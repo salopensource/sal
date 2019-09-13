@@ -302,6 +302,7 @@ def process_checkin_serial(serial):
             machine = Machine.objects.get(serial=serial)
         except Machine.DoesNotExist:
             machine = Machine(serial=serial)
+            logger.debug("Creating new machine for checkin: '%s'", serial)
     else:
         machine = get_object_or_404(Machine, serial=serial)
     return machine

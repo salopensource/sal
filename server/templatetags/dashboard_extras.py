@@ -115,8 +115,13 @@ def sort(data):
 
 
 @register.filter
-def dict_lookup(hash, key):
-    return hash[key]
+def dict_lookup(d, k):
+    return d[k]
+
+
+@register.filter
+def dict_get(d, k):
+    return d.get(k)
 
 
 @register.filter

@@ -20,8 +20,7 @@ from django.views.decorators.http import require_POST
 import server.utils
 import utils.csv
 from sal.decorators import key_auth_required
-from sal.plugin import (Widget, ReportPlugin, OldPluginAdapter, PluginManager,
-                        DEPRECATED_PLUGIN_TYPES)
+from sal.plugin import Widget, ReportPlugin, PluginManager
 from server.models import (Machine, Fact, HistoricalFact, MachineGroup, Message, Plugin, Report,
                            ManagedItem, MachineDetailPlugin, ManagementSource, ManagedItemHistory)
 
@@ -131,11 +130,7 @@ def process_plugin(request, plugin_name, group_type='all', group_id=None):
         raise Http404
 
     # Ensure the request is not for a disabled plugin.
-    # TODO: This is to handle old-school plugins. It can be removed at
-    # the next major version.
-    if isinstance(plugin, OldPluginAdapter):
-        model = DEPRECATED_PLUGIN_TYPES[plugin.get_plugin_type()]
-    elif isinstance(plugin, Widget):
+    if isinstance(plugin, Widget):
         model = Plugin
     elif isinstance(plugin, ReportPlugin):
         model = Report

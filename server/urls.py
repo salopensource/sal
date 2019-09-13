@@ -27,19 +27,10 @@ urlpatterns = [
 
     path('list/<plugin_name>/<data>/<group_type>/<int:group_id>/', machine_list,
          name='machine_list'),
-    # TODO: Deprecated along with old-school plugins.
-    path('list/<plugin_name>/<data>/<group_type>/<int:group_id>/', machine_list,
-         name='machine_list_id'),
-    # TODO: Deprecated along with old-school plugins.
-    path('list/<plugin_name>/<data>/', machine_list, name='machine_list_front'),
 
     path('tableajax/<plugin_name>/<data>/<group_type>/<int:group_id>/', tableajax,
          name='tableajax'),
     path('csv/<plugin_name>/<data>/<group_type>/<int:group_id>/', export_csv, name='export_csv'),
-    # TODO: Deprecated along with old-school plugins.
-    path('csv/<plugin_name>/<data>/', export_csv, name='export_csv_front'),
-    # TODO: Deprecated along with old-school plugins.
-    path('csv/<plugin_name>/<data>/<group_type>/<int:group_id>/', export_csv, name='export_csv_id'),
 
     # Business Unit routes.
     path('new-bu/', new_business_unit, name='new_business_unit'),

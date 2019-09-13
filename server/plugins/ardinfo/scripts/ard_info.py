@@ -4,8 +4,8 @@
 import os
 import sys
 
-sys.path.append("/usr/local/munki/munkilib")
-import FoundationPlist
+sys.path.append("/usr/local/munki")
+from munkilib import FoundationPlist
 sys.path.append("/usr/local/sal")
 import utils
 

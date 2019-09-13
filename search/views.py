@@ -544,6 +544,9 @@ def get_fields(request, model):
 @login_required
 def export_csv(request, search_id):
     machines = Machine.objects.all()
+    if request.user.userprofile.level != 'GA':
+        machines = machines.filter(
+            machine_group__business_unit__id__in=request.user.businessunit_set.values('id'))
     machines = search_machines(search_id, machines, full=True)
     title = get_object_or_404(SavedSearch, pk=search_id).name
     return utils.csv.get_csv_response(machines, utils.csv.machine_fields(), title)

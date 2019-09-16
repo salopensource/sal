@@ -170,7 +170,7 @@ def check_version():
         if next_notify_date != 'never' and current_time > int(next_notify_date):
             result['new_version_available'] = True
             result['server_version'] = server_version
-            result['current_release_version'] = current_release_version
+            result['new_version'] = current_release_version
 
     return result
 

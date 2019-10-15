@@ -5,7 +5,7 @@ from licenses.views import *
 
 urlpatterns = [
     path('', license_index, name='license_index'),
-    path('available/<key>)/', available),
+    path('available/<key>/', available),
     path('available/<key>/<item_name>/', available),
     path('usage/<key>/', usage),
     path('usage/<key>/<item_name>/', usage),

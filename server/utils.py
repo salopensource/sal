@@ -19,8 +19,7 @@ from django.db.models import Count, Max
 from django.shortcuts import get_object_or_404
 
 from sal.decorators import is_global_admin
-from sal.plugin import (BasePlugin, Widget, OldPluginAdapter, PluginManager, DetailPlugin,
-                        ReportPlugin, DEPRECATED_PLUGIN_TYPES)
+from sal.plugin import BasePlugin, Widget, PluginManager, DetailPlugin, ReportPlugin
 from sal.settings import PROJECT_DIR
 from server.models import *
 from utils.text_utils import safe_text
@@ -524,18 +523,8 @@ def get_active_and_inactive_plugins(plugin_kind='machines'):
 
     for plugin in PluginManager().get_all_plugins():
         # Filter out plugins of other types.
-        # TODO: This can be cleaned up once old-school plugins are
-        # removed.
         if not isinstance(plugin, plugin_type):
-            if not isinstance(plugin, OldPluginAdapter):
-                continue
-            # If there's no type method, assume it's basically Widget.
-            elif not hasattr(plugin, 'get_plugin_type') and plugin_type != Widget:
-                continue
-            # Finally, look up known 'types' in table, assuming it's a
-            # Widget if it's an unknown type.
-            elif DEPRECATED_PLUGIN_TYPES.get(plugin.get_plugin_type(), Widget) != plugin_type:
-                continue
+            continue
 
         try:
             db_plugin = model.objects.get(name=plugin.name)

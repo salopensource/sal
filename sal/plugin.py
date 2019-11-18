@@ -8,10 +8,6 @@ It also provides a manager for locating plugin modules that have been
 properly deployed into the Sal plugin directories, with .yapsy info
 files.
 
-The `OldPluginAdapter` class allows the `PluginManager` and all client
-code to adapt old-style plugins to the newer API and subsequently only
-use the new API.
-
 Finally, an `OSFamilies` class exists simply as a way to protect against
 typos in plugin code when specifying OS family names.
 
@@ -21,7 +17,6 @@ Public Classes:
     DetailPlugin
     ReportPlugin
     PluginManager
-    OldPluginWrapper
 """
 
 
@@ -39,12 +34,6 @@ from django.template import loader
 from sal.decorators import handle_access, is_global_admin
 from server.models import Machine, Plugin, MachineDetailPlugin, Report
 from utils.text_utils import class_to_title
-
-
-# TODO: This can be removed along with the legacy plugin support code
-DEPRECATED_PAGES = {
-    'all': 'front', 'business_unit': 'bu_dashboard', 'machine_group': 'group_dashboard',
-    'machine': 'machine_detail'}
 
 
 logger = logging.getLogger(__name__)
@@ -391,98 +380,6 @@ class ReportPlugin(FilterMixin, BasePlugin):
     widget_width = 12
 
 
-class OldPluginAdapter(BasePlugin):
-    """Provides current Plugin interface by wrapping old-style plugin"""
-
-    model = Machine
-
-    def __init__(self, plugin):
-        self.plugin = plugin
-
-    def __repr__(self):
-        return self.plugin.__class__.__name__
-
-    @property
-    def enabled(self):
-        plugin_type = self.get_plugin_type()
-        if plugin_type == 'builtin':
-            model = Plugin
-        elif plugin_type == 'report':
-            model = Report
-        else:
-            model = MachineDetailPlugin
-
-        try:
-            model.objects.get(name=self.name)
-            return True
-        except model.DoesNotExist:
-            return False
-
-    def get_template(self, *args, **kwargs):
-        return None
-
-    def get_plugin_type(self, *args, **kwargs):
-        try:
-            return self.plugin.plugin_type()
-        except AttributeError:
-            return 'builtin'
-
-    def get_widget_width(self, *args, **kwargs):
-        # Cast to int just to be safe.
-        try:
-            width = int(self.plugin.widget_width())
-        except (ValueError, AttributeError):
-            width = 0
-        return width
-
-    def get_description(self, *args, **kwargs):
-        try:
-            return self.plugin.get_description()
-        except AttributeError:
-            return ""
-
-    def get_supported_os_families(self, **kwargs):
-        if hasattr(self.plugin, 'supported_os_families'):
-            return self.plugin.supported_os_families()
-
-        return [OSFamilies.darwin, OSFamilies.windows, OSFamilies.linux, OSFamilies.chromeos]
-
-    def get_context(self, queryset, **kwargs):
-        return {}
-
-    def get_queryset(self, request, **kwargs):
-        # Override BasePlugin get_queryset to return a single machine
-        # instead of a Queryset. This is mostly just here to avoid
-        # having to create a bunch of support wrapper subclasses
-        # when this stuff is going away anyway.
-        queryset = super(OldPluginAdapter, self).get_queryset(request, **kwargs)
-        if self.get_plugin_type(request, **kwargs) == 'machine_detail':
-            queryset = queryset[0]
-        return queryset
-
-    def filter_machines(self, machines, data):
-        if hasattr(self.plugin, 'filter_machines'):
-            return self.plugin.filter_machines(machines, data)
-        return machines, data
-
-    def widget_content(self, request, **kwargs):
-        group_type = kwargs.get('group_type', 'all')
-        # Old plugins expect the page name 'front'.
-        group_type = DEPRECATED_PAGES[group_type]
-        group_id = kwargs.get('group_id', 0)
-        queryset = self.get_queryset(request, **kwargs)
-        # Calling convention was different back then...
-        return self.plugin.widget_content(group_type, queryset, group_id)
-
-    def checkin_processor(self, machine, report_data):
-        if hasattr(self.plugin, 'checkin_processor'):
-            self.plugin.checkin_processor(machine, report_data)
-
-    def profiles_processor(self, machine, profiles_list):
-        if hasattr(self.plugin, 'profiles_processor'):
-            self.plugin.profiles_processor(machine, profiles_list)
-
-
 class PluginManager():
     """Simplifies finding, retrieving, and instantiating plugins
 
@@ -503,7 +400,7 @@ class PluginManager():
         """Search the configured plugin sources for a plugin, by name.
 
         Args:
-            name (str): Name of plugin (from .yapsy file, and the name
+            name (str): Name of plugin (from .yapsy file), and the name
                 of the plugin class.
 
         Returns:
@@ -512,7 +409,7 @@ class PluginManager():
         """
         plugin = self.manager.getPluginByName(name)
         if plugin:
-            plugins = self.wrap_old_plugins([plugin])
+            plugins = self._process_plugins([plugin])
             return plugins[0] if plugins else None
 
     def get_all_plugins(self):
@@ -527,37 +424,25 @@ class PluginManager():
         Returns:
             List of Widget, ReportPlugin, and DetailPlugin instances.
         """
-        return self.wrap_old_plugins(self.manager.getAllPlugins())
+        return self._process_plugins(self.manager.getAllPlugins())
 
-    def wrap_old_plugins(self, plugins):
-        """Ignore new plugins, and wrap old-style ones in the new API.
+    def _process_plugins(self, plugins):
+        """Copy attributes to plugin object and throw away the outer layer
 
         Args:
-            plugins (list of IPlugin and BasePlugin): Plugins found by
-                the manager.
+            plugins (BasePlugin): Plugins found by the manager.
 
         Returns:
-            List of plugins conforming to the new-style API.
+            List of plugins.
         """
-        wrapped = []
+        extracted = []
         for plugin in plugins:
             if plugin.plugin_object:
-                if not isinstance(plugin.plugin_object, BasePlugin):
-                    logger.warning(
-                        "Plugin '%s' needs to be updated to subclass a Sal Plugin!", plugin.name)
-                    plugin.plugin_object = OldPluginAdapter(plugin.plugin_object)
-
                 # Embed the attributes from the IPluginInfo container on the
                 # plugin instance, and just return those.
                 for attribute in ('path', 'copyright', 'author', 'website', 'version'):
                     setattr(plugin.plugin_object, attribute, getattr(plugin, attribute))
 
-                wrapped.append(plugin.plugin_object)
+                extracted.append(plugin.plugin_object)
 
-        return wrapped
-
-
-# TODO: This can be removed along with the legacy plugin support code
-# at the end of the deprecation period.
-DEPRECATED_PLUGIN_TYPES = {
-    'builtin': Widget, None: Widget, 'machine_detail': DetailPlugin, 'report': ReportPlugin}
+        return extracted

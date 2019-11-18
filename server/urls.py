@@ -13,6 +13,9 @@ urlpatterns = [
     path('machine_detail/facts/<int:machine_id>/<management_source>/', machine_detail_facts,
          name='machine_detail_facts'),
     path('machine_detail/<int:machine_id>/', machine_detail, name='machine_detail'),
+    # Handle special case of allowing serial number "permalinks".
+    # This will trigger a ValueError in the decorator code by design!
+    path('machine_detail/<str:machine_id>/', machine_detail, name='machine_detail'),
 
     # Checkin routes.
     path('checkin/', checkin, name='checkin'),

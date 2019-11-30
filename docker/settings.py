@@ -22,7 +22,7 @@ if 'MEMCACHED_PORT_11211_TCP_ADDR' in os.environ:
             'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
             'LOCATION': [
                 '%s:%s' % (os.environ['MEMCACHED_PORT_11211_TCP_ADDR'],
-                           os.environ['MEMCACHED_PORT_11211_TCP_PORT']),
+                           os.environ['MEMCACHED_PORT_11211_TCP_PORT'], '11211'),
             ]
         }
     }

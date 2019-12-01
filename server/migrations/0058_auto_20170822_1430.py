@@ -13,11 +13,10 @@ from utils import text_utils
 
 def update_os_families(apps, schema_editor):
     enabled_plugins = Plugin.objects.all()
-    manager = sal.plugin.PluginManager()
     enabled_plugins = apps.get_model("server", "MachineDetailPlugin")
     for item in enabled_plugins.objects.all():
         default_families = ['Darwin', 'Windows', 'Linux', 'ChromeOS']
-        plugin = manager.get_plugin_by_name(item.name)
+        plugin = sal.plugin.PluginManager.get_plugin_by_name(item.name)
         if plugin:
             try:
                 supported_os_families = plugin.get_supported_os_families()

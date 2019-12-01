@@ -390,17 +390,32 @@ class PluginManager():
     which track the enablement and ordering of plugins.
     """
 
-    def __init__(self):
-        # We can use a PluginManagerSingleton to avoid costly startup
-        # and plugin loading.
-        self.manager = yapsy.PluginManager.PluginManagerSingleton.get()
-        # No need to recollect if it has already been done.
-        if not self.manager.category_mapping.get('Default'):
-            self.manager.setPluginPlaces([settings.PLUGIN_DIR, os.path.join(
-                settings.PROJECT_DIR, 'server/plugins')])
-            self.manager.collectPlugins()
+    __instance = None
 
-    def get_plugin_by_name(self, name):
+    def __init__(self):
+        if self.__instance is not None:
+            raise Exception(
+                "Singleton can't be created twice! Client code should use classmethods to retrieve"
+                " an instance!")
+
+    @classmethod
+    def get(cls):
+        if cls.__instance is None:
+            # initialise the 'inner' PluginManagerDecorator
+            cls.__instance = yapsy.PluginManager.PluginManager()
+            cls.__instance.setPluginPlaces([settings.PLUGIN_DIR, os.path.join(
+                settings.PROJECT_DIR, 'server/plugins')])
+            cls.__instance.collectPlugins()
+            # Move this attribute because we don't use the container
+            # object in Sal. Set it once here rather than at every
+            # retrieval!
+            for plugin in cls.__instance.getAllPlugins():
+                plugin.plugin_object.path = plugin.path
+            logger.debug("PluginManagerSingleton initialised")
+        return cls.__instance
+
+    @classmethod
+    def get_plugin_by_name(cls, name):
         """Search the configured plugin sources for a plugin, by name.
 
         Args:
@@ -411,12 +426,12 @@ class PluginManager():
             Widget, Report, or DetailPlugin instance, or None if no
             plugin was found with this name.
         """
-        plugin = self.manager.getPluginByName(name)
-        if plugin:
-            plugins = self._process_plugins([plugin])
-            return plugins[0] if plugins else None
+        # Throw away container object; we don't use it.
+        plugin = cls.get().getPluginByName(name)
+        return plugin.plugin_object if plugin else None
 
-    def get_all_plugins(self):
+    @classmethod
+    def get_all_plugins(cls):
         """Return a list of all plugins found in configured directories.
 
         This returns plugins of all types; if they're in the configured
@@ -428,25 +443,5 @@ class PluginManager():
         Returns:
             List of Widget, ReportPlugin, and DetailPlugin instances.
         """
-        return self._process_plugins(self.manager.getAllPlugins())
-
-    def _process_plugins(self, plugins):
-        """Copy attributes to plugin object and throw away the outer layer
-
-        Args:
-            plugins (BasePlugin): Plugins found by the manager.
-
-        Returns:
-            List of plugins.
-        """
-        extracted = []
-        for plugin in plugins:
-            if plugin.plugin_object:
-                # Embed the attributes from the IPluginInfo container on the
-                # plugin instance, and just return those.
-                for attribute in ('path', 'copyright', 'author', 'website', 'version'):
-                    setattr(plugin.plugin_object, attribute, getattr(plugin, attribute))
-
-                extracted.append(plugin.plugin_object)
-
-        return extracted
+        # Throw away container object; we don't use it.
+        return [p.plugin_object for p in cls.__instance.getAllPlugins()]

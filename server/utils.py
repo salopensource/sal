@@ -468,9 +468,8 @@ def run_plugin_processing(machine, report_data):
     enabled_reports = Report.objects.all()
     enabled_plugins = Plugin.objects.all()
     enabled_detail_plugins = MachineDetailPlugin.objects.all()
-    manager = PluginManager()
     for enabled_plugin in itertools.chain(enabled_reports, enabled_plugins, enabled_detail_plugins):
-        plugin = manager.get_plugin_by_name(enabled_plugin.name)
+        plugin = PluginManager.get_plugin_by_name(enabled_plugin.name)
         if plugin:
             plugin.checkin_processor(machine, report_data)
 
@@ -478,9 +477,8 @@ def run_plugin_processing(machine, report_data):
 def run_profiles_plugin_processing(machine, profiles_list):
     enabled_plugins = Plugin.objects.all()
     enabled_detail_plugins = MachineDetailPlugin.objects.all()
-    manager = PluginManager()
     for enabled_plugin in itertools.chain(enabled_plugins, enabled_detail_plugins):
-        plugin = manager.get_plugin_by_name(enabled_plugin.name)
+        plugin = PluginManager.get_plugin_by_name(enabled_plugin.name)
         if plugin:
             plugin.profiles_processor(machine, profiles_list)
 
@@ -495,7 +493,7 @@ def load_default_plugins():
 def reload_plugins_model():
     """Remove now-absent plugins from db, refresh defaults if needed."""
     load_default_plugins()
-    found = {plugin.name for plugin in PluginManager().get_all_plugins()}
+    found = {plugin.name for plugin in PluginManager.get_all_plugins()}
     for model in (Plugin, Report, MachineDetailPlugin):
         _update_plugin_record(model, found)
 
@@ -619,13 +617,12 @@ def get_report_names():
 
 def get_plugin_placeholder_markup(group_type='all', group_id=None):
     result = []
-    manager = PluginManager()
     hidden = get_hidden_plugins(group_type, group_id)
     group_oses = get_member_oses(group_type, group_id)
     display_plugins = [p for p in Plugin.objects.order_by('order') if p.name not in hidden]
     for enabled_plugin in display_plugins:
         name = enabled_plugin.name
-        yapsy_plugin = manager.get_plugin_by_name(name)
+        yapsy_plugin = PluginManager.get_plugin_by_name(name)
         if not yapsy_plugin:
             continue
         # Skip this plugin if the group's members OS families aren't supported

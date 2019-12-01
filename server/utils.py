@@ -617,7 +617,7 @@ def get_report_names():
     return Report.objects.values_list('name', flat=True)
 
 
-def get_plugin_placeholder_markup(plugins, group_type='all', group_id=None):
+def get_plugin_placeholder_markup(group_type='all', group_id=None):
     result = []
     manager = PluginManager()
     hidden = get_hidden_plugins(group_type, group_id)

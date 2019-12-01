@@ -391,10 +391,14 @@ class PluginManager():
     """
 
     def __init__(self):
-        self.manager = yapsy.PluginManager.PluginManager()
-        self.manager.setPluginPlaces([settings.PLUGIN_DIR, os.path.join(
-            settings.PROJECT_DIR, 'server/plugins')])
-        self.manager.collectPlugins()
+        # We can use a PluginManagerSingleton to avoid costly startup
+        # and plugin loading.
+        self.manager = yapsy.PluginManager.PluginManagerSingleton.get()
+        # No need to recollect if it has already been done.
+        if not self.manager.category_mapping.get('Default'):
+            self.manager.setPluginPlaces([settings.PLUGIN_DIR, os.path.join(
+                settings.PROJECT_DIR, 'server/plugins')])
+            self.manager.collectPlugins()
 
     def get_plugin_by_name(self, name):
         """Search the configured plugin sources for a plugin, by name.

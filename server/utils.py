@@ -613,7 +613,7 @@ def order_plugin_output(plugin_data, group_type='all', group_id=None):
     return plugin_data
 
 
-def get_report_names(plugins):
+def get_report_names():
     return Report.objects.values_list('name', flat=True)
 
 

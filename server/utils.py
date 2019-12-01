@@ -599,7 +599,7 @@ def get_hidden_plugins(group_type='all', group_id=None):
     return hidden
 
 
-def order_plugin_output(plugin_data, group_type='all', group_id=None):
+def order_plugin_output(plugin_data):
     col_width = 12
     total_width = 0
 
@@ -639,7 +639,7 @@ def get_plugin_placeholder_markup(group_type='all', group_id=None):
                 '</div>\n'.format(name, width, static('img/blue-spinner.gif')))
         result.append({'name': name, 'width': width, 'html': html})
 
-    return order_plugin_output(result, group_type, group_id)
+    return order_plugin_output(result)
 
 
 def get_machine_detail_placeholder_markup(machine):

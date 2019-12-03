@@ -512,40 +512,40 @@ class PluginTest(TestCase):
 
     def test_process_plugin_no_yapsy_plugin(self):
         """Test that requesting non-existent plugins via URL 404s"""
-        self.assertRaises(Http404, non_ui_views.process_plugin, None, 'Once a moose bit my sister')
+        self.assertRaises(Http404, non_ui_views.process_plugin, 'Once a moose bit my sister')
 
     @patch('sal.plugin.PluginManager.get_plugin_by_name')
     def test_process_widget_not_enabled(self, manager):
         """Test that requesting disabled plugins via URL 404s"""
         manager.return_value = Widget()
-        self.assertRaises(Http404, non_ui_views.process_plugin, None, 'Once a moose bit my sister')
+        self.assertRaises(Http404, non_ui_views.process_plugin, 'Once a moose bit my sister')
 
     @patch('sal.plugin.PluginManager.get_plugin_by_name')
     def test_process_report_not_enabled(self, manager):
         """Test that requesting disabled plugins via URL 404s"""
         manager.return_value = ReportPlugin()
-        self.assertRaises(Http404, non_ui_views.process_plugin, None, 'Once a moose bit my sister')
+        self.assertRaises(Http404, non_ui_views.process_plugin, 'Once a moose bit my sister')
 
     @patch('sal.plugin.PluginManager.get_plugin_by_name')
     def test_process_detailplugin_not_enabled(self, manager):
         """Test that requesting disabled detail plugins via URL 404s"""
         manager.return_value = DetailPlugin()
-        self.assertRaises(Http404, non_ui_views.process_plugin, None, 'Once a moose bit my sister')
+        self.assertRaises(Http404, non_ui_views.process_plugin, 'Once a moose bit my sister')
 
     @patch('sal.plugin.PluginManager.get_plugin_by_name')
     def test_process_widget_enabled(self, manager):
         """Test that requesting enabled, existing plugins works"""
         manager.return_value = Widget()
-        self.assertTrue(non_ui_views.process_plugin(None, plugin_name=self.widget.name))
+        self.assertTrue(non_ui_views.process_plugin(plugin_name=self.widget.name))
 
     @patch('sal.plugin.PluginManager.get_plugin_by_name')
     def test_process_report_enabled(self, manager):
         """Test that requesting enabled, existing reports works"""
         manager.return_value = ReportPlugin()
-        self.assertTrue(non_ui_views.process_plugin(None, plugin_name=self.report_plugin.name))
+        self.assertTrue(non_ui_views.process_plugin(plugin_name=self.report_plugin.name))
 
     @patch('sal.plugin.PluginManager.get_plugin_by_name')
     def test_process_machine_detail_plugin_enabled(self, manager):
         """Test that requesting enabled, existing detail plugins works"""
         manager.return_value = DetailPlugin()
-        self.assertTrue(non_ui_views.process_plugin(None, plugin_name=self.machine_detail_plugin.name))
+        self.assertTrue(non_ui_views.process_plugin(plugin_name=self.machine_detail_plugin.name))

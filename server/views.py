@@ -91,7 +91,7 @@ def index(request):
 
 @login_required
 def machine_list(request, plugin_name, data, group_type='all', group_id=None):
-    plugin_object = process_plugin(request, plugin_name, group_type, group_id)
+    plugin_object = process_plugin(plugin_name, group_type, group_id)
     # queryset = plugin_object.get_queryset(request, group_type=group_type, group_id=group_id)
     # Plugin will raise 404 if bad `data` is passed.
     machines, title = plugin_object.filter_machines(Machine.objects.none(), data)
@@ -111,7 +111,7 @@ def machine_list(request, plugin_name, data, group_type='all', group_id=None):
 @login_required
 def report_load(request, plugin_name, group_type='all', group_id=None):
     groups = utils.get_instance_and_groups(group_type, group_id)
-    plugin_object = process_plugin(request, plugin_name, group_type, group_id)
+    plugin_object = process_plugin(plugin_name, group_type, group_id)
     report_html = plugin_object.widget_content(request, group_type=group_type, group_id=group_id)
     reports = Report.objects.values_list('name', flat=True)
     context = {'output': report_html, 'group_type': group_type, 'group_id': group_id, 'reports':

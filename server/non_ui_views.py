@@ -62,7 +62,7 @@ def tableajax(request, plugin_name, data, group_type='all', group_id=None):
             order_name = column['name']
             break
 
-    plugin_object = process_plugin(request, plugin_name, group_type, group_id)
+    plugin_object = process_plugin(plugin_name, group_type, group_id)
     queryset = plugin_object.get_queryset(
         request, group_type=group_type, group_id=group_id)
     machines, _ = plugin_object.filter_machines(queryset, data)
@@ -117,12 +117,12 @@ def tableajax(request, plugin_name, data, group_type='all', group_id=None):
 
 @login_required
 def plugin_load(request, plugin_name, group_type='all', group_id=None):
-    plugin_object = process_plugin(request, plugin_name, group_type, group_id)
+    plugin_object = process_plugin(plugin_name, group_type, group_id)
     return HttpResponse(
         plugin_object.widget_content(request, group_type=group_type, group_id=group_id))
 
 
-def process_plugin(request, plugin_name, group_type='all', group_id=None):
+def process_plugin(plugin_name, group_type='all', group_id=None):
     plugin = PluginManager.get_plugin_by_name(plugin_name)
 
     # Ensure that a plugin was instantiated before proceeding.
@@ -143,7 +143,7 @@ def process_plugin(request, plugin_name, group_type='all', group_id=None):
 
 @login_required
 def export_csv(request, plugin_name, data, group_type='all', group_id=None):
-    plugin_object = process_plugin(request, plugin_name, group_type, group_id)
+    plugin_object = process_plugin(plugin_name, group_type, group_id)
     queryset = plugin_object.get_queryset(
         request, group_type=group_type, group_id=group_id)
     machines, title = plugin_object.filter_machines(queryset, data)

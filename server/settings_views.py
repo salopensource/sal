@@ -312,7 +312,6 @@ def machine_detail_plugin_enable(request, plugin_name):
     try:
         plugin = MachineDetailPlugin.objects.get(name=plugin_name)
     except MachineDetailPlugin.DoesNotExist:
-        enabled_plugins = MachineDetailPlugin.objects.all()  # noqa: F841
         manager = sal.plugin.PluginManager()
 
         plugin = manager.get_plugin_by_name(plugin_name)

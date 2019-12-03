@@ -136,7 +136,7 @@ def process_plugin(request, plugin_name, group_type='all', group_id=None):
         model = Report
     else:
         model = MachineDetailPlugin
-        get_object_or_404(model, name=plugin_name)
+    get_object_or_404(model, name=plugin_name)
 
     return plugin
 

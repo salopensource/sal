@@ -619,7 +619,7 @@ def get_plugin_placeholder_markup(group_type='all', group_id=None):
     result = []
     hidden = get_hidden_plugins(group_type, group_id)
     group_oses = get_member_oses(group_type, group_id)
-    display_plugins = [p for p in Plugin.objects.order_by('order') if p.name not in hidden]
+    display_plugins = [p for p in Plugin.objects.exclude(name__in=hidden).order_by('order')]
     for enabled_plugin in display_plugins:
         name = enabled_plugin.name
         yapsy_plugin = PluginManager.get_plugin_by_name(name)

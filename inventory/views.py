@@ -124,6 +124,7 @@ class GroupMixin():
         # No need to filter if group_instance is None.
         group_type = self.kwargs['group_type']
 
+        filter_path = None
         if self.group_instance:
             filter_path = self.access_filter[queryset.model][self.classes[group_type]]
 

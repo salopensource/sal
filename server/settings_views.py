@@ -23,12 +23,11 @@ IS_POSTGRES = utils.is_postgres()
 
 @login_required
 def new_version_never(request):
-    update_notify_date(request)
+    update_notify_date()
     return redirect(reverse('home'))
 
 
-@ga_required
-def update_notify_date(request, length='never'):
+def update_notify_date(length='never'):
     # Don't notify about a new version until there is a new one
     version_report = utils.check_version()
     if version_report['new_version_available']:
@@ -41,13 +40,13 @@ def update_notify_date(request, length='never'):
 
 @login_required
 def new_version_week(request):
-    update_notify_date(request, length=604800)
+    update_notify_date(length=604800)
     return redirect(index_view)
 
 
 @login_required
 def new_version_day(request):
-    update_notify_date(request, length=86400)
+    update_notify_date(length=86400)
     return redirect(index_view)
 
 

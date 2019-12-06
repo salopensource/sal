@@ -22,6 +22,7 @@ IS_POSTGRES = utils.is_postgres()
 
 
 @login_required
+@ga_required
 def new_version_never(request):
     update_notify_date()
     return redirect(reverse('home'))
@@ -39,12 +40,14 @@ def update_notify_date(length='never'):
 
 
 @login_required
+@ga_required
 def new_version_week(request):
     update_notify_date(length=604800)
     return redirect(index_view)
 
 
 @login_required
+@ga_required
 def new_version_day(request):
     update_notify_date(length=86400)
     return redirect(index_view)
@@ -224,12 +227,14 @@ def settings_machine_detail_plugins(request):
 
 
 @login_required
+@ga_required
 def plugin_plus(request, plugin_id):
     _swap_plugin(request, plugin_id, 1)
     return redirect('plugins_page')
 
 
 @login_required
+@ga_required
 def plugin_minus(request, plugin_id):
     _swap_plugin(request, plugin_id, -1)
     return redirect('plugins_page')

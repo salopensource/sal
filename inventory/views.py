@@ -7,7 +7,7 @@ from distutils.version import LooseVersion
 from urllib.parse import quote
 
 # Django
-from django.db.models import Q
+from django.db.models import Q, Count
 from django.http import HttpResponse, HttpResponseNotFound
 from django.shortcuts import get_object_or_404
 from django.urls import reverse
@@ -260,13 +260,8 @@ class InventoryListView(DatatableQuerystringMixin, DatatableView, GroupMixin):
 
 class ApplicationList(Datatable):
 
-    # Specifying no source means we cannot sort on this column; however
-    # the source value would be the total number of inventoryitem
-    # records, NOT the number returned by the get_install_count
-    # processor which filters by group_type. Without greatly increasing
-    # the processing time for the view, we therefore cannot sort by
-    # install count.
-    install_count = DisplayColumn("Install Count", source=None, processor='get_install_count')
+    install_count = DisplayColumn(
+        "Install Count", source='install_count', processor='get_install_count')
 
     class Meta:
         columns = ['name', 'bundleid', 'bundlename', 'install_count']
@@ -283,16 +278,14 @@ class ApplicationList(Datatable):
 
     def get_install_count(self, instance, **kwargs):
         """Get the number of app installs filtered by access group"""
-        queryset = kwargs['view'].filter_queryset_by_group(instance.inventoryitem_set)
-        count = queryset.count()
-
         # Build a link to InventoryListView for install count badge.
         link_kwargs = copy.copy(kwargs['view'].kwargs)
         link_kwargs['application_id'] = instance.pk
         url = reverse("inventory_list", kwargs=link_kwargs)
 
         # Build the link.
-        anchor = '<a href="{}"><span class="badge">{}</span></a>'.format(url, count)
+        anchor = '<a href="{}"><span class="badge">{}</span></a>'.format(
+            url, instance.install_count)
         return anchor
 
 
@@ -338,7 +331,8 @@ class ApplicationListView(DatatableView, GroupMixin):
         if crufty_pattern:
             queryset = queryset.exclude(bundleid__regex=crufty_pattern)
 
-        return queryset
+        # Annotate the install counts in.
+        return queryset.annotate(install_count=Count('inventoryitem'))
 
     def get_context_data(self, **kwargs):
         context = super(ApplicationListView, self).get_context_data(**kwargs)

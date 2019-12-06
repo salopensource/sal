@@ -229,20 +229,18 @@ def settings_machine_detail_plugins(request):
 @login_required
 @ga_required
 def plugin_plus(request, plugin_id):
-    _swap_plugin(request, plugin_id, 1)
+    _swap_plugin(plugin_id, 1)
     return redirect('plugins_page')
 
 
 @login_required
 @ga_required
 def plugin_minus(request, plugin_id):
-    _swap_plugin(request, plugin_id, -1)
+    _swap_plugin(plugin_id, -1)
     return redirect('plugins_page')
 
 
-@login_required
-@ga_required
-def _swap_plugin(request, plugin_id, direction, plugin_model=Plugin):
+def _swap_plugin(plugin_id, direction, plugin_model=Plugin):
     # get current plugin order
     current_plugin = get_object_or_404(plugin_model, pk=plugin_id)
 
@@ -290,14 +288,14 @@ def plugin_enable(request, plugin_name):
 @login_required
 @ga_required
 def machine_detail_plugin_plus(request, plugin_id):
-    _swap_plugin(request, plugin_id, 1, MachineDetailPlugin)
+    _swap_plugin(plugin_id, 1, MachineDetailPlugin)
     return redirect('settings_machine_detail_plugins')
 
 
 @login_required
 @ga_required
 def machine_detail_plugin_minus(request, plugin_id):
-    _swap_plugin(request, plugin_id, -1, MachineDetailPlugin)
+    _swap_plugin(plugin_id, -1, MachineDetailPlugin)
     return redirect('settings_machine_detail_plugins')
 
 

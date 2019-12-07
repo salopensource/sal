@@ -120,14 +120,6 @@ class GroupMixin():
         Returns:
             Queryset with appropriate filter applied.
         """
-        self.group_instance = self.get_group_instance()
-        # No need to filter if group_instance is None.
-        group_type = self.kwargs['group_type']
-
-        filter_path = None
-        if self.group_instance:
-            filter_path = self.access_filter[queryset.model][self.classes[group_type]]
-
         # Remove undeployed machines from the results.
         # It's important that we are filtering for deployed machines
         # here rather than excluding undeployed machines-you get
@@ -139,12 +131,16 @@ class GroupMixin():
         # construct the keyword argument name to filter.
         deployed_filter = '{}{}deployed'.format(
             self.access_filter[queryset.model][Machine], '' if queryset.model is Machine else '__')
+        kwargs = {deployed_filter: True}
         # If filter_path is Machine there is nothing to filter on.
-        if filter_path:
-            kwargs = {filter_path: self.group_instance}
-            queryset = queryset.filter(**kwargs, **{deployed_filter: True})
-        else:
-            queryset = queryset.filter(**{deployed_filter: True})
+        # TODO: Python 3,8 walrus operator
+        self.group_instance = self.get_group_instance()
+        if self.group_instance:
+            # No need to filter if group_instance is None.
+            filter_path = (
+                self.access_filter[queryset.model][self.classes[self.kwargs['group_type']]])
+            kwargs[filter_path] = self.group_instance
+        queryset = queryset.filter(**kwargs)
 
         return queryset
 

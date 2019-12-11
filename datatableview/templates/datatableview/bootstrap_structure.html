@@ -1,7 +1,8 @@
 <table class="display datatable table table-striped table-bordered" data-source-url="{{ url }}"
        data-ajax-method="{{ config.request_method }}"
        data-result-counter-id="{{ config.result_counter_id }}"
-       data-page-length="{{ config.page_length }}">
+       data-page-length="{{ config.page_length }}"
+       data-search-delay="{{ config.search_delay }}">
     <thead>
         <tr>
             {% for column in columns %}

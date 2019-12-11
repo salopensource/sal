@@ -192,6 +192,7 @@ class InventoryList(Datatable):
         processors = {'hostname': 'get_machine_link', 'last_checkin': 'format_date'}
         structure_template = 'datatableview/bootstrap_structure.html'
         page_length = server.utils.get_setting('datatable_page_length')
+        search_delay = server.utils.get_setting('datatable_search_delay', 500)
 
     def get_machine_link(self, instance, **kwargs):
         url = reverse("machine_detail", kwargs={"machine_id": instance.pk})
@@ -265,7 +266,8 @@ class ApplicationList(Datatable):
         labels = {'bundleid': 'Bundle ID', 'bundlename': 'Bundle Name'}
         processors = {'name': 'link_to_detail'}
         structure_template = 'datatableview/bootstrap_structure.html'
-        page_length = server.utils.get_setting('datatable_page_length')
+        page_length = server.utils.get_setting('datatable_page_length') ## If you set a default here, it *still* shows as 20 in the tag
+        search_delay = server.utils.get_setting('datatable_search_delay', 500)
 
     def link_to_detail(self, instance, **kwargs):
         link_kwargs = copy.copy(kwargs['view'].kwargs)

@@ -258,7 +258,10 @@ _SAL_LOGGING_CONFIG = {
             'level': 'ERROR',
             'propagate': False,
         },
-        # Configure additional Sal apps for logging here.
+       'django.db.backends': {
+           'handlers': ['console'],
+           'level': 'DEBUG',
+       }
     }
 }
 

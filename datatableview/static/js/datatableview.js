@@ -71,7 +71,8 @@ var datatableview = (function(){
         options = $.extend({}, datatableview.defaults, opts, {
             "order": sortingOptions,
             "columns": columnOptions,
-            "pageLength": datatable.attr('data-page-length'),
+            "pageLength": 100, // Trying to hard code this
+            "searchDelay": datatable.attr('data-search-delay'),
             "infoCallback": function(oSettings, iStart, iEnd, iMax, iTotal, sPre){
                 $("#" + datatable.attr('data-result-counter-id')).html(parseInt(iTotal).toLocaleString());
                 var infoString = oSettings.oLanguage.sInfo.replace('_START_',iStart).replace('_END_',iEnd).replace('_TOTAL_',iTotal);

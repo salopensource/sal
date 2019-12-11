@@ -148,6 +148,9 @@ class DatatableOptions(object):
         self.ordering = getattr(options, 'ordering', None)  # override to Model._meta.ordering
         self.page_length = getattr(options, 'page_length', 25)  # length of a single result page
 
+        # Datatable option
+        self.search_delay = getattr(options, 'search_delay', 500)  # length of a single result page
+
 
 default_options = DatatableOptions()
 

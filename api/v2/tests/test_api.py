@@ -62,4 +62,3 @@ class GASessionAuthTest(APITestCase):
         self.client.login(username='ga_user', password='abc123')
         response = self.client.get(reverse('api-root'))
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-

@@ -465,13 +465,15 @@ def _history_creation_needed(managed_item, last_history):
 
 
 def process_messages(management_source, management_data, machine, object_queue):
+    now = django.utils.timezone.now()
     for message_item in management_data.get('messages', []):
         object_queue['messages'].append(
             Message(
                 machine=machine,
                 management_source=management_source,
                 text=message_item.get('text'),
-                message_type=message_item.get('message_type')))
+                message_type=message_item.get('message_type'),
+                date=message_item.get('date', now)))
 
     return object_queue
 

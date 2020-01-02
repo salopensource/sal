@@ -13,7 +13,7 @@ from server.models import *
 
 
 @login_required
-@required_level(ProfileLevel.global_admin)
+@ga_required
 def license_index(request):
     """Sal index page for licenses."""
     context = {'request': request,
@@ -24,7 +24,7 @@ def license_index(request):
 
 
 @login_required
-@required_level(ProfileLevel.global_admin)
+@ga_required
 def new_license(request):
     """Creates a new License object"""
     if request.method == 'POST':
@@ -41,7 +41,7 @@ def new_license(request):
 
 
 @login_required
-@required_level(ProfileLevel.global_admin)
+@ga_required
 def edit_license(request, license_id):
     license = get_object_or_404(License, pk=license_id)
 
@@ -59,7 +59,7 @@ def edit_license(request, license_id):
 
 
 @login_required
-@required_level(ProfileLevel.global_admin)
+@ga_required
 def delete_license(request, license_id):
     license = get_object_or_404(License, pk=license_id)
     license.delete()

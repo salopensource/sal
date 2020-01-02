@@ -196,7 +196,6 @@ def ga_required(function):
 
     Wrapped function must have the request object as the first argument.
     """
-    # TODO: This can be removed once a class_required_level decoratir is created
     @wraps(function)
     def wrapper(*args, **kwargs):
         if args[0].user.userprofile.level != ProfileLevel.global_admin:

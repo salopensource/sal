@@ -14,8 +14,12 @@ def convert_drives_to_int_bytes(apps, schema_editor):
     for machine in Machine.objects.all():
         # Django already converted str to int for us, but we cast back
         # to int just to be safe.
-        machine.hd_total = int(machine.hd_total * 1024.0)
-        machine.hd_space = int(machine.hd_space * 1024.0)
+        if machine.hd_total:
+            machine.hd_total = int(machine.hd_total * 1024.0)
+
+        if machine.hd_space:
+            machine.hd_space = int(machine.hd_space * 1024.0)
+
         machine.save()
 
 

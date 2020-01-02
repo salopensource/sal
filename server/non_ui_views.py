@@ -1,6 +1,7 @@
 import itertools
 import json
 import logging
+import re
 from collections import defaultdict
 
 import dateutil.parser
@@ -27,8 +28,10 @@ from server.models import (Machine, Fact, HistoricalFact, MachineGroup, Message,
 
 # The database probably isn't going to change while this is loaded.
 IS_POSTGRES = server.utils.is_postgres()
+
 IGNORE_PREFIXES = server.utils.get_django_setting('IGNORE_FACTS', [])
 HISTORICAL_FACTS = set(server.utils.get_django_setting('HISTORICAL_FACTS', []))
+
 # Build a translation table for serial numbers, to remove garbage
 # VMware puts in.
 SERIAL_TRANSLATE = {ord(c): None for c in '+/'}
@@ -394,7 +397,7 @@ def process_munki_extra_keys(management_data, machine, object_queue):
 def process_facts(management_source, management_data, machine, object_queue):
     now = django.utils.timezone.now()
     for fact_name, fact_data in management_data.get('facts', {}).items():
-        if any(fact_name.startswith(p) for p in IGNORE_PREFIXES):
+        if IGNORE_PREFIXES and IGNORE_PREFIXES.match(fact_name):
             continue
 
         object_queue['facts'].append(
@@ -460,13 +463,15 @@ def _history_creation_needed(managed_item, last_history):
 
 
 def process_messages(management_source, management_data, machine, object_queue):
+    now = django.utils.timezone.now()
     for message_item in management_data.get('messages', []):
         object_queue['messages'].append(
             Message(
                 machine=machine,
                 management_source=management_source,
                 text=message_item.get('text'),
-                message_type=message_item.get('message_type')))
+                message_type=message_item.get('message_type'),
+                date=message_item.get('date', now)))
 
     return object_queue
 

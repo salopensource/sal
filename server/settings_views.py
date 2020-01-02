@@ -10,7 +10,7 @@ from django.template.context_processors import csrf
 from django.urls import reverse
 
 import sal.plugin
-from sal.decorators import required_level, staff_required
+from sal.decorators import ga_required, staff_required
 from server import utils
 from server import forms
 from server.models import ProfileLevel, Plugin, ApiKey, Report, MachineDetailPlugin, UserProfile
@@ -22,13 +22,13 @@ IS_POSTGRES = utils.is_postgres()
 
 
 @login_required
+@ga_required
 def new_version_never(request):
-    update_notify_date(request)
+    update_notify_date()
     return redirect(reverse('home'))
 
 
-@required_level(ProfileLevel.global_admin)
-def update_notify_date(request, length='never'):
+def update_notify_date(length='never'):
     # Don't notify about a new version until there is a new one
     version_report = utils.check_version()
     if version_report['new_version_available']:
@@ -40,19 +40,21 @@ def update_notify_date(request, length='never'):
 
 
 @login_required
+@ga_required
 def new_version_week(request):
-    update_notify_date(request, length=604800)
+    update_notify_date(length=604800)
     return redirect(index_view)
 
 
 @login_required
+@ga_required
 def new_version_day(request):
-    update_notify_date(request, length=86400)
+    update_notify_date(length=86400)
     return redirect(index_view)
 
 
 @login_required
-@required_level(ProfileLevel.global_admin)
+@ga_required
 @staff_required
 def manage_users(request):
     try:
@@ -65,7 +67,7 @@ def manage_users(request):
 
 
 @login_required
-@required_level(ProfileLevel.global_admin)
+@ga_required
 @staff_required
 def new_user(request):
     c = {}
@@ -86,7 +88,7 @@ def new_user(request):
 
 
 @login_required
-@required_level(ProfileLevel.global_admin)
+@ga_required
 @staff_required
 def edit_user(request, user_id):
     the_user = get_object_or_404(User, pk=int(user_id))
@@ -120,7 +122,7 @@ def edit_user(request, user_id):
 
 
 @login_required
-@required_level(ProfileLevel.global_admin)
+@ga_required
 def user_add_staff(request, user_id):
     if request.user.id == int(user_id):
         # You shouldn't have been able to get here anyway
@@ -132,7 +134,7 @@ def user_add_staff(request, user_id):
 
 
 @login_required
-@required_level(ProfileLevel.global_admin)
+@ga_required
 def user_remove_staff(request, user_id):
     if request.user.id == int(user_id):
         # You shouldn't have been able to get here anyway
@@ -144,7 +146,7 @@ def user_remove_staff(request, user_id):
 
 
 @login_required
-@required_level(ProfileLevel.global_admin)
+@ga_required
 def delete_user(request, user_id):
     if request.user.id == int(user_id):
         # You shouldn't have been able to get here anyway
@@ -155,7 +157,7 @@ def delete_user(request, user_id):
 
 
 @login_required
-@required_level(ProfileLevel.global_admin)
+@ga_required
 def settings_page(request):
     historical_setting = utils.get_setting('historical_retention')
     historical_setting_form = forms.SettingsHistoricalDataForm(initial={'days': historical_setting})
@@ -171,21 +173,21 @@ def settings_page(request):
 
 
 @login_required
-@required_level(ProfileLevel.global_admin)
+@ga_required
 def senddata_enable(request):
     utils.set_setting('send_data', True)
     return HttpResponseRedirect(request.META.get('HTTP_REFERER'))
 
 
 @login_required
-@required_level(ProfileLevel.global_admin)
+@ga_required
 def senddata_disable(request):
     utils.set_setting('send_data', False)
     return HttpResponseRedirect(request.META.get('HTTP_REFERER'))
 
 
 @login_required
-@required_level(ProfileLevel.global_admin)
+@ga_required
 def settings_historical_data(request):
     if request.method == 'POST':
         form = forms.SettingsHistoricalDataForm(request.POST)
@@ -200,7 +202,7 @@ def settings_historical_data(request):
 
 
 @login_required
-@required_level(ProfileLevel.global_admin)
+@ga_required
 def plugins_page(request):
     utils.reload_plugins_model()
     context = {'plugins': utils.get_active_and_inactive_plugins('machines')}
@@ -208,7 +210,7 @@ def plugins_page(request):
 
 
 @login_required
-@required_level(ProfileLevel.global_admin)
+@ga_required
 def settings_reports(request):
     utils.reload_plugins_model()
     context = {'plugins': utils.get_active_and_inactive_plugins('report')}
@@ -216,7 +218,7 @@ def settings_reports(request):
 
 
 @login_required
-@required_level(ProfileLevel.global_admin)
+@ga_required
 def settings_machine_detail_plugins(request):
     utils.reload_plugins_model()
     plugins = utils.get_active_and_inactive_plugins('machine_detail')
@@ -225,20 +227,20 @@ def settings_machine_detail_plugins(request):
 
 
 @login_required
+@ga_required
 def plugin_plus(request, plugin_id):
-    _swap_plugin(request, plugin_id, 1)
+    _swap_plugin(plugin_id, 1)
     return redirect('plugins_page')
 
 
 @login_required
+@ga_required
 def plugin_minus(request, plugin_id):
-    _swap_plugin(request, plugin_id, -1)
+    _swap_plugin(plugin_id, -1)
     return redirect('plugins_page')
 
 
-@login_required
-@required_level(ProfileLevel.global_admin)
-def _swap_plugin(request, plugin_id, direction, plugin_model=Plugin):
+def _swap_plugin(plugin_id, direction, plugin_model=Plugin):
     # get current plugin order
     current_plugin = get_object_or_404(plugin_model, pk=plugin_id)
 
@@ -264,7 +266,7 @@ def _swap_plugin(request, plugin_id, direction, plugin_model=Plugin):
 
 
 @login_required
-@required_level(ProfileLevel.global_admin)
+@ga_required
 def plugin_disable(request, plugin_id):
     plugin = get_object_or_404(Plugin, pk=plugin_id)
     plugin.delete()
@@ -272,7 +274,7 @@ def plugin_disable(request, plugin_id):
 
 
 @login_required
-@required_level(ProfileLevel.global_admin)
+@ga_required
 def plugin_enable(request, plugin_name):
     # only do this if there isn't a plugin already with the name
     try:
@@ -284,21 +286,21 @@ def plugin_enable(request, plugin_name):
 
 
 @login_required
-@required_level(ProfileLevel.global_admin)
+@ga_required
 def machine_detail_plugin_plus(request, plugin_id):
-    _swap_plugin(request, plugin_id, 1, MachineDetailPlugin)
+    _swap_plugin(plugin_id, 1, MachineDetailPlugin)
     return redirect('settings_machine_detail_plugins')
 
 
 @login_required
-@required_level(ProfileLevel.global_admin)
+@ga_required
 def machine_detail_plugin_minus(request, plugin_id):
-    _swap_plugin(request, plugin_id, -1, MachineDetailPlugin)
+    _swap_plugin(plugin_id, -1, MachineDetailPlugin)
     return redirect('settings_machine_detail_plugins')
 
 
 @login_required
-@required_level(ProfileLevel.global_admin)
+@ga_required
 def machine_detail_plugin_disable(request, plugin_id):
     plugin = get_object_or_404(MachineDetailPlugin, pk=plugin_id)
     plugin.delete()
@@ -306,7 +308,7 @@ def machine_detail_plugin_disable(request, plugin_id):
 
 
 @login_required
-@required_level(ProfileLevel.global_admin)
+@ga_required
 def machine_detail_plugin_enable(request, plugin_name):
     # only do this if there isn't a plugin already with the name
     try:
@@ -324,7 +326,7 @@ def machine_detail_plugin_enable(request, plugin_name):
 
 
 @login_required
-@required_level(ProfileLevel.global_admin)
+@ga_required
 def settings_report_disable(request, plugin_id):
     plugin = get_object_or_404(Report, pk=plugin_id)
     plugin.delete()
@@ -332,7 +334,7 @@ def settings_report_disable(request, plugin_id):
 
 
 @login_required
-@required_level(ProfileLevel.global_admin)
+@ga_required
 def settings_report_enable(request, plugin_name):
     # only do this if there isn't a plugin already with the name
     try:
@@ -344,7 +346,7 @@ def settings_report_enable(request, plugin_name):
 
 
 @login_required
-@required_level(ProfileLevel.global_admin)
+@ga_required
 def api_keys(request):
     api_keys = ApiKey.objects.all()
     c = {'user': request.user, 'api_keys': api_keys, 'request': request}
@@ -352,7 +354,7 @@ def api_keys(request):
 
 
 @login_required
-@required_level(ProfileLevel.global_admin)
+@ga_required
 def new_api_key(request):
     c = {}
     c.update(csrf(request))
@@ -368,7 +370,7 @@ def new_api_key(request):
 
 
 @login_required
-@required_level(ProfileLevel.global_admin)
+@ga_required
 def display_api_key(request, key_id):
     api_key = get_object_or_404(ApiKey, pk=int(key_id))
     if api_key.has_been_seen:
@@ -381,7 +383,7 @@ def display_api_key(request, key_id):
 
 
 @login_required
-@required_level(ProfileLevel.global_admin)
+@ga_required
 def edit_api_key(request, key_id):
     api_key = get_object_or_404(ApiKey, pk=int(key_id))
     c = {}
@@ -399,7 +401,7 @@ def edit_api_key(request, key_id):
 
 
 @login_required
-@required_level(ProfileLevel.global_admin)
+@ga_required
 def delete_api_key(request, key_id):
     api_key = get_object_or_404(ApiKey, pk=int(key_id))
     api_key.delete()

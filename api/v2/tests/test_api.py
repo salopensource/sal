@@ -1,11 +1,14 @@
 """General functional tests for the API endpoints."""
 
 
+from django.contrib.auth import get_user_model
 from django.urls import reverse
 
 from rest_framework import status
+from rest_framework.test import APITestCase, APIClient
 
 from api.v2.tests.tools import SalAPITestCase
+from server.models import UserProfile
 
 
 class APITest(SalAPITestCase):
@@ -36,4 +39,26 @@ class APITest(SalAPITestCase):
         """Make sure the docs site is working."""
         response = self.authed_get('api-docs:docs-index')
         self.assertEqual(response['content-type'], 'text/html; charset=utf-8')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+
+class GASessionAuthTest(APITestCase):
+
+    def setUp(self):
+        super().setUp()
+        self.client = APIClient()
+        self.user = self.setup_user()
+        profile = UserProfile.objects.get(pk=self.user.userprofile.id)
+        profile.level = 'GA'
+        profile.save()
+
+    @staticmethod
+    def setup_user():
+        User = get_user_model()
+        return User.objects.create_user('ga_user', password='abc123')
+
+    def test_ga_access(self):
+        """Ensure GA users can use session authentication"""
+        self.client.login(username='ga_user', password='abc123')
+        response = self.client.get(reverse('api-root'))
         self.assertEqual(response.status_code, status.HTTP_200_OK)

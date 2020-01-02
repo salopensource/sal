@@ -8,6 +8,7 @@ import dateutil
 import json
 import plistlib
 import pytz
+import re
 from unittest.mock import patch
 
 from django.conf import settings
@@ -238,7 +239,7 @@ class CheckinFactTest(TestCase):
         self.assertEqual(historical_fact.fact_data, 'Snake Plisskin')
         self.assertEqual(historical_fact.management_source.name, 'Munki')
 
-    @patch('server.non_ui_views.IGNORE_PREFIXES', ['ignore'])
+    @patch('server.non_ui_views.IGNORE_PREFIXES', re.compile('ignore'))
     def test_ignore_facts_setting_works(self):
         """Test the ignore prefixes setting for facts works."""
         machine = Machine.objects.get(serial='C0DEADBEEF')

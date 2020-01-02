@@ -10,7 +10,8 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.template.context_processors import csrf
 
 import sal.plugin
-from sal.decorators import required_level, ProfileLevel, access_required, is_global_admin
+from sal.decorators import (
+    required_level, ProfileLevel, access_required, is_global_admin, ga_required)
 from server.forms import (BusinessUnitForm, EditUserBusinessUnitForm, EditBusinessUnitForm,
                           MachineGroupForm, EditMachineGroupForm, NewMachineForm)
 from server.models import (BusinessUnit, MachineGroup, Machine, UserProfile, Report, Plugin,
@@ -122,7 +123,7 @@ def report_load(request, plugin_name, group_type='all', group_id=None):
 
 
 @login_required
-@required_level(ProfileLevel.global_admin)
+@ga_required
 def new_business_unit(request):
     c = {}
     c.update(csrf(request))
@@ -140,7 +141,7 @@ def new_business_unit(request):
 
 
 @login_required
-@required_level(ProfileLevel.global_admin)
+@ga_required
 def edit_business_unit(request, bu_id):
     business_unit = get_object_or_404(BusinessUnit, pk=int(bu_id))
     c = {}
@@ -165,7 +166,7 @@ def edit_business_unit(request, bu_id):
 
 
 @login_required
-@required_level(ProfileLevel.global_admin)
+@ga_required
 def delete_business_unit(request, bu_id):
     business_unit = get_object_or_404(BusinessUnit, pk=int(bu_id))
 
@@ -180,7 +181,7 @@ def delete_business_unit(request, bu_id):
 
 
 @login_required
-@required_level(ProfileLevel.global_admin)
+@ga_required
 def really_delete_business_unit(request, bu_id):
     business_unit = get_object_or_404(BusinessUnit, pk=int(bu_id))
     business_unit.delete()
@@ -211,7 +212,7 @@ def bu_dashboard(request, **kwargs):
 
 
 @login_required
-@required_level(ProfileLevel.global_admin)
+@ga_required
 def delete_machine_group(request, group_id):
     machine_group = get_object_or_404(MachineGroup, pk=int(group_id))
 
@@ -226,7 +227,7 @@ def delete_machine_group(request, group_id):
 
 
 @login_required
-@required_level(ProfileLevel.global_admin)
+@ga_required
 def really_delete_machine_group(request, group_id):
     machine_group = get_object_or_404(MachineGroup, pk=int(group_id))
     business_unit = machine_group.business_unit

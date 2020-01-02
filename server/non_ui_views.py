@@ -28,7 +28,7 @@ from server.models import (Machine, Fact, HistoricalFact, MachineGroup, Message,
 
 # The database probably isn't going to change while this is loaded.
 IS_POSTGRES = server.utils.is_postgres()
-HISTORICAL_FACTS = server.utils.get_django_setting('HISTORICAL_FACTS', [])
+HISTORICAL_FACTS = set(server.utils.get_django_setting('HISTORICAL_FACTS', []))
 if server.utils.get_django_setting('IGNORE_FACTS'):
     IGNORE_PREFIXES = re.compile(
         '|'.join(server.utils.get_django_setting('IGNORE_FACTS')))

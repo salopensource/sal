@@ -2,13 +2,16 @@
 
 
 from django.http.response import Http404, HttpResponseServerError
+from django.contrib.auth.models import User
 from django.core.exceptions import PermissionDenied
 from django.test import TestCase, RequestFactory
 from django.urls import reverse
 
-from sal.decorators import *
+from sal.decorators import (
+    access_required, has_access, is_global_admin, staff_required, required_level, ProfileLevel,
+    key_auth_required)
 from sal.decorators import get_business_unit_by as func_get_business_unit
-from server.models import *
+from server.models import BusinessUnit, MachineGroup, Machine
 
 
 SUCCESS = 'Nice work, amigo.'

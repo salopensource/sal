@@ -278,10 +278,12 @@ def plugin_disable(request, plugin_id):
 def plugin_enable(request, plugin_name):
     # only do this if there isn't a plugin already with the name
     try:
-        plugin = Plugin.objects.get(name=plugin_name)
+        _ = Plugin.objects.get(name=plugin_name)
     except Plugin.DoesNotExist:
-        plugin = Plugin(name=plugin_name, order=utils.unique_plugin_order())
-        plugin.save()
+        plugin = sal.plugin.PluginManager.get_plugin_by_name(plugin_name)
+        if plugin:
+            sal_plugin = Plugin(name=plugin_name, order=utils.unique_plugin_order())
+            sal_plugin.save()
     return redirect('plugins_page')
 
 
@@ -312,12 +314,9 @@ def machine_detail_plugin_disable(request, plugin_id):
 def machine_detail_plugin_enable(request, plugin_name):
     # only do this if there isn't a plugin already with the name
     try:
-        plugin = MachineDetailPlugin.objects.get(name=plugin_name)
+        _ = MachineDetailPlugin.objects.get(name=plugin_name)
     except MachineDetailPlugin.DoesNotExist:
-        enabled_plugins = MachineDetailPlugin.objects.all()  # noqa: F841
-        manager = sal.plugin.PluginManager()
-
-        plugin = manager.get_plugin_by_name(plugin_name)
+        plugin = sal.plugin.PluginManager.get_plugin_by_name(plugin_name)
         if plugin:
             db_plugin = MachineDetailPlugin(
                 name=plugin_name, order=utils.unique_plugin_order(plugin_type='machine_detail'))
@@ -338,10 +337,12 @@ def settings_report_disable(request, plugin_id):
 def settings_report_enable(request, plugin_name):
     # only do this if there isn't a plugin already with the name
     try:
-        plugin = Report.objects.get(name=plugin_name)
+        _ = Report.objects.get(name=plugin_name)
     except Report.DoesNotExist:
-        plugin = Report(name=plugin_name)
-        plugin.save()
+        plugin = sal.plugin.PluginManager.get_plugin_by_name(plugin_name)
+        if plugin:
+            report = Report(name=plugin_name)
+            report.save()
     return redirect('settings_reports')
 
 

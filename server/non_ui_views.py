@@ -67,7 +67,7 @@ def tableajax(request, plugin_name, data, group_type='all', group_id=None):
             order_name = column['name']
             break
 
-    plugin_object = process_plugin(request, plugin_name, group_type, group_id)
+    plugin_object = process_plugin(plugin_name, group_type, group_id)
     queryset = plugin_object.get_queryset(
         request, group_type=group_type, group_id=group_id)
     machines, _ = plugin_object.filter_machines(queryset, data)
@@ -122,13 +122,13 @@ def tableajax(request, plugin_name, data, group_type='all', group_id=None):
 
 @login_required
 def plugin_load(request, plugin_name, group_type='all', group_id=None):
-    plugin_object = process_plugin(request, plugin_name, group_type, group_id)
+    plugin_object = process_plugin(plugin_name, group_type, group_id)
     return HttpResponse(
         plugin_object.widget_content(request, group_type=group_type, group_id=group_id))
 
 
-def process_plugin(request, plugin_name, group_type='all', group_id=None):
-    plugin = PluginManager().get_plugin_by_name(plugin_name)
+def process_plugin(plugin_name, group_type='all', group_id=None):
+    plugin = PluginManager.get_plugin_by_name(plugin_name)
 
     # Ensure that a plugin was instantiated before proceeding.
     if not plugin:
@@ -141,14 +141,14 @@ def process_plugin(request, plugin_name, group_type='all', group_id=None):
         model = Report
     else:
         model = MachineDetailPlugin
-        get_object_or_404(model, name=plugin_name)
+    get_object_or_404(model, name=plugin_name)
 
     return plugin
 
 
 @login_required
 def export_csv(request, plugin_name, data, group_type='all', group_id=None):
-    plugin_object = process_plugin(request, plugin_name, group_type, group_id)
+    plugin_object = process_plugin(plugin_name, group_type, group_id)
     queryset = plugin_object.get_queryset(
         request, group_type=group_type, group_id=group_id)
     machines, title = plugin_object.filter_machines(queryset, data)
@@ -162,7 +162,6 @@ def preflight_v2(request):
     """Find plugins that have embedded preflight scripts."""
     # Load in the default plugins if needed
     server.utils.load_default_plugins()
-    manager = PluginManager()
     output = []
     # Old Sal scripts just do a GET; just send everything in that case.
     os_family = None if request.method != 'POST' else request.POST.get('os_family')
@@ -171,7 +170,7 @@ def preflight_v2(request):
     enabled_plugins = Plugin.objects.all()
     enabled_detail_plugins = MachineDetailPlugin.objects.all()
     for enabled_plugin in itertools.chain(enabled_reports, enabled_plugins, enabled_detail_plugins):
-        plugin = manager.get_plugin_by_name(enabled_plugin.name)
+        plugin = PluginManager.get_plugin_by_name(enabled_plugin.name)
         if not plugin:
             continue
         if os_family is None or os_family in plugin.get_supported_os_families():
@@ -186,7 +185,7 @@ def preflight_v2(request):
 @key_auth_required
 def preflight_v2_get_script(request, plugin_name, script_name):
     output = []
-    plugin = PluginManager().get_plugin_by_name(plugin_name)
+    plugin = PluginManager.get_plugin_by_name(plugin_name)
     if plugin:
         content = server.utils.get_plugin_scripts(plugin, script_name=script_name)
         if content:

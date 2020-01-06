@@ -17,10 +17,11 @@ from django.test import TestCase, Client
 from django.utils.timezone import now
 
 import server.utils
+from sal.plugin import Widget, ReportPlugin, DetailPlugin
 from server import non_ui_views
 from server.models import (
     MachineGroup, Machine, ManagementSource, ManagedItem, ManagedItemHistory, Fact, HistoricalFact,
-    Message)
+    Message, Plugin, Report, MachineDetailPlugin)
 
 
 class CheckinDataTest(TestCase):
@@ -498,3 +499,54 @@ class CheckinHelperTest(TestCase):
     def test_no_add_new_machine(self):
         """Ensure 404 is raised when no ADD_NEW_MACHINES."""
         self.assertRaises(Http404, non_ui_views.process_checkin_serial, 'NotInDB')
+
+
+class PluginTest(TestCase):
+
+    def setUp(self):
+        self.widget = Plugin(name='That gum you like is coming back in style', order=0)
+        self.widget.save()
+        self.report_plugin = Report(name='Drymouth')
+        self.report_plugin.save()
+        self.machine_detail_plugin = MachineDetailPlugin(name='Burrito Mojado', order=0)
+        self.machine_detail_plugin.save()
+
+    def test_process_plugin_no_yapsy_plugin(self):
+        """Test that requesting non-existent plugins via URL 404s"""
+        self.assertRaises(Http404, non_ui_views.process_plugin, 'Once a moose bit my sister')
+
+    @patch('sal.plugin.PluginManager.get_plugin_by_name')
+    def test_process_widget_not_enabled(self, manager):
+        """Test that requesting disabled plugins via URL 404s"""
+        manager.return_value = Widget()
+        self.assertRaises(Http404, non_ui_views.process_plugin, 'Once a moose bit my sister')
+
+    @patch('sal.plugin.PluginManager.get_plugin_by_name')
+    def test_process_report_not_enabled(self, manager):
+        """Test that requesting disabled plugins via URL 404s"""
+        manager.return_value = ReportPlugin()
+        self.assertRaises(Http404, non_ui_views.process_plugin, 'Once a moose bit my sister')
+
+    @patch('sal.plugin.PluginManager.get_plugin_by_name')
+    def test_process_detailplugin_not_enabled(self, manager):
+        """Test that requesting disabled detail plugins via URL 404s"""
+        manager.return_value = DetailPlugin()
+        self.assertRaises(Http404, non_ui_views.process_plugin, 'Once a moose bit my sister')
+
+    @patch('sal.plugin.PluginManager.get_plugin_by_name')
+    def test_process_widget_enabled(self, manager):
+        """Test that requesting enabled, existing plugins works"""
+        manager.return_value = Widget()
+        self.assertTrue(non_ui_views.process_plugin(plugin_name=self.widget.name))
+
+    @patch('sal.plugin.PluginManager.get_plugin_by_name')
+    def test_process_report_enabled(self, manager):
+        """Test that requesting enabled, existing reports works"""
+        manager.return_value = ReportPlugin()
+        self.assertTrue(non_ui_views.process_plugin(plugin_name=self.report_plugin.name))
+
+    @patch('sal.plugin.PluginManager.get_plugin_by_name')
+    def test_process_machine_detail_plugin_enabled(self, manager):
+        """Test that requesting enabled, existing detail plugins works"""
+        manager.return_value = DetailPlugin()
+        self.assertTrue(non_ui_views.process_plugin(plugin_name=self.machine_detail_plugin.name))

@@ -444,4 +444,4 @@ class PluginManager():
             List of Widget, ReportPlugin, and DetailPlugin instances.
         """
         # Throw away container object; we don't use it.
-        return [p.plugin_object for p in cls.__instance.getAllPlugins()]
+        return [p.plugin_object for p in cls.get().getAllPlugins()]

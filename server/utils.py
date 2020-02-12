@@ -519,7 +519,7 @@ def get_active_and_inactive_plugins(plugin_kind='machines'):
     model = PLUGIN_MODELS[plugin_kind][0]
     plugin_type = PLUGIN_MODELS[plugin_kind][1]
 
-    for plugin in PluginManager().get_all_plugins():
+    for plugin in PluginManager.get_all_plugins():
         # Filter out plugins of other types.
         if not isinstance(plugin, plugin_type):
             continue
@@ -640,10 +640,9 @@ def get_plugin_placeholder_markup(group_type='all', group_id=None):
 
 
 def get_machine_detail_placeholder_markup(machine):
-    manager = PluginManager()
     result = []
     for enabled_plugin in MachineDetailPlugin.objects.order_by('order'):
-        plugin = manager.get_plugin_by_name(enabled_plugin.name)
+        plugin = PluginManager.get_plugin_by_name(enabled_plugin.name)
         if plugin and machine.os_family in plugin.get_supported_os_families():
             html = ('<div id="plugin-{}">'
                     '    <img class="center-block blue-spinner" src="{}"/>'

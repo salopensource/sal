@@ -63,7 +63,7 @@ class SavedSearchTest(SalAPITestCase):
         # keys.
         with no_stdout():
             response = self.authed_get(
-                'savedsearch-execute', args=(3,), params={'full': None})
+                'savedsearch-execute', args=(3,), params={'full': ''})
         keys = set(response.data[0].keys())
 
         self.assertEqual(keys, ALL_MACHINE_COLUMNS)

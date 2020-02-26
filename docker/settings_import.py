@@ -63,7 +63,7 @@ if getenv('DOCKER_SAL_TZ'):
     if '/' in getenv('DOCKER_SAL_TZ'):
         TIME_ZONE = getenv('DOCKER_SAL_TZ')
     else:
-        TIME_ZONE = 'Europe/London'
+        TIME_ZONE = 'America/Los_Angeles'
 # elif getenv('TZ'):
 #     TIME_ZONE = getenv('TZ')
 # else:
@@ -75,11 +75,11 @@ if getenv('DOCKER_SAL_LANG'):
     if '_' in getenv('DOCKER_SAL_LANG'):
         LANGUAGE_CODE = getenv('DOCKER_SAL_LANG')
     else:
-        LANGUAGE_CODE = 'en_US'
+        LANGUAGE_CODE = 'en-us'
 # elif locale.getdefaultlocale():
 #     LANGUAGE_CODE = locale.getdefaultlocale()[0]
 else:
-    LANGUAGE_CODE = 'en_US'
+    LANGUAGE_CODE = 'en-us'
 
 # Read the list of allowed hosts from the $DOCKER_SAL_ALLOWED env var, or
 # allow all hosts if none was set.

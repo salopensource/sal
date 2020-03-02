@@ -417,6 +417,7 @@ def _get_management_tools(source_names, machine):
         'Puppet': _not_implemented_facts,
         'Salt': _salt_facts,
         'Chef': _not_implemented_facts,
+        'Chrome': _not_implemented_facts,
     }
     management_tool_info = []
     for source_name in source_names:

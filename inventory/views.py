@@ -120,26 +120,33 @@ class GroupMixin():
         Returns:
             Queryset with appropriate filter applied.
         """
-        # Remove undeployed machines from the results.
-        # It's important that we are filtering for deployed machines
-        # here rather than excluding undeployed machines-you get
-        # different results (exclude undeployed will exclude
-        # Applications from list views that have ANY undeployed
-        # machines.
-
-        # This is a little wild, but it's either this or use an eval to
-        # construct the keyword argument name to filter.
-        deployed_filter = '{}{}deployed'.format(
-            self.access_filter[queryset.model][Machine], '' if queryset.model is Machine else '__')
-        kwargs = {deployed_filter: True}
-        # If filter_path is Machine there is nothing to filter on.
-        # TODO: Python 3,8 walrus operator
         self.group_instance = self.get_group_instance()
-        if self.group_instance:
+        kwargs = {}
+        # If our queryset model is Machine, and our group_type is
+        # Machine, just filter to that machine and return. Deployed
+        # doesn't factor in.
+        if self.model is Machine and self.group_type == 'machine':
+            kwargs['pk'] = self.group_id
+        else:
+            # Remove undeployed machines from the results.
+            # It's important that we are filtering for deployed machines
+            # here rather than excluding undeployed machines-you get
+            # different results (exclude undeployed will exclude
+            # Applications from list views that have ANY undeployed
+            # machines.
+
+            # This is a little wild, but it's either this or use an eval to
+            # construct the keyword argument name to filter.
+            deployed_filter = '{}{}deployed'.format(
+                self.access_filter[queryset.model][Machine],
+                '' if queryset.model is Machine else '__')
+            kwargs[deployed_filter] = True
             # No need to filter if group_instance is None.
-            filter_path = (
-                self.access_filter[queryset.model][self.classes[self.kwargs['group_type']]])
-            kwargs[filter_path] = self.group_instance
+            if self.group_instance:
+                filter_path = (
+                    self.access_filter[queryset.model][self.classes[self.kwargs['group_type']]])
+                kwargs[filter_path] = self.group_instance
+
         queryset = queryset.filter(**kwargs)
 
         return queryset
@@ -222,8 +229,8 @@ class InventoryListView(DatatableQuerystringMixin, DatatableView, GroupMixin):
 
     def get_queryset(self):
         # Save request values so we don't have to keep looking them up.
-        self.group_type = self.request.GET.get("group_type", "all")
-        self.group_id = self.request.GET.get("group_id", "0")
+        self.group_type = self.kwargs.get("group_type", "all")
+        self.group_id = self.kwargs.get("group_id", "0")
         self.field_type = self.request.GET.get("field_type", "all")
         self.field_value = self.request.GET.get("field_value", "")
 
@@ -247,8 +254,12 @@ class InventoryListView(DatatableQuerystringMixin, DatatableView, GroupMixin):
         context["application_id"] = self.application.id
         context["group_type"] = self.group_type
         context["group_id"] = self.group_id
+        # All of our models except Machine have a `name` attr. Machine
+        # uses `hostname`. And the "all" group has none, so fail to
+        # None.
         context["group_name"] = (
-            self.group_instance.name if hasattr(self.group_instance, "name") else None)
+            self.group_instance.name if hasattr(self.group_instance, "name") else
+            getattr(self.group_instance, 'hostname', None))
         context["app_name"] = self.application.name
         context["field_type"] = self.field_type
         context["field_value"] = self.field_value

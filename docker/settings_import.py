@@ -69,17 +69,12 @@ if getenv('DOCKER_SAL_TZ'):
 # else:
 #     TIME_ZONE = 'America/New_York'
 
-# Read the preferred language code from $DOCKER_SAL_LANG, use system locale or
-# set to 'en_US' if neither are set
+# Read the preferred language code from $LANG & default to en-us if not set
+# set to 'en-us' if neither are set	# note django does not support locale-format for LANG
 if getenv('DOCKER_SAL_LANG'):
-    if '_' in getenv('DOCKER_SAL_LANG'):
-        LANGUAGE_CODE = getenv('DOCKER_SAL_LANG')
-    else:
-        LANGUAGE_CODE = 'en_US'
-# elif locale.getdefaultlocale():
-#     LANGUAGE_CODE = locale.getdefaultlocale()[0]
+    LANGUAGE_CODE = getenv('DOCKER_SAL_LANG')
 else:
-    LANGUAGE_CODE = 'en_US'
+    LANGUAGE_CODE = 'en-us'
 
 # Read the list of allowed hosts from the $DOCKER_SAL_ALLOWED env var, or
 # allow all hosts if none was set.

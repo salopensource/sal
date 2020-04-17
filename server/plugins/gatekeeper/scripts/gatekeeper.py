@@ -1,16 +1,14 @@
-#!/usr/bin/python
+#!/usr/local/sal/Python.framework/Versions/3.8/bin/python3
 
 
 import os
 import subprocess
-import sys
 
-sys.path.append("/usr/local/sal")
-import utils
+import sal
 
 
 def main():
-    utils.add_plugin_results('Gatekeeper', {'Gatekeeper': gatekeeper_status()})
+    sal.add_plugin_results('Gatekeeper', {'Gatekeeper': gatekeeper_status()})
 
 
 def gatekeeper_status():
@@ -20,7 +18,7 @@ def gatekeeper_status():
 
         cmd = ['/usr/sbin/spctl', '--status']
         try:
-            output = subprocess.check_output(cmd, stderr=subprocess.STDOUT)
+            output = subprocess.check_output(cmd, stderr=subprocess.STDOUT, text=True)
         except subprocess.CalledProcessError as error:
             output = str(error.output)
         status = 'Enabled' if 'assessments enabled' in output else 'Disabled'

@@ -1,12 +1,10 @@
-#!/usr/bin/python
+#!/usr/local/sal/Python.framework/Versions/3.8/bin/python3
 
 
 import os
 import subprocess
-import sys
 
-sys.path.append("/usr/local/sal")
-import utils
+import sal
 
 
 def main():
@@ -14,7 +12,7 @@ def main():
     sip = sip_status()
     gatekeeper = gatekeeper_status()
     data = {'Filevault': filevault, 'SIP': sip, 'Gatekeeper': gatekeeper}
-    utils.add_plugin_results('MachineDetailSecurity', data)
+    sal.add_plugin_results('MachineDetailSecurity', data)
 
 
 def fv_status():
@@ -37,7 +35,7 @@ def get_status(cmd, checkstring, test=''):
         status = 'Not Supported'
     else:
         try:
-            output = subprocess.check_output(cmd, stderr=subprocess.STDOUT)
+            output = subprocess.check_output(cmd, stderr=subprocess.STDOUT, text=True)
         except subprocess.CalledProcessError as error:
             output = str(error.output)
         status = 'Enabled' if checkstring in output else 'Disabled'

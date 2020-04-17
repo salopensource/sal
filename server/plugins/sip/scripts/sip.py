@@ -1,16 +1,14 @@
-#!/usr/bin/python
+#!/usr/local/sal/Python.framework/Versions/3.8/bin/python3
 
 
 import os
 import subprocess
-import sys
 
-sys.path.append("/usr/local/sal")
-import utils
+import sal
 
 
 def main():
-    utils.add_plugin_results('Sip', {'SIP': sip_status()})
+    sal.add_plugin_results('Sip', {'SIP': sip_status()})
 
 
 def sip_status():
@@ -19,7 +17,7 @@ def sip_status():
     else:
         cmd = ['/usr/bin/csrutil', 'status']
         try:
-            output = subprocess.check_output(cmd, stderr=subprocess.STDOUT)
+            output = subprocess.check_output(cmd, stderr=subprocess.STDOUT, text=True)
         except subprocess.CalledProcessError as error:
             output = str(error.output)
 

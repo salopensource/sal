@@ -1,13 +1,11 @@
-#!/usr/bin/python
+#!/usr/local/sal/Python.framework/Versions/3.8/bin/python3
 
 
-import os
 import sys
 
+import sal
 sys.path.append('/usr/local/munki')
 from munkilib import munkicommon
-sys.path.append("/usr/local/sal")
-import utils
 
 
 PREFS_TO_GET = (
@@ -63,7 +61,7 @@ def main():
             exit(0)
 
     data = {pref: str(munkicommon.pref(pref)) for pref in PREFS_TO_GET}
-    utils.add_plugin_results('MunkiInfo', data)
+    sal.add_plugin_results('MunkiInfo', data)
 
 
 if __name__ == '__main__':

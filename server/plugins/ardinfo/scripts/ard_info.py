@@ -1,30 +1,22 @@
-#!/usr/bin/python
+#!/usr/local/sal/Python.framework/Versions/3.8/bin/python3
 
 
-import os
-import sys
+import sal
 
-sys.path.append("/usr/local/munki")
-from munkilib import FoundationPlist
-sys.path.append("/usr/local/sal")
-import utils
+from Foundation import CFPreferencesCopyAppValue
 
 
 def main():
-    ard_path = "/Library/Preferences/com.apple.RemoteDesktop.plist"
-    if os.path.exists(ard_path):
-        ard_prefs = FoundationPlist.readPlist(ard_path)
-    else:
-        ard_prefs = {}
+    bundle_id = "com.apple.RemoteDesktop.plist"
 
-    sal_result_key = "ARD_Info_{}"
+    sal_key = "ARD_Info_{}"
     prefs_key_prefix = "Text{}"
 
     data = {
-        sal_result_key.format(i): ard_prefs.get(prefs_key_prefix.format(i), "")
+        sal_key.format(i): CFPreferencesCopyAppValue(prefs_key_prefix.format(i), bundle_id) or ""
         for i in range(1, 5)}
 
-    utils.add_plugin_results('ARD_Info', data)
+    sal.add_plugin_results('ARD_Info', data)
 
 
 if __name__ == "__main__":

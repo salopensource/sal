@@ -1,25 +1,22 @@
-#!/usr/bin/python
+#!/usr/local/sal/Python.framework/Versions/3.8/bin/python3
 
 
-import os
-import sys
+import pathlib
+import plistlib
 
-sys.path.append('/usr/local/munki')
-from munkilib import FoundationPlist
-sys.path.append("/usr/local/sal")
-import utils
+import sal
 
 
 def main():
-    plist_path = (
+    plist_path = pathlib.Path(
         '/System/Library/CoreServices/CoreTypes.bundle/Contents/Resources/XProtect.meta.plist')
-    if os.path.exists(plist_path):
-        plist = FoundationPlist.readPlist(plist_path)
+    if plist_path.exists():
+        plist = plistlib.loads(plist_path.read_bytes())
         version = str(plist['Version'])
     else:
         version = 'Not supported'
 
-    utils.add_plugin_results('XprotectVersion', {'Version': version})
+    sal.add_plugin_results('XprotectVersion', {'Version': version})
 
 
 if __name__ == '__main__':

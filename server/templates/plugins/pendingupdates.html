@@ -10,12 +10,10 @@
       {% for item in data %}
       <tr>
         <td>
-          {% with safe_name=item.name|safe %}
-          <a href="{% url 'machine_list' plugin safe_name group_type group_id %}">
+          <a href="{% url 'machine_list' plugin item.name group_type group_id %}">
             {{ item.name }}
             <span class="badge pull-right">{{ item.count }}</span>
           </a>
-          {% endwith %}
         </td>
       </tr>
       {% endfor %}

@@ -92,7 +92,6 @@ def index(request):
 
 @login_required
 def machine_list(request, plugin_name, data, group_type='all', group_id=None):
-    plugin_object = process_plugin(plugin_name, group_type, group_id)
     context = {
         'group_type': group_type,
         'group_id': group_id,

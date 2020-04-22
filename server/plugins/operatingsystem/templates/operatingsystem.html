@@ -16,7 +16,7 @@
         {% for item in os.1 %}
             <tr>
               <td>
-                {% with item.os_family|cat:"&"|cat:item.operating_system as data %}
+                {% with item.os_family|cat:"%26"|cat:item.operating_system as data %}
                 <a href="{% url 'machine_list' plugin data group_type group_id %}">
                 {% endwith %}
                   {{ item.operating_system }}

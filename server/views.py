@@ -420,7 +420,7 @@ def _get_management_tools(source_names, machine):
     }
     management_tool_info = []
     for source_name in source_names:
-        management_tool_info.extend(row_funcs[source_name](machine))
+        management_tool_info.extend(row_funcs.get(source_name, _not_implemented_facts)(machine))
 
     return sorted(management_tool_info)
 

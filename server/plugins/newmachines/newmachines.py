@@ -17,7 +17,6 @@ class NewMachines(sal.plugin.Widget):
         ranges['This Month'] = today - timedelta(days=30)
         return ranges
 
-
     def get_context(self, queryset, **kwargs):
         context = self.super_get_context(queryset, **kwargs)
         data = OrderedDict()

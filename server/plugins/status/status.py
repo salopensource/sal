@@ -32,7 +32,6 @@ class Status(sal.plugin.Widget):
             'deployed_machines': ('Deployed Machines', None),
             'undeployed_machines': ('Undeployed Machines', Q(deployed=False))}
 
-
     def get_context(self, queryset, **kwargs):
         context = self.super_get_context(queryset, **kwargs)
 

@@ -7,6 +7,17 @@ import sal.plugin
 
 
 class Activity(sal.plugin.Widget):
+    """Show device checkin activity across several time scales
+
+    This plugin organizes devices into groupings based on how recently
+    they have checked in with Sal.
+
+    Hour: Devices which have checked in within the last hour.
+    Today: Within the last 24 hours, including devices from "Hour".
+    Month: Devices which haven't checked in for over a month, but less
+        than 3 months.
+    Three months: Last checkin more than 3 months.
+    """
 
     widget_width = 12
     description = 'Current Munki activity'

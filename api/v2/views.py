@@ -1,5 +1,5 @@
 from django.http import Http404
-from rest_framework.decorators import detail_route
+from rest_framework.decorators import action
 from rest_framework import generics
 from rest_framework import status
 from rest_framework import viewsets
@@ -129,7 +129,7 @@ class SavedSearchViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = SavedSearch.objects.all()
     serializer_class = SavedSearchSerializer
 
-    @detail_route()
+    @action(detail=True)
     def execute(self, request, pk=None):
         machines = Machine.objects.all()
         try:

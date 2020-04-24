@@ -12,11 +12,12 @@ from itertools import chain
 import requests
 
 from django.conf import settings
-from django.contrib.staticfiles.templatetags.staticfiles import static
+# from django.contrib.staticfiles.templatetags.staticfiles import static
 from django.core.exceptions import ValidationError
 from django.db import connection
 from django.db.models import Count, Max
 from django.shortcuts import get_object_or_404
+from django.templatetags.static import static
 
 from sal.decorators import is_global_admin
 from sal.plugin import BasePlugin, Widget, PluginManager, DetailPlugin, ReportPlugin

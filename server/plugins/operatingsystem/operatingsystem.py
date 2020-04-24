@@ -1,3 +1,4 @@
+import urllib
 from collections import defaultdict, OrderedDict
 from distutils.version import LooseVersion
 
@@ -72,7 +73,7 @@ class OperatingSystem(sal.plugin.Widget):
 
     def filter(self, machines, data):
         try:
-            os_family, operating_system = data.split('&')
+            os_family, operating_system = urllib.parse.unquote(data).split('&')
         except ValueError:
             return None, None
 

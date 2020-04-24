@@ -15,6 +15,8 @@
             },
             "lengthMenu": [[20, 50, 100, 500], [20, 50, 100, 500]],
             "pageLength": {{ page_length }},
+            "initComplete": function ( settings, json) {
+              $('<div/>').html(json.title).prependTo('#title');},
             stateSave: true,
             "order": [2,'desc'],
             "orderMulti": false,
@@ -36,37 +38,20 @@
 {% block content %}
 
 <div class="panel panel-default">
-{% if title %}
-    <div class="panel-heading">
-        {{ title }}
-    </div>
-{% endif %}
-<div class="panel-body">
-    <div class="table-responsive">
-        <table class="groupList table table-striped table-condensed">
-            <thead>
-                <tr>
-                  <th>Machine</th>
-                  <th>User</th>
-                  <th>Latest Run</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for item in machines.all|dictsort:'hostname' %}
-                <tr>
-                    <td>
-                        <a href="{% url 'machine_detail' item.id %}">
-                        {{ item.hostname }}
-                        </a>
-                    </td>
-
-                    <td>{{ item.console_user }}</td>
-                    <td>{{ item.last_checkin|date:"Y-m-d H:i" }}</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
+    <div id="title" class="panel-heading"></div>
+    <div class="panel-body">
+        <div class="table-responsive">
+            <table id="test" class="groupList table table-striped table-condensed">
+                <thead>
+                    <tr>
+                      <th>Machine</th>
+                      <th>User</th>
+                      <th>Latest Run</th>
+                    </tr>
+                </thead>
+                <tbody/>
+            </table>
+        </div>
     </div>
 </div>
 {% endblock %}

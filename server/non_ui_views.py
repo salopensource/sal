@@ -70,7 +70,7 @@ def tableajax(request, plugin_name, data, group_type='all', group_id=None):
     plugin_object = process_plugin(plugin_name, group_type, group_id)
     queryset = plugin_object.get_queryset(
         request, group_type=group_type, group_id=group_id)
-    machines, _ = plugin_object.filter_machines(queryset, data)
+    machines, title = plugin_object.filter_machines(queryset, data)
     machines = machines.values('id', 'hostname', 'console_user', 'last_checkin')
 
     if len(order_name) != 0:
@@ -90,6 +90,7 @@ def tableajax(request, plugin_name, data, group_type='all', group_id=None):
     limited_machines = searched_machines[start:(start + length)]
 
     return_data = {}
+    return_data['title'] = title
     return_data['draw'] = int(draw)
     return_data['recordsTotal'] = machines.count()
     return_data['recordsFiltered'] = return_data['recordsTotal']

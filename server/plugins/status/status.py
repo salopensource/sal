@@ -9,48 +9,49 @@ import sal.plugin
 from server.models import Machine, MachineGroup, BusinessUnit
 
 
-NOW = django.utils.timezone.now()
-TODAY = NOW - timedelta(hours=24)
-WEEK_AGO = TODAY - timedelta(days=7)
-MONTH_AGO = TODAY - timedelta(days=30)
-THREE_MONTHS_AGO = TODAY - timedelta(days=90)
-
-STATUSES = {
-    'broken_clients': ('Machines with broken Python', Q(broken_client=True)),
-    'errors': ('Machines with errors', Q(messages__message_type='ERROR')),
-    'warnings': ('Machines with warnings', Q(messages__message_type='WARNING')),
-    'sevendayactive': ('7 day active machines', Q(last_checkin__gte=WEEK_AGO)),
-    'thirtydayactive': ('30 day active machines', Q(last_checkin__gte=MONTH_AGO)),
-    'ninetydayactive': ('90 day active machines', Q(last_checkin__gte=THREE_MONTHS_AGO)),
-    'all_machines': ('All machines', None),
-    'deployed_machines': ('Deployed Machines', None),
-    'undeployed_machines': ('Undeployed Machines', Q(deployed=False))}
-
-
 class Status(sal.plugin.Widget):
 
     description = 'General status'
     only_use_deployed_machines = False
 
+    def _get_statuses(self):
+        now = django.utils.timezone.now()
+        today = now - timedelta(hours=24)
+        week_ago = today - timedelta(days=7)
+        month_ago = today - timedelta(days=30)
+        three_months_ago = today - timedelta(days=90)
+
+        return {
+            'broken_clients': ('Machines with broken Python', Q(broken_client=True)),
+            'errors': ('Machines with errors', Q(messages__message_type='ERROR')),
+            'warnings': ('Machines with warnings', Q(messages__message_type='WARNING')),
+            'sevendayactive': ('7 day active machines', Q(last_checkin__gte=week_ago)),
+            'thirtydayactive': ('30 day active machines', Q(last_checkin__gte=month_ago)),
+            'ninetydayactive': ('90 day active machines', Q(last_checkin__gte=three_months_ago)),
+            'all_machines': ('All machines', None),
+            'deployed_machines': ('Deployed Machines', None),
+            'undeployed_machines': ('Undeployed Machines', Q(deployed=False))}
+
     def get_context(self, queryset, **kwargs):
         context = self.super_get_context(queryset, **kwargs)
 
         context['data'] = {}
-        for key, item in STATUSES.items():
+        for key, item in self._get_statuses().items():
             context['data'][key] = (item[0], self._filter(queryset, key).count())
 
         return context
 
     def filter(self, machines, data):
-        if data not in STATUSES:
+        statuses = self._get_statuses()
+        if data not in statuses:
             return None, None
         machines = self._filter(machines, data)
-        title = STATUSES[data][0]
+        title = statuses[data][0]
         return machines, title
 
     def _filter(self, machines, data):
         try:
-            machine_filter = STATUSES[data][1]
+            machine_filter = self._get_statuses()[data][1]
         except KeyError:
             return None
 

@@ -1,7 +1,7 @@
 # Sal
 [![CircleCI](https://circleci.com/gh/salopensource/sal.svg?style=svg)](https://circleci.com/gh/salopensource/sal)
 
-Sal is a multi-tenanted reporting dashboard for [Munki](https://github.com/munki/munki/) with the ability to display information from [Facter](http://puppetlabs.com/facter). It has a plugin system allowing you to easily build widgets to display your custom information from Facter, Grains, Munki's [conditional items](https://github.com/munki/munki/wiki/Conditional-Items) etc.
+Sal is a multi-tenanted reporting dashboard for [Munki](https://github.com/munki/munki/) with the ability to display information from [Facter](https://puppet.com/docs/puppet/latest/facter.html). It has a plugin system allowing you to easily build widgets to display your custom information from Facter, Grains, Munki's [conditional items](https://github.com/munki/munki/wiki/Conditional-Items) etc.
 
 With Sal, you are able to allow access to reports on certain sets of machines to certain people - for example, giving a manager access to the reports on the machines in their department.
 

@@ -92,15 +92,10 @@ def index(request):
 
 @login_required
 def machine_list(request, plugin_name, data, group_type='all', group_id=None):
-    plugin_object = process_plugin(plugin_name, group_type, group_id)
-    # Plugin will raise 404 if bad `data` is passed.
-    machines, title = plugin_object.filter_machines(Machine.objects.none(), data)
     context = {
         'group_type': group_type,
         'group_id': group_id,
         'plugin_name': plugin_name,
-        'machines': machines,
-        'title': title,
         'request': request,
         'data': data,
         'page_length': utils.get_setting('datatable_page_length')}
@@ -420,7 +415,7 @@ def _get_management_tools(source_names, machine):
     }
     management_tool_info = []
     for source_name in source_names:
-        management_tool_info.extend(row_funcs[source_name](machine))
+        management_tool_info.extend(row_funcs.get(source_name, _not_implemented_facts)(machine))
 
     return sorted(management_tool_info)
 

@@ -6,10 +6,6 @@ from django.db.models import Q
 import sal.plugin
 
 
-NOW = django.utils.timezone.now()
-TODAY = NOW - timedelta(hours=24)
-MONTH_AGO = TODAY - timedelta(days=30)
-
 PUPPET_Q = Q(facts__management_source__name='Puppet')
 
 TITLES = {
@@ -57,10 +53,14 @@ class PuppetStatus(sal.plugin.Widget):
                 facts__fact_data__gt=0)
 
         elif data == '1month':
+            now = django.utils.timezone.now()
+            today = now - timedelta(hours=24)
+            month_ago = today - timedelta(days=30)
+
             machines = machines.filter(
                 PUPPET_Q,
                 facts__fact_name='last_puppet_run',
-                facts__fact_data__lte=MONTH_AGO)
+                facts__fact_data__lte=month_ago)
 
         elif data == 'success':
             machines = machines.filter(

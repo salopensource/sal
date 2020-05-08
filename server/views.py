@@ -362,7 +362,7 @@ def machine_detail(request, **kwargs):
     # Determine which tab to display first.
     # TODO: Do we just use the first, or configure for each OS / source?
     if machine.os_family == 'Darwin':
-        initial_source = 'munki'
+        initial_source = 'Munki'
         active_table = 'ManagedInstalls'
     else:
         sources = sorted([s for s in managed_items])

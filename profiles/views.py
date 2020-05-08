@@ -84,20 +84,18 @@ def submit_profiles(request):
                                 profile=stored_profile,
                                 identifier=payload.get('PayloadIdentifier', ''),
                                 uuid=payload.get('PayloadUUID', ''),
-                                payload_type=payload.get('PayloadType', '')
-                            )
+                                payload_type=payload.get('PayloadType', ''))
 
                             if utils.is_postgres():
                                 payloads_to_save.append(payload_item)
                             else:
                                 payload_item.save()
-                break
+                        break
 
             if utils.is_postgres():
                 Payload.objects.bulk_create(payloads_to_save)
 
             utils.run_profiles_plugin_processing(machine, profiles_list)
 
-            return HttpResponse("Profiles submitted for %s.\n" %
-                                submission.get('serial'))
+            return HttpResponse("Profiles submitted for %s.\n" % submission.get('serial'))
     return HttpResponse("No profiles submitted.\n")

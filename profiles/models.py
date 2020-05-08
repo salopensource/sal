@@ -1,5 +1,5 @@
 from django.db import models
-from server.models import *
+from server.models import Machine
 
 
 class Profile(models.Model):

@@ -492,6 +492,22 @@ def machine_detail_facts(request, machine_id, management_source, **kwargs):
 
 
 @login_required
+@access_required(Machine)
+def machine_detail_profiles(request, machine_id, **kwargs):
+    machine = kwargs['instance']
+    title = f'Profiles for {machine.hostname}'
+    context = {
+        'user': request.user,
+        'machine': machine,
+        'fact_sources': get_fact_sources(machine),
+        'table_data': machine.profile_set.all(),
+        'title': title,
+        'page_length': utils.get_setting('datatable_page_length')
+    }
+    return render(request, 'server/machine_detail_profiles.html', context)
+
+
+@login_required
 @required_level(ProfileLevel.global_admin, ProfileLevel.read_write)
 @access_required(Machine)
 def delete_machine(request, **kwargs):

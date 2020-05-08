@@ -12,6 +12,8 @@ urlpatterns = [
     path('machinegroup/<int:group_id>/', group_dashboard, name='group_dashboard'),
     path('machine_detail/facts/<int:machine_id>/<management_source>/', machine_detail_facts,
          name='machine_detail_facts'),
+    path('machine_detail/profiles/<int:machine_id>/', machine_detail_profiles,
+         name='machine_detail_profiles'),
     path('machine_detail/<int:machine_id>/', machine_detail, name='machine_detail'),
     # Handle special case of allowing serial number "permalinks".
     # This will trigger a ValueError in the decorator code by design!

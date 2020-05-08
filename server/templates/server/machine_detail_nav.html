@@ -1,5 +1,6 @@
 <li><a href="{% url 'group_dashboard' machine.machine_group.id %}"><i class="fa fa-chevron-left fa-fw"></i> {{machine.machine_group}}</a></li>
 <li><a href="{% url 'machine_detail' machine.id %}"><i class="fa fa-laptop fa-fw"></i> Overview</a></li>
+<li><a href="{% url 'machine_detail_profiles' machine.id %}"><i class="fa fa-paperclip fa-fw"></i> Profiles</a></li>
 {% for management_source in fact_sources %}
 <li><a href="{% url 'machine_detail_facts' machine.id management_source %}"><i class="fa fa-bookmark fa-fw"></i> {% if management_source %}{{ management_source }}{% else %}Legacy{% endif%} Facts</a></li>
 {% endfor %}

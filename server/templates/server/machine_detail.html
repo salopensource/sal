@@ -216,17 +216,19 @@ $( document ).ready(function() {
           {% if managed_items %}
           {% for management_source, items in managed_items.items %}
             {% if items|length == 1 %}
+            <!-- This type has no subtypes, so don't do a dropdown menu -->
             <li {% if management_source == initial_source %}class="active" {% endif %}role="presentation">
             {% for item_type in items %}
-            <a aria-expanded="true" data-toggle="tab" href="#{{ item_type|slugify }}">{{ management_source }}</a>
+              <a aria-expanded="true" data-toggle="tab" href="#{{ management_source|slugify }}-{{ item_type|slugify }}">{{ management_source }}</a>
             {% endfor %}
             </li>
             {% else %}
+            <!-- This type has subtypes, so do a dropdown menu -->
             <li class="dropdown{% if management_source == initial_source %} active{% endif %}" role="presentation">
               <a class="dropdown-toggle" role="button" aria-haspopup="true" data-toggle="dropdown" href="#">{{ management_source }} <span class="caret"></span></a>
               <ul class="dropdown-menu" role="menu">
               {% for item_type in items %}
-                <li><a data-toggle="tab" href="#{{ item_type|slugify }}"><i class="fa fa-info-circle color-green"></i>   {{ item_type }}</a></li>
+                <li><a data-toggle="tab" href="#{{ management_source|slugify }}-{{ item_type|slugify }}"><i class="fa fa-info-circle color-green"></i>   {{ item_type }}</a></li>
               {% endfor %}
               </ul>
             </li>
@@ -238,7 +240,7 @@ $( document ).ready(function() {
           <div class="tab-content">
           {% for management_source, items in managed_items.items %}
             {% for key, values in items.items %}
-              <div class="tab-pane {% if active_table == key %}in active{% endif %} fade" id="{{ key|slugify }}">
+              <div class="tab-pane {% if active_table == key %}in active{% endif %} fade" id="{{ management_source|slugify }}-{{ key|slugify }}">
                 {% with title=management_source items=values type=key %}
                   {% include 'server/managed_item_table.html' %}
                 {% endwith %}

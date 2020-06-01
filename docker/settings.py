@@ -2,28 +2,28 @@
 from sal.system_settings import *
 from sal.settings_import import *
 
+
 DATABASES = {
     'default': {
         # Add 'postgresql_psycopg2', 'mysql', 'sqlite3' or 'oracle'.
         'ENGINE': 'django.db.backends.sqlite3',
         # Or path to database file if using sqlite3.
         'NAME': os.path.join(PROJECT_DIR, 'db/sal.db'),
-        'USER': '',                      # Not used with sqlite3.
-        'PASSWORD': '',                  # Not used with sqlite3.
-        'HOST': '',                      # Set to empty string for localhost. Not used with sqlite3.
-        'PORT': '',                      # Set to empty string for default. Not used with sqlite3.
+        'USER': '',  # Not used with sqlite3.
+        'PASSWORD': '',  # Not used with sqlite3.
+        'HOST': '',  # Set to empty string for localhost. Not used with sqlite3.
+        'PORT': '',  # Set to empty string for default. Not used with sqlite3.
     }
 }
 
 # Memcached
 if 'MEMCACHED_PORT_11211_TCP_ADDR' in os.environ:
+    addr = os.environ['MEMCACHED_PORT_11211_TCP_ADDR']
+    port = os.environ['MEMCACHED_PORT_11211_TCP_PORT']
     CACHES = {
         'default': {
             'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
-            'LOCATION': [
-                '%s:%s' % (os.environ['MEMCACHED_PORT_11211_TCP_ADDR'],
-                           os.environ['MEMCACHED_PORT_11211_TCP_PORT'], '11211'),
-            ]
+            'LOCATION': [f"{addr}:{port}", '11211']
         }
     }
 

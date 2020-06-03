@@ -18,6 +18,8 @@ AUTH_PROFILE_MODULE = "sal.UserProfile"
 DISPLAY_NAME = 'Sal'
 MANAGERS = ADMINS
 DEPLOYED_ON_CHECKIN = False
+ADD_TO_ALL_BUSINESS_UNITS = False
+ADD_NEW_MACHINES = True
 INACTIVE_UNDEPLOYED = 0
 SEARCH_FACTS = []
 SEARCH_CONDITIONS = []
@@ -86,6 +88,10 @@ HISTORICAL_FACTS = [
 # How long to keep historical facts around before pruning them.
 HISTORICAL_DAYS = 180
 
+# Facts to be discarded and not saved to the database
+IGNORE_FACTS = []
+
+# Facts to not be displayed on the Machine Information page
 EXCLUDED_FACTS = {
     'sshrsakey',
     'sshfp_rsa',

@@ -540,7 +540,8 @@ def get_active_and_inactive_plugins(plugin_kind='machines'):
 def unique_plugin_order(plugin_type='machines'):
     model = PLUGIN_MODELS[plugin_type][0]
     try:
-        id_max = model.objects.aggregate(Max('order'))['order__max']
+        # Return 0 if no machine plugins exist
+        id_max = model.objects.aggregate(Max('order'))['order__max'] or 0
     except KeyError:
         id_max = 0
     return id_max + 1

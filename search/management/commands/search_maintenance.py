@@ -102,7 +102,14 @@ class Command(BaseCommand):
 
         if server.utils.is_postgres() is True:
             old_cache.delete()
-            SearchFieldCache.objects.bulk_create(search_fields)
+            try:
+                SearchFieldCache.objects.bulk_create(search_fields)
+            except:
+                for item in search_fields:
+                    if len(str(item)) > 254:
+                        search_fields.remove(item)
+                        SearchFieldCache.objects.bulk_create(search_fields)
+
 
         # Build the fact cache
         items_to_be_inserted = []

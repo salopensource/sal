@@ -9,7 +9,7 @@ import sal.plugin
 from server.utils import get_setting
 
 
-# This table is also used for sequnecing output, so use OrderedDict.
+# This table is also used for sequencing output, so use OrderedDict.
 OS_TABLE = OrderedDict(Darwin='macOS', Windows='Windows', Linux='Linux', ChromeOS='Chrome OS')
 
 
@@ -32,8 +32,9 @@ class OperatingSystem(sal.plugin.Widget):
 
         grouped = defaultdict(list)
         for version in os_info:
-            os_type = OS_TABLE[version['os_family']]
-            grouped[os_type].append(version)
+            os_type = OS_TABLE.get(version['os_family'])
+            if os_type:
+                grouped[os_type].append(version)
 
         normalize_chromeos_versions = get_setting('normalize_chromeos_versions')
         if normalize_chromeos_versions:
@@ -63,7 +64,7 @@ class OperatingSystem(sal.plugin.Widget):
                     chrome_items.append(item_to_add)
 
             grouped['Chrome OS'] = chrome_items
-        # you and your lanbda's @sheacraig...
+        # you and your lambdas @sheacraig...
         os_key = lambda x: LooseVersion(x["operating_system"])  # noqa: E731
         output = [
             (key, sorted(grouped[key], key=os_key, reverse=True)) for key in OS_TABLE.values()]

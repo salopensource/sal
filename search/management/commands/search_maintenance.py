@@ -2,6 +2,7 @@
 
 from time import sleep
 import gc
+import logging
 
 from django.core.management.base import BaseCommand
 from django.conf import settings
@@ -16,6 +17,7 @@ import server.utils
 # This is down here because an import * from above is clobbering
 import datetime
 
+logger = logging.getLogger(__name__)
 
 class Command(BaseCommand):
     help = 'Cleans up old searches and rebuilds search fields cache'
@@ -107,6 +109,7 @@ class Command(BaseCommand):
             except:
                 for item in search_fields:
                     if len(str(item)) > 254:
+                        logger.warning(f"{item} is over 254 char. removing from search_fields")
                         search_fields.remove(item)
                         SearchFieldCache.objects.bulk_create(search_fields)
 

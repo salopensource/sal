@@ -12,9 +12,9 @@ jobs:
       # Download and cache dependencies
       - restore_cache:
           keys:
-          - v1-dependencies-{{ checksum "setup/requirements.txt" }}
-          # fallback to using the latest cache if no exact match is found
-          - v1-dependencies-
+            - v1-dependencies-{{ checksum "setup/requirements.txt" }}
+            # fallback to using the latest cache if no exact match is found
+            - v1-dependencies-
 
       - run:
           name: install dependencies
@@ -102,14 +102,14 @@ workflows:
             - test
           filters:
             branches:
-              only: master
+              only: main
       - build_branch:
           requires:
             - test
           filters:
             branches:
               ignore:
-                - master
+                - main
       - build_tag:
           requires:
             - test

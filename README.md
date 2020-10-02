@@ -1,4 +1,5 @@
 # Sal
+
 [![CircleCI](https://circleci.com/gh/salopensource/sal.svg?style=svg)](https://circleci.com/gh/salopensource/sal)
 
 Sal is a multi-tenanted reporting dashboard for [Munki](https://github.com/munki/munki/) with the ability to display information from [Facter](https://puppet.com/docs/puppet/latest/facter.html). It has a plugin system allowing you to easily build widgets to display your custom information from Facter, Grains, Munki's [conditional items](https://github.com/munki/munki/wiki/Conditional-Items) etc.
@@ -7,13 +8,13 @@ With Sal, you are able to allow access to reports on certain sets of machines to
 
 Sal also features powerful search capabilities and application inventory and support for Munki's license tracking.
 
-![Sal](https://github.com/salopensource/sal/raw/master/assets/Sal.png)
+![Sal](https://github.com/salopensource/sal/raw/main/assets/Sal.png)
 
 ## Getting Started
 
 First off, you're going to need to get the Server and then the Client component of Sal installed. [Instructions can be found here](https://github.com/salopensource/sal/wiki/Getting-Started).
 
-Once you've got clients reporting in, you're probably going to want to customise what you see on the various screens. [Here is a full list](https://github.com/salopensource/sal/wiki/Settings) of the various options that can be set in ``sal/settings.py``.
+Once you've got clients reporting in, you're probably going to want to customise what you see on the various screens. [Here is a full list](https://github.com/salopensource/sal/wiki/Settings) of the various options that can be set in `sal/settings.py`.
 
 If you would like a demo of setting up Sal along with some of the features please watch the following presentation Graham made at the 2014 [Penn State MacAdmins Conference](http://youtu.be/BPTJnz27T44?t=21m28s). Slides available from [here](http://grahamgilbert.com/images/posts/2014-07-09/Multi_site_Munki.pdf).
 
@@ -21,7 +22,7 @@ If you would like a demo of setting up Sal along with some of the features pleas
 
 Sal has full search across machines, Facts and Munki conditions. For more information, see [it's documentation](https://github.com/salopensource/sal/wiki/Search).
 
-![Search](https://github.com/salopensource/sal/raw/master/assets/Built%20search.png)
+![Search](https://github.com/salopensource/sal/raw/main/assets/Built%20search.png)
 
 ## Plugins
 

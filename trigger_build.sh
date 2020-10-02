@@ -4,10 +4,10 @@ source SAL_ENVS
 if [ "$1" != "" ]; then
     BRANCH="$1"
 else
-    BRANCH="master"
+    BRANCH="main"
 fi
 
-if [ "$BRANCH" != "master" ]; then
+if [ "$BRANCH" != "main" ]; then
     TAG="$BRANCH"
 else
     TAG="latest"

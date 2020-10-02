@@ -1,4 +1,4 @@
-'''Cleans up old searches and rebuilds search fields cache'''
+"""Cleans up old searches and rebuilds search fields cache"""
 
 from time import sleep
 import gc
@@ -19,85 +19,97 @@ import datetime
 
 logger = logging.getLogger(__name__)
 
+
 class Command(BaseCommand):
-    help = 'Cleans up old searches and rebuilds search fields cache'
+    help = "Cleans up old searches and rebuilds search fields cache"
 
     def add_arguments(self, parser):
-        parser.add_argument('sleep_time', type=int, nargs='?', default=0)
+        parser.add_argument("sleep_time", type=int, nargs="?", default=0)
 
     def handle(self, *args, **options):
 
-        sleep_time = options['sleep_time']
+        sleep_time = options["sleep_time"]
         sleep(sleep_time)
         old_searches = SavedSearch.objects.filter(
-            created__lt=datetime.datetime.today() - datetime.timedelta(days=30), save_search=False)
+            created__lt=datetime.datetime.today() - datetime.timedelta(days=30),
+            save_search=False,
+        )
         old_searches.delete()
 
         search_fields = []
 
         skip_fields = [
-            'id',
+            "id",
         ]
 
-        inventory_fields = [
-            'Name',
-            'Bundle ID',
-            'Bundle Name',
-            'Path'
-        ]
+        inventory_fields = ["Name", "Bundle ID", "Bundle Name", "Path"]
 
-        facts = Fact.objects.values('fact_name').distinct()
+        facts = Fact.objects.values("fact_name").distinct()
         plugin_sript_rows = PluginScriptRow.objects.values(
-            'pluginscript_name', 'submission__plugin').distinct()
-        app_versions = Application.objects.values('name', 'bundleid').distinct()
+            "pluginscript_name", "submission__plugin"
+        ).distinct()
+        app_versions = Application.objects.values("name", "bundleid").distinct()
 
         old_cache = SearchFieldCache.objects.all()
         if server.utils.is_postgres() is False:
             old_cache.delete()
         for f in Machine._meta.fields:
             if f.name not in skip_fields:
-                cached_item = SearchFieldCache(search_model='Machine', search_field=f.name)
+                cached_item = SearchFieldCache(
+                    search_model="Machine", search_field=f.name
+                )
                 search_fields.append(cached_item)
                 if server.utils.is_postgres() is False:
                     cached_item.save()
 
         for fact in facts.iterator():
-            cached_item = SearchFieldCache(search_model='Facter', search_field=fact['fact_name'])
+            cached_item = SearchFieldCache(
+                search_model="Facter", search_field=fact["fact_name"]
+            )
             search_fields.append(cached_item)
             if server.utils.is_postgres() is False:
                 cached_item.save()
 
         for row in plugin_sript_rows.iterator():
-            string = '%s=>%s' % (row['submission__plugin'], row['pluginscript_name'])
-            cached_item = SearchFieldCache(search_model='External Script', search_field=string)
+            string = "%s=>%s" % (row["submission__plugin"], row["pluginscript_name"])
+            cached_item = SearchFieldCache(
+                search_model="External Script", search_field=string
+            )
             search_fields.append(cached_item)
             if server.utils.is_postgres() is False:
                 cached_item.save()
 
         for inventory_field in inventory_fields:
             cached_item = SearchFieldCache(
-                search_model='Application Inventory', search_field=inventory_field)
+                search_model="Application Inventory", search_field=inventory_field
+            )
             search_fields.append(cached_item)
             if server.utils.is_postgres() is False:
                 cached_item.save()
 
         for app in app_versions.iterator():
-            string = '%s=>%s' % (app['name'], app['bundleid'])
-            cached_item = SearchFieldCache(search_model='Application Version', search_field=string)
+            string = "%s=>%s" % (app["name"], app["bundleid"])
+            cached_item = SearchFieldCache(
+                search_model="Application Version", search_field=string
+            )
             search_fields.append(cached_item)
             if server.utils.is_postgres() is False:
                 cached_item.save()
 
         for f in Profile._meta.fields:
             if f.name not in skip_fields:
-                cached_item = SearchFieldCache(search_model='Profile', search_field=f.name)
+                cached_item = SearchFieldCache(
+                    search_model="Profile", search_field=f.name
+                )
                 search_fields.append(cached_item)
                 if server.utils.is_postgres() is False:
                     cached_item.save()
 
         for f in Payload._meta.fields:
             if f.name not in skip_fields:
-                cached_item = SearchFieldCache(search_model='Profile Payload', search_field=f.name)
+                cached_item = SearchFieldCache(
+                    search_model="Profile Payload", search_field=f.name
+                )
                 search_fields.append(cached_item)
                 if server.utils.is_postgres() is False:
                     cached_item.save()
@@ -106,13 +118,15 @@ class Command(BaseCommand):
             old_cache.delete()
             try:
                 SearchFieldCache.objects.bulk_create(search_fields)
-            except:
+            # base exception is nasty, but bulk_create doesn't give much back
+            except Exception:
                 for item in search_fields:
                     if len(str(item)) > 254:
-                        logger.warning(f"{item} is over 254 char. removing from search_fields")
+                        logger.warning(
+                            f"{item} is over 254 char. removing from search_fields"
+                        )
                         search_fields.remove(item)
                         SearchFieldCache.objects.bulk_create(search_fields)
-
 
         # Build the fact cache
         items_to_be_inserted = []
@@ -129,7 +143,9 @@ class Command(BaseCommand):
             for fact in facts.iterator():
                 # If someone ships a fact that is too long, we want to skip it
                 if len(fact.fact_data) <= 254:
-                    cached_item = SearchCache(machine=fact.machine, search_item=fact.fact_data)
+                    cached_item = SearchCache(
+                        machine=fact.machine, search_item=fact.fact_data
+                    )
                     items_to_be_inserted.append(cached_item)
                     if not server.utils.is_postgres():
                         cached_item.save()

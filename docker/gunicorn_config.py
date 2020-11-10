@@ -25,6 +25,7 @@ max_requests = 1000
 max_requests_jitter = 50
 worker_class = 'gevent'
 
+
 # Patch psycopg to better work with gevent greenlets
 def post_fork(server, worker):
     from psycogreen.gevent import patch_psycopg

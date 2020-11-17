@@ -408,7 +408,7 @@ def _get_management_tools(source_names, machine):
         'Apple Software Update': _sus_facts,
         # Want to show data about a management source? Implement a func and
         # change here...
-        'Puppet': _not_implemented_facts,
+        'Puppet': _puppet_facts,
         'Salt': _salt_facts,
         'Chef': _not_implemented_facts,
         'Chrome': _not_implemented_facts,
@@ -456,7 +456,7 @@ def _salt_facts(machine):
 
 
 def _puppet_facts(machine):
-    info_names = ('puppet_version', 'puppet_errors', 'last_puppet_run')
+    info_names = ('puppetversion', 'puppet_errors', 'last_puppet_run')
     rows = _get_management_facts(machine, 'Puppet', info_names)
     return rows
 

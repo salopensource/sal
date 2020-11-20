@@ -1,7 +1,8 @@
 from datetime import timedelta
 
 import django.utils.timezone
-from django.db.models import Q
+from django.db.models import (Q, DateTimeField)
+from django.db.models.functions import Cast
 
 import sal.plugin
 
@@ -57,10 +58,12 @@ class PuppetStatus(sal.plugin.Widget):
             today = now - timedelta(hours=24)
             month_ago = today - timedelta(days=30)
 
+            # fact_data is TextField so cast on the fly
             machines = machines.filter(
                 PUPPET_Q,
-                facts__fact_name='last_puppet_run',
-                facts__fact_data__lte=month_ago)
+                facts__fact_name='last_puppet_run').annotate(
+                    last=Cast('facts__fact_data', output_field=DateTimeField())).filter(
+                last__lte=month_ago)
 
         elif data == 'success':
             machines = machines.filter(

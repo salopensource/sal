@@ -1,5 +1,6 @@
 from collections import Counter
 from operator import itemgetter
+import re
 
 from django.db.models import Q
 
@@ -30,9 +31,15 @@ class MachineModelsBar(sal.plugin.Widget):
                     machine.machine_model, machine.machine_model)
             machine_models[machine_model_friendly] += 1
 
-        data = [{"label": model, "value": machine_models[model]}
-                for model in machine_models]
-        sorted_data = sorted(data, key=itemgetter("value"))
+        def getyear(model):
+            try:
+                return re.findall(r'(\d{4})', model)[0]
+            except IndexError:
+                return 'unknown'
+
+        data = [{"label": model, "value": machine_models[model],
+                 "year": getyear(model)} for model in machine_models]
+        sorted_data = sorted(data, key=itemgetter("year"))
 
         context["data"] = sorted_data
 

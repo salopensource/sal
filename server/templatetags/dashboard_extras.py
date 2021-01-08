@@ -29,11 +29,11 @@ def human_readable_size(size_in_bytes, base2=True):
     """
     try:
         size_in_bytes = float(size_in_bytes)
-    except ValueError:
+    except (ValueError, TypeError):
         size_in_bytes = 0
-    base, suffix = (1024.0, 'iB') if base2 else (1000.0, 'B')
+    base, suffix = (1024.0, "iB") if base2 else (1000.0, "B")
     # Build an iterable of suffixes to work through.
-    for x in ['B'] + list(map(lambda x: x + suffix, list('kMGTP'))):
+    for x in ["B"] + list(map(lambda x: x + suffix, list("kMGTP"))):
         if -base < size_in_bytes < base:
             return f"{size_in_bytes:.2f} {x}"
         size_in_bytes /= base
@@ -59,10 +59,10 @@ def cat(arg1, arg2):
 
 @register.filter
 def macos(os_version):
-    if LooseVersion(os_version) > LooseVersion('10.11.99'):
-        return 'macOS'
+    if LooseVersion(os_version) > LooseVersion("10.11.99"):
+        return "macOS"
     else:
-        return 'OS X'
+        return "OS X"
 
 
 @register.filter

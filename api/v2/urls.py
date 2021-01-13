@@ -28,7 +28,9 @@ urlpatterns = [
     path("api-auth/", include("rest_framework.urls", namespace="rest_framework")),
     path(
         "openapi",
-        get_schema_view(title="Sal API", description="API for Sal", version="2.0.0"),
+        get_schema_view(
+            title="Sal REST API", description="REST API for Sal", version="2.0.0"
+        ),
         name="openapi-schema",
     ),
 ]
@@ -41,6 +43,6 @@ urlpatterns.append(
         TemplateView.as_view(
             template_name="redoc.html", extra_context={"schema_url": "openapi-schema"}
         ),
-        name="redoc",
+        name="api-docs",
     ),
 )

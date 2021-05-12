@@ -11,7 +11,7 @@
     {% for os in os_info %}
       {% if os.1 %}
         <tr>
-          <th>{{ os.0 }}</th>
+          <th>{{ os.0 }}<span class="badge pull-right">{{ os.1|item_sum:'count' }}</span></th>
         </tr>
         {% for item in os.1 %}
             <tr>

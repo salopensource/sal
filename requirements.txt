@@ -1,5 +1,5 @@
 -r setup/requirements.txt
-gunicorn==20.0.4
+gunicorn==20.1.0
 psycopg2-binary==2.8.5
 gevent==1.5.0
-greenlet==0.4.15
+greenlet==1.1.0

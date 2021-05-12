@@ -1,17 +1,18 @@
-coreapi==2.3.3
-Django==3.0.7
+Django==3.0.14
 django-bootstrap3==12.0.3
-django-debug-toolbar==1.5
+django-debug-toolbar==3.2.1
 django-filter==2.2.0
-djangorestframework==3.11.0
+djangorestframework==3.11.2
 idna==2.7
 # Required for DRF
 markdown==3.2.1
 netaddr==0.7.19
 python-dateutil==2.8.1
 pytz==2019.3
+PyYAML==5.4
 requests==2.23.0
 six==1.14.0
 ulid2==0.2.0
+uritemplate==3.0.1
 urllib3==1.25.9
 Yapsy==1.12.2

@@ -115,6 +115,14 @@ def sort(data):
 
 
 @register.filter
+def item_sum(seq, name):
+    """Return the sum of an iterable by attribute or key"""
+    if seq and isinstance(seq[0], dict):
+        return sum(i[name] for i in seq)
+    return sum(getattr(i, name) for i in seq)
+
+
+@register.filter
 def dict_lookup(d, k):
     return d[k]
 

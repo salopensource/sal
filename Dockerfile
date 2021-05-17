@@ -1,5 +1,5 @@
 # Sal Dockerfile
-FROM python:3.7.1
+FROM python:3.9.5-slim-buster
 
 MAINTAINER Graham Gilbert <graham@grahamgilbert.com>
 

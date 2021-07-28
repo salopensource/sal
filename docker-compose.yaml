@@ -1,35 +1,30 @@
-version: '3'
-# volumes:
-#   - ./db
+version: "3.9"
+
 services:
-  caddy:
-    image: abiosoft/caddy
-    depends_on:
-      - sal
+  db:
+    image: grahamgilbert/postgres
     ports:
-      - "80:80"
-      - "443:443"
+      - "5432:5432"
+    volumes:
+      - /tmp/postgresql/db:/var/lib/postgresql/data
+    restart: always
+    environment:
+        DB_NAME: sal
+        DB_USER: admin
+        DB_PASS: password
+
   sal:
-    # image: macadmins/sal
-    build: .
-    ports:
-      - "8000:8000"
     depends_on:
       - db
+    image: macadmins/sal
+    ports:
+      - "80:8000"
+    restart: always
     environment:
-      - ADMIN_PASS=pass
-      - DB_NAME=sal
-      - DB_USER=admin
-      - DB_PASS=password
-      - DOCKER_SAL_DEBUG=true
-      - WAIT_FOR_POSTGRES=true
-  db:
-    image: grahamgilbert/postgres:9.4.5
-    volumes:
-      - ./db:/var/lib/postgresql/data
-    environment:
-      - DB_NAME=sal
-      - DB_USER=admin
-      - DB_PASS=password
-    # ports:
-    #   - "5432:5432"
+      ADMIN_PASS: pass
+      DB_NAME: sal
+      DB_USER: admin
+      DB_PASS: password
+volumes:
+  db_data: {}
+

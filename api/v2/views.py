@@ -34,19 +34,22 @@ class InventoryViewSet(viewsets.ReadOnlyModelViewSet):
     list:
     You may also use the `search` querystring to perform text searches
     across the `application__name`, `application__bundleid`,
-        `application__bundlename` fields.
+        `application__bundlename`, `application__Caption`, `application__Description`,
+        `application__HotFixID`, `application__InstallDate`, `application__InstallDate2`, `application__Version` fields.
 
-    Example `/api/inventory/?search=Adobe`
-    """
+    Example `/api/inventory/?search=Adobe` or `/api/inventory/?search=KB5005394`
+     """
     queryset = InventoryItem.objects.all()
     serializer_class = InventoryItemSerializer
     filter_fields = (
         'application__name', 'application__bundleid',
         'application__bundlename', 'machine__hostname', 'machine__serial',
-        'machine__id', 'version', 'path')
+        'machine__id', 'version', 'path', 'application__Caption', 'application__Description',
+        'application__HotFixID', 'application__InstallDate', 'application__InstallDate2', 'application__Version')
     search_fields = (
         'application__name', 'application__bundleid',
-        'application__bundlename',)
+        'application__bundlename', 'application__Caption', 'application__Description',
+        'application__HotFixID', 'application__InstallDate', 'application__InstallDate2', 'application__Version')
 
 
 class MachineGroupViewSet(viewsets.ModelViewSet):
@@ -80,7 +83,7 @@ class ManagedItemViewSet(viewsets.ReadOnlyModelViewSet):
     filter_fields = (
         'machine__serial', 'machine__hostname', 'machine__id',
         'management_source__name', 'management_source__id', 'status')
-    search_fields = ('name', )
+    search_fields = ('name',)
 
 
 class ManagedItemHistoryViewSet(viewsets.ReadOnlyModelViewSet):
@@ -89,7 +92,7 @@ class ManagedItemHistoryViewSet(viewsets.ReadOnlyModelViewSet):
     filter_fields = (
         'machine__serial', 'machine__hostname', 'machine__id',
         'management_source__name', 'management_source__id', 'status')
-    search_fields = ('name', )
+    search_fields = ('name',)
 
 
 class MessageViewSet(viewsets.ReadOnlyModelViewSet):

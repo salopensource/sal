@@ -36,17 +36,19 @@ class InventoryViewSet(viewsets.ReadOnlyModelViewSet):
     across the `application__name`, `application__bundleid`,
         `application__bundlename` fields.
 
-    Example `/api/inventory/?search=Adobe`
+    Example `/api/inventory/?search=Adobe` or `/api/inventory/?search=KB5000802`
     """
     queryset = InventoryItem.objects.all()
     serializer_class = InventoryItemSerializer
     filter_fields = (
         'application__name', 'application__bundleid',
         'application__bundlename', 'machine__hostname', 'machine__serial',
-        'machine__id', 'version', 'path')
+        'machine__id', 'version', 'path', 'application__caption', 'application__description',
+        'application__hotfixid', 'application__installdate', 'application__installdate2', 'application__version')
     search_fields = (
         'application__name', 'application__bundleid',
-        'application__bundlename',)
+        'application__bundlename', 'application__caption', 'application__description',
+        'application__hotfixid', 'application__installdate', 'application__installdate2', 'application__version')
 
 
 class MachineGroupViewSet(viewsets.ModelViewSet):

@@ -1,5 +1,5 @@
 import plistlib
-import random
+import secrets
 import string
 from datetime import datetime
 from xml.parsers.expat import ExpatError
@@ -37,7 +37,7 @@ class ProfileLevel():
 
 
 def GenerateKey():
-    key = ''.join(random.choice(string.ascii_lowercase + string.digits) for x in range(128))
+    key = ''.join(secrets.choice(string.ascii_lowercase + string.digits) for x in range(128))
     try:
         MachineGroup.objects.get(key=key)
         return GenerateKey()
@@ -46,7 +46,7 @@ def GenerateKey():
 
 
 def GenerateAPIKey():
-    key = ''.join(random.choice(string.ascii_lowercase + string.digits) for x in range(24))
+    key = ''.join(secrets.choice(string.ascii_lowercase + string.digits) for x in range(24))
     try:
         ApiKey.objects.get(public_key=key)
         return GenerateAPIKey()
@@ -280,7 +280,7 @@ class ApiKey(models.Model):
     def save(self, *args, **kwargs):
         if not self.id:
             self.public_key = GenerateAPIKey()
-            self.private_key = ''.join(random.choice(
+            self.private_key = ''.join(secrets.choice(
                 string.ascii_lowercase + string.digits) for x in range(64))
         super(ApiKey, self).save(*args, **kwargs)
 

@@ -16,7 +16,7 @@ class Application(models.Model):
     description = models.CharField(blank=True, null=True, max_length=255)
     identifyingnumber = models.CharField(blank=True, null=True, max_length=255)
     installdate = models.CharField(blank=True, null=True, max_length=255)
-    installdate2 = models.DateTimeField(blank=True, null=True)
+    installdate2 = models.CharField(blank=True, null=True, max_length=255)
     installlocation = models.CharField(blank=True, null=True, max_length=255)
     installstate = models.CharField(blank=True, null=True, max_length=255)
     helplink = models.CharField(blank=True, null=True, max_length=255)

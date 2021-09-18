@@ -9,14 +9,86 @@
 {% block inventory_data %}
 	<dl class="dl-horizontal" >
 		<legend><h5 class"text-uppercase">Application Details</h5></legend>
+		<div class="row">
+			<div class="col-xs-6">
 		<dt>Name:</dt>
 		<dd>{{ object.name }} </dd>
 		<dt>Bundle ID:</dt>
 		<dd>{{ object.bundleid }} </dd>
 		<dt>Bundle Name:</dt>
 		<dd>{{ object.bundlename }}</dd>
+		<dt>Assignment Type:</dt>
+		<dd>{{ object.assignmenttype }}</dd>
+		<dt>Caption:</dt>
+		<dd>{{ object.caption }}</dd>
+		<dt>CS Name:</dt>
+		<dd>{{ object.csname }}</dd>
+		<dt>Description:</dt>
+		<dd>{{ object.description }}</dd>
+		<dt>Fix Comments:</dt>
+		<dd>{{ object.fixcomments }}</dd>
+		<dt>Help Link:</dt>
+		<dd>{{ object.helplink }}</dd>
+		<dt>Help Telephone:</dt>
+		<dd>{{ object.helptelephone }}</dd>
+		<dt>Hot Fix ID:</dt>
+		<dd>{{ object.hotfixid }}</dd>
+		<dt>Identifying Number:</dt>
+		<dd>{{ object.identifyingnumber }}</dd>
+		<dt>Install Date:</dt>
+		<dd>{{ object.installdate }}</dd>
+		<dt>Install Date 2:</dt>
+		<dd>{{ object.installdate2 }}</dd>
+		<dt>Installed By:</dt>
+		<dd>{{ object.installedby }}</dd>
+		<dt>Installed On:</dt>
+		<dd>{{ object.installedon }}</dd>
+		<dt>Install Location:</dt>
+		<dd>{{ object.installlocation }}</dd>
+		<dt>Install Source:</dt>
+		<dd>{{ object.installsource }}</dd>
+		<dt>Install State:</dt>
+		<dd>{{ object.installstate }}</dd>
+			</div>
+			<div class="col-xs-6">
+		<dt>Language:</dt>
+		<dd>{{ object.language }}</dd>
+		<dt>Local Package:</dt>
+		<dd>{{ object.localpackage }}</dd>
+		<dt>Package Cache:</dt>
+		<dd>{{ object.packagecache }}</dd>
+		<dt>Package Code:</dt>
+		<dd>{{ object.packagecode }}</dd>
+		<dt>Package Name:</dt>
+		<dd>{{ object.packagename }}</dd>
+		<dt>Product Id:</dt>
+		<dd>{{ object.productid }}</dd>
+		<dt>Reg Company:</dt>
+		<dd>{{ object.regcompany }}</dd>
+		<dt>Reg Owner:</dt>
+		<dd>{{ object.regowner }}</dd>
+		<dt>Service Pack In Effect:</dt>
+		<dd>{{ object.servicepackIneffect }}</dd>
+		<dt>Sku Number:</dt>
+		<dd>{{ object.skunumber }}</dd>
+		<dt>Status:</dt>
+		<dd>{{ object.status }}</dd>
+		<dt>Transforms:</dt>
+		<dd>{{ object.transforms }}</dd>
+		<dt>Url Info About:</dt>
+		<dd>{{ object.urlInfoabout }}</dd>
+		<dt>Url Update Info:</dt>
+		<dd>{{ object.urlupdateInfo }}</dd>
+		<dt>Vendor:</dt>
+		<dd>{{ object.vendor }}</dd>
+		<dt>Version:</dt>
+		<dd>{{ object.version }}</dd>
+		<dt>Word Count:</dt>
+		<dd>{{ object.wordcount }}</dd>
 		<dt>Total Install Count:</dt>
 		<dd><a href="{% url 'inventory_list' application_id=object.id group_type=group_type group_id=group_id %}?field_type=all&field_value=0"><span class="badge">{{ install_count }}</span></a></dd>
+		</div>
+			</div>
 		<br>
 		<legend><h5 class"text-uppercase">Installed Versions</h5></legend>
 		{% for version in versions %}

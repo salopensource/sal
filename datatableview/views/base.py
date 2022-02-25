@@ -2,6 +2,7 @@
 
 import json
 import logging
+import re
 
 from django.views.generic import ListView, TemplateView
 from django.views.generic.list import MultipleObjectMixin
@@ -17,7 +18,8 @@ log = logging.getLogger(__name__)
 
 class DatatableJSONResponseMixin(object):
     def dispatch(self, request, *args, **kwargs):
-        if request.is_ajax() or getattr(request, request.method).get('ajax') == 'true':
+        # https://stackoverflow.com/a/67737850
+        if not re.search(r'^text/html', request.META.get('HTTP_ACCEPT')):
             datatable = self.get_datatable()
             datatable.configure()
             if request.method == datatable.config['request_method']:

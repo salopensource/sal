@@ -4,3 +4,4 @@ psycopg2-binary==2.8.5
 gevent==21.1.2
 greenlet==1.1.0
 psycogreen==1.0.2
+supervisor==4.2.4

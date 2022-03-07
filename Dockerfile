@@ -32,7 +32,6 @@ RUN apt-get update && \
     libpq-dev \
     python3-dev \
     curl \
-    supervisor \
     libffi-dev && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* && \

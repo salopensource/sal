@@ -66,13 +66,13 @@ jobs:
       - checkout
       - setup_remote_docker:
           docker_layer_caching: true
-      - run: docker build -t macadmins/sal:$CIRCLE_BRANCH .
+      - run: docker build -t macadmins/sal:${CIRCLE_BRANCH//\//_} .
       - run: docker login -u $DOCKER_USER -p $DOCKER_PASS
-      - run: docker push macadmins/sal:$CIRCLE_BRANCH
+      - run: docker push macadmins/sal:${CIRCLE_BRANCH//\//_}
       - run: apk update
       - run: apk add python2 py2-pip
       - run: pip install requests
-      - run: python remote_build.py $CIRCLE_BRANCH
+      - run: python remote_build.py ${CIRCLE_BRANCH//\//_}
 
   build_tag:
     docker:

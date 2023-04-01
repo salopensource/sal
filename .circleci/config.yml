@@ -36,7 +36,6 @@ jobs:
       - run: docker build -t macadmins/sal:latest .
       - run: docker login -u $DOCKER_USER -p $DOCKER_PASS
       - run: docker push macadmins/sal:latest
-      - run: apk add python2 py2-pip
       - run: pip install requests
       - run: python remote_build.py latest
 
@@ -52,7 +51,6 @@ jobs:
       - run: docker login -u $DOCKER_USER -p $DOCKER_PASS
       - run: docker push macadmins/sal:${CIRCLE_BRANCH//\//_}
       - run: apk update
-      - run: apk add python2 py2-pip
       - run: pip install requests
       - run: python remote_build.py ${CIRCLE_BRANCH//\//_}
 

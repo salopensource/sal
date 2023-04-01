@@ -8,37 +8,19 @@ jobs:
 
     steps:
       - checkout
-
-      # Download and cache dependencies
-      - restore_cache:
-          keys:
-            - v1-dependencies-{{ checksum "setup/requirements.txt" }}
-            # fallback to using the latest cache if no exact match is found
-            - v1-dependencies-
-
-      - run:
-          name: install dependencies
-          command: |
-            python -m venv ./venv
-            . venv/bin/activate
-            pip install -r setup/requirements.txt
-            pip install flake8
-
-      - save_cache:
-          paths:
-            - ./venv
-          key: v1-dependencies-{{ checksum "setup/requirements.txt" }}
       - run:
           name: run tests
           command: |
-            . venv/bin/activate
+            pip install -r setup/requirements.txt
+            pip install flake8
             cp sal/example_settings.py sal/settings.py
             python manage.py test
             python manage.py migrate
       - run:
           name: run linting
           command: |
-            . venv/bin/activate
+            pip install -r setup/requirements.txt
+            pip install flake8
             flake8
 
       - store_artifacts:

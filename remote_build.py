@@ -1,6 +1,3 @@
-#!/usr/bin/python
-
-import subprocess
 import requests
 import os
 import argparse

@@ -8,37 +8,19 @@ jobs:
 
     steps:
       - checkout
-
-      # Download and cache dependencies
-      - restore_cache:
-          keys:
-            - v1-dependencies-{{ checksum "setup/requirements.txt" }}
-            # fallback to using the latest cache if no exact match is found
-            - v1-dependencies-
-
-      - run:
-          name: install dependencies
-          command: |
-            python -m venv venv
-            . venv/bin/activate
-            pip install -r setup/requirements.txt
-            pip install flake8
-
-      - save_cache:
-          paths:
-            - ./venv
-          key: v1-dependencies-{{ checksum "setup/requirements.txt" }}
       - run:
           name: run tests
           command: |
-            . venv/bin/activate
+            pip install -r setup/requirements.txt
+            pip install flake8
             cp sal/example_settings.py sal/settings.py
             python manage.py test
             python manage.py migrate
       - run:
           name: run linting
           command: |
-            . venv/bin/activate
+            pip install -r setup/requirements.txt
+            pip install flake8
             flake8
 
       - store_artifacts:
@@ -54,7 +36,8 @@ jobs:
       - run: docker build -t macadmins/sal:latest .
       - run: docker login -u $DOCKER_USER -p $DOCKER_PASS
       - run: docker push macadmins/sal:latest
-      - run: apk add python2 py2-pip
+      - run: apk update
+      - run: apk add py3-pip
       - run: pip install requests
       - run: python remote_build.py latest
 
@@ -70,7 +53,7 @@ jobs:
       - run: docker login -u $DOCKER_USER -p $DOCKER_PASS
       - run: docker push macadmins/sal:${CIRCLE_BRANCH//\//_}
       - run: apk update
-      - run: apk add python2 py2-pip
+      - run: apk add py3-pip
       - run: pip install requests
       - run: python remote_build.py ${CIRCLE_BRANCH//\//_}
 
@@ -85,7 +68,8 @@ jobs:
       - run: docker build -t macadmins/sal:$CIRCLE_TAG .
       - run: docker login -u $DOCKER_USER -p $DOCKER_PASS
       - run: docker push macadmins/sal:$CIRCLE_TAG
-      - run: apk add python2 py2-pip
+      - run: apk update
+      - run: apk add py3-pip
       - run: pip install requests
       - run: python remote_build.py $CIRCLE_TAG
 

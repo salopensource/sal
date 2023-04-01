@@ -203,6 +203,7 @@ INSTALLED_APPS = (
     "search",
     "rest_framework",
     "django_filters",
+    'health_check',
 )
 
 

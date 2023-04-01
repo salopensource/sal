@@ -24,6 +24,8 @@ urlpatterns = [
     path('licenses/', include('licenses.urls')),
     path('catalog/', include('catalog.urls')),
     path('profiles/', include('profiles.urls')),
+    path('healthcheck/', include('health_check.urls')),
+
 ]
 
 if settings.DEBUG:

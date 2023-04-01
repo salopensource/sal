@@ -51,6 +51,7 @@ jobs:
       - run: docker login -u $DOCKER_USER -p $DOCKER_PASS
       - run: docker push macadmins/sal:${CIRCLE_BRANCH//\//_}
       - run: apk update
+      - run: apk install py3-pip
       - run: pip install requests
       - run: python remote_build.py ${CIRCLE_BRANCH//\//_}
 

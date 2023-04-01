@@ -73,6 +73,8 @@ jobs:
       - run: apk add python2 py2-pip
       - run: pip install requests
       - run: python remote_build.py ${CIRCLE_BRANCH//\//_}
+    # The resource_class feature allows configuring CPU and RAM resources for each job. Different resource classes are available for different executors. https://circleci.com/docs/2.0/configuration-reference/#resourceclass
+    resource_class: large
 
   build_tag:
     docker:

@@ -36,6 +36,8 @@ jobs:
       - run: docker build -t macadmins/sal:latest .
       - run: docker login -u $DOCKER_USER -p $DOCKER_PASS
       - run: docker push macadmins/sal:latest
+      - run: apk update
+      - run: apk add py3-pip
       - run: pip install requests
       - run: python remote_build.py latest
 
@@ -51,7 +53,7 @@ jobs:
       - run: docker login -u $DOCKER_USER -p $DOCKER_PASS
       - run: docker push macadmins/sal:${CIRCLE_BRANCH//\//_}
       - run: apk update
-      - run: apk install py3-pip
+      - run: apk add py3-pip
       - run: pip install requests
       - run: python remote_build.py ${CIRCLE_BRANCH//\//_}
 
@@ -66,6 +68,8 @@ jobs:
       - run: docker build -t macadmins/sal:$CIRCLE_TAG .
       - run: docker login -u $DOCKER_USER -p $DOCKER_PASS
       - run: docker push macadmins/sal:$CIRCLE_TAG
+      - run: apk update
+      - run: apk add py3-pip
       - run: pip install requests
       - run: python remote_build.py $CIRCLE_TAG
 

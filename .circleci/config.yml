@@ -67,7 +67,6 @@ jobs:
       - run: docker build -t macadmins/sal:$CIRCLE_TAG .
       - run: docker login -u $DOCKER_USER -p $DOCKER_PASS
       - run: docker push macadmins/sal:$CIRCLE_TAG
-      - run: apk add python2 py2-pip
       - run: pip install requests
       - run: python remote_build.py $CIRCLE_TAG
 

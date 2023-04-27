@@ -42,6 +42,12 @@ clean:
 rmi:
 	docker rmi ${DOCKER_USER}/${NAME}
 
+migrations:
+	. venv/bin/activate
+	cp sal/example_settings.py sal/settings.py
+	python manage.py test
+	python manage.py migrate
+
 postgres:
 	docker run --name="${DB_CONTAINER_NAME}" -d -e DB_NAME=$(DB_NAME) -e DB_USER=$(DB_USER) -e DB_PASS=$(DB_PASS) grahamgilbert/postgres
 

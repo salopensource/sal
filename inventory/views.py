@@ -29,10 +29,8 @@ from sal.decorators import (class_login_required, class_access_required, key_aut
 from server.models import BusinessUnit, MachineGroup, Machine
 from utils import text_utils
 
-
 ApplicationTuple = collections.namedtuple(
     'Application', ['name', 'bundleid', 'bundlename', 'install_count'])
-
 
 # Generate the fields dict needed for our CSV row generator.
 APPLICATION_FIELDS = dict(itertools.zip_longest(ApplicationTuple._fields, []))
@@ -182,7 +180,6 @@ class CSVResponseMixin():
 
 
 class InventoryList(Datatable):
-
     # Specifying no source means we cannot sort on this column; however
     # the source value would be the total number of inventoryitem
     # records, NOT the number returned by the get_install_count
@@ -267,7 +264,6 @@ class InventoryListView(DatatableQuerystringMixin, DatatableView, GroupMixin):
 
 
 class ApplicationList(Datatable):
-
     install_count = DisplayColumn(
         "Install Count", source='install_count', processor='get_install_count')
 
@@ -523,8 +519,45 @@ def inventory_submit(request):
                     app, _ = Application.objects.get_or_create(
                         bundleid=item.get("bundleid", ""),
                         name=item.get("name", ""),
-                        bundlename=item.get("CFBundleName", ""))
-                    # skip items in bundleid_ignorelist.
+                        bundlename=item.get("CFBundleName", ""),
+                        # Win32_Package properties
+                        assignmenttype=item.get("assignmenttype", ""),
+                        caption=item.get("caption", ""),
+                        description=item.get("description", ""),
+                        identifyingnumber=item.get("identifyingnumber", ""),
+                        installdate=item.get("installdate", ""),
+                        installdate2=item.get("installdate2", ""),
+                        installlocation=item.get("installlocation", ""),
+                        installstate=item.get("installstate", ""),
+                        helplink=item.get("helplink", ""),
+                        helptelephone=item.get("helptelephone", ""),
+                        installsource=item.get("installsource", ""),
+                        language=item.get("language", ""),
+                        localpackage=item.get("localpackage", ""),
+                        packagecache=item.get("packagecache", ""),
+                        packagecode=item.get("packagecode", ""),
+                        packagename=item.get("packagename", ""),
+                        productid=item.get("productid", ""),
+                        regowner=item.get("regowner", ""),
+                        regcompany=item.get("regcompany", ""),
+                        skunumber=item.get("skunumber", ""),
+                        transforms=item.get("transforms", ""),
+                        urlInfoabout=item.get("urlInfoabout", ""),
+                        urlupdateInfo=item.get("urlupdateInfo", ""),
+                        vendor=item.get("vendor", ""),
+                        wordcount=item.get("wordcount", ""),
+                        version=item.get("version", ""),
+                        # Win32_QFE Properties
+                        status=item.get("status", ""),
+                        csname=item.get("csname", ""),
+                        fixcomments=item.get("fixcomments", ""),
+                        hotfixid=item.get("hotfixid", ""),
+                        installedby=item.get("installedby", ""),
+                        installedon=item.get("installedon", ""),
+                        servicepackIneffect=item.get("servicepackIneffect", ""),
+                    )
+
+                    # TODO what about win32 properties for InventorItem entries?
                     if not item.get('bundleid') in bundleid_ignorelist:
                         i_item = InventoryItem(
                             application=app,

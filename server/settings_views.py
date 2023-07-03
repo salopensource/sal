@@ -61,7 +61,7 @@ def manage_users(request):
         brute_protect = settings.BRUTE_PROTECT
     except Exception:
         brute_protect = False
-    users = User.objects.all()
+    users = User.objects.order_by('username')
     c = {'user': request.user, 'users': users, 'request': request, 'brute_protect': brute_protect}
     return render(request, 'server/manage_users.html', c)
 

@@ -25,6 +25,7 @@ urlpatterns = [
     path('catalog/', include('catalog.urls')),
     path('profiles/', include('profiles.urls')),
     path('healthcheck/', include('health_check.urls')),
+    path('silk/', include("silk.urls", namespace="silk")),
 
 ]
 

@@ -2,7 +2,7 @@ import logging.config
 import os
 
 
-DEBUG = False
+DEBUG = True
 APPEND_SLASH = True
 PROJECT_DIR = os.path.abspath(
     os.path.join(os.path.dirname(os.path.abspath(__file__)), os.path.pardir)
@@ -165,6 +165,7 @@ SECRET_KEY = "ppf%ls0f)mzkf#2dl-nbf^8f&=84py=y^u8^z-f559*d36y_@v"
 MIDDLEWARE = (
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
+    'silk.middleware.SilkyMiddleware',
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
@@ -172,6 +173,7 @@ MIDDLEWARE = (
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "server.middleware.AddToBU.AddToBU",
     "search.current_user.CurrentUserMiddleware",
+    'django_cprofile_middleware.middleware.ProfilerMiddleware',
 )
 
 LOGIN_URL = "/login"
@@ -204,6 +206,7 @@ INSTALLED_APPS = (
     "rest_framework",
     "django_filters",
     'health_check',
+    'silk.apps.SilkAppConfig',
 )
 
 

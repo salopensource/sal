@@ -4,6 +4,7 @@ django-debug-toolbar==3.2.1
 django-filter==2.4.0
 djangorestframework==3.11.2
 django-health-check==3.17.0
+django-datatable-view==2.1.6
 idna==2.7
 # Required for DRF
 markdown==3.2.1

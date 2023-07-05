@@ -30,6 +30,9 @@ from server.models import BusinessUnit, MachineGroup, Machine
 from utils import text_utils
 
 
+INVENTORY_PATTERN = server.utils.get_setting('inventory_exclusion_pattern')
+FILTER_VIRTUAL = server.utils.get_setting('filter_proxied_virtualization_apps', True)
+
 ApplicationTuple = collections.namedtuple(
     'Application', ['name', 'bundleid', 'bundlename', 'install_count'])
 
@@ -317,16 +320,14 @@ class ApplicationListView(DatatableView, GroupMixin):
         # the python re module's syntax. You may delimit multiple
         # patterns with the '|' operator, e.g.:
         # 'com\.[aA]dobe.*|com\.apple\..*'
-        inventory_pattern = server.utils.get_setting('inventory_exclusion_pattern')
-
-        if inventory_pattern:
-            crufty_bundles.append(inventory_pattern)
+        if INVENTORY_PATTERN:
+            crufty_bundles.append(INVENTORY_PATTERN)
 
         # By default, Sal will filter out the apps proxied through
         # VMWare and Parallels VMs. If you would like to disable this,
         # set the SalSetting 'filter_proxied_virtualization_apps' to
         # 'no' or 'false' (it's a string).
-        if server.utils.get_setting('filter_proxied_virtualization_apps', True):
+        if FILTER_VIRTUAL:
             # Virtualization proxied apps
             crufty_bundles.extend([r"com\.vmware\.proxyApp\..*", r"com\.parallels\.winapp\..*"])
 

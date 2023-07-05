@@ -2,14 +2,6 @@
  * ©2011-2015 SpryMedia Ltd - datatables.net/license
  */
 
-/**
- * DataTables integration for Foundation. This requires Foundation 5 and
- * DataTables 1.10 or newer.
- *
- * This file sets the defaults and adds options to DataTables to style its
- * controls using Foundation. See http://datatables.net/manual/styling/foundation
- * for further information.
- */
 (function( factory ){
 	if ( typeof define === 'function' && define.amd ) {
 		// AMD
@@ -19,17 +11,33 @@
 	}
 	else if ( typeof exports === 'object' ) {
 		// CommonJS
-		module.exports = function (root, $) {
-			if ( ! root ) {
-				root = window;
+		var jq = require('jquery');
+		var cjsRequires = function (root, $) {
+			if ( ! $.fn.dataTable ) {
+				require('datatables.net')(root, $);
 			}
-
-			if ( ! $ || ! $.fn.dataTable ) {
-				$ = require('datatables.net')(root, $).$;
-			}
-
-			return factory( $, root, root.document );
 		};
+
+		if (typeof window === 'undefined') {
+			module.exports = function (root, $) {
+				if ( ! root ) {
+					// CommonJS environments without a window global must pass a
+					// root. This will give an error otherwise
+					root = window;
+				}
+
+				if ( ! $ ) {
+					$ = jq( root );
+				}
+
+				cjsRequires( root, $ );
+				return factory( $, root, root.document );
+			};
+		}
+		else {
+			cjsRequires( window, jq );
+			module.exports = factory( jq, window, window.document );
+		}
 	}
 	else {
 		// Browser
@@ -39,6 +47,17 @@
 'use strict';
 var DataTable = $.fn.dataTable;
 
+
+
+/**
+ * DataTables integration for Foundation. This requires Foundation 5 and
+ * DataTables 1.10 or newer.
+ *
+ * This file sets the defaults and adds options to DataTables to style its
+ * controls using Foundation. See http://datatables.net/manual/styling/foundation
+ * for further information.
+ */
+
 // Detect Foundation 5 / 6 as they have different element and class requirements
 var meta = $('<meta class="foundation-mq"/>').appendTo('head');
 DataTable.ext.foundationVersion = meta.css('font-family').match(/small|medium|large/) ? 6 : 5;
@@ -47,16 +66,16 @@ meta.remove();
 
 $.extend( DataTable.ext.classes, {
 	sWrapper:    "dataTables_wrapper dt-foundation",
-	sProcessing: "dataTables_processing panel"
+	sProcessing: "dataTables_processing panel callout"
 } );
 
 
 /* Set the defaults for DataTables initialisation */
 $.extend( true, DataTable.defaults, {
 	dom:
-		"<'row'<'small-6 columns'l><'small-6 columns'f>r>"+
+		"<'row grid-x'<'small-6 columns cell'l><'small-6 columns cell'f>r>"+
 		"t"+
-		"<'row'<'small-6 columns'i><'small-6 columns'p>>",
+		"<'row grid-x'<'small-6 columns cell'i><'small-6 columns cell'p>>",
 	renderer: 'foundation'
 } );
 
@@ -83,7 +102,7 @@ DataTable.ext.renderer.pageButton.foundation = function ( settings, host, idx, b
 		for ( i=0, ien=buttons.length ; i<ien ; i++ ) {
 			button = buttons[i];
 
-			if ( $.isArray( button ) ) {
+			if ( Array.isArray( button ) ) {
 				attach( container, button );
 			}
 			else {
@@ -140,17 +159,24 @@ DataTable.ext.renderer.pageButton.foundation = function ( settings, host, idx, b
 				}
 
 				if ( btnDisplay ) {
+					var disabled = btnClass.indexOf('disabled') !== -1;
+
 					node = $('<li>', {
 							'class': classes.sPageButton+' '+btnClass,
-							'aria-controls': settings.sTableId,
-							'aria-label': aria[ button ],
-							'tabindex': settings.iTabIndex,
 							'id': idx === 0 && typeof button === 'string' ?
 								settings.sTableId +'_'+ button :
 								null
 						} )
 						.append( tag ?
-							$('<'+tag+'/>', {'href': '#'} ).html( btnDisplay ) :
+							$('<'+tag+'/>', {
+								'href': disabled ? null : '#',
+								'aria-controls': settings.sTableId,
+								'aria-disabled': disabled ? 'true' : null,
+								'aria-label': aria[ button ],
+								'role': 'link',
+								'aria-current': btnClass === 'current' ? 'page' : null,
+								'tabindex': settings.iTabIndex,
+							} ).html( btnDisplay ) :
 							btnDisplay
 						)
 						.appendTo( container );

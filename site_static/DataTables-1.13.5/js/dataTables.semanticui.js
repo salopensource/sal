@@ -2,14 +2,6 @@
  * ©2011-2015 SpryMedia Ltd - datatables.net/license
  */
 
-/**
- * DataTables integration for Bootstrap 3. This requires Bootstrap 3 and
- * DataTables 1.10 or newer.
- *
- * This file sets the defaults and adds options to DataTables to style its
- * controls using Bootstrap. See http://datatables.net/manual/styling/bootstrap
- * for further information.
- */
 (function( factory ){
 	if ( typeof define === 'function' && define.amd ) {
 		// AMD
@@ -19,20 +11,33 @@
 	}
 	else if ( typeof exports === 'object' ) {
 		// CommonJS
-		module.exports = function (root, $) {
-			if ( ! root ) {
-				root = window;
+		var jq = require('jquery');
+		var cjsRequires = function (root, $) {
+			if ( ! $.fn.dataTable ) {
+				require('datatables.net')(root, $);
 			}
-
-			if ( ! $ || ! $.fn.dataTable ) {
-				// Require DataTables, which attaches to jQuery, including
-				// jQuery if needed and have a $ property so we can access the
-				// jQuery object that is used
-				$ = require('datatables.net')(root, $).$;
-			}
-
-			return factory( $, root, root.document );
 		};
+
+		if (typeof window === 'undefined') {
+			module.exports = function (root, $) {
+				if ( ! root ) {
+					// CommonJS environments without a window global must pass a
+					// root. This will give an error otherwise
+					root = window;
+				}
+
+				if ( ! $ ) {
+					$ = jq( root );
+				}
+
+				cjsRequires( root, $ );
+				return factory( $, root, root.document );
+			};
+		}
+		else {
+			cjsRequires( window, jq );
+			module.exports = factory( jq, window, window.document );
+		}
 	}
 	else {
 		// Browser
@@ -43,32 +48,51 @@
 var DataTable = $.fn.dataTable;
 
 
+
+/**
+ * DataTables integration for FomanticUI (formally SemanticUI)
+ *
+ * This file sets the defaults and adds options to DataTables to style its
+ * controls using Bootstrap. See http://datatables.net/manual/styling/bootstrap
+ * for further information.
+ */
+
 /* Set the defaults for DataTables initialisation */
 $.extend( true, DataTable.defaults, {
 	dom:
-		"<'row'<'col-sm-6'l><'col-sm-6'f>>" +
-		"<'row'<'col-sm-12'tr>>" +
-		"<'row'<'col-sm-5'i><'col-sm-7'p>>",
-	renderer: 'bootstrap'
+		"<'ui stackable grid'"+
+			"<'row'"+
+				"<'eight wide column'l>"+
+				"<'right aligned eight wide column'f>"+
+			">"+
+			"<'row dt-table'"+
+				"<'sixteen wide column'tr>"+
+			">"+
+			"<'row'"+
+				"<'seven wide column'i>"+
+				"<'right aligned nine wide column'p>"+
+			">"+
+		">",
+	renderer: 'semanticUI'
 } );
 
 
 /* Default class modification */
 $.extend( DataTable.ext.classes, {
-	sWrapper:      "dataTables_wrapper form-inline dt-bootstrap",
-	sFilterInput:  "form-control input-sm",
-	sLengthSelect: "form-control input-sm",
-	sProcessing:   "dataTables_processing panel panel-default"
+	sWrapper:      "dataTables_wrapper dt-semanticUI",
+	sFilter:       "dataTables_filter ui input",
+	sProcessing:   "dataTables_processing ui segment",
+	sPageButton:   "paginate_button item"
 } );
 
 
 /* Bootstrap paging button renderer */
-DataTable.ext.renderer.pageButton.bootstrap = function ( settings, host, idx, buttons, page, pages ) {
+DataTable.ext.renderer.pageButton.semanticUI = function ( settings, host, idx, buttons, page, pages ) {
 	var api     = new DataTable.Api( settings );
 	var classes = settings.oClasses;
 	var lang    = settings.oLanguage.oPaginate;
 	var aria = settings.oLanguage.oAria.paginate || {};
-	var btnDisplay, btnClass, counter=0;
+	var btnDisplay, btnClass;
 
 	var attach = function( container, buttons ) {
 		var i, ien, node, button;
@@ -82,7 +106,7 @@ DataTable.ext.renderer.pageButton.bootstrap = function ( settings, host, idx, bu
 		for ( i=0, ien=buttons.length ; i<ien ; i++ ) {
 			button = buttons[i];
 
-			if ( $.isArray( button ) ) {
+			if ( Array.isArray( button ) ) {
 				attach( container, button );
 			}
 			else {
@@ -126,29 +150,32 @@ DataTable.ext.renderer.pageButton.bootstrap = function ( settings, host, idx, bu
 						break;
 				}
 
+				var disabled = btnClass.indexOf('disabled') !== -1;
+				var tag = disabled ?
+					'div' :
+					'a';
+
 				if ( btnDisplay ) {
-					node = $('<li>', {
+					node = $('<'+tag+'>', {
 							'class': classes.sPageButton+' '+btnClass,
 							'id': idx === 0 && typeof button === 'string' ?
 								settings.sTableId +'_'+ button :
-								null
+								null,
+							'href': disabled ? null : '#',
+							'aria-controls': settings.sTableId,
+							'aria-disabled': disabled ? 'true' : null,
+							'aria-label': aria[ button ],
+							'role': 'link',
+							'aria-current': btnClass === 'active' ? 'page' : null,
+							'data-dt-idx': button,
+							'tabindex': settings.iTabIndex
 						} )
-						.append( $('<a>', {
-								'href': '#',
-								'aria-controls': settings.sTableId,
-								'aria-label': aria[ button ],
-								'data-dt-idx': counter,
-								'tabindex': settings.iTabIndex
-							} )
-							.html( btnDisplay )
-						)
+						.html( btnDisplay )
 						.appendTo( container );
 
 					settings.oApi._fnBindAction(
 						node, {action: button}, clickHandler
 					);
-
-					counter++;
 				}
 			}
 		}
@@ -168,14 +195,33 @@ DataTable.ext.renderer.pageButton.bootstrap = function ( settings, host, idx, bu
 	catch (e) {}
 
 	attach(
-		$(host).empty().html('<ul class="pagination"/>').children('ul'),
+		$(host).empty().html('<div class="ui stackable pagination menu"/>').children(),
 		buttons
 	);
 
-	if ( activeEl ) {
-		$(host).find( '[data-dt-idx='+activeEl+']' ).focus();
+	if ( activeEl !== undefined ) {
+		$(host).find( '[data-dt-idx='+activeEl+']' ).trigger('focus');
 	}
 };
+
+
+// Javascript enhancements on table initialisation
+$(document).on( 'init.dt', function (e, ctx) {
+	if ( e.namespace !== 'dt' ) {
+		return;
+	}
+
+	var api = new $.fn.dataTable.Api( ctx );
+
+	// Length menu drop down
+	if ( $.fn.dropdown ) {
+		$( 'div.dataTables_length select', api.table().container() ).dropdown();
+	}
+
+	// Filtering input
+	$( 'div.dataTables_filter.ui.input', api.table().container() ).removeClass('input').addClass('form');
+	$( 'div.dataTables_filter input', api.table().container() ).wrap( '<span class="ui input" />' );
+} );
 
 
 return DataTable;

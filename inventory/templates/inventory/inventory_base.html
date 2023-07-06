@@ -4,9 +4,25 @@
 {% load static %}
 <script type="text/javascript" charset="utf8" src="{% static "js/datatableview.min.js" %}"></script>
 <script type="text/javascript" charset="utf8">
-        $(function(){
-            var datatable = datatableview.initialize($('.datatable'), {searchDelay: 1000});
-        });
+// https://stackoverflow.com/a/73271937
+jQuery(document).on( 'init.dt', function (e, settings) {
+  var dti = jQuery('.dataTables_filter input');
+  var api = new jQuery.fn.dataTable.Api( settings );
+  var dbn = null;
+
+  dti.off().on('keyup', function(e) {
+    clearTimeout( dbn );
+    var str = this.value;
+    dbn = setTimeout(function(){
+      if(str.length > 2 || e.keyCode == 13) api.search( str ).draw();
+      if(str == '') api.search( '' ).draw();
+    }, 1000);
+    return;
+  });
+});
+$(function(){
+    var datatable = datatableview.initialize($('.datatable'), {searchDelay: 1000});
+});
 </script>
 {% endblock %}
 

@@ -5,7 +5,7 @@
 <script type="text/javascript" charset="utf8" src="{% static "js/datatableview.min.js" %}"></script>
 <script type="text/javascript" charset="utf8">
         $(function(){
-            var datatable = datatableview.initialize($('.datatable'), {});
+            var datatable = datatableview.initialize($('.datatable'), {searchDelay: 1000});
         });
 </script>
 {% endblock %}

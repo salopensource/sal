@@ -18,6 +18,7 @@ from django.views.generic import DetailView, View
 
 # 3rd Party Django
 from datatableview import Datatable
+from datatableview.datatables import cache_types
 from datatableview.columns import DisplayColumn
 from datatableview.views import DatatableView
 
@@ -29,6 +30,9 @@ from sal.decorators import (class_login_required, class_access_required, key_aut
 from server.models import BusinessUnit, MachineGroup, Machine
 from utils import text_utils
 
+
+INVENTORY_PATTERN = server.utils.get_setting('inventory_exclusion_pattern')
+FILTER_VIRTUAL = server.utils.get_setting('filter_proxied_virtualization_apps', True)
 
 ApplicationTuple = collections.namedtuple(
     'Application', ['name', 'bundleid', 'bundlename', 'install_count'])
@@ -266,46 +270,30 @@ class InventoryListView(DatatableQuerystringMixin, DatatableView, GroupMixin):
         return context
 
 
-class ApplicationList(Datatable):
-
-    install_count = DisplayColumn(
-        "Install Count", source='install_count', processor='get_install_count')
-
-    class Meta:
-        columns = ['name', 'bundleid', 'bundlename', 'install_count']
-        labels = {'bundleid': 'Bundle ID', 'bundlename': 'Bundle Name'}
-        processors = {'name': 'link_to_detail'}
-        structure_template = 'datatableview/bootstrap_structure.html'
-        page_length = server.utils.get_setting('datatable_page_length')
-
-    def link_to_detail(self, instance, **kwargs):
-        link_kwargs = copy.copy(kwargs['view'].kwargs)
-        link_kwargs['pk'] = instance.pk
-        url = reverse("application_detail", kwargs=link_kwargs)
-        return f'<a href="{url}">{instance.name}</a>'
-
-    def get_install_count(self, instance, **kwargs):
-        """Get the number of app installs filtered by access group"""
-        # Build a link to InventoryListView for install count badge.
-        link_kwargs = copy.copy(kwargs['view'].kwargs)
-        link_kwargs['application_id'] = instance.pk
-        url = reverse("inventory_list", kwargs=link_kwargs)
-
-        # Build the link.
-        anchor = '<a href="{}"><span class="badge">{}</span></a>'.format(
-            url, instance.install_count)
-        return anchor
-
-
 @class_login_required
 @class_access_required
 class ApplicationListView(DatatableView, GroupMixin):
     model = Application
     template_name = "inventory/application_list.html"
-    datatable_class = ApplicationList
+
+    class datatable_class(Datatable):
+
+        class Meta:
+            columns = ['name', 'bundleid', 'bundlename']
+            labels = {'bundleid': 'Bundle ID', 'bundlename': 'Bundle Name'}
+            processors = {'name': 'link_to_detail'}
+            structure_template = ("datatableview/bootstrap_structure.html",)
+            page_length = server.utils.get_setting('datatable_page_length')
+            cache_type = cache_types.PK_LIST
+
+        def link_to_detail(self, instance, **kwargs):
+            link_kwargs = copy.copy(kwargs['view'].kwargs)
+            link_kwargs['pk'] = instance.pk
+            url = reverse("application_detail", kwargs=link_kwargs)
+            return f'<a href="{url}">{instance.name}</a>'
 
     def get_queryset(self):
-        queryset = self.filter_queryset_by_group(self.model.objects).distinct()
+        queryset = self.filter_queryset_by_group(self.model.objects)
 
         crufty_bundles = []
 
@@ -317,16 +305,14 @@ class ApplicationListView(DatatableView, GroupMixin):
         # the python re module's syntax. You may delimit multiple
         # patterns with the '|' operator, e.g.:
         # 'com\.[aA]dobe.*|com\.apple\..*'
-        inventory_pattern = server.utils.get_setting('inventory_exclusion_pattern')
-
-        if inventory_pattern:
-            crufty_bundles.append(inventory_pattern)
+        if INVENTORY_PATTERN:
+            crufty_bundles.append(INVENTORY_PATTERN)
 
         # By default, Sal will filter out the apps proxied through
         # VMWare and Parallels VMs. If you would like to disable this,
         # set the SalSetting 'filter_proxied_virtualization_apps' to
         # 'no' or 'false' (it's a string).
-        if server.utils.get_setting('filter_proxied_virtualization_apps', True):
+        if FILTER_VIRTUAL:
             # Virtualization proxied apps
             crufty_bundles.extend([r"com\.vmware\.proxyApp\..*", r"com\.parallels\.winapp\..*"])
 
@@ -339,8 +325,7 @@ class ApplicationListView(DatatableView, GroupMixin):
         if crufty_pattern:
             queryset = queryset.exclude(bundleid__regex=crufty_pattern)
 
-        # Annotate the install counts in.
-        return queryset.annotate(install_count=Count('inventoryitem'))
+        return queryset
 
     def get_context_data(self, **kwargs):
         context = super(ApplicationListView, self).get_context_data(**kwargs)

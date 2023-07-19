@@ -33,6 +33,7 @@ from utils import text_utils
 
 INVENTORY_PATTERN = server.utils.get_setting('inventory_exclusion_pattern')
 FILTER_VIRTUAL = server.utils.get_setting('filter_proxied_virtualization_apps', True)
+SHOW_INSTALL_COUNTS = server.utils.get_setting('show_inventory_install_counts', True)
 
 ApplicationTuple = collections.namedtuple(
     'Application', ['name', 'bundleid', 'bundlename', 'install_count'])
@@ -291,6 +292,26 @@ class ApplicationListView(DatatableView, GroupMixin):
             link_kwargs['pk'] = instance.pk
             url = reverse("application_detail", kwargs=link_kwargs)
             return f'<a href="{url}">{instance.name}</a>'
+
+        def get_install_count(self, instance, **kwargs):
+            """Get the number of app installs filtered by access group"""
+            # Build a link to InventoryListView for install count badge.
+            link_kwargs = copy.copy(kwargs['view'].kwargs)
+            link_kwargs['application_id'] = instance.pk
+            url = reverse("inventory_list", kwargs=link_kwargs)
+            anchor = '<a href="{}"><span class="badge">{}</span></a>'.format(
+                url, instance.inventoryitem_set.count())
+            return anchor
+
+    def get_datatable(self):
+        datatable = super().get_datatable()
+        # Add the install count column dynamically.
+        # There is no conditional way to define class attributes at
+        # import time, so we add it here in this override.
+        if SHOW_INSTALL_COUNTS:
+            datatable.columns["install_count"] = DisplayColumn(
+                "Install Count", source='install_count', processor='get_install_count')
+        return datatable
 
     def get_queryset(self):
         queryset = self.filter_queryset_by_group(self.model.objects)

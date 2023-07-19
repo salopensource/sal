@@ -180,7 +180,7 @@ class CSVResponseMixin():
     header = []
 
     def get_csv_filename(self):
-        identifier = "_" + "_".join(self.components) if self.components else ""
+        identifier = "_" + "_".join(str(c) for c in self.components) if self.components else ""
         filename = "%s%s%s" % (self.csv_filename, identifier, self.csv_ext)
         return filename
 

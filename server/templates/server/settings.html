@@ -3,20 +3,6 @@
 {% load dashboard_extras %}
 {% load bootstrap3 %}
 
-{% block script %}
-<script type="text/javascript" charset="utf-8">
-    $(document).ready(function() {
-        $('.groupList').DataTable({
-            "lengthMenu": [[20, 50, -1], [20, 50, "All"]],
-            'columnDefs': [{
-                'orderable': false,
-                'targets': [-1, -2] /* 1st one, start by the right */
-            }]
-        });
-    } );
-</script>
-{% endblock %}
-
 {% block nav %}
         <li><a href="{% url 'home' %}"><i class="fa-chevron-left fa fa-fw"></i> Back</a></li>
         {% if user.is_staff %}

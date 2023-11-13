@@ -19,7 +19,7 @@ from django.views.generic import DetailView, View
 # 3rd Party Django
 from datatableview import Datatable
 from datatableview.datatables import cache_types
-from datatableview.columns import DisplayColumn
+from datatableview.columns import DisplayColumn, IntegerColumn
 from datatableview.views import DatatableView
 
 # local Django
@@ -278,9 +278,12 @@ class ApplicationListView(DatatableView, GroupMixin):
     template_name = "inventory/application_list.html"
 
     class datatable_class(Datatable):
+        install_count = IntegerColumn(
+            "Install Count", source='inventoryitem_set__count', processor='get_install_count'
+        )
 
         class Meta:
-            columns = ['name', 'bundleid', 'bundlename']
+            columns = ['name', 'bundleid', 'bundlename', 'install_count']
             labels = {'bundleid': 'Bundle ID', 'bundlename': 'Bundle Name'}
             processors = {'name': 'link_to_detail'}
             structure_template = ("datatableview/bootstrap_structure.html",)
@@ -308,9 +311,8 @@ class ApplicationListView(DatatableView, GroupMixin):
         # Add the install count column dynamically.
         # There is no conditional way to define class attributes at
         # import time, so we add it here in this override.
-        if SHOW_INSTALL_COUNTS:
-            datatable.columns["install_count"] = DisplayColumn(
-                "Install Count", source='install_count', processor='get_install_count')
+        if not SHOW_INSTALL_COUNTS:
+            del datatable.columns["install_count"]
         return datatable
 
     def get_queryset(self):

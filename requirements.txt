@@ -1,7 +1,7 @@
 -r setup/requirements.txt
-gunicorn==20.1.0
-psycopg2-binary==2.8.5
-gevent==21.1.2
-greenlet==1.1.0
+gunicorn==22.0.0
+psycopg2-binary==2.9.9
+gevent==24.2.1
+greenlet==3.0.3
 psycogreen==1.0.2
 supervisor==4.2.4

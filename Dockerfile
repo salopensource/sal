@@ -1,5 +1,5 @@
 # Sal Dockerfile
-FROM python:3.9.5-slim-buster
+FROM python:3.9.19-slim-bullseye
 
 MAINTAINER Graham Gilbert <graham@grahamgilbert.com>
 
@@ -24,6 +24,8 @@ RUN apt-get update && \
     apt-get install -y software-properties-common && \
     apt-get -y update && \
     apt-get -y install \
+    build-essential \
+    cron \
     git \
     gcc \
     nginx \

@@ -5,3 +5,4 @@ gevent==21.1.2
 greenlet==1.1.0
 psycogreen==1.0.2
 supervisor==4.2.4
+django-iam-dbauth==0.1.4

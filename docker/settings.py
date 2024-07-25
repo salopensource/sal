@@ -55,3 +55,33 @@ if host and port:
             'PORT': port,
         }
     }
+
+if 'AWS_IAM' in os.environ:
+    import requests
+    cert_bundle_url = 'https://truststore.pki.rds.amazonaws.com/global/global-bundle.pem'
+    cert_target_path = '/etc/ssl/certs/global-bundle.pem'
+
+    response = requests.get(cert_bundle_url)
+    if response.status_code == 200:
+        os.makedirs(os.path.dirname(cert_target_path), exist_ok=True)
+
+        with open(cert_target_path, 'wb') as file:
+            file.write(response.content)
+        print(f"AWS RDS cert bundle successfully downloaded and saved to {cert_target_path}")
+    else:
+        print(f"Failed to download AWS RDS cert bundle, status code: {response.status_code}")
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django_iam_dbauth.aws.postgresql',
+            'NAME': os.environ['DB_NAME'],
+            'USER': os.environ['DB_USER'],
+            'HOST': os.environ['DB_HOST'],
+            'PORT': os.environ['DB_PORT'],
+            'OPTIONS' : {
+                'region_name': os.environ['AWS_RDS_REGION'],
+                'sslmode': 'verify-full',
+                'sslrootcert': '/etc/ssl/certs/global-bundle.pem',
+                'use_iam_auth': True,
+            }
+        }
+    }

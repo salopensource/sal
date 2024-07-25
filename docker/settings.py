@@ -31,6 +31,14 @@ if 'MEMCACHED_PORT_11211_TCP_ADDR' in os.environ:
 host = None
 port = None
 
+if 'DB_HOST' in os.environ:
+    host = os.environ.get('DB_HOST')
+    port = os.environ.get('DB_PORT')
+
+elif 'DB_PORT_5432_TCP_ADDR' in os.environ:
+    host = os.environ.get('DB_PORT_5432_TCP_ADDR')
+    port = os.environ.get('DB_PORT_5432_TCP_PORT', '5432')
+
 if host and port:
     DATABASES = {
         'default': {

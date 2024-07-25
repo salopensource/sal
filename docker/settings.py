@@ -34,7 +34,7 @@ port = None
 if 'DB_USER' in os.environ:
     if 'DB_HOST' in os.environ:
         host = os.environ.get('DB_HOST')
-        port = os.environ.get('DB_PORT')
+        port = os.environ.get('DB_PORT', '5432')
 
     elif 'DB_PORT_5432_TCP_ADDR' in os.environ:
         host = os.environ.get('DB_PORT_5432_TCP_ADDR')

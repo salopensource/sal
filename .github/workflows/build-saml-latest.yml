@@ -7,7 +7,7 @@ on:
         - completed
 
 jobs:
-  build:
+  build-saml:
     runs-on: ubuntu-latest
     if: ${{ github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main' }}
     steps:

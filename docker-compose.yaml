@@ -9,14 +9,14 @@ services:
       - /tmp/postgresql/db:/var/lib/postgresql/data
     restart: always
     environment:
-        DB_NAME: sal
-        DB_USER: admin
-        DB_PASS: password
+      DB_NAME: sal
+      DB_USER: admin
+      DB_PASS: password
 
   sal:
     depends_on:
       - db
-    image: macadmins/sal
+    image: ghcr.io/salopensource/sal
     ports:
       - "80:8000"
     restart: always
@@ -27,4 +27,3 @@ services:
       DB_PASS: password
 volumes:
   db_data: {}
-

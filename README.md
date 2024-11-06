@@ -32,11 +32,11 @@ After re-ordering and hiding plugins from some screens, you might even want to m
 
 ## External Authentication
 
-There are variants of Sal that support both [SAML](https://hub.docker.com/r/macadmins/sal-saml/) and [LDAP](https://hub.docker.com/r/macadmins/sal-ldap/) authentication.
+There is a variant of Sal that supports [SAML](https://github.com/salopensource/sal/pkgs/container/sal-saml)authentication.
 
 ## Having problems?
 
-You should check out the [troubleshooting](https://github.com/salopensource/sal/wiki/Troubleshooting) page, consider getting in touch via the [Google group](http://groups.google.com/group/sal-discuss), or heading over the the #sal channel on the [macadmins.org Slack](http://macadmins.org).
+You should check out the [troubleshooting](https://github.com/salopensource/sal/wiki/Troubleshooting) page, consider heading over the the #sal channel on the [macadmins.org Slack](http://macadmins.org).
 
 ## API
 

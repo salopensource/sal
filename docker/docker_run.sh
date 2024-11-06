@@ -11,4 +11,4 @@ docker run -d \
     --restart="always" \
     -v "$CWD/sal.db":/home/docker/sal/db/sal.db \
     -p 8000:8000 \
-    macadmins/sal
+   ghcr.io/salopensource/sal:latest

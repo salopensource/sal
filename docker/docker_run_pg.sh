@@ -13,4 +13,4 @@ docker run -d \
     --link postgres-sal:db \
     --name=sal \
     -p 8000:8000 \
-    macadmins/sal
+    ghcr.io/salopensource/sal

@@ -1,0 +1,35 @@
+name: Build Tag
+
+on:
+    workflow_run:
+      workflows: ["Test"]
+      types:
+        - completed
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' && startsWith(github.event.workflow_run.head_commit.message, 'tag:') }}
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Checkout another repository
+      uses: actions/checkout@v2
+      with:
+        repository: salopensource/sal-saml
+        path: saml
+
+    - name: 'Login to GitHub Container Registry'
+      uses: docker/login-action@v1
+      with:
+        registry: ghcr.io
+        username: ${{github.actor}}
+        password: ${{secrets.GITHUB_TOKEN}}
+
+    - name: Build and Push Docker image
+      uses: docker/build-push-action@v6.9.0
+      with:
+        context: .
+        push: true
+        file: saml/Dockerfile.pristine
+        tags: ghcr.io/salopensource/sal-saml:${{  github.ref_name }}

@@ -31,9 +31,3 @@ jobs:
     - name: Run Linting
       run: |
         flake8
-
-    - name: Upload Test Reports
-      uses: actions/upload-artifact@v2
-      with:
-        name: test-reports
-        path: test-reports

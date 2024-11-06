@@ -1,3 +1,3 @@
 #!/bin/bash
 
-docker build -t "macadmins/sal" .
+docker build -t "ghcr.io/salopensource/sal" .

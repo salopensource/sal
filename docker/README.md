@@ -1,5 +1,3 @@
-# macadmins-sal
-
 This Docker image runs [Sal](https://github.com/salopensource/sal). The container expects a linked PostgreSQL database container.
 
 # Settings
@@ -51,7 +49,7 @@ $ docker run -d --name="postgres-sal" \
   grahamgilbert/postgres
 ```
 
-#Running the Sal Container
+# Running the Sal Container
 
 ```bash
 $ docker run -d --name="sal" \
@@ -62,7 +60,7 @@ $ docker run -d --name="sal" \
   -e DB_USER=admin \
   -e DB_PASS=password \
   --restart="always" \
-  macadmins/sal:2.0.1
+  ghcr.io/salopensource/sal:latest
 ```
 
 # Advanced usage
@@ -84,5 +82,5 @@ $ docker run -d --name="sal" \
   -e DB_USER=admin \
   -e DB_PASS=password \
   --restart="always" \
-  macadmins/sal:2.0.2
+  ghcr.io/salopensource/sal:latest
 ```

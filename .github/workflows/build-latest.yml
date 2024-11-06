@@ -1,15 +1,12 @@
 name: Build Latest
 
 on:
-  workflow_run:
-    workflows: ["Test"]
-    types:
-      - completed
+  release:
+    types: [published]
 
 jobs:
   build-latest:
     runs-on: ubuntu-latest
-    if: ${{ github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main' }}
     steps:
     - uses: actions/checkout@v2
 
@@ -27,10 +24,3 @@ jobs:
         context: .
         push: true
         tags: ghcr.io/salopensource/sal:latest
-    
-    - name: Generate artifact attestation
-      uses: actions/attest-build-provenance@v1
-      with:
-        subject-name: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME}}
-        subject-digest: ${{ steps.push.outputs.digest }}
-        push-to-registry: true

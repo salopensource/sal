@@ -1,15 +1,12 @@
 name: Build Tag
 
 on:
-  workflow_run:
-    workflows: ["Test"]
-    types:
-      - completed
+  release:
+    types: [published]
 
 jobs:
   build-tag:
     runs-on: ubuntu-latest
-    if: ${{ github.event.workflow_run.conclusion == 'success' && startsWith(github.event.workflow_run.head_commit.message, 'tag:') }}
     steps:
     - uses: actions/checkout@v2
 
@@ -27,10 +24,4 @@ jobs:
         context: .
         push: true
         tags: ghcr.io/salopensource/sal:${{  github.ref_name }}
-    
-    - name: Generate artifact attestation
-      uses: actions/attest-build-provenance@v1
-      with:
-        subject-name: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME}}
-        subject-digest: ${{ steps.push.outputs.digest }}
-        push-to-registry: true
+  

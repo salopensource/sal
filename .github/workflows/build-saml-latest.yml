@@ -1,8 +1,9 @@
 name: Build Latest SAML
 
 on:
-    release:
-      types: [published]
+    push:
+      branches:
+        - 'main'
       
 jobs:
   build-saml:

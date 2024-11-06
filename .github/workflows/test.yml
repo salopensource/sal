@@ -1,0 +1,33 @@
+name: Test
+
+on: push
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Set up Python
+      uses: actions/setup-python@v5.2.0
+      with:
+        python-version: 3.9
+
+    - name: Install dependencies
+      run: |
+        pip install -r setup/requirements.txt
+        pip install flake8
+
+    - name: Setup Test Environment
+      run: |
+        cp sal/example_settings.py sal/settings.py
+
+    - name: Run Tests
+      run: |
+        python manage.py test
+        python manage.py migrate
+
+    - name: Run Linting
+      run: |
+        flake8

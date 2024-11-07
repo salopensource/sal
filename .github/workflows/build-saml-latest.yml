@@ -29,6 +29,6 @@ jobs:
       uses: docker/build-push-action@v6.9.0
       with:
         context: saml
-        file: saml/Dockerfile.pristine
+        file: saml/Dockerfile
         push: true
         tags: ghcr.io/salopensource/sal-saml:latest

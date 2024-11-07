@@ -31,7 +31,7 @@ jobs:
         repository: salopensource/sal-saml
         path: saml
     
-    - name: Build and Push Docker image
+    - name: Build and Push SAML Docker image
       uses: docker/build-push-action@v6.9.0
       with:
         context: saml

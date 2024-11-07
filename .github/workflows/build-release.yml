@@ -23,17 +23,4 @@ jobs:
         context: .
         push: true
         tags: ghcr.io/salopensource/sal:${{  github.ref_name }}
-        
-    - name: Checkout another repository
-      uses: actions/checkout@v2
-      with:
-        repository: salopensource/sal-saml
-        path: saml
-
-    - name: Build and Push SAML Docker image
-      uses: docker/build-push-action@v6.9.0
-      with:
-        context: saml
-        push: true
-        file: saml/Dockerfile
-        tags: ghcr.io/salopensource/sal-saml:${{  github.ref_name }}
+      

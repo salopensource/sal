@@ -18,3 +18,4 @@ ulid2==0.2.0
 uritemplate==3.0.1
 urllib3==1.26.19
 Yapsy==1.12.2
+djangosaml2==0.18.1

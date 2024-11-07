@@ -3,7 +3,7 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
 from django.contrib.staticfiles import views
-from django.urls import path, include
+from django.urls import path, include, url
 
 admin.autodiscover()
 urlpatterns = []
@@ -36,3 +36,8 @@ urlpatterns += [
 
 if settings.DEBUG:
     urlpatterns.append(path("static/<path>", views.serve))
+
+if settings.USE_SAML:
+    urlpatterns += [
+        url(r"^saml2/", include("djangosaml2.urls")),
+    ]

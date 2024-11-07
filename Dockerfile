@@ -32,7 +32,10 @@ RUN apt-get update && \
     libpq-dev \
     python3-dev \
     curl \
-    libffi-dev && \
+    libffi-dev \
+    libxmlsec1-dev \
+    libxml2-dev \ 
+    xmlsec1 && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* && \
     mkdir /tmp/setup

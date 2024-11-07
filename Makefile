@@ -1,4 +1,4 @@
-DOCKER_USER=macadmins
+DOCKER_USER=ghr.io/salopensource
 ADMIN_PASS=pass
 SAL_PORT=8000
 DB_NAME=sal
@@ -17,7 +17,7 @@ DOCKER_RUN_COMMON=--name="$(NAME)" -p ${SAL_PORT}:8000 --link $(DB_CONTAINER_NAM
 all: build
 
 build:
-	docker build -t="${DOCKER_USER}/${NAME}" .
+	docker buildx build --platform linux/amd64 -t "${DOCKER_USER}/${NAME}" .
 
 build-nocache:
 	docker build --no-cache=true -t="${DOCKER_USER}/${NAME}" .

@@ -4,17 +4,19 @@ import os
 
 BASIC_AUTH = True
 
+USE_SAML = False
+
 DATABASES = {
-    'default': {
+    "default": {
         # Add 'postgresql_psycopg2', 'mysql', 'sqlite3' or 'oracle'.
-        'ENGINE': 'django.db.backends.sqlite3',
+        "ENGINE": "django.db.backends.sqlite3",
         # Or path to database file if using sqlite3.
-        'NAME': os.path.join(PROJECT_DIR, 'sal.db'),
+        "NAME": os.path.join(PROJECT_DIR, "sal.db"),
         # The following settings are not used with sqlite3:
-        'USER': '',
-        'PASSWORD': '',
+        "USER": "",
+        "PASSWORD": "",
         # Empty for localhost through domain sockets or '127.0.0.1' for localhost through TCP.
-        'HOST': '',
-        'PORT': '',                      # Set to empty string for default.
+        "HOST": "",
+        "PORT": "",  # Set to empty string for default.
     }
 }

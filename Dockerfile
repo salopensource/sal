@@ -58,6 +58,7 @@ COPY docker/run.sh /run.sh
 COPY docker/nginx/nginx-env.conf /etc/nginx/main.d/
 COPY docker/nginx/sal.conf /etc/nginx/sites-enabled/sal.conf
 COPY docker/nginx/nginx.conf /etc/nginx/nginx.conf
+COPY docker/attributemaps $APP_DIR/sal/attributemaps
 
 RUN chmod 755 /run.sh && \
     rm -f /etc/nginx/sites-enabled/default && \

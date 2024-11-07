@@ -19,9 +19,22 @@ jobs:
         password: ${{secrets.GITHUB_TOKEN}}
 
     - name: Build and Push Docker image
-      id: push
       uses: docker/build-push-action@v6.9.0
       with:
         context: .
         push: true
         tags: ghcr.io/salopensource/sal:latest
+    
+    - name: Checkout SAML repository
+      uses: actions/checkout@v2
+      with:
+        repository: salopensource/sal-saml
+        path: saml
+    
+    - name: Build and Push Docker image
+      uses: docker/build-push-action@v6.9.0
+      with:
+        context: saml
+        file: saml/Dockerfile
+        push: true
+        tags: ghcr.io/salopensource/sal-saml:latest

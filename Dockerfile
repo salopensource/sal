@@ -1,8 +1,6 @@
 # Sal Dockerfile
 FROM python:3.9.19-slim-bullseye
 
-MAINTAINER Graham Gilbert <graham@grahamgilbert.com>
-
 ENV HOME /root
 ENV DEBIAN_FRONTEND noninteractive
 ENV APPNAME Sal
@@ -69,8 +67,8 @@ RUN chmod 755 /run.sh && \
     touch $APP_DIR/sal.log &&\
     chmod 777 $APP_DIR/sal.log
 
-    #&& \
-    #find . -name $APP_DIR/\*.pyc -delete
+#&& \
+#find . -name $APP_DIR/\*.pyc -delete
 
 WORKDIR $APP_DIR
 EXPOSE 8000

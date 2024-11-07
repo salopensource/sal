@@ -29,5 +29,5 @@ jobs:
       with:
         context: saml
         push: true
-        file: saml/Dockerfile.pristine
+        file: saml/Dockerfile
         tags: ghcr.io/salopensource/sal-saml:${{  github.ref_name }}

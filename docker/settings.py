@@ -110,7 +110,10 @@ if USE_SAML:
     }
 
     logging_config = get_sal_logging_config()
-    level = "DEBUG" if DEBUG == True else "ERROR"
+    if DEBUG:
+        level = "DEBUG"
+    else:
+        level = "ERROR"
     logging_config["loggers"]["djangosaml2"] = {
         "propagate": False,
         "handlers": ["console"],

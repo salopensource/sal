@@ -64,7 +64,7 @@ docker run -d --name="sal" \
 -v /yourpath/metadata.xml:/home/docker/sal/sal/metadata.xml \
 -v /yourpath/settings.py:/home/docker/sal/sal/settings.py \
 --restart="always" \
-ghr.io/salopensource/sal:latest
+ghcr.io/salopensource/sal:latest
 ```
 
 ### Notes on OneLogin

@@ -1,4 +1,4 @@
-DOCKER_USER=ghr.io/salopensource
+DOCKER_USER=ghcr.io/salopensource
 ADMIN_PASS=pass
 SAL_PORT=8000
 DB_NAME=sal

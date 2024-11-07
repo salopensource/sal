@@ -3,7 +3,7 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
 from django.contrib.staticfiles import views
-from django.urls import path, include, url
+from django.urls import path, include, re_path
 
 admin.autodiscover()
 urlpatterns = []
@@ -39,5 +39,5 @@ if settings.DEBUG:
 
 if settings.USE_SAML:
     urlpatterns += [
-        url(r"^saml2/", include("djangosaml2.urls")),
+        re_path(r"^saml2/", include("djangosaml2.urls")),
     ]

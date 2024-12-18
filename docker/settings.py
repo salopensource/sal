@@ -109,6 +109,16 @@ if USE_SAML:
         "sn": ("last_name",),
     }
 
+    # Edit these lists to include the names of groups that should get
+    # the access levels below. See server/signals.py for more details.
+    # Leave blank to disable the group-based permissions feature.
+    SAML_READ_ONLY_GROUPS = []
+    SAML_READ_WRITE_GROUPS = []
+    SAML_GLOBAL_ADMIN_GROUPS = []
+    # Edit to match the attribute name used in your SAML assertions for
+    # group membership information.
+    SAML_GROUPS_ATTRIBUTE = 'memberOf'
+
     logging_config = get_sal_logging_config()
     if DEBUG:
         level = "DEBUG"
@@ -147,11 +157,13 @@ if USE_SAML:
                 "authn_requests_signed": False,
                 "allow_unsolicited": True,
                 "want_assertions_signed": True,
+                # Allow SAML assertions to contain attributes not specified in the
+                # attributemaps.
                 "allow_unknown_attributes": True,
                 "name": "Federated Django sample SP",
                 "name_id_format": NAMEID_FORMAT_PERSISTENT,
                 "endpoints": {
-                    # url and binding to the assetion consumer service view
+                    # url and binding to the assertion consumer service view
                     # do not change the binding or service name
                     "assertion_consumer_service": [
                         ("https://sal.example.com/saml2/acs/", saml2.BINDING_HTTP_POST),

@@ -42,7 +42,7 @@ _The following instructions are provided as a best effort to help get started. T
 
 ## settings.py changes you will certainly need to make
 
-- `USE_SAML` - Set this to `True` to enable SAML
+-  _**New if upgrading from Sal-SAML**_: `USE_SAML` - Set this to `True` to enable SAML
 - `SAML_ATTRIBUTE_MAPPING` (These values come from OpenLDAP, Active Directory, etc)
 - `SAML_CONFIG`
   - `entityid` Ex: <https://sal.example.com/saml2/metadata/>

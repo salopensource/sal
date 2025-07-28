@@ -54,6 +54,21 @@ _The following instructions are provided as a best effort to help get started. T
     - `single_sign_on_service` Ex: <https://apps.onelogin.com/trust/saml2/http-post/sso/1234567890>
     - `single_logout_service` Ex: <https://apps.onelogin.com/trust/saml2/http-redirect/slo/1234567890>
 
+## Using groups in the SAML assertion to assign Sal profiles
+Sal-saml adds a Django signal callback to act on group membership information passed in a SAML assertion during login. If you can configure your IdP to add group information, you can use it to automate the addition and revocation of permissions.
+
+To take advantage of this, edit the settings.py that comes with sal-saml for these preferences:
+- `SAML_GROUPS_ATTRIBUTE`: Default (`memberOf`) The assertion dict's key for the group membership attribute.
+- `SAML_READ_ONLY_GROUPS`: Default `[]` (empty list) List of groups who should be given read-only access.
+- `SAML_READ_WRITE_GROUPS`: Default `[]` (empty list) List of groups who should be given read-write access.
+- `SAML_GLOBAL_ADMIN_GROUPS` Default `[]` (empty list) List of groups who should be given global admin access. This includes access to the admin site.
+
+For example:
+```
+SAML_READ_ONLY_GROUPS = ['cn=regular_shorts_wearers,ou=memberOf,dc=blutwurst,dc=com', 'cn=nontraditional_pants_krew,ou=memberOf,dc=blutwurst,dc=com']
+SAML_GLOBAL_ADMIN_GROUPS` = ['cn=lederhosen_club,ou=memberOf,dc=blutwurst,dc=com']
+```
+
 ## An example Docker run
 
 Please note that this Docker run is **incomplete**, but shows where to pass the `metadata.xml` and `settings.py`. Also note, `latest` in the below run should not be used unless you have a real reason (needing a development version). When performing `docker run`, you should substitute `latest` for the latest tagged release.

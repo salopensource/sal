@@ -1,8 +1,8 @@
-Django==3.2.25
+Django==4.2.23
 django-bootstrap3==12.0.3
 django-debug-toolbar==3.2.1
 django-filter==2.4.0
-djangorestframework==3.11.2
+djangorestframework==3.16.0
 django-health-check==3.17.0
 django-datatable-view==2.1.6
 idna==3.7
@@ -13,7 +13,7 @@ python-dateutil==2.8.1
 pytz==2019.3
 PyYAML==6.0.1
 requests==2.32.3
-six==1.14.0
+six==1.17.0
 ulid2==0.2.0
 uritemplate==3.0.1
 urllib3==1.26.19

@@ -1,21 +1,23 @@
 # Sal Dockerfile
-FROM python:3.9.19-slim-bullseye
+# FROM python:3.13.5-slim-bookworm
+FROM python:3.11-slim-bookworm
 
-ENV HOME /root
-ENV DEBIAN_FRONTEND noninteractive
-ENV APPNAME Sal
-ENV APP_DIR /home/docker/sal
-ENV DOCKER_SAL_TZ Europe/London
-ENV DOCKER_SAL_ADMINS Docker User, docker@localhost
-ENV DOCKER_SAL_LANG en-us
-ENV DOCKER_SAL_DISPLAY_NAME Sal
-ENV DOCKER_SAL_DEBUG false
-ENV WAIT_FOR_POSTGRES false
-ENV MAINT_FREQUENCY 300
-ENV LC_ALL en_US.UTF-8
-# ENV DOCKERIZE_VERSION v0.3.0
+
+ENV HOME=/root
+ENV DEBIAN_FRONTEND=noninteractive
+ENV APPNAME=Sal
+ENV APP_DIR=/home/docker/sal
+ENV DOCKER_SAL_TZ=Europe/London
+ENV DOCKER_SAL_ADMINS="Docker User, docker@localhost"
+ENV DOCKER_SAL_LANG=en-us
+ENV DOCKER_SAL_DISPLAY_NAME=Sal
+ENV DOCKER_SAL_DEBUG=false
+ENV WAIT_FOR_POSTGRES=false
+ENV MAINT_FREQUENCY=300
+ENV LC_ALL=en_US.UTF-8
 
 RUN apt-get update && \
+    apt-get upgrade -y && \
     mkdir -p /usr/share/man/man1 && \
     mkdir -p /usr/share/man/man7 && \
     apt-get install -y libc-bin && \
@@ -34,7 +36,7 @@ RUN apt-get update && \
     curl \
     libffi-dev \
     libxmlsec1-dev \
-    libxml2-dev \ 
+    libxml2-dev \
     xmlsec1 && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* && \
@@ -71,8 +73,6 @@ RUN chmod 755 /run.sh && \
     touch $APP_DIR/sal.log &&\
     chmod 777 $APP_DIR/sal.log
 
-#&& \
-#find . -name $APP_DIR/\*.pyc -delete
 
 WORKDIR $APP_DIR
 EXPOSE 8000

@@ -1,5 +1,0 @@
-# Use a lightweight base image
-FROM alpine:latest
-
-# Set the command to execute
-CMD echo "This image is deprecated, use ghcr.io/salopensource/sal and set USE_SAML=True in your settings.py. See the README on https://github.com/salopensource/sal for more details." && exit 1

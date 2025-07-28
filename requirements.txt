@@ -1,8 +1,8 @@
 -r setup/requirements.txt
-gunicorn==22.0.0
-psycopg2-binary==2.9.9
-gevent==24.2.1
-greenlet==3.0.3
+gunicorn==23.0.0
+psycopg2-binary==2.9.10
+gevent==25.5.1
+greenlet==3.2.3
 psycogreen==1.0.2
-supervisor==4.2.4
-django-iam-dbauth==0.1.4
+supervisor==4.2.5
+django-iam-dbauth==0.2.1

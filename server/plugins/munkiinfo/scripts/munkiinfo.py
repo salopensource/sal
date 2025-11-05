@@ -4,8 +4,16 @@
 import sys
 
 import sal
-sys.path.append('/usr/local/munki')
-from munkilib import munkicommon
+
+from Foundation import CFPreferencesCopyAppValue, NSDate
+
+
+def munkiPref(pref_name):
+    pref_value = CFPreferencesCopyAppValue(pref_name, "ManagedInstalls")
+    if isinstance(pref_value, NSDate):
+        # convert NSDate/CFDates to strings
+        pref_value = str(pref_value)
+    return pref_value
 
 
 PREFS_TO_GET = (
@@ -60,7 +68,7 @@ def main():
             # Manual check: skipping MunkiInfo Plugin
             exit(0)
 
-    data = {pref: str(munkicommon.pref(pref)) for pref in PREFS_TO_GET}
+    data = {pref: str(munkiPref(pref)) for pref in PREFS_TO_GET}
     sal.add_plugin_results('MunkiInfo', data)
 
 
